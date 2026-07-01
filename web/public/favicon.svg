@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="100%" height="100%">
+  <defs>
+    <linearGradient id="blueGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1976D2" />
+      <stop offset="100%" stop-color="#0D3B66" />
+    </linearGradient>
+    <linearGradient id="greenGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#7AC943" />
+      <stop offset="100%" stop-color="#22B573" />
+    </linearGradient>
+  </defs>
+
+  <circle cx="60" cy="60" r="56" fill="#FFFFFF" stroke="#F1F5F9" stroke-width="2" />
+
+  <g transform="translate(10, 10)">
+    <!-- Left Pillar of M -->
+    <path d="M 20,90 C 20,35 45,35 45,60 L 45,90 Z" fill="url(#blueGrad)" />
+    <!-- Right Pillar of M -->
+    <path d="M 75,90 L 75,60 C 75,35 100,35 100,90 Z" fill="url(#blueGrad)" />
+    
+    <!-- Central V shape base -->
+    <path d="M 45,60 C 45,75 75,75 75,60" fill="none" stroke="url(#blueGrad)" stroke-width="10" stroke-linecap="round" />
+
+    <!-- Window Panes -->
+    <g transform="translate(54, 72)" fill="#1976D2">
+      <rect x="0" y="0" width="5" height="5" rx="0.5" />
+      <rect x="7" y="0" width="5" height="5" rx="0.5" />
+      <rect x="0" y="7" width="5" height="5" rx="0.5" />
+      <rect x="7" y="7" width="5" height="5" rx="0.5" />
+    </g>
+
+    <!-- Green Checkmark & Rising Arrow -->
+    <path d="M 38,55 L 59,76 L 96,38" fill="none" stroke="url(#greenGrad)" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" />
+    <path d="M 85,34 L 102,32 L 100,50 Z" fill="#22B573" />
+
+    <!-- Location Pin -->
+    <g transform="translate(50, 10)">
+      <path d="M 10,0 C 4.5,0 0,4.5 0,10 C 0,17 10,26 10,26 C 10,26 20,17 20,10 C 20,4.5 15.5,0 10,0 Z" fill="#22B573" />
+      <circle cx="10" cy="10" r="4" fill="#FFFFFF" />
+    </g>
+  </g>
+</svg>

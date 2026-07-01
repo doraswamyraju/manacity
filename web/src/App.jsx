@@ -12,11 +12,13 @@ function App() {
       textAlign: 'center'
     }}>
       <div className="glass-card" style={{ maxWidth: '600px', width: '100%' }}>
-        <h1 className="gradient-text" style={{ fontSize: '3rem', marginBottom: '1rem', fontWeight: 800 }}>
-          ManaCity
-        </h1>
+        <img 
+          src="/logo.svg" 
+          alt="ManaCity Logo" 
+          style={{ width: '80%', maxWidth: '350px', marginBottom: '1.5rem' }} 
+        />
         <p style={{ color: 'var(--text-secondary)', fontSize: '1.2rem', marginBottom: '2rem' }}>
-          Your ultimate SaaS platform for business growth, gamified tasks, and automated websites.
+          The Smart Business Growth Platform
         </p>
         <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
           <button className="btn btn-primary">Get Started</button>
