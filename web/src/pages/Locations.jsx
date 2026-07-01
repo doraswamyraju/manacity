@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { MapPin, Phone, Clock, Plus, Trash2, ArrowLeft, Briefcase, Award, Flame, CheckCircle, Circle, Target, Globe, MessageSquare, Star, Send, Copy, Share2 } from 'lucide-react';
+import { MapPin, Phone, Clock, Plus, Trash2, ArrowLeft, Briefcase, Award, Flame, CheckCircle, Circle, Target, Globe, MessageSquare, Star, Send, Copy, Share2, Users, ChevronRight, UserPlus, Info } from 'lucide-react';
 
 function Locations({ onBack }) {
   const [locations, setLocations] = useState([]);
@@ -14,7 +14,7 @@ function Locations({ onBack }) {
   const [tasksLoading, setTasksLoading] = useState(false);
 
   // Tab State
-  const [activeTab, setActiveTab] = useState('tasks'); // 'tasks', 'website', 'reviews'
+  const [activeTab, setActiveTab] = useState('tasks'); // 'tasks', 'website', 'reviews', 'crm'
 
   // Website Customizer States
   const [subdomain, setSubdomain] = useState('');
@@ -29,6 +29,10 @@ function Locations({ onBack }) {
   const [replyTemplates, setReplyTemplates] = useState([]);
   const [reviewReplyText, setReviewReplyText] = useState({});
   const [submittingReply, setSubmittingReply] = useState({});
+
+  // CRM Leads States
+  const [leads, setLeads] = useState([]);
+  const [updatingLeadStatus, setUpdatingLeadStatus] = useState({});
 
   // Wizard States
   const [wizardStep, setWizardStep] = useState(1);
@@ -99,10 +103,30 @@ function Locations({ onBack }) {
       const reviewRes = await axios.get(`/api/review/${loc.id}`);
       setReviews(reviewRes.data.reviews || []);
       setReplyTemplates(reviewRes.data.templates || []);
+
+      // 4. Fetch CRM leads
+      const crmRes = await axios.get(`/api/crm/${loc.id}`);
+      setLeads(crmRes.data.customers || []);
     } catch (err) {
       setError('Failed to fetch location details.');
     } finally {
       setTasksLoading(false);
+    }
+  };
+
+  const handleUpdateLeadPipeline = async (leadId, newPipeline) => {
+    setUpdatingLeadStatus(prev => ({ ...prev, [leadId]: true }));
+    try {
+      await axios.put(`/api/crm/${leadId}`, { pipeline: newPipeline });
+      
+      // Update local state
+      setLeads(prevLeads => 
+        prevLeads.map(l => l.id === leadId ? { ...l, pipeline: newPipeline } : l)
+      );
+    } catch (err) {
+      setError('Failed to update lead status.');
+    } finally {
+      setUpdatingLeadStatus(prev => ({ ...prev, [leadId]: false }));
     }
   };
 
@@ -114,7 +138,6 @@ function Locations({ onBack }) {
     try {
       await axios.post(`/api/review/reply/${reviewId}`, { replyText });
       
-      // Update local state
       setReviews(prevReviews => 
         prevReviews.map(r => r.id === reviewId ? { ...r, replyText, repliedAt: new Date() } : r)
       );
@@ -223,7 +246,7 @@ function Locations({ onBack }) {
   const publicReviewUrl = selectedLoc ? `http://manacity.in/review/${selectedLoc.id}` : '';
 
   return (
-    <div style={{ maxWidth: '950px', width: '100%', textAlign: 'left' }}>
+    <div style={{ maxWidth: '980px', width: '100%', textAlign: 'left' }}>
       {selectedLoc ? (
         <button 
           onClick={() => { setSelectedLoc(null); setTaskData(null); fetchLocations(); }}
@@ -258,56 +281,30 @@ function Locations({ onBack }) {
               <h2 style={{ fontSize: '2rem', fontWeight: 800, color: '#fff' }}>
                 Manage Location: <span className="gradient-text">{selectedLoc.name}</span>
               </h2>
-              <p style={{ color: 'var(--text-secondary)' }}>Configure layouts, optimization tasks, and review portals</p>
+              <p style={{ color: 'var(--text-secondary)' }}>Configure layouts, optimization tasks, and CRM leads</p>
             </div>
 
             {/* Sub-navigation Tabs */}
-            <div style={{ display: 'flex', gap: '0.5rem', background: 'rgba(255,255,255,0.03)', padding: '0.35rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)' }}>
-              <button 
-                onClick={() => setActiveTab('tasks')}
-                style={{
-                  padding: '0.5rem 0.75rem',
-                  borderRadius: 'var(--radius-sm)',
-                  border: 'none',
-                  backgroundColor: activeTab === 'tasks' ? 'var(--accent-primary)' : 'transparent',
-                  color: '#fff',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  fontSize: '0.85rem'
-                }}
-              >
-                Score & Tasks
-              </button>
-              <button 
-                onClick={() => setActiveTab('website')}
-                style={{
-                  padding: '0.5rem 0.75rem',
-                  borderRadius: 'var(--radius-sm)',
-                  border: 'none',
-                  backgroundColor: activeTab === 'website' ? 'var(--accent-primary)' : 'transparent',
-                  color: '#fff',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  fontSize: '0.85rem'
-                }}
-              >
-                Website Builder
-              </button>
-              <button 
-                onClick={() => setActiveTab('reviews')}
-                style={{
-                  padding: '0.5rem 0.75rem',
-                  borderRadius: 'var(--radius-sm)',
-                  border: 'none',
-                  backgroundColor: activeTab === 'reviews' ? 'var(--accent-primary)' : 'transparent',
-                  color: '#fff',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  fontSize: '0.85rem'
-                }}
-              >
-                Reviews Management
-              </button>
+            <div style={{ display: 'flex', gap: '0.4rem', background: 'rgba(255,255,255,0.03)', padding: '0.3rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)' }}>
+              {['tasks', 'website', 'reviews', 'crm'].map(tabName => (
+                <button 
+                  key={tabName}
+                  onClick={() => setActiveTab(tabName)}
+                  style={{
+                    padding: '0.5rem 0.65rem',
+                    borderRadius: 'var(--radius-sm)',
+                    border: 'none',
+                    backgroundColor: activeTab === tabName ? 'var(--accent-primary)' : 'transparent',
+                    color: '#fff',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    fontSize: '0.8rem',
+                    textTransform: 'capitalize'
+                  }}
+                >
+                  {tabName === 'crm' ? 'CRM Leads' : tabName}
+                </button>
+              ))}
             </div>
           </div>
 
@@ -375,7 +372,7 @@ function Locations({ onBack }) {
                 </div>
               </div>
 
-              {/* Right Panel Option 1: Tasks Checklist */}
+              {/* Right Panel Option 1: Tasks */}
               {activeTab === 'tasks' && (
                 <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   <h3 style={{ fontSize: '1.3rem', fontWeight: 700, marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -529,11 +526,10 @@ function Locations({ onBack }) {
                 </div>
               )}
 
-              {/* Right Panel Option 3: Reviews Management */}
+              {/* Right Panel Option 3: Reviews */}
               {activeTab === 'reviews' && (
                 <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                   
-                  {/* Share / Request Reviews Campaigns */}
                   <div style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '1.25rem' }}>
                     <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                       <Share2 size={18} style={{ color: 'var(--accent-secondary)' }} /> Review Request Campaigns
@@ -568,7 +564,6 @@ function Locations({ onBack }) {
                     </div>
                   </div>
 
-                  {/* Reviews List */}
                   <div>
                     <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                       <MessageSquare size={18} style={{ color: 'var(--accent-primary)' }} /> Customer Reviews ({reviews.length})
@@ -580,7 +575,7 @@ function Locations({ onBack }) {
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                         {reviews.map(rev => (
                           <div key={rev.id} style={{ padding: '1rem', backgroundColor: 'rgba(255,255,255,0.01)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                            <div style={{ display: 'flex', justifyContext: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
                               <div>
                                 <strong style={{ color: '#fff', fontSize: '0.95rem' }}>{rev.authorName}</strong>
                                 <span style={{
@@ -604,16 +599,13 @@ function Locations({ onBack }) {
                               "{rev.comment || 'No text comment left.'}"
                             </p>
 
-                            {/* Existing Reply */}
                             {rev.replyText ? (
                               <div style={{ marginLeft: '1rem', padding: '0.75rem', backgroundColor: 'rgba(25,118,210,0.04)', borderLeft: '3px solid var(--accent-primary)', borderRadius: '0 var(--radius-sm) var(--radius-sm) 0' }}>
                                 <strong style={{ fontSize: '0.85rem', color: 'var(--accent-primary)', display: 'block', marginBottom: '0.25rem' }}>Your Response:</strong>
                                 <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', margin: 0 }}>"{rev.replyText}"</p>
                               </div>
                             ) : (
-                              // Reply input & template selection
                               <div style={{ marginTop: '0.75rem' }}>
-                                {/* Templates */}
                                 <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', marginBottom: '0.5rem' }}>
                                   <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', alignSelf: 'center' }}>Templates:</span>
                                   {replyTemplates.filter(t => t.ratingMatch === null || t.ratingMatch === rev.rating).map(temp => (
@@ -623,7 +615,7 @@ function Locations({ onBack }) {
                                       style={{
                                         fontSize: '0.75rem',
                                         padding: '0.25rem 0.5rem',
-                                        backgroundColor: 'rgba(255,255,255,0.05)',
+                                        backgroundColor: 'rgba(25,255,255,0.05)',
                                         border: '1px solid var(--border-color)',
                                         borderRadius: '4px',
                                         color: 'var(--text-secondary)',
@@ -660,6 +652,70 @@ function Locations({ onBack }) {
                       </div>
                     )}
                   </div>
+
+                </div>
+              )}
+
+              {/* Right Panel Option 4: CRM Leads Management */}
+              {activeTab === 'crm' && (
+                <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                  <h3 style={{ fontSize: '1.3rem', fontWeight: 700, marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <Users size={18} style={{ color: 'var(--accent-success)' }} /> CRM Contacts & Pipeline
+                  </h3>
+                  <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '0.5rem' }}>
+                    Follow up on contact inquiries submitted directly from your generated websites.
+                  </p>
+
+                  {leads.length === 0 ? (
+                    <div style={{ textAlign: 'center', padding: '2rem 1rem' }}>
+                      <UserPlus size={36} style={{ color: 'var(--text-muted)', marginBottom: '0.5rem' }} />
+                      <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>No client leads captured yet.</p>
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                      {leads.map(lead => (
+                        <div key={lead.id} style={{ padding: '1rem', backgroundColor: 'rgba(255,255,255,0.01)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
+                            <div>
+                              <strong style={{ color: '#fff', fontSize: '1rem', display: 'block' }}>{lead.name}</strong>
+                              <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                                {lead.email} {lead.phone ? ` | ${lead.phone}` : ''}
+                              </span>
+                            </div>
+                            
+                            {/* Pipeline Status Dropdown selector */}
+                            <select
+                              value={lead.pipeline}
+                              disabled={updatingLeadStatus[lead.id]}
+                              onChange={(e) => handleUpdateLeadPipeline(lead.id, e.target.value)}
+                              style={{
+                                padding: '0.25rem 0.5rem',
+                                fontSize: '0.8rem',
+                                borderRadius: '4px',
+                                backgroundColor: 'var(--bg-secondary)',
+                                border: '1px solid var(--border-color)',
+                                color: lead.pipeline === 'CONVERTED' ? 'var(--accent-success)' : lead.pipeline === 'LOST' ? 'var(--accent-error)' : '#fff',
+                                cursor: 'pointer',
+                                outline: 'none'
+                              }}
+                            >
+                              <option value="LEAD">Lead</option>
+                              <option value="CONTACTED">Contacted</option>
+                              <option value="CONVERTED">Converted (Client)</option>
+                              <option value="LOST">Lost</option>
+                            </select>
+                          </div>
+
+                          {lead.notes && (
+                            <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'flex-start', fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '0.5rem', paddingTop: '0.5rem', borderTop: '1px solid rgba(255,255,255,0.03)' }}>
+                              <Info size={14} style={{ color: 'var(--accent-primary)', marginTop: '0.1rem' }} />
+                              <span>{lead.notes}</span>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
 
                 </div>
               )}
