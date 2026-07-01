@@ -13,6 +13,7 @@ const businessRoutes = require('./routes/businessRoutes');
 const subscriptionRoutes = require('./routes/subscriptionRoutes');
 const taskRoutes = require('./routes/taskRoutes');
 const websiteRoutes = require('./routes/websiteRoutes');
+const reviewRoutes = require('./routes/reviewRoutes');
 
 // Middleware
 app.use(cors());
@@ -24,6 +25,7 @@ app.use('/api/business', businessRoutes);
 app.use('/api/subscription', subscriptionRoutes);
 app.use('/api/task', taskRoutes);
 app.use('/api/website', websiteRoutes);
+app.use('/api/review', reviewRoutes);
 
 // Sample Test Route
 app.get('/', (req, res) => {

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { MapPin, Phone, Clock, Plus, Trash2, ArrowLeft, Briefcase, Award, Flame, CheckCircle, Circle, Target, Globe, Settings, ExternalLink } from 'lucide-react';
+import { MapPin, Phone, Clock, Plus, Trash2, ArrowLeft, Briefcase, Award, Flame, CheckCircle, Circle, Target, Globe, MessageSquare, Star, Send, Copy, Share2 } from 'lucide-react';
 
 function Locations({ onBack }) {
   const [locations, setLocations] = useState([]);
@@ -8,13 +8,13 @@ function Locations({ onBack }) {
   const [showWizard, setShowWizard] = useState(false);
   const [error, setError] = useState('');
 
-  // Selected location for gamification details view
+  // Selected location details view
   const [selectedLoc, setSelectedLoc] = useState(null);
   const [taskData, setTaskData] = useState(null);
   const [tasksLoading, setTasksLoading] = useState(false);
 
   // Tab State
-  const [activeTab, setActiveTab] = useState('tasks'); // 'tasks' or 'website'
+  const [activeTab, setActiveTab] = useState('tasks'); // 'tasks', 'website', 'reviews'
 
   // Website Customizer States
   const [subdomain, setSubdomain] = useState('');
@@ -23,6 +23,12 @@ function Locations({ onBack }) {
   const [siteDesc, setSiteDesc] = useState('');
   const [publishing, setPublishing] = useState(false);
   const [siteUrl, setSiteUrl] = useState('');
+
+  // Reviews States
+  const [reviews, setReviews] = useState([]);
+  const [replyTemplates, setReplyTemplates] = useState([]);
+  const [reviewReplyText, setReviewReplyText] = useState({});
+  const [submittingReply, setSubmittingReply] = useState({});
 
   // Wizard States
   const [wizardStep, setWizardStep] = useState(1);
@@ -88,11 +94,43 @@ function Locations({ onBack }) {
         setSiteDesc('');
         setSiteUrl('');
       }
+
+      // 3. Fetch reviews
+      const reviewRes = await axios.get(`/api/review/${loc.id}`);
+      setReviews(reviewRes.data.reviews || []);
+      setReplyTemplates(reviewRes.data.templates || []);
     } catch (err) {
       setError('Failed to fetch location details.');
     } finally {
       setTasksLoading(false);
     }
+  };
+
+  const handlePostReply = async (reviewId) => {
+    const replyText = reviewReplyText[reviewId];
+    if (!replyText) return;
+
+    setSubmittingReply(prev => ({ ...prev, [reviewId]: true }));
+    try {
+      await axios.post(`/api/review/reply/${reviewId}`, { replyText });
+      
+      // Update local state
+      setReviews(prevReviews => 
+        prevReviews.map(r => r.id === reviewId ? { ...r, replyText, repliedAt: new Date() } : r)
+      );
+      setReviewReplyText(prev => ({ ...prev, [reviewId]: '' }));
+    } catch (err) {
+      setError('Failed to submit review response.');
+    } finally {
+      setSubmittingReply(prev => ({ ...prev, [reviewId]: false }));
+    }
+  };
+
+  const handleApplyTemplate = (reviewId, templateText) => {
+    setReviewReplyText(prev => ({
+      ...prev,
+      [reviewId]: templateText
+    }));
   };
 
   const handleSaveWebsite = async (e) => {
@@ -182,8 +220,10 @@ function Locations({ onBack }) {
     }));
   };
 
+  const publicReviewUrl = selectedLoc ? `http://manacity.in/review/${selectedLoc.id}` : '';
+
   return (
-    <div style={{ maxWidth: '900px', width: '100%', textAlign: 'left' }}>
+    <div style={{ maxWidth: '950px', width: '100%', textAlign: 'left' }}>
       {selectedLoc ? (
         <button 
           onClick={() => { setSelectedLoc(null); setTaskData(null); fetchLocations(); }}
@@ -218,7 +258,7 @@ function Locations({ onBack }) {
               <h2 style={{ fontSize: '2rem', fontWeight: 800, color: '#fff' }}>
                 Manage Location: <span className="gradient-text">{selectedLoc.name}</span>
               </h2>
-              <p style={{ color: 'var(--text-secondary)' }}>Configure layouts, optimization tasks, and web portals</p>
+              <p style={{ color: 'var(--text-secondary)' }}>Configure layouts, optimization tasks, and review portals</p>
             </div>
 
             {/* Sub-navigation Tabs */}
@@ -226,14 +266,14 @@ function Locations({ onBack }) {
               <button 
                 onClick={() => setActiveTab('tasks')}
                 style={{
-                  padding: '0.5rem 1rem',
+                  padding: '0.5rem 0.75rem',
                   borderRadius: 'var(--radius-sm)',
                   border: 'none',
                   backgroundColor: activeTab === 'tasks' ? 'var(--accent-primary)' : 'transparent',
                   color: '#fff',
                   fontWeight: 600,
                   cursor: 'pointer',
-                  fontSize: '0.9rem'
+                  fontSize: '0.85rem'
                 }}
               >
                 Score & Tasks
@@ -241,17 +281,32 @@ function Locations({ onBack }) {
               <button 
                 onClick={() => setActiveTab('website')}
                 style={{
-                  padding: '0.5rem 1rem',
+                  padding: '0.5rem 0.75rem',
                   borderRadius: 'var(--radius-sm)',
                   border: 'none',
                   backgroundColor: activeTab === 'website' ? 'var(--accent-primary)' : 'transparent',
                   color: '#fff',
                   fontWeight: 600,
                   cursor: 'pointer',
-                  fontSize: '0.9rem'
+                  fontSize: '0.85rem'
                 }}
               >
                 Website Builder
+              </button>
+              <button 
+                onClick={() => setActiveTab('reviews')}
+                style={{
+                  padding: '0.5rem 0.75rem',
+                  borderRadius: 'var(--radius-sm)',
+                  border: 'none',
+                  backgroundColor: activeTab === 'reviews' ? 'var(--accent-primary)' : 'transparent',
+                  color: '#fff',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  fontSize: '0.85rem'
+                }}
+              >
+                Reviews Management
               </button>
             </div>
           </div>
@@ -363,7 +418,7 @@ function Locations({ onBack }) {
                 </div>
               )}
 
-              {/* Right Panel Option 2: Website Builder customizer */}
+              {/* Right Panel Option 2: Website Builder */}
               {activeTab === 'website' && (
                 <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                   <h3 style={{ fontSize: '1.3rem', fontWeight: 700, marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -474,6 +529,141 @@ function Locations({ onBack }) {
                 </div>
               )}
 
+              {/* Right Panel Option 3: Reviews Management */}
+              {activeTab === 'reviews' && (
+                <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                  
+                  {/* Share / Request Reviews Campaigns */}
+                  <div style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '1.25rem' }}>
+                    <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <Share2 size={18} style={{ color: 'var(--accent-secondary)' }} /> Review Request Campaigns
+                    </h3>
+                    <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '1rem' }}>
+                      Copy your public feedback portal URL to collect customer ratings:
+                    </p>
+
+                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                      <input 
+                        type="text" 
+                        readOnly 
+                        value={publicReviewUrl} 
+                        style={{ ...inputStyle, flex: 1 }}
+                      />
+                      <button 
+                        className="btn btn-primary" 
+                        onClick={() => { navigator.clipboard.writeText(publicReviewUrl); alert('Feedback link copied!'); }}
+                        style={{ padding: '0.75rem 1rem' }}
+                      >
+                        <Copy size={16} />
+                      </button>
+                      <a 
+                        href={`https://wa.me/?text=Hi!%20Could%20you%20please%20take%2030%20seconds%20to%20rate%20your%20experience%20with%20us?%20Click%20here:%20${encodeURIComponent(publicReviewUrl)}`} 
+                        target="_blank" 
+                        rel="noreferrer"
+                        className="btn btn-secondary"
+                        style={{ padding: '0.75rem 1rem', textDecoration: 'none' }}
+                      >
+                        WhatsApp
+                      </a>
+                    </div>
+                  </div>
+
+                  {/* Reviews List */}
+                  <div>
+                    <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <MessageSquare size={18} style={{ color: 'var(--accent-primary)' }} /> Customer Reviews ({reviews.length})
+                    </h3>
+
+                    {reviews.length === 0 ? (
+                      <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', textAlign: 'center', padding: '1rem' }}>No reviews posted yet. Share your portal link to gather ratings!</p>
+                    ) : (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                        {reviews.map(rev => (
+                          <div key={rev.id} style={{ padding: '1rem', backgroundColor: 'rgba(255,255,255,0.01)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                              <div>
+                                <strong style={{ color: '#fff', fontSize: '0.95rem' }}>{rev.authorName}</strong>
+                                <span style={{
+                                  fontSize: '0.7rem',
+                                  marginLeft: '0.5rem',
+                                  padding: '0.1rem 0.4rem',
+                                  borderRadius: 'var(--radius-full)',
+                                  fontWeight: 600,
+                                  backgroundColor: rev.sentiment === 'positive' ? 'rgba(16,185,129,0.15)' : rev.sentiment === 'negative' ? 'rgba(239,68,68,0.15)' : 'rgba(245,158,11,0.15)',
+                                  color: rev.sentiment === 'positive' ? 'var(--accent-success)' : rev.sentiment === 'negative' ? 'var(--accent-error)' : 'var(--accent-warning)'
+                                }}>
+                                  {rev.sentiment.toUpperCase()}
+                                </span>
+                              </div>
+                              <div style={{ display: 'flex', color: '#f59e0b' }}>
+                                {'★'.repeat(rev.rating)}
+                              </div>
+                            </div>
+
+                            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '0.75rem' }}>
+                              "{rev.comment || 'No text comment left.'}"
+                            </p>
+
+                            {/* Existing Reply */}
+                            {rev.replyText ? (
+                              <div style={{ marginLeft: '1rem', padding: '0.75rem', backgroundColor: 'rgba(25,118,210,0.04)', borderLeft: '3px solid var(--accent-primary)', borderRadius: '0 var(--radius-sm) var(--radius-sm) 0' }}>
+                                <strong style={{ fontSize: '0.85rem', color: 'var(--accent-primary)', display: 'block', marginBottom: '0.25rem' }}>Your Response:</strong>
+                                <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', margin: 0 }}>"{rev.replyText}"</p>
+                              </div>
+                            ) : (
+                              // Reply input & template selection
+                              <div style={{ marginTop: '0.75rem' }}>
+                                {/* Templates */}
+                                <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', marginBottom: '0.5rem' }}>
+                                  <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', alignSelf: 'center' }}>Templates:</span>
+                                  {replyTemplates.filter(t => t.ratingMatch === null || t.ratingMatch === rev.rating).map(temp => (
+                                    <button 
+                                      key={temp.id}
+                                      onClick={() => handleApplyTemplate(rev.id, temp.content)}
+                                      style={{
+                                        fontSize: '0.75rem',
+                                        padding: '0.25rem 0.5rem',
+                                        backgroundColor: 'rgba(255,255,255,0.05)',
+                                        border: '1px solid var(--border-color)',
+                                        borderRadius: '4px',
+                                        color: 'var(--text-secondary)',
+                                        cursor: 'pointer'
+                                      }}
+                                    >
+                                      {temp.title}
+                                    </button>
+                                  ))}
+                                </div>
+
+                                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                  <input 
+                                    type="text" 
+                                    value={reviewReplyText[rev.id] || ''} 
+                                    onChange={(e) => setReviewReplyText(prev => ({ ...prev, [rev.id]: e.target.value }))}
+                                    placeholder="Type a response to this review..."
+                                    style={{ ...inputStyle, padding: '0.5rem 0.75rem', fontSize: '0.85rem', flex: 1 }}
+                                  />
+                                  <button 
+                                    className="btn btn-primary"
+                                    disabled={submittingReply[rev.id]}
+                                    onClick={() => handlePostReply(rev.id)}
+                                    style={{ padding: '0.5rem 1rem' }}
+                                  >
+                                    <Send size={14} />
+                                  </button>
+                                </div>
+                              </div>
+                            )}
+
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                </div>
+              )}
+
             </div>
           )}
         </div>
@@ -572,7 +762,7 @@ function Locations({ onBack }) {
       {/* LOCATION CREATION WIZARD */}
       {showWizard && (
         <div className="glass-card" style={{ padding: '2.5rem' }}>
-          <div style={{ display: 'flex', justifyContext: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
             <h3 style={{ fontSize: '1.4rem', fontWeight: 700 }}>Step {wizardStep} of 3: {
               wizardStep === 1 ? 'Primary Information' : 
               wizardStep === 2 ? 'Contact Details' : 

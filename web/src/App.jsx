@@ -4,14 +4,23 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Locations from './pages/Locations';
 import Billing from './pages/Billing';
+import ReviewSubmit from './pages/ReviewSubmit';
 
 function App() {
   const [view, setView] = useState('login'); // login, register, dashboard, locations, billing
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // Check if the current route is the public review landing page
+  const isReviewPage = window.location.pathname.startsWith('/review/');
+
   // Auto-authenticate with stored token
   useEffect(() => {
+    if (isReviewPage) {
+      setLoading(false);
+      return;
+    }
+
     const token = localStorage.getItem('token');
     const savedUser = localStorage.getItem('user');
 
@@ -37,7 +46,7 @@ function App() {
     } else {
       setLoading(false);
     }
-  }, []);
+  }, [isReviewPage]);
 
   const handleAuthSuccess = (authenticatedUser) => {
     setUser(authenticatedUser);
@@ -64,6 +73,11 @@ function App() {
         <h2>Loading ManaCity...</h2>
       </div>
     );
+  }
+
+  // Render public reviews portal directly
+  if (isReviewPage) {
+    return <ReviewSubmit />;
   }
 
   return (
