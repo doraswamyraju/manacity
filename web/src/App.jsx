@@ -5,9 +5,10 @@ import Register from './pages/Register';
 import Locations from './pages/Locations';
 import Billing from './pages/Billing';
 import ReviewSubmit from './pages/ReviewSubmit';
+import AdminDashboard from './pages/AdminDashboard';
 
 function App() {
-  const [view, setView] = useState('login'); // login, register, dashboard, locations, billing
+  const [view, setView] = useState('login'); // login, register, dashboard, locations, billing, admin
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -112,6 +113,10 @@ function App() {
         <Billing onBack={() => setView('dashboard')} />
       )}
 
+      {view === 'admin' && (
+        <AdminDashboard onBack={() => setView('dashboard')} />
+      )}
+
       {view === 'dashboard' && user && (
         <div className="glass-card" style={{ maxWidth: '500px', width: '100%', padding: '2.5rem' }}>
           <img 
@@ -143,6 +148,12 @@ function App() {
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', width: '100%' }}>
+            {user.role === 'SUPER_ADMIN' && (
+              <button className="btn btn-primary" onClick={() => setView('admin')} style={{ width: '100%', backgroundColor: 'var(--accent-secondary)', borderColor: 'var(--accent-secondary)' }}>
+                Super Admin Console
+              </button>
+            )}
+            
             <button className="btn btn-primary" onClick={() => setView('locations')} style={{ width: '100%' }}>
               Setup Business Location
             </button>
