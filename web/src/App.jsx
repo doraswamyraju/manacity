@@ -2,9 +2,10 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import Locations from './pages/Locations';
 
 function App() {
-  const [view, setView] = useState('login'); // login, register, dashboard
+  const [view, setView] = useState('login'); // login, register, dashboard, locations
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -88,6 +89,10 @@ function App() {
         />
       )}
 
+      {view === 'locations' && (
+        <Locations onBack={() => setView('dashboard')} />
+      )}
+
       {view === 'dashboard' && user && (
         <div className="glass-card" style={{ maxWidth: '500px', width: '100%', padding: '2.5rem' }}>
           <img 
@@ -119,7 +124,7 @@ function App() {
           </div>
 
           <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
-            <button className="btn btn-primary" onClick={() => alert('Proceeding to Business setup...')}>
+            <button className="btn btn-primary" onClick={() => setView('locations')}>
               Setup Business Location
             </button>
             <button className="btn btn-secondary" onClick={handleLogout}>

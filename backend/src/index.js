@@ -9,6 +9,7 @@ const PORT = process.env.PORT || 5009;
 
 // Routes
 const authRoutes = require('./routes/authRoutes');
+const businessRoutes = require('./routes/businessRoutes');
 
 // Middleware
 app.use(cors());
@@ -16,6 +17,7 @@ app.use(express.json());
 
 // Mount Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/business', businessRoutes);
 
 // Sample Test Route
 app.get('/', (req, res) => {
