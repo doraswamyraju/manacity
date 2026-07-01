@@ -11,6 +11,7 @@ const PORT = process.env.PORT || 5009;
 const authRoutes = require('./routes/authRoutes');
 const businessRoutes = require('./routes/businessRoutes');
 const subscriptionRoutes = require('./routes/subscriptionRoutes');
+const taskRoutes = require('./routes/taskRoutes');
 
 // Middleware
 app.use(cors());
@@ -20,6 +21,7 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/business', businessRoutes);
 app.use('/api/subscription', subscriptionRoutes);
+app.use('/api/task', taskRoutes);
 
 // Sample Test Route
 app.get('/', (req, res) => {

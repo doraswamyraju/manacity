@@ -1,12 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { MapPin, Phone, Clock, Plus, Trash2, ArrowLeft, Briefcase, Award } from 'lucide-react';
+import { MapPin, Phone, Clock, Plus, Trash2, ArrowLeft, Briefcase, Award, Flame, CheckCircle, Circle, Target } from 'lucide-react';
 
 function Locations({ onBack }) {
   const [locations, setLocations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showWizard, setShowWizard] = useState(false);
   const [error, setError] = useState('');
+
+  // Selected location for gamification details view
+  const [selectedLoc, setSelectedLoc] = useState(null);
+  const [taskData, setTaskData] = useState(null);
+  const [tasksLoading, setTasksLoading] = useState(false);
 
   // Wizard States
   const [wizardStep, setWizardStep] = useState(1);
@@ -36,13 +41,26 @@ function Locations({ onBack }) {
     setLoading(true);
     try {
       const response = await axios.get('/api/business');
-      // Extract locations array from first business group
       const group = response.data.businessGroups?.[0];
       setLocations(group?.locations || []);
     } catch (err) {
       setError('Could not load locations.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadLocationTasks = async (loc) => {
+    setSelectedLoc(loc);
+    setTasksLoading(true);
+    setError('');
+    try {
+      const response = await axios.get(`/api/task/${loc.id}`);
+      setTaskData(response.data);
+    } catch (err) {
+      setError('Failed to fetch tasks details.');
+    } finally {
+      setTasksLoading(false);
     }
   };
 
@@ -78,7 +96,6 @@ function Locations({ onBack }) {
       setShowWizard(false);
       setWizardStep(1);
       
-      // Refresh list
       fetchLocations();
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to register location.');
@@ -110,23 +127,19 @@ function Locations({ onBack }) {
   };
 
   return (
-    <div style={{ maxWidth: '800px', width: '100%', textAlign: 'left' }}>
-      <button 
-        onClick={onBack}
-        style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: '0.5rem',
-          backgroundColor: 'transparent',
-          border: 'none',
-          color: 'var(--text-secondary)',
-          cursor: 'pointer',
-          marginBottom: '1.5rem',
-          fontSize: '0.95rem'
-        }}
-      >
-        <ArrowLeft size={16} /> Back to Dashboard
-      </button>
+    <div style={{ maxWidth: '900px', width: '100%', textAlign: 'left' }}>
+      {selectedLoc ? (
+        <button 
+          onClick={() => { setSelectedLoc(null); setTaskData(null); fetchLocations(); }}
+          style={backBtnStyle}
+        >
+          <ArrowLeft size={16} /> Back to Locations List
+        </button>
+      ) : (
+        <button onClick={onBack} style={backBtnStyle}>
+          <ArrowLeft size={16} /> Back to Dashboard
+        </button>
+      )}
 
       {error && (
         <div style={{
@@ -141,12 +154,138 @@ function Locations({ onBack }) {
         </div>
       )}
 
-      {!showWizard ? (
+      {/* GAMIFICATION / TASKS VIEW */}
+      {selectedLoc && (
+        <div>
+          <div style={{ marginBottom: '2rem' }}>
+            <h2 style={{ fontSize: '2rem', fontWeight: 800, color: '#fff' }}>
+              Gamified Tracker: <span className="gradient-text">{selectedLoc.name}</span>
+            </h2>
+            <p style={{ color: 'var(--text-secondary)' }}>Complete setups, earn XP points, and level up your business ranking</p>
+          </div>
+
+          {tasksLoading ? (
+            <p style={{ color: 'var(--text-secondary)' }}>Loading tasks and metrics...</p>
+          ) : taskData && (
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: '2rem' }}>
+              
+              {/* Left Panel: Score and Levels */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                {/* Profile Score Card */}
+                <div className="glass-card" style={{ textAlign: 'center', padding: '2rem' }}>
+                  <div style={{ position: 'relative', width: '120px', height: '120px', margin: '0 auto 1.5rem' }}>
+                    <svg width="120" height="120" viewBox="0 0 120 120">
+                      <circle cx="60" cy="60" r="50" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="10" />
+                      <circle 
+                        cx="60" 
+                        cy="60" 
+                        r="50" 
+                        fill="none" 
+                        stroke="url(#greenGrad)" 
+                        strokeWidth="10" 
+                        strokeDasharray="314" 
+                        strokeDashoffset={314 - (314 * taskData.score) / 100}
+                        strokeLinecap="round"
+                        transform="rotate(-90 60 60)" 
+                      />
+                    </svg>
+                    <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', textAlign: 'center' }}>
+                      <span style={{ fontSize: '1.8rem', fontWeight: 800, color: '#fff' }}>{taskData.score}%</span>
+                      <span style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-muted)' }}>Score</span>
+                    </div>
+                  </div>
+                  <h4 style={{ fontWeight: 600, fontSize: '1.1rem', marginBottom: '0.25rem' }}>Profile Completeness</h4>
+                  <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Fill in all location specs to maximize your ranking index.</p>
+                </div>
+
+                {/* Level Progress Card */}
+                <div className="glass-card">
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <Award size={20} style={{ color: 'var(--accent-primary)' }} />
+                      <span style={{ fontWeight: 700, fontSize: '1.1rem' }}>Level {taskData.level}</span>
+                    </div>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{taskData.xp} / {taskData.nextLevelXp} XP</span>
+                  </div>
+                  
+                  {/* Progress Bar */}
+                  <div style={{ width: '100%', height: '8px', backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 'var(--radius-full)', overflow: 'hidden', marginBottom: '1.5rem' }}>
+                    <div style={{ width: `${(taskData.xp % 100)}%`, height: '100%', backgroundColor: 'var(--accent-primary)', borderRadius: 'var(--radius-full)' }}></div>
+                  </div>
+
+                  {/* Streak and Badges */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '1rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <Flame size={18} style={{ color: 'var(--accent-warning)' }} />
+                      <div>
+                        <span style={{ display: 'block', fontSize: '0.9rem', fontWeight: 700 }}>{taskData.streak} Days</span>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Active Streak</span>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      {/* Level Badges */}
+                      <span title="Seed badge unlocked" style={{ fontSize: '1.25rem', opacity: taskData.level >= 1 ? 1 : 0.2 }}>🌱</span>
+                      <span title="Branch badge unlocked" style={{ fontSize: '1.25rem', opacity: taskData.level >= 2 ? 1 : 0.2 }}>🌿</span>
+                      <span title="City builder badge unlocked" style={{ fontSize: '1.25rem', opacity: taskData.level >= 3 ? 1 : 0.2 }}>🏙️</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Panel: Tasks Checklist */}
+              <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <h3 style={{ fontSize: '1.3rem', fontWeight: 700, marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <Target size={18} style={{ color: 'var(--accent-secondary)' }} /> Profile Optimization Tasks
+                </h3>
+
+                {taskData.tasks.map(task => (
+                  <div 
+                    key={task.id} 
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '1rem',
+                      borderRadius: 'var(--radius-sm)',
+                      backgroundColor: task.completed ? 'rgba(16, 185, 129, 0.04)' : 'rgba(255,255,255,0.01)',
+                      border: task.completed ? '1px solid rgba(16, 185, 129, 0.15)' : '1px solid var(--border-color)',
+                      transition: 'all 0.2s'
+                    }}
+                  >
+                    <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
+                      {task.completed ? (
+                        <CheckCircle size={20} style={{ color: 'var(--accent-success)', marginTop: '0.1rem' }} />
+                      ) : (
+                        <Circle size={20} style={{ color: 'var(--text-muted)', marginTop: '0.1rem' }} />
+                      )}
+                      <div>
+                        <h4 style={{ fontWeight: 600, fontSize: '0.95rem', color: task.completed ? 'var(--text-muted)' : '#fff', textDecoration: task.completed ? 'line-through' : 'none' }}>
+                          {task.title}
+                        </h4>
+                        <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{task.description}</p>
+                      </div>
+                    </div>
+
+                    <div style={{ fontSize: '0.85rem', fontWeight: 600, color: task.completed ? 'var(--text-muted)' : 'var(--accent-primary)' }}>
+                      +{task.xpReward} XP
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* CORE LOCATIONS LIST */}
+      {!selectedLoc && !showWizard && (
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
             <div>
               <h2 style={{ fontSize: '2rem', fontWeight: 700, color: '#fff' }}>Business Locations</h2>
-              <p style={{ color: 'var(--text-secondary)' }}>Manage your corporate branches and physical outlets</p>
+              <p style={{ color: 'var(--text-secondary)' }}>Manage your branches and view optimization rankings</p>
             </div>
             <button className="btn btn-primary" onClick={() => setShowWizard(true)}>
               <Plus size={18} /> Add Location
@@ -196,7 +335,10 @@ function Locations({ onBack }) {
                   </div>
 
                   <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-                    {/* Gamified Stats Preview */}
+                    <button className="btn btn-secondary" onClick={() => loadLocationTasks(loc)}>
+                      Tasks & Score
+                    </button>
+                    
                     <div style={{ textAlign: 'right' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--accent-success)', fontWeight: 600, fontSize: '0.9rem' }}>
                         <Award size={16} /> Level {loc.level}
@@ -225,9 +367,11 @@ function Locations({ onBack }) {
             </div>
           )}
         </div>
-      ) : (
+      )}
+
+      {/* LOCATION CREATION WIZARD */}
+      {showWizard && (
         <div className="glass-card" style={{ padding: '2.5rem' }}>
-          {/* Progress Header */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
             <h3 style={{ fontSize: '1.4rem', fontWeight: 700 }}>Step {wizardStep} of 3: {
               wizardStep === 1 ? 'Primary Information' : 
@@ -237,7 +381,6 @@ function Locations({ onBack }) {
             <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Registration Wizard</span>
           </div>
 
-          {/* STEP 1: Basic Info */}
           {wizardStep === 1 && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
@@ -273,7 +416,6 @@ function Locations({ onBack }) {
             </div>
           )}
 
-          {/* STEP 2: Address & Phone */}
           {wizardStep === 2 && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
@@ -327,7 +469,6 @@ function Locations({ onBack }) {
             </div>
           )}
 
-          {/* STEP 3: Weekly Hours Scheduler */}
           {wizardStep === 3 && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '1rem' }}>Define working days and office hours for this location:</p>
@@ -377,6 +518,18 @@ function Locations({ onBack }) {
     </div>
   );
 }
+
+const backBtnStyle = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: '0.5rem',
+  backgroundColor: 'transparent',
+  border: 'none',
+  color: 'var(--text-secondary)',
+  cursor: 'pointer',
+  marginBottom: '1.5rem',
+  fontSize: '0.95rem'
+};
 
 const inputStyle = {
   padding: '0.75rem 1rem',
