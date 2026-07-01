@@ -15,11 +15,8 @@ function App() {
         <img 
           src="/logo.svg" 
           alt="ManaCity Logo" 
-          style={{ width: '80%', maxWidth: '350px', marginBottom: '1.5rem' }} 
+          style={{ width: '90%', maxWidth: '420px', marginBottom: '2rem' }} 
         />
-        <p style={{ color: 'var(--text-secondary)', fontSize: '1.2rem', marginBottom: '2rem' }}>
-          The Smart Business Growth Platform
-        </p>
         <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
           <button className="btn btn-primary">Get Started</button>
           <button className="btn btn-secondary">Documentation</button>
