@@ -1,0 +1,179 @@
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  SUPER_ADMIN
+  BUSINESS_OWNER
+}
+
+model User {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  email         String   @unique
+  passwordHash  String
+  name          String
+  role          Role     @default(BUSINESS_OWNER)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  // Relations
+  businessGroups BusinessGroup[]
+}
+
+model BusinessGroup {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  ownerId     String   @db.ObjectId
+  owner       User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  locations     Location[]
+  subscriptions Subscription[]
+}
+
+enum SubscriptionTier {
+  FREE
+  STARTER
+  GROWTH
+  PREMIUM
+  AGENCY
+  ENTERPRISE
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  TRIAL
+}
+
+model Subscription {
+  id              String             @id @default(auto()) @map("_id") @db.ObjectId
+  businessGroupId String             @db.ObjectId
+  businessGroup   BusinessGroup      @relation(fields: [businessGroupId], references: [id], onDelete: Cascade)
+  tier            SubscriptionTier   @default(FREE)
+  status          SubscriptionStatus @default(ACTIVE)
+  expiresAt       DateTime?
+  locationLimit   Int                @default(1)
+  websiteLimit    Int                @default(1)
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+}
+
+model Location {
+  id              String        @id @default(auto()) @map("_id") @db.ObjectId
+  businessGroupId String        @db.ObjectId
+  businessGroup   BusinessGroup @relation(fields: [businessGroupId], references: [id], onDelete: Cascade)
+  name            String
+  address         String?
+  city            String?
+  country         String?
+  phone           String?
+  category        String?
+  hours           Json?         // Operating hours
+  socialLinks     Json?         // Social links
+  xp              Int           @default(0)
+  level           Int           @default(1)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  // Relations
+  websites      Website[]
+  reviews       Review[]
+  taskProgress  TaskProgress[]
+  customers     Customer[]
+}
+
+enum TaskCategory {
+  PROFILE
+  ACTIVITY
+  TRUST
+  REVIEWS
+  WEBSITE
+  PHOTOS
+}
+
+model Task {
+  id          String       @id @default(auto()) @map("_id") @db.ObjectId
+  title       String
+  description String
+  xpReward    Int
+  category    TaskCategory
+  triggerCondition String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  // Relations
+  progress    TaskProgress[]
+}
+
+model TaskProgress {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  locationId  String    @db.ObjectId
+  location    Location  @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  taskId      String    @db.ObjectId
+  task        Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  completed   Boolean   @default(false)
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([locationId, taskId])
+}
+
+model Review {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  locationId  String    @db.ObjectId
+  location    Location  @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  authorName  String
+  rating      Int       // 1 to 5
+  comment     String?
+  sentiment   String?   // positive, neutral, negative
+  replyText   String?
+  repliedAt   DateTime?
+  source      String    @default("MANUAL") // MANUAL, GOOGLE
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model ReplyTemplate {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  title       String
+  content     String
+  ratingMatch Int?     // Match specific ratings (e.g. only 5-star reviews)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Website {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  locationId  String   @db.ObjectId
+  location    Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  subdomain   String   @unique
+  customDomain String? @unique
+  template    String   // e.g. "hotel", "tour", "homestay"
+  config      Json     // Styling configuration, header colors, banner images
+  pagesJson   Json     // Content sections and custom pages structure
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Customer {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  locationId  String   @db.ObjectId
+  location    Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  name        String
+  email       String?
+  phone       String?
+  notes       String?
+  pipeline    String   @default("LEAD") // LEAD, CONTACTED, CONVERTED, LOST
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

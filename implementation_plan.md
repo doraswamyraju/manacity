@@ -13,13 +13,13 @@ Establish the monorepo workspace structure, initialize core projects, and deploy
 
 #### [Folder Structure](file:///d:/manacity)
 Create the directory structure:
-* `/backend` - Node.js + Express + Prisma + PostgreSQL API server
+* `/backend` - Node.js + Express + Prisma + MongoDB API server (running on Port 5009)
 * `/web` - React/Vite web application (Dashboard & Public Landing Pages)
 * `/android` - Android Studio Native Kotlin project
 * `/ios` - Xcode Native Swift project
 
 #### [schema.prisma](file:///d:/manacity/backend/prisma/schema.prisma)
-Define relational database models covering:
+Define relational database models optimized for MongoDB covering:
 * `User` (Auth, profiles, roles: Business Owner vs. Super Admin)
 * `Business` (Multi-location support: `BusinessGroup` and `Location` models)
 * `Subscription` (Plans, states, usage counters)
