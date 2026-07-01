@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { MapPin, Phone, Clock, Plus, Trash2, ArrowLeft, Briefcase, Award, Flame, CheckCircle, Circle, Target } from 'lucide-react';
+import { MapPin, Phone, Clock, Plus, Trash2, ArrowLeft, Briefcase, Award, Flame, CheckCircle, Circle, Target, Globe, Settings, ExternalLink } from 'lucide-react';
 
 function Locations({ onBack }) {
   const [locations, setLocations] = useState([]);
@@ -13,6 +13,17 @@ function Locations({ onBack }) {
   const [taskData, setTaskData] = useState(null);
   const [tasksLoading, setTasksLoading] = useState(false);
 
+  // Tab State
+  const [activeTab, setActiveTab] = useState('tasks'); // 'tasks' or 'website'
+
+  // Website Customizer States
+  const [subdomain, setSubdomain] = useState('');
+  const [themeColor, setThemeColor] = useState('#1976D2');
+  const [heroImage, setHeroImage] = useState('');
+  const [siteDesc, setSiteDesc] = useState('');
+  const [publishing, setPublishing] = useState(false);
+  const [siteUrl, setSiteUrl] = useState('');
+
   // Wizard States
   const [wizardStep, setWizardStep] = useState(1);
   const [locName, setLocName] = useState('');
@@ -22,7 +33,7 @@ function Locations({ onBack }) {
   const [locCountry, setLocCountry] = useState('India');
   const [locPhone, setLocPhone] = useState('');
   
-  // Weekly Operating Hours State
+  // Operating Hours State
   const [hours, setHours] = useState({
     Monday: { open: '09:00', close: '18:00', active: true },
     Tuesday: { open: '09:00', close: '18:00', active: true },
@@ -54,13 +65,59 @@ function Locations({ onBack }) {
     setSelectedLoc(loc);
     setTasksLoading(true);
     setError('');
+    setActiveTab('tasks');
+
     try {
-      const response = await axios.get(`/api/task/${loc.id}`);
-      setTaskData(response.data);
+      // 1. Fetch tasks
+      const taskRes = await axios.get(`/api/task/${loc.id}`);
+      setTaskData(taskRes.data);
+
+      // 2. Fetch website settings
+      const webRes = await axios.get(`/api/website/${loc.id}`);
+      const website = webRes.data.website;
+      if (website) {
+        setSubdomain(website.subdomain);
+        setThemeColor(website.config.themeColor || '#1976D2');
+        setHeroImage(website.config.heroImage || '');
+        setSiteDesc(website.pagesJson.description || '');
+        setSiteUrl(`http://manacity.in/api/website/public/${website.subdomain}`);
+      } else {
+        setSubdomain(loc.name.toLowerCase().replace(/[^a-z0-9]/g, ''));
+        setThemeColor('#1976D2');
+        setHeroImage('');
+        setSiteDesc('');
+        setSiteUrl('');
+      }
     } catch (err) {
-      setError('Failed to fetch tasks details.');
+      setError('Failed to fetch location details.');
     } finally {
       setTasksLoading(false);
+    }
+  };
+
+  const handleSaveWebsite = async (e) => {
+    e.preventDefault();
+    if (!subdomain) return;
+    setPublishing(true);
+    setError('');
+
+    try {
+      const payload = {
+        locationId: selectedLoc.id,
+        subdomain,
+        template: selectedLoc.category.toLowerCase().includes('hotel') ? 'hotel' : 'tourism',
+        config: { themeColor, heroImage },
+        pagesJson: { title: selectedLoc.name, description: siteDesc }
+      };
+
+      const response = await axios.post('/api/website', payload);
+      const website = response.data.website;
+      setSiteUrl(`http://manacity.in/api/website/public/${website.subdomain}`);
+      alert('Congratulations! Your website has been generated and published successfully.');
+    } catch (err) {
+      setError(err.response?.data?.error || 'Failed to publish website.');
+    } finally {
+      setPublishing(false);
     }
   };
 
@@ -88,7 +145,6 @@ function Locations({ onBack }) {
 
       await axios.post('/api/business', payload);
       
-      // Reset Wizard
       setLocName('');
       setLocAddress('');
       setLocCity('');
@@ -154,24 +210,59 @@ function Locations({ onBack }) {
         </div>
       )}
 
-      {/* GAMIFICATION / TASKS VIEW */}
+      {/* GAMIFICATION & BUILDER DETAIL OVERLAY */}
       {selectedLoc && (
         <div>
-          <div style={{ marginBottom: '2rem' }}>
-            <h2 style={{ fontSize: '2rem', fontWeight: 800, color: '#fff' }}>
-              Gamified Tracker: <span className="gradient-text">{selectedLoc.name}</span>
-            </h2>
-            <p style={{ color: 'var(--text-secondary)' }}>Complete setups, earn XP points, and level up your business ranking</p>
+          <div style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div>
+              <h2 style={{ fontSize: '2rem', fontWeight: 800, color: '#fff' }}>
+                Manage Location: <span className="gradient-text">{selectedLoc.name}</span>
+              </h2>
+              <p style={{ color: 'var(--text-secondary)' }}>Configure layouts, optimization tasks, and web portals</p>
+            </div>
+
+            {/* Sub-navigation Tabs */}
+            <div style={{ display: 'flex', gap: '0.5rem', background: 'rgba(255,255,255,0.03)', padding: '0.35rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)' }}>
+              <button 
+                onClick={() => setActiveTab('tasks')}
+                style={{
+                  padding: '0.5rem 1rem',
+                  borderRadius: 'var(--radius-sm)',
+                  border: 'none',
+                  backgroundColor: activeTab === 'tasks' ? 'var(--accent-primary)' : 'transparent',
+                  color: '#fff',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  fontSize: '0.9rem'
+                }}
+              >
+                Score & Tasks
+              </button>
+              <button 
+                onClick={() => setActiveTab('website')}
+                style={{
+                  padding: '0.5rem 1rem',
+                  borderRadius: 'var(--radius-sm)',
+                  border: 'none',
+                  backgroundColor: activeTab === 'website' ? 'var(--accent-primary)' : 'transparent',
+                  color: '#fff',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  fontSize: '0.9rem'
+                }}
+              >
+                Website Builder
+              </button>
+            </div>
           </div>
 
           {tasksLoading ? (
-            <p style={{ color: 'var(--text-secondary)' }}>Loading tasks and metrics...</p>
+            <p style={{ color: 'var(--text-secondary)' }}>Loading details...</p>
           ) : taskData && (
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: '2rem' }}>
               
               {/* Left Panel: Score and Levels */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                {/* Profile Score Card */}
                 <div className="glass-card" style={{ textAlign: 'center', padding: '2rem' }}>
                   <div style={{ position: 'relative', width: '120px', height: '120px', margin: '0 auto 1.5rem' }}>
                     <svg width="120" height="120" viewBox="0 0 120 120">
@@ -198,7 +289,6 @@ function Locations({ onBack }) {
                   <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Fill in all location specs to maximize your ranking index.</p>
                 </div>
 
-                {/* Level Progress Card */}
                 <div className="glass-card">
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -208,12 +298,10 @@ function Locations({ onBack }) {
                     <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{taskData.xp} / {taskData.nextLevelXp} XP</span>
                   </div>
                   
-                  {/* Progress Bar */}
                   <div style={{ width: '100%', height: '8px', backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 'var(--radius-full)', overflow: 'hidden', marginBottom: '1.5rem' }}>
                     <div style={{ width: `${(taskData.xp % 100)}%`, height: '100%', backgroundColor: 'var(--accent-primary)', borderRadius: 'var(--radius-full)' }}></div>
                   </div>
 
-                  {/* Streak and Badges */}
                   <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '1rem' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                       <Flame size={18} style={{ color: 'var(--accent-warning)' }} />
@@ -224,7 +312,6 @@ function Locations({ onBack }) {
                     </div>
 
                     <div style={{ display: 'flex', gap: '0.5rem' }}>
-                      {/* Level Badges */}
                       <span title="Seed badge unlocked" style={{ fontSize: '1.25rem', opacity: taskData.level >= 1 ? 1 : 0.2 }}>🌱</span>
                       <span title="Branch badge unlocked" style={{ fontSize: '1.25rem', opacity: taskData.level >= 2 ? 1 : 0.2 }}>🌿</span>
                       <span title="City builder badge unlocked" style={{ fontSize: '1.25rem', opacity: taskData.level >= 3 ? 1 : 0.2 }}>🏙️</span>
@@ -233,46 +320,159 @@ function Locations({ onBack }) {
                 </div>
               </div>
 
-              {/* Right Panel: Tasks Checklist */}
-              <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                <h3 style={{ fontSize: '1.3rem', fontWeight: 700, marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <Target size={18} style={{ color: 'var(--accent-secondary)' }} /> Profile Optimization Tasks
-                </h3>
+              {/* Right Panel Option 1: Tasks Checklist */}
+              {activeTab === 'tasks' && (
+                <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  <h3 style={{ fontSize: '1.3rem', fontWeight: 700, marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <Target size={18} style={{ color: 'var(--accent-secondary)' }} /> Profile Optimization Tasks
+                  </h3>
 
-                {taskData.tasks.map(task => (
-                  <div 
-                    key={task.id} 
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      padding: '1rem',
+                  {taskData.tasks.map(task => (
+                    <div 
+                      key={task.id} 
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '1rem',
+                        borderRadius: 'var(--radius-sm)',
+                        backgroundColor: task.completed ? 'rgba(16, 185, 129, 0.04)' : 'rgba(255,255,255,0.01)',
+                        border: task.completed ? '1px solid rgba(16, 185, 129, 0.15)' : '1px solid var(--border-color)',
+                        transition: 'all 0.2s'
+                      }}
+                    >
+                      <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
+                        {task.completed ? (
+                          <CheckCircle size={20} style={{ color: 'var(--accent-success)', marginTop: '0.1rem' }} />
+                        ) : (
+                          <Circle size={20} style={{ color: 'var(--text-muted)', marginTop: '0.1rem' }} />
+                        )}
+                        <div>
+                          <h4 style={{ fontWeight: 600, fontSize: '0.95rem', color: task.completed ? 'var(--text-muted)' : '#fff', textDecoration: task.completed ? 'line-through' : 'none' }}>
+                            {task.title}
+                          </h4>
+                          <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{task.description}</p>
+                        </div>
+                      </div>
+
+                      <div style={{ fontSize: '0.85rem', fontWeight: 600, color: task.completed ? 'var(--text-muted)' : 'var(--accent-primary)' }}>
+                        +{task.xpReward} XP
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Right Panel Option 2: Website Builder customizer */}
+              {activeTab === 'website' && (
+                <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                  <h3 style={{ fontSize: '1.3rem', fontWeight: 700, marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <Globe size={18} style={{ color: 'var(--accent-primary)' }} /> Website Customizer
+                  </h3>
+
+                  {siteUrl && (
+                    <div style={{
+                      backgroundColor: 'rgba(16, 185, 129, 0.05)',
+                      border: '1px solid var(--accent-success)',
+                      padding: '0.75rem 1rem',
                       borderRadius: 'var(--radius-sm)',
-                      backgroundColor: task.completed ? 'rgba(16, 185, 129, 0.04)' : 'rgba(255,255,255,0.01)',
-                      border: task.completed ? '1px solid rgba(16, 185, 129, 0.15)' : '1px solid var(--border-color)',
-                      transition: 'all 0.2s'
-                    }}
-                  >
-                    <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
-                      {task.completed ? (
-                        <CheckCircle size={20} style={{ color: 'var(--accent-success)', marginTop: '0.1rem' }} />
-                      ) : (
-                        <Circle size={20} style={{ color: 'var(--text-muted)', marginTop: '0.1rem' }} />
-                      )}
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      marginBottom: '0.5rem'
+                    }}>
                       <div>
-                        <h4 style={{ fontWeight: 600, fontSize: '0.95rem', color: task.completed ? 'var(--text-muted)' : '#fff', textDecoration: task.completed ? 'line-through' : 'none' }}>
-                          {task.title}
-                        </h4>
-                        <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{task.description}</p>
+                        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block' }}>YOUR LIVE WEBSITE IS ACTIVE</span>
+                        <a href={siteUrl} target="_blank" rel="noreferrer" style={{ color: 'var(--accent-success)', fontWeight: 600, fontSize: '0.95rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                          {subdomain}.manacity.in <ExternalLink size={14} />
+                        </a>
+                      </div>
+                    </div>
+                  )}
+
+                  <form onSubmit={handleSaveWebsite} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                      <label style={{ fontSize: '0.85rem', fontWeight: 600 }}>Preferred Subdomain Name</label>
+                      <div style={{ display: 'flex', alignItems: 'center' }}>
+                        <input 
+                          type="text"
+                          value={subdomain}
+                          onChange={(e) => setSubdomain(e.target.value.toLowerCase().replace(/[^a-z0-9]/g, ''))}
+                          placeholder="subdomain"
+                          required
+                          style={{ ...inputStyle, borderRight: 'none', borderRadius: 'var(--radius-sm) 0 0 var(--radius-sm)' }}
+                        />
+                        <span style={{
+                          padding: '0.75rem 1rem',
+                          backgroundColor: 'var(--bg-tertiary)',
+                          border: '1px solid var(--border-color)',
+                          borderRadius: '0 var(--radius-sm) var(--radius-sm) 0',
+                          fontSize: '0.95rem',
+                          color: 'var(--text-secondary)'
+                        }}>.manacity.in</span>
                       </div>
                     </div>
 
-                    <div style={{ fontSize: '0.85rem', fontWeight: 600, color: task.completed ? 'var(--text-muted)' : 'var(--accent-primary)' }}>
-                      +{task.xpReward} XP
+                    <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '1rem' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                        <label style={{ fontSize: '0.85rem', fontWeight: 600 }}>Theme Accent Color</label>
+                        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                          <input 
+                            type="color" 
+                            value={themeColor}
+                            onChange={(e) => setThemeColor(e.target.value)}
+                            style={{ width: '40px', height: '40px', border: 'none', borderRadius: '4px', cursor: 'pointer', background: 'transparent' }}
+                          />
+                          <input 
+                            type="text"
+                            value={themeColor}
+                            onChange={(e) => setThemeColor(e.target.value)}
+                            style={inputStyle}
+                          />
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                        <label style={{ fontSize: '0.85rem', fontWeight: 600 }}>Template Layout</label>
+                        <select style={selectStyle} disabled>
+                          <option>{selectedLoc.category} template</option>
+                        </select>
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                      <label style={{ fontSize: '0.85rem', fontWeight: 600 }}>Hero Header Image Link</label>
+                      <input 
+                        type="url"
+                        value={heroImage}
+                        onChange={(e) => setHeroImage(e.target.value)}
+                        placeholder="https://images.unsplash.com/photo-..."
+                        style={inputStyle}
+                      />
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                      <label style={{ fontSize: '0.85rem', fontWeight: 600 }}>Welcome Tagline / About Details</label>
+                      <textarea 
+                        value={siteDesc}
+                        onChange={(e) => setSiteDesc(e.target.value)}
+                        placeholder="Welcome to our branches. We offer high-quality services..."
+                        rows="3"
+                        style={{ ...inputStyle, resize: 'none' }}
+                      />
+                    </div>
+
+                    <button 
+                      type="submit" 
+                      className="btn btn-primary"
+                      disabled={publishing}
+                      style={{ width: '100%', height: '42px', marginTop: '0.5rem' }}
+                    >
+                      {publishing ? 'Publishing Site...' : siteUrl ? 'Update Website Layout' : 'Generate & Host Site'}
+                    </button>
+                  </form>
+                </div>
+              )}
 
             </div>
           )}
@@ -372,7 +572,7 @@ function Locations({ onBack }) {
       {/* LOCATION CREATION WIZARD */}
       {showWizard && (
         <div className="glass-card" style={{ padding: '2.5rem' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+          <div style={{ display: 'flex', justifyContext: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
             <h3 style={{ fontSize: '1.4rem', fontWeight: 700 }}>Step {wizardStep} of 3: {
               wizardStep === 1 ? 'Primary Information' : 
               wizardStep === 2 ? 'Contact Details' : 
