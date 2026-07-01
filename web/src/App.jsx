@@ -3,9 +3,10 @@ import axios from 'axios';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Locations from './pages/Locations';
+import Billing from './pages/Billing';
 
 function App() {
-  const [view, setView] = useState('login'); // login, register, dashboard, locations
+  const [view, setView] = useState('login'); // login, register, dashboard, locations, billing
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -93,6 +94,10 @@ function App() {
         <Locations onBack={() => setView('dashboard')} />
       )}
 
+      {view === 'billing' && (
+        <Billing onBack={() => setView('dashboard')} />
+      )}
+
       {view === 'dashboard' && user && (
         <div className="glass-card" style={{ maxWidth: '500px', width: '100%', padding: '2.5rem' }}>
           <img 
@@ -123,13 +128,18 @@ function App() {
             </p>
           </div>
 
-          <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
-            <button className="btn btn-primary" onClick={() => setView('locations')}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', width: '100%' }}>
+            <button className="btn btn-primary" onClick={() => setView('locations')} style={{ width: '100%' }}>
               Setup Business Location
             </button>
-            <button className="btn btn-secondary" onClick={handleLogout}>
-              Sign Out
-            </button>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+              <button className="btn btn-secondary" onClick={() => setView('billing')} style={{ width: '100%' }}>
+                Billing & Tiers
+              </button>
+              <button className="btn btn-secondary" onClick={handleLogout} style={{ width: '100%' }}>
+                Sign Out
+              </button>
+            </div>
           </div>
         </div>
       )}
