@@ -11,14 +11,6 @@ const checkSubscriptionLimit = (feature) => {
         where: { ownerId },
         include: {
           locations: true,
-          websites: {
-            // Find all websites associated with the locations under this group
-            where: {
-              location: {
-                businessGroupId: { not: '' }
-              }
-            }
-          },
           subscriptions: {
             where: { status: 'ACTIVE' },
             orderBy: { createdAt: 'desc' }
