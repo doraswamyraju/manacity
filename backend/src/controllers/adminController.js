@@ -10,9 +10,12 @@ exports.getSystemMetrics = async (req, res) => {
     const totalReviews = await prisma.review.count();
 
     // Query active plans segmentations
-    const users = await prisma.user.findMany({
+    const subscriptions = await prisma.subscription.findMany({
+      where: {
+        status: 'ACTIVE'
+      },
       select: {
-        plan: true
+        tier: true
       }
     });
 
@@ -22,9 +25,9 @@ exports.getSystemMetrics = async (req, res) => {
       ENTERPRISE: 0
     };
 
-    users.forEach(u => {
-      if (plansBreakdown[u.plan] !== undefined) {
-        plansBreakdown[u.plan]++;
+    subscriptions.forEach(sub => {
+      if (plansBreakdown[sub.tier] !== undefined) {
+        plansBreakdown[sub.tier]++;
       } else {
         plansBreakdown.FREE++; // fallback default
       }
