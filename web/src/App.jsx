@@ -6,18 +6,25 @@ import Locations from './pages/Locations';
 import Billing from './pages/Billing';
 import ReviewSubmit from './pages/ReviewSubmit';
 import AdminDashboard from './pages/AdminDashboard';
+import Home from './pages/Home';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import TermsOfService from './pages/TermsOfService';
+import DeleteAccount from './pages/DeleteAccount';
 
 function App() {
-  const [view, setView] = useState('login'); // login, register, dashboard, locations, billing, admin
+  const [view, setView] = useState('landing'); // landing, login, register, dashboard, locations, billing, admin
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Check if the current route is the public review landing page
+  // Path routing checks
   const isReviewPage = window.location.pathname.startsWith('/review/');
+  const isPrivacyPage = window.location.pathname === '/privacy';
+  const isTermsPage = window.location.pathname === '/terms';
+  const isDeletePage = window.location.pathname === '/delete-account';
 
   // Auto-authenticate with stored token
   useEffect(() => {
-    if (isReviewPage) {
+    if (isReviewPage || isPrivacyPage || isTermsPage || isDeletePage) {
       setLoading(false);
       return;
     }
@@ -45,9 +52,10 @@ function App() {
           setLoading(false);
         });
     } else {
+      setView('landing');
       setLoading(false);
     }
-  }, [isReviewPage]);
+  }, [isReviewPage, isPrivacyPage, isTermsPage, isDeletePage]);
 
   const handleAuthSuccess = (authenticatedUser) => {
     setUser(authenticatedUser);
@@ -59,7 +67,7 @@ function App() {
     localStorage.removeItem('user');
     delete axios.defaults.headers.common['Authorization'];
     setUser(null);
-    setView('login');
+    setView('landing');
   };
 
   if (loading) {
@@ -76,9 +84,18 @@ function App() {
     );
   }
 
-  // Render public reviews portal directly
+  // Render compliance/public routes directly based on URL paths
   if (isReviewPage) {
     return <ReviewSubmit />;
+  }
+  if (isPrivacyPage) {
+    return <PrivacyPolicy />;
+  }
+  if (isTermsPage) {
+    return <TermsOfService />;
+  }
+  if (isDeletePage) {
+    return <DeleteAccount />;
   }
 
   return (
@@ -91,6 +108,16 @@ function App() {
       padding: '2rem',
       textAlign: 'center'
     }}>
+      {view === 'landing' && (
+        <Home 
+          onNavigateToLogin={() => setView('login')}
+          onNavigateToRegister={() => setView('register')}
+          onNavigateToPrivacy={() => window.location.href = '/privacy'}
+          onNavigateToTerms={() => window.location.href = '/terms'}
+          onNavigateToDelete={() => window.location.href = '/delete-account'}
+        />
+      )}
+
       {view === 'login' && (
         <Login 
           onAuthSuccess={handleAuthSuccess} 

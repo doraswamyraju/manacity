@@ -185,3 +185,35 @@ exports.googleAuth = async (req, res) => {
     res.status(500).json({ error: 'Google OAuth authentication failed.' });
   }
 };
+
+// 5. Delete User Account and all cascaded data
+exports.deleteAccount = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({ error: 'Email and password are required.' });
+    }
+
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user) {
+      return res.status(400).json({ error: 'Invalid verification credentials.' });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.passwordHash);
+    if (!isMatch) {
+      return res.status(400).json({ error: 'Invalid verification credentials.' });
+    }
+
+    // Delete user (Prisma onDelete: Cascade rules will automatically delete associated businessGroups, locations, subscriptions, websites, reviews, etc.)
+    await prisma.user.delete({ where: { id: user.id } });
+
+    res.json({
+      status: 'success',
+      message: 'Your account and all associated business data have been permanently deleted.'
+    });
+  } catch (error) {
+    console.error('Account deletion error:', error);
+    res.status(500).json({ error: 'Failed to process account deletion.' });
+  }
+};
