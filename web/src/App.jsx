@@ -13,6 +13,7 @@ import DeleteAccount from './pages/DeleteAccount';
 import OnboardingWizard from './pages/OnboardingWizard';
 import WebsiteBuilder from './pages/WebsiteBuilder';
 import ReviewManagement from './pages/ReviewManagement';
+import PublicReviewLanding from './pages/PublicReviewLanding';
 
 function App() {
   const [view, setView] = useState('landing'); // landing, login, register, dashboard, locations, billing, admin, onboarding
@@ -22,6 +23,7 @@ function App() {
 
   // Path routing checks
   const isReviewPage = window.location.pathname.startsWith('/review/');
+  const isQrLandingPage = window.location.pathname.startsWith('/r/');
   const isPrivacyPage = window.location.pathname === '/privacy';
   const isTermsPage = window.location.pathname === '/terms';
   const isDeletePage = window.location.pathname === '/delete-account';
@@ -36,7 +38,7 @@ function App() {
 
   // Auto-authenticate with stored token
   useEffect(() => {
-    if (isReviewPage || isPrivacyPage || isTermsPage || isDeletePage) {
+    if (isReviewPage || isQrLandingPage || isPrivacyPage || isTermsPage || isDeletePage) {
       setLoading(false);
       return;
     }
@@ -102,6 +104,9 @@ function App() {
   // Render compliance/public routes directly based on URL paths
   if (isReviewPage) {
     return <ReviewSubmit />;
+  }
+  if (isQrLandingPage) {
+    return <PublicReviewLanding />;
   }
   if (isPrivacyPage) {
     return <PrivacyPolicy />;

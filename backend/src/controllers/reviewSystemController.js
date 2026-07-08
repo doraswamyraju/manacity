@@ -610,11 +610,36 @@ exports.incrementQRScan = async (req, res) => {
       }
     });
 
+    const location = await prisma.location.findUnique({
+      where: { id: qr.locationId },
+      include: { businessGroup: true }
+    });
+
+    let landingPage = await prisma.reviewLandingPage.findUnique({
+      where: { locationId: qr.locationId }
+    });
+
+    if (!landingPage) {
+      landingPage = await prisma.reviewLandingPage.create({
+        data: {
+          locationId: qr.locationId,
+          welcomeMessage: 'How was your experience with us?',
+          ratingThreshold: 4,
+          thankYouMessage: 'Thank you for your feedback!',
+          buttonText: 'Write a Review'
+        }
+      });
+    }
+
     res.json({
       status: 'success',
-      locationId: qr.locationId,
-      campaignId: qr.campaignId,
-      uniqueQrId: qr.uniqueQrId
+      qr: updated,
+      location: {
+        id: location.id,
+        name: location.name,
+        logoUrl: location.businessGroup.logoUrl
+      },
+      landingPage
     });
   } catch (error) {
     console.error('Increment QR scan error:', error);
