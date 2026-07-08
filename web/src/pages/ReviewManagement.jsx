@@ -493,14 +493,17 @@ export default function ReviewManagement({ onBack }) {
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem' }}>
                 {qrs.map(qr => {
-                  const scanUrl = `${window.location.origin}/api/reviews/landing-page/${qr.locationId}?qr=${qr.uniqueQrId}`;
+                  const scanUrl = `${window.location.origin}/r/${qr.uniqueQrId}`;
                   return (
                     <div key={qr.id} className="glass-card" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem', alignItems: 'center', textLeft: 'center' }}>
                       <div style={{ background: '#fff', padding: '0.5rem', borderRadius: '8px' }}>
-                        {/* Placeholder QR visual box */}
-                        <div style={{ width: '120px', height: '120px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#eee', color: '#333', fontSize: '0.75rem', fontWeight: 600 }}>
-                          [ QR CODE ]
-                        </div>
+                        {qr.qrImage ? (
+                          <img src={qr.qrImage} alt="QR Code" style={{ width: '120px', height: '120px', display: 'block' }} />
+                        ) : (
+                          <div style={{ width: '120px', height: '120px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#eee', color: '#333', fontSize: '0.75rem', fontWeight: 600 }}>
+                            Generating...
+                          </div>
+                        )}
                       </div>
                       
                       <div style={{ textAlign: 'center' }}>
@@ -512,13 +515,20 @@ export default function ReviewManagement({ onBack }) {
 
                       <div style={{ width: '100%', fontSize: '0.8rem', display: 'flex', flexDirection: 'column', gap: '0.25rem', borderTop: '1px solid var(--border-color)', paddingTop: '0.75rem' }}>
                         <div>Scan Count: <strong>{qr.scanCounter}</strong></div>
-                        {qr.lastScan && <div>Last Scan: <strong>{new Date(qr.lastScan).toLocaleDateString()}</strong></div>}
+                        {qr.lastScan ? (
+                          <div>Last Scan: <strong>{new Date(qr.lastScan).toLocaleDateString()}</strong></div>
+                        ) : (
+                          <div>Last Scan: <strong>Never</strong></div>
+                        )}
                       </div>
 
                       <div style={{ display: 'flex', gap: '0.5rem', width: '100%' }}>
-                        <button className="btn btn-secondary" style={{ flex: 1, padding: '0.35rem 0.5rem', fontSize: '0.8rem' }} onClick={() => copyToClipboard(scanUrl)}>Copy Link</button>
-                        <button className="btn btn-secondary" style={{ flex: 1, padding: '0.35rem 0.5rem', fontSize: '0.8rem', color: 'var(--accent-error)' }} onClick={() => handleDeleteItem('qr', qr.id)}>Delete</button>
+                        <button className="btn btn-secondary" style={{ flex: 1, padding: '0.35rem 0.5rem', fontSize: '0.75rem' }} onClick={() => copyToClipboard(scanUrl)}>Copy Link</button>
+                        <a href={`/print-review-qr?qrId=${qr.id}`} target="_blank" rel="noopener noreferrer" className="btn btn-primary" style={{ flex: 1, padding: '0.35rem 0.5rem', fontSize: '0.75rem', textAlign: 'center', textDecoration: 'none', lineHeight: 'normal', height: 'auto', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          Print Poster
+                        </a>
                       </div>
+                      <button className="btn btn-secondary" style={{ width: '100%', padding: '0.35rem 0.5rem', fontSize: '0.75rem', color: 'var(--accent-error)' }} onClick={() => handleDeleteItem('qr', qr.id)}>Delete QR</button>
                     </div>
                   );
                 })}

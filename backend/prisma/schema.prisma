@@ -409,6 +409,9 @@ model ReviewQRCode {
   isActive        Boolean         @default(true)
   expiryDate      DateTime?
   
+  // Relations
+  scans           QRScan[]
+
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
 }
@@ -428,4 +431,19 @@ model ReviewLandingPage {
   
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
+}
+
+model QRScan {
+  id              String        @id @default(auto()) @map("_id") @db.ObjectId
+  qrCodeId        String        @db.ObjectId
+  qrCode          ReviewQRCode  @relation(fields: [qrCodeId], references: [id], onDelete: Cascade)
+  
+  deviceType      String?       // mobile, tablet, desktop
+  browser         String?
+  country         String?
+  state           String?
+  city            String?
+  referrer        String?
+  
+  createdAt       DateTime      @default(now())
 }

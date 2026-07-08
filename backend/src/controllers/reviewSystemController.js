@@ -1,5 +1,6 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
+const QRCode = require('qrcode');
 
 // Helper: safe JSON parsing
 const safeJson = (val) => {
@@ -517,9 +518,17 @@ exports.listQRs = async (req, res) => {
       prisma.reviewQRCode.count({ where })
     ]);
 
+    // Attach real QR base64 images to profiles dynamically
+    const baseUrl = process.env.REVIEW_BASE_URL || 'https://reviews.manacity.in';
+    const qrsWithImages = await Promise.all(qrs.map(async qr => {
+      const qrUrl = `${baseUrl}/${qr.uniqueQrId}`;
+      const qrImage = await QRCode.toDataURL(qrUrl, { width: 1024, margin: 2 });
+      return { ...qr, qrImage, qrUrl };
+    }));
+
     res.json({
       status: 'success',
-      data: qrs,
+      data: qrsWithImages,
       pagination: {
         page: Number(page),
         limit: Number(limit),
@@ -574,7 +583,11 @@ exports.createQR = async (req, res) => {
       }
     });
 
-    res.status(201).json({ status: 'success', data: qr });
+    const baseUrl = process.env.REVIEW_BASE_URL || 'https://reviews.manacity.in';
+    const qrUrl = `${baseUrl}/${qr.uniqueQrId}`;
+    const qrImage = await QRCode.toDataURL(qrUrl, { width: 1024, margin: 2 });
+
+    res.status(201).json({ status: 'success', data: { ...qr, qrImage, qrUrl } });
   } catch (error) {
     console.error('Create QR error:', error);
     res.status(500).json({ error: 'Failed to generate QR code profile.' });
@@ -601,6 +614,28 @@ exports.incrementQRScan = async (req, res) => {
       });
       return res.status(410).json({ error: 'QR Code has expired.' });
     }
+
+    // Parse device details from user agent
+    const userAgent = req.headers['user-agent'] || '';
+    let deviceType = 'desktop';
+    if (/mobile/i.test(userAgent)) deviceType = 'mobile';
+    else if (/tablet|ipad/i.test(userAgent)) deviceType = 'tablet';
+
+    let browser = 'other';
+    if (/chrome|crios/i.test(userAgent)) browser = 'chrome';
+    else if (/firefox|fxios/i.test(userAgent)) browser = 'firefox';
+    else if (/safari/i.test(userAgent)) browser = 'safari';
+
+    // Store granular analytics in separate QRScan model
+    await prisma.qRScan.create({
+      data: {
+        qrCodeId: qr.id,
+        deviceType,
+        browser,
+        country: req.headers['cf-ipcountry'] || 'Unknown',
+        referrer: req.headers['referer'] || 'Direct'
+      }
+    });
 
     const updated = await prisma.reviewQRCode.update({
       where: { id: qr.id },

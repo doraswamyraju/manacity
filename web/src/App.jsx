@@ -14,6 +14,7 @@ import OnboardingWizard from './pages/OnboardingWizard';
 import WebsiteBuilder from './pages/WebsiteBuilder';
 import ReviewManagement from './pages/ReviewManagement';
 import PublicReviewLanding from './pages/PublicReviewLanding';
+import ReviewPosterPrint from './pages/ReviewPosterPrint';
 
 function App() {
   const [view, setView] = useState('landing'); // landing, login, register, dashboard, locations, billing, admin, onboarding
@@ -24,6 +25,7 @@ function App() {
   // Path routing checks
   const isReviewPage = window.location.pathname.startsWith('/review/');
   const isQrLandingPage = window.location.pathname.startsWith('/r/');
+  const isPrintQrPage = window.location.pathname === '/print-review-qr';
   const isPrivacyPage = window.location.pathname === '/privacy';
   const isTermsPage = window.location.pathname === '/terms';
   const isDeletePage = window.location.pathname === '/delete-account';
@@ -107,6 +109,9 @@ function App() {
   }
   if (isQrLandingPage) {
     return <PublicReviewLanding />;
+  }
+  if (isPrintQrPage) {
+    return <ReviewPosterPrint />;
   }
   if (isPrivacyPage) {
     return <PrivacyPolicy />;
