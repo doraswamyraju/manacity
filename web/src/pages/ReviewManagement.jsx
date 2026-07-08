@@ -33,7 +33,7 @@ export default function ReviewManagement({ onBack }) {
 
   useEffect(() => {
     // Load user locations
-    axios.get('/api/business/locations')
+    axios.get('/api/business')
       .then(res => {
         const groups = res.data.businessGroups || [];
         const locs = groups.flatMap(g => g.locations || []);
