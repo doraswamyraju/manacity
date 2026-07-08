@@ -10,10 +10,12 @@ import Home from './pages/Home';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
 import DeleteAccount from './pages/DeleteAccount';
+import OnboardingWizard from './pages/OnboardingWizard';
 
 function App() {
-  const [view, setView] = useState('landing'); // landing, login, register, dashboard, locations, billing, admin
+  const [view, setView] = useState('landing'); // landing, login, register, dashboard, locations, billing, admin, onboarding
   const [user, setUser] = useState(null);
+  const [businessGroup, setBusinessGroup] = useState(null);
   const [loading, setLoading] = useState(true);
 
   // Path routing checks
@@ -21,6 +23,14 @@ function App() {
   const isPrivacyPage = window.location.pathname === '/privacy';
   const isTermsPage = window.location.pathname === '/terms';
   const isDeletePage = window.location.pathname === '/delete-account';
+
+  const fetchOnboardingState = () => {
+    axios.get('/api/business/onboarding-state')
+      .then((res) => {
+        setBusinessGroup(res.data.businessGroup);
+      })
+      .catch(() => {});
+  };
 
   // Auto-authenticate with stored token
   useEffect(() => {
@@ -36,6 +46,7 @@ function App() {
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       setUser(JSON.parse(savedUser));
       setView('dashboard');
+      fetchOnboardingState();
       
       // Verify token freshness with backend
       axios.get('/api/auth/me')
@@ -60,6 +71,7 @@ function App() {
   const handleAuthSuccess = (authenticatedUser) => {
     setUser(authenticatedUser);
     setView('dashboard');
+    fetchOnboardingState();
   };
 
   const handleLogout = () => {
@@ -67,6 +79,7 @@ function App() {
     localStorage.removeItem('user');
     delete axios.defaults.headers.common['Authorization'];
     setUser(null);
+    setBusinessGroup(null);
     setView('landing');
   };
 
@@ -144,6 +157,16 @@ function App() {
         <AdminDashboard onBack={() => setView('dashboard')} />
       )}
 
+      {view === 'onboarding' && (
+        <OnboardingWizard 
+          onCompleteOnboarding={(updatedBg) => {
+            setBusinessGroup(updatedBg);
+            setView('dashboard');
+          }}
+          onCancel={() => setView('dashboard')}
+        />
+      )}
+
       {view === 'dashboard' && user && (
         <div className="glass-card" style={{ maxWidth: '500px', width: '100%', padding: '2.5rem' }}>
           <img 
@@ -158,21 +181,49 @@ function App() {
             Role: <strong>{user.role}</strong> | Email: <strong>{user.email}</strong>
           </p>
 
-          <div style={{ 
-            backgroundColor: 'rgba(25, 118, 210, 0.05)', 
-            border: '1px solid var(--border-color)',
-            padding: '1rem',
-            borderRadius: 'var(--radius-sm)',
-            marginBottom: '2rem',
-            textAlign: 'left'
-          }}>
-            <p style={{ color: 'var(--accent-secondary)', fontWeight: 600, marginBottom: '0.25rem' }}>
-              ✓ Core Setup Successful
-            </p>
-            <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-              Authentication is fully functional on both backend endpoints and frontend layouts. Ready to proceed with Stage 3: Business Setup.
-            </p>
-          </div>
+          {/* Onboarding Progress Card */}
+          {(!businessGroup || !businessGroup.isSetupComplete) ? (
+            <div style={{ 
+              backgroundColor: 'rgba(255, 152, 0, 0.05)', 
+              border: '1px solid rgba(255, 152, 0, 0.2)',
+              padding: '1.25rem',
+              borderRadius: 'var(--radius-sm)',
+              marginBottom: '2rem',
+              textAlign: 'left'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                <span style={{ fontWeight: 600, color: '#ff9800' }}>
+                  Complete Business Profile ({businessGroup ? Math.min(Math.round(((businessGroup.setupStep - 1) / 5) * 100), 100) : 0}%)
+                </span>
+                <button 
+                  className="btn btn-secondary" 
+                  onClick={() => setView('onboarding')}
+                  style={{ padding: '0.35rem 0.75rem', fontSize: '0.8rem', height: 'auto', borderColor: '#ff9800', color: '#ff9800' }}
+                >
+                  Continue
+                </button>
+              </div>
+              <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                Setup your business address, working hours, services, and logo to enable search visibility, dynamic website rendering, and local mapping features.
+              </p>
+            </div>
+          ) : (
+            <div style={{ 
+              backgroundColor: 'rgba(76, 175, 80, 0.05)', 
+              border: '1px solid rgba(76, 175, 80, 0.2)',
+              padding: '1rem',
+              borderRadius: 'var(--radius-sm)',
+              marginBottom: '2rem',
+              textAlign: 'left'
+            }}>
+              <p style={{ color: '#4caf50', fontWeight: 600, marginBottom: '0.25rem' }}>
+                ✓ Business Profile Configured
+              </p>
+              <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+                Your business details are synchronized. All system tools, mapping, and site builders are fully unlocked.
+              </p>
+            </div>
+          )}
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', width: '100%' }}>
             {user.role === 'SUPER_ADMIN' && (
@@ -181,9 +232,19 @@ function App() {
               </button>
             )}
             
-            <button className="btn btn-primary" onClick={() => setView('locations')} style={{ width: '100%' }}>
-              Setup Business Location
+            <button 
+              className="btn btn-primary" 
+              onClick={() => setView('locations')} 
+              disabled={!businessGroup || !businessGroup.isSetupComplete}
+              style={{ 
+                width: '100%', 
+                opacity: (!businessGroup || !businessGroup.isSetupComplete) ? 0.5 : 1,
+                cursor: (!businessGroup || !businessGroup.isSetupComplete) ? 'not-allowed' : 'pointer'
+              }}
+            >
+              Setup Business Location {(!businessGroup || !businessGroup.isSetupComplete) && '🔒'}
             </button>
+
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
               <button className="btn btn-secondary" onClick={() => setView('billing')} style={{ width: '100%' }}>
                 Billing & Tiers

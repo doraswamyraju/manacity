@@ -38,16 +38,91 @@ model User {
 }
 
 model BusinessGroup {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  name        String
-  ownerId     String   @db.ObjectId
-  owner       User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  name            String
+  ownerId         String   @db.ObjectId
+  owner           User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Wizard Onboarding progress tracking
+  setupStep       Int      @default(1) // Current step (1-6)
+  isSetupComplete Boolean  @default(false)
+
+  // Step 1: Business Information
+  description     String?
+  yearStarted     Int?
+  logoUrl         String?
+  coverImageUrl   String?
+
+  // Step 2: Contact Information
+  mobileNumber    String?
+  whatsAppNumber  String?
+  email           String?
+  website         String?
+  supportEmail    String?
+
+  // Step 3: Address
+  country         String?
+  state           String?
+  city            String?
+  areaLocality    String?
+  address         String?
+  pinCode         String?
+  googleMapsLink  String?
 
   // Relations
-  locations     Location[]
-  subscriptions Subscription[]
+  locations       Location[]
+  subscriptions   Subscription[]
+  documents       BusinessDocument[]
+  services        BusinessService[]
+  products        BusinessProduct[]
+  paymentMethods  BusinessPaymentMethod[]
+  languages       BusinessLanguage[]
+}
+
+model BusinessService {
+  id              String        @id @default(auto()) @map("_id") @db.ObjectId
+  businessGroupId String        @db.ObjectId
+  businessGroup   BusinessGroup @relation(fields: [businessGroupId], references: [id], onDelete: Cascade)
+  name            String
+  createdAt       DateTime      @default(now())
+}
+
+model BusinessProduct {
+  id              String        @id @default(auto()) @map("_id") @db.ObjectId
+  businessGroupId String        @db.ObjectId
+  businessGroup   BusinessGroup @relation(fields: [businessGroupId], references: [id], onDelete: Cascade)
+  name            String
+  createdAt       DateTime      @default(now())
+}
+
+model BusinessPaymentMethod {
+  id              String        @id @default(auto()) @map("_id") @db.ObjectId
+  businessGroupId String        @db.ObjectId
+  businessGroup   BusinessGroup @relation(fields: [businessGroupId], references: [id], onDelete: Cascade)
+  methodName      String
+  createdAt       DateTime      @default(now())
+}
+
+model BusinessLanguage {
+  id              String        @id @default(auto()) @map("_id") @db.ObjectId
+  businessGroupId String        @db.ObjectId
+  businessGroup   BusinessGroup @relation(fields: [businessGroupId], references: [id], onDelete: Cascade)
+  language        String
+  createdAt       DateTime      @default(now())
+}
+
+model BusinessDocument {
+  id              String        @id @default(auto()) @map("_id") @db.ObjectId
+  businessGroupId String        @db.ObjectId
+  businessGroup   BusinessGroup @relation(fields: [businessGroupId], references: [id], onDelete: Cascade)
+  type            String        // e.g. "GST", "UDYAM", "FSSAI", "SHOP_LICENSE"
+  value           String
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@unique([businessGroupId, type])
 }
 
 enum SubscriptionTier {
