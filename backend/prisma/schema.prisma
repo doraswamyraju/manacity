@@ -173,9 +173,12 @@ model Location {
   updatedAt       DateTime      @updatedAt
 
   // Relations
-  reviews       Review[]
-  taskProgress  TaskProgress[]
-  customers     Customer[]
+  reviews           Review[]
+  taskProgress      TaskProgress[]
+  customers         Customer[]
+  reviewCampaigns   ReviewCampaign[]
+  qrs               ReviewQRCode[]
+  landingPage       ReviewLandingPage?
 }
 
 enum TaskCategory {
@@ -215,19 +218,59 @@ model TaskProgress {
   @@unique([locationId, taskId])
 }
 
+enum ReviewSource {
+  GOOGLE
+  INTERNAL
+  WEBSITE
+  FACEBOOK
+  MANUAL
+}
+
+enum ReviewStatus {
+  NEW
+  OPEN
+  REPLIED
+  RESOLVED
+  ARCHIVED
+}
+
+enum ReviewChannel {
+  QR
+  SMS
+  WHATSAPP
+  EMAIL
+  DIRECT_LINK
+  NFC
+}
+
 model Review {
-  id          String    @id @default(auto()) @map("_id") @db.ObjectId
-  locationId  String    @db.ObjectId
-  location    Location  @relation(fields: [locationId], references: [id], onDelete: Cascade)
-  authorName  String
-  rating      Int       // 1 to 5
-  comment     String?
-  sentiment   String?   // positive, neutral, negative
-  replyText   String?
-  repliedAt   DateTime?
-  source      String    @default("MANUAL") // MANUAL, GOOGLE
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id              String       @id @default(auto()) @map("_id") @db.ObjectId
+  locationId      String       @db.ObjectId
+  location        Location     @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  
+  source          ReviewSource @default(INTERNAL)
+  sourceReviewId  String?      @unique // External ID (e.g. from Google API)
+  rating          Int          // 1 to 5
+  
+  // Existing fields for backward compatibility
+  authorName      String       // Reviewer name
+  comment         String?      // Review text
+  replyText       String?      // Owner response text
+  repliedAt       DateTime?    // Response timestamp
+  
+  // New CRM & Workflow tracking
+  reviewerPhoto   String?
+  status          ReviewStatus @default(NEW)
+  sentiment       String?      // POSITIVE, NEUTRAL, NEGATIVE
+  priority        String       @default("MEDIUM") // LOW, MEDIUM, HIGH, URGENT
+  assignedTo      String?
+  followUpDate    DateTime?
+  internalNotes   String?
+  tags            String[]
+  metadata        Json?
+  
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
 }
 
 model ReplyTemplate {
@@ -289,14 +332,100 @@ model WebsiteSection {
 }
 
 model Customer {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  locationId  String   @db.ObjectId
-  location    Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
-  name        String
-  email       String?
-  phone       String?
-  notes       String?
-  pipeline    String   @default("LEAD") // LEAD, CONTACTED, CONVERTED, LOST
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id              String          @id @default(auto()) @map("_id") @db.ObjectId
+  locationId      String          @db.ObjectId
+  location        Location        @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  name            String
+  email           String?
+  phone           String?
+  notes           String?
+  pipeline        String          @default("LEAD") // LEAD, CONTACTED, CONVERTED, LOST
+  
+  // Relations
+  reviewRequests  ReviewRequest[]
+  
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+}
+
+model ReviewCampaign {
+  id              String          @id @default(auto()) @map("_id") @db.ObjectId
+  locationId      String          @db.ObjectId
+  location        Location        @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  name            String
+  description     String?
+  isActive        Boolean         @default(true)
+  
+  // Cached Metrics (updated dynamically)
+  totalSent       Int             @default(0)
+  totalOpened     Int             @default(0)
+  totalCompleted  Int             @default(0)
+  conversionRate  Float           @default(0.0)
+  averageRating   Float           @default(0.0)
+
+  // Relations
+  requests        ReviewRequest[]
+  qrCodes         ReviewQRCode[]
+  
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+}
+
+model ReviewRequest {
+  id              String          @id @default(auto()) @map("_id") @db.ObjectId
+  campaignId      String          @db.ObjectId
+  campaign        ReviewCampaign  @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  customerId      String          @db.ObjectId
+  customer        Customer        @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  
+  channel         ReviewChannel   @default(EMAIL)
+  status          String          @default("PENDING") // PENDING, SENT, OPENED, COMPLETED, FAILED
+  
+  // Journey Timestamps
+  sentAt          DateTime?
+  openedAt        DateTime?
+  ratedAt         DateTime?
+  redirectedAt    DateTime?
+  completedAt     DateTime?
+
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+}
+
+model ReviewQRCode {
+  id              String          @id @default(auto()) @map("_id") @db.ObjectId
+  locationId      String          @db.ObjectId
+  location        Location        @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  campaignId      String?         @db.ObjectId
+  campaign        ReviewCampaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+  
+  uniqueQrId      String          @unique
+  name            String          // e.g. "Counter QR", "Table 4"
+  type            String          // COUNTER, TABLE, INVOICE, DIGITAL, VISITING_CARD, STANDEE
+  qrTypeClass     String          @default("STATIC") // STATIC, DYNAMIC
+  scanCounter     Int             @default(0)
+  lastScan        DateTime?
+  createdBy       String          // User ID
+  isActive        Boolean         @default(true)
+  expiryDate      DateTime?
+  
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+}
+
+model ReviewLandingPage {
+  id              String        @id @default(auto()) @map("_id") @db.ObjectId
+  locationId      String        @db.ObjectId @unique
+  location        Location      @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  
+  logoUrl         String?
+  welcomeMessage  String        @default("How was your experience with us?")
+  ratingThreshold Int           @default(4)
+  googleReviewUrl String?
+  facebookReviewUrl String?
+  thankYouMessage String        @default("Thank you for your feedback!")
+  buttonText      String        @default("Write a Review")
+  
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
 }
