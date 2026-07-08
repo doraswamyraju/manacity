@@ -7,19 +7,31 @@ generator client {
   provider = "prisma-client-js"
 }
 
+enum AuthProvider {
+  LOCAL
+  GOOGLE
+  APPLE
+  MICROSOFT
+}
+
 enum Role {
   SUPER_ADMIN
   BUSINESS_OWNER
 }
 
 model User {
-  id            String   @id @default(auto()) @map("_id") @db.ObjectId
-  email         String   @unique
-  passwordHash  String
-  name          String
-  role          Role     @default(BUSINESS_OWNER)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id             String       @id @default(auto()) @map("_id") @db.ObjectId
+  email          String       @unique
+  passwordHash   String?
+  name           String
+  role           Role         @default(BUSINESS_OWNER)
+  provider       AuthProvider @default(LOCAL)
+  googleId       String?      @unique
+  appleId        String?      @unique
+  microsoftId    String?      @unique
+  profilePicture String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
   
   // Relations
   businessGroups BusinessGroup[]
