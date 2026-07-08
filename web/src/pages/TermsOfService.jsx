@@ -4,7 +4,7 @@ function TermsOfService() {
   return (
     <div style={{ maxWidth: '800px', margin: '0 auto', padding: '3rem 1.5rem', textAlign: 'left', color: 'var(--text-primary)' }}>
       <header style={{ marginBottom: '2rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '1rem' }}>
-        <img src="/logo.svg" alt="ManaCity Logo" style={{ maxWidth: '150px', marginBottom: '1rem' }} />
+        <img src="/logo.png" alt="ManaCity Logo" style={{ maxWidth: '150px', marginBottom: '1rem' }} />
         <h1 style={{ fontSize: '2.5rem', fontWeight: 800 }}>Terms of Service</h1>
         <p style={{ color: 'var(--text-secondary)' }}>Last updated: July 6, 2026</p>
       </header>

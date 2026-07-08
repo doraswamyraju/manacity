@@ -59,7 +59,7 @@ function ReviewSubmit() {
       <div className="glass-card" style={{ maxWidth: '450px', width: '100%', padding: '2.5rem' }}>
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
           <img 
-            src="/logo.svg" 
+            src="/logo.png" 
             alt="ManaCity Logo" 
             style={{ width: '100%', maxWidth: '180px', marginBottom: '1rem' }} 
           />

@@ -190,7 +190,7 @@ function App() {
       {view === 'dashboard' && user && (
         <div className="glass-card" style={{ maxWidth: '500px', width: '100%', padding: '2.5rem' }}>
           <img 
-            src="/logo.svg" 
+            src="/logo.png" 
             alt="ManaCity Logo" 
             style={{ width: '90%', maxWidth: '280px', marginBottom: '2rem' }} 
           />

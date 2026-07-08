@@ -68,7 +68,7 @@ function Register({ onAuthSuccess, onNavigateToLogin }) {
     <div className="glass-card" style={{ maxWidth: '420px', width: '100%', padding: '2.5rem' }}>
       <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
         <img 
-          src="/logo.svg" 
+          src="/logo.png" 
           alt="ManaCity Logo" 
           style={{ width: '100%', maxWidth: '200px', marginBottom: '1rem' }} 
         />

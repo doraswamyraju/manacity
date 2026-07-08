@@ -37,7 +37,7 @@ function DeleteAccount() {
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '80vh', padding: '2rem' }}>
       <div className="glass-card" style={{ maxWidth: '480px', width: '100%', padding: '2.5rem', textAlign: 'left' }}>
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          <img src="/logo.svg" alt="ManaCity Logo" style={{ maxWidth: '180px', marginBottom: '1.5rem' }} />
+          <img src="/logo.png" alt="ManaCity Logo" style={{ maxWidth: '180px', marginBottom: '1.5rem' }} />
           <h2 style={{ fontSize: '1.8rem', fontWeight: 700, color: 'var(--text-primary)' }}>Delete Your Account</h2>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>Permanent Removal Request</p>
         </div>

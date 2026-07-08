@@ -13,7 +13,7 @@ function Home({ onNavigateToLogin, onNavigateToRegister, onNavigateToPrivacy, on
         marginBottom: '2rem'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <img src="/logo.svg" alt="ManaCity Logo" style={{ maxHeight: '40px' }} />
+          <img src="/logo.png" alt="ManaCity Logo" style={{ maxHeight: '60px' }} />
         </div>
         <div style={{ display: 'flex', gap: '1.5rem', fontSize: '0.95rem', fontWeight: 500 }}>
           <a href="#features" style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}>Features</a>
@@ -30,11 +30,11 @@ function Home({ onNavigateToLogin, onNavigateToRegister, onNavigateToPrivacy, on
       {/* Hero Section */}
       <header style={{ padding: '4rem 1rem', textAlign: 'center', marginBottom: '4rem' }}>
         <h1 style={{ fontSize: '3.5rem', fontWeight: 800, lineHeight: 1.2, marginBottom: '1.5rem' }}>
-          Smart Business Growth <br/>
-          <span className="gradient-text">From One Unified Dashboard</span>
+          Discover, Connect & Grow <br/>
+          <span className="gradient-text">Your Local Business Presence</span>
         </h1>
         <p style={{ color: 'var(--text-secondary)', fontSize: '1.25rem', maxWidth: '700px', margin: '0 auto 2.5rem', lineHeight: 1.6 }}>
-          ManaCity helps local businesses scale their presence. Securely connect your Google Business Profile, manage reviews, build stunning business websites, and boost local SEO instantly.
+          ManaCity helps local businesses get discovered by customers, build authentic connections through smart review management, and grow their presence using automated marketing websites and QR campaigns.
         </p>
         <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
           <button className="btn btn-primary" onClick={onNavigateToRegister} style={{ padding: '0.75rem 2rem', fontSize: '1.1rem', width: 'auto' }}>Start Free Trial</button>
@@ -56,55 +56,28 @@ function Home({ onNavigateToLogin, onNavigateToRegister, onNavigateToPrivacy, on
         }}>
           {/* Feature 1 */}
           <div className="glass-card" style={{ padding: '2rem', textAlign: 'left' }}>
-            <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>🌐</div>
-            <h3 style={{ fontSize: '1.3rem', fontWeight: 700, marginBottom: '0.75rem' }}>Google Business Profile Sync</h3>
+            <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>🔍</div>
+            <h3 style={{ fontSize: '1.3rem', fontWeight: 700, marginBottom: '0.75rem' }}>Discover: Local SEO & Visibility</h3>
             <p style={{ color: 'var(--text-secondary)', lineHeight: 1.5, fontSize: '0.95rem' }}>
-              Connect your locations securely. Automatically sync contact details, photos, and hours from your Google Business Profile.
+              Ensure your business gets found by nearby customers. Securely sync operating hours, locations, and details to boost search indexes.
             </p>
           </div>
 
           {/* Feature 2 */}
           <div className="glass-card" style={{ padding: '2rem', textAlign: 'left' }}>
-            <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>💬</div>
-            <h3 style={{ fontSize: '1.3rem', fontWeight: 700, marginBottom: '0.75rem' }}>Smart Review Manager</h3>
+            <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>🤝</div>
+            <h3 style={{ fontSize: '1.3rem', fontWeight: 700, marginBottom: '0.75rem' }}>Connect: Unified Review Inbox</h3>
             <p style={{ color: 'var(--text-secondary)', lineHeight: 1.5, fontSize: '0.95rem' }}>
-              Read and reply to reviews using automated templates or custom responses. Build customer trust with continuous engagement.
+              Build trust by instantly replying to customer feedback. Manage and triage ratings from Google and internal channels seamlessly.
             </p>
           </div>
 
           {/* Feature 3 */}
           <div className="glass-card" style={{ padding: '2rem', textAlign: 'left' }}>
-            <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>⚡</div>
-            <h3 style={{ fontSize: '1.3rem', fontWeight: 700, marginBottom: '0.75rem' }}>Dynamic Website Builder</h3>
+            <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>🚀</div>
+            <h3 style={{ fontSize: '1.3rem', fontWeight: 700, marginBottom: '0.75rem' }}>Grow: QR & Website Automation</h3>
             <p style={{ color: 'var(--text-secondary)', lineHeight: 1.5, fontSize: '0.95rem' }}>
-              Instantly generate search-optimized websites using your business information. Support for subdomains and custom branding.
-            </p>
-          </div>
-
-          {/* Feature 4 */}
-          <div className="glass-card" style={{ padding: '2rem', textAlign: 'left' }}>
-            <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>📱</div>
-            <h3 style={{ fontSize: '1.3rem', fontWeight: 700, marginBottom: '0.75rem' }}>QR Request Campaigns</h3>
-            <p style={{ color: 'var(--text-secondary)', lineHeight: 1.5, fontSize: '0.95rem' }}>
-              Print customized QR codes linking directly to your review landing page. Maximize offline customer conversions effortlessly.
-            </p>
-          </div>
-
-          {/* Feature 5 */}
-          <div className="glass-card" style={{ padding: '2rem', textAlign: 'left' }}>
-            <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>📈</div>
-            <h3 style={{ fontSize: '1.3rem', fontWeight: 700, marginBottom: '0.75rem' }}>SEO Task Engine</h3>
-            <p style={{ color: 'var(--text-secondary)', lineHeight: 1.5, fontSize: '0.95rem' }}>
-              Gamified steps reward you with XP for improving your profile completeness, leading to higher rankings in local searches.
-            </p>
-          </div>
-
-          {/* Feature 6 */}
-          <div className="glass-card" style={{ padding: '2rem', textAlign: 'left' }}>
-            <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>🤝</div>
-            <h3 style={{ fontSize: '1.3rem', fontWeight: 700, marginBottom: '0.75rem' }}>Local CRM & Lead Pipeline</h3>
-            <p style={{ color: 'var(--text-secondary)', lineHeight: 1.5, fontSize: '0.95rem' }}>
-              Store customer details, track leads, and manage communications with users who contact your generated business sites.
+              Auto-generate beautiful mobile-friendly landing pages. Use dynamic QR code campaigns to convert offline visitors into online reviews.
             </p>
           </div>
         </div>
@@ -173,14 +146,14 @@ function Home({ onNavigateToLogin, onNavigateToRegister, onNavigateToPrivacy, on
         color: 'var(--text-secondary)'
       }}>
         <div>
-          <p>&copy; {new Date().getFullYear()} Rajugari Ventures. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} <a href="https://www.rajugariventures.com" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'underline' }}>Rajugari Ventures</a>. All rights reserved.</p>
           <p style={{ fontSize: '0.8rem', marginTop: '0.25rem' }}>ManaCity is a product developed, owned, and operated by Rajugari Ventures.</p>
         </div>
         <div style={{ display: 'flex', gap: '1.25rem', flexWrap: 'wrap' }}>
           <a href="/privacy" onClick={(e) => { e.preventDefault(); onNavigateToPrivacy(); }} style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}>Privacy Policy</a>
           <a href="/terms" onClick={(e) => { e.preventDefault(); onNavigateToTerms(); }} style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}>Terms</a>
           <a href="/delete-account" onClick={(e) => { e.preventDefault(); onNavigateToDelete(); }} style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}>Data Deletion</a>
-          <span style={{ color: 'var(--text-secondary)' }}>Support: support@manacity.in</span>
+          <span style={{ color: 'var(--text-secondary)' }}>Mail: <a href="mailto:rajugariventures@gmail.com" style={{ color: 'inherit' }}>rajugariventures@gmail.com</a></span>
         </div>
       </footer>
     </div>
