@@ -12,6 +12,7 @@ import TermsOfService from './pages/TermsOfService';
 import DeleteAccount from './pages/DeleteAccount';
 import OnboardingWizard from './pages/OnboardingWizard';
 import WebsiteBuilder from './pages/WebsiteBuilder';
+import ReviewManagement from './pages/ReviewManagement';
 
 function App() {
   const [view, setView] = useState('landing'); // landing, login, register, dashboard, locations, billing, admin, onboarding
@@ -162,6 +163,10 @@ function App() {
         <WebsiteBuilder onBack={() => setView('dashboard')} />
       )}
 
+      {view === 'reviews' && (
+        <ReviewManagement onBack={() => setView('dashboard')} />
+      )}
+
       {view === 'onboarding' && (
         <OnboardingWizard 
           onCompleteOnboarding={(updatedBg) => {
@@ -263,6 +268,21 @@ function App() {
               }}
             >
               Smart Website Builder {(!businessGroup || !businessGroup.isSetupComplete) && '🔒'}
+            </button>
+
+            <button 
+              className="btn btn-primary" 
+              onClick={() => setView('reviews')} 
+              disabled={!businessGroup || !businessGroup.isSetupComplete}
+              style={{ 
+                width: '100%', 
+                backgroundColor: 'var(--accent-secondary)', 
+                borderColor: 'var(--accent-secondary)',
+                opacity: (!businessGroup || !businessGroup.isSetupComplete) ? 0.5 : 1,
+                cursor: (!businessGroup || !businessGroup.isSetupComplete) ? 'not-allowed' : 'pointer'
+              }}
+            >
+              Review Management Console {(!businessGroup || !businessGroup.isSetupComplete) && '🔒'}
             </button>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
