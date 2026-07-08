@@ -16,6 +16,7 @@ const websiteRoutes = require('./routes/websiteRoutes');
 const reviewRoutes = require('./routes/reviewRoutes');
 const crmRoutes = require('./routes/crmRoutes');
 const adminRoutes = require('./routes/adminRoutes');
+const reviewSystemRoutes = require('./routes/reviewSystemRoutes');
 
 // Middleware
 app.use(cors());
@@ -28,6 +29,7 @@ app.use('/api/subscription', subscriptionRoutes);
 app.use('/api/task', taskRoutes);
 app.use('/api/website', websiteRoutes);
 app.use('/api/review', reviewRoutes);
+app.use('/api/reviews', reviewSystemRoutes);
 app.use('/api/crm', crmRoutes);
 app.use('/api/admin', adminRoutes);
 
