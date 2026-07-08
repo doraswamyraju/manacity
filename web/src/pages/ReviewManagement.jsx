@@ -9,11 +9,11 @@ export default function ReviewManagement({ onBack }) {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  // ----------------------------------------
   // Data States
-  // ----------------------------------------
   const [analytics, setAnalytics] = useState(null);
   const [timeline, setTimeline] = useState('monthly');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
   const [reviews, setReviews] = useState([]);
   const [campaigns, setCampaigns] = useState([]);
   const [qrs, setQrs] = useState([]);
@@ -57,14 +57,14 @@ export default function ReviewManagement({ onBack }) {
       setSuccess('');
       loadTabData();
     }
-  }, [selectedLocation, activeTab, timeline, page, filterStatus]);
+  }, [selectedLocation, activeTab, timeline, startDate, endDate, page, filterStatus]);
 
   const loadTabData = () => {
     const locId = selectedLocation.id;
     let promise;
 
     if (activeTab === 'dashboard') {
-      promise = axios.get(`/api/reviews/analytics?locationId=${locId}&timeline=${timeline}`)
+      promise = axios.get(`/api/reviews/analytics?locationId=${locId}&timeline=${timeline}&startDate=${startDate}&endDate=${endDate}`)
         .then(res => setAnalytics(res.data));
     } else if (activeTab === 'inbox') {
       promise = axios.get(`/api/reviews/inbox?locationId=${locId}&search=${searchQuery}&status=${filterStatus}&page=${page}&limit=10`)
@@ -283,77 +283,224 @@ export default function ReviewManagement({ onBack }) {
           {/* ========================================================= */}
           {activeTab === 'dashboard' && analytics && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-              {/* Widgets Row */}
+              
+              {/* Date Filters Row */}
+              <div className="glass-card" style={{ padding: '1rem', display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'center' }}>
+                <span style={{ fontWeight: 600 }}>Time Filter:</span>
+                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                  <button className="btn btn-secondary" style={{ padding: '0.35rem 0.75rem', fontSize: '0.8rem' }} onClick={() => {
+                    const today = new Date().toISOString().split('T')[0];
+                    setStartDate(today); setEndDate(today);
+                  }}>Today</button>
+                  <button className="btn btn-secondary" style={{ padding: '0.35rem 0.75rem', fontSize: '0.8rem' }} onClick={() => {
+                    const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+                    setStartDate(yesterday); setEndDate(yesterday);
+                  }}>Yesterday</button>
+                  <button className="btn btn-secondary" style={{ padding: '0.35rem 0.75rem', fontSize: '0.8rem' }} onClick={() => {
+                    const start = new Date(Date.now() - 7 * 86400000).toISOString().split('T')[0];
+                    const end = new Date().toISOString().split('T')[0];
+                    setStartDate(start); setEndDate(end);
+                  }}>7 Days</button>
+                  <button className="btn btn-secondary" style={{ padding: '0.35rem 0.75rem', fontSize: '0.8rem' }} onClick={() => {
+                    const start = new Date(Date.now() - 30 * 86400000).toISOString().split('T')[0];
+                    const end = new Date().toISOString().split('T')[0];
+                    setStartDate(start); setEndDate(end);
+                  }}>30 Days</button>
+                  <button className="btn btn-secondary" style={{ padding: '0.35rem 0.75rem', fontSize: '0.8rem' }} onClick={() => {
+                    setStartDate(''); setEndDate('');
+                  }}>Clear Filters</button>
+                </div>
+                
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginLeft: 'auto' }}>
+                  <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} style={inputStyle} />
+                  <span style={{ fontSize: '0.9rem' }}>to</span>
+                  <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} style={inputStyle} />
+                </div>
+              </div>
+
+              {/* KPIs Widgets Grid */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem' }}>
                 <div className="glass-card" style={{ padding: '1.25rem' }}>
-                  <div style={widgetLabelStyle}>Total Feedback</div>
-                  <div style={widgetValStyle}>{analytics.summary.totalFeedback}</div>
+                  <div style={widgetLabelStyle}>Total Reviews</div>
+                  <div style={widgetValStyle}>{analytics.summary.totalReviews}</div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
+                    Google: {analytics.summary.googleReviews} | Internal: {analytics.summary.internalReviews}
+                  </div>
                 </div>
                 <div className="glass-card" style={{ padding: '1.25rem' }}>
                   <div style={widgetLabelStyle}>Average Rating</div>
                   <div style={widgetValStyle}>{analytics.summary.averageRating} ★</div>
+                  <div style={{ fontSize: '0.75rem', color: '#f59e0b', marginTop: '0.25rem' }}>
+                    {'★'.repeat(Math.round(analytics.summary.averageRating))}
+                  </div>
                 </div>
                 <div className="glass-card" style={{ padding: '1.25rem' }}>
-                  <div style={widgetLabelStyle}>Requests Sent</div>
-                  <div style={widgetValStyle}>{analytics.summary.totalRequests}</div>
+                  <div style={widgetLabelStyle}>Total requests</div>
+                  <div style={widgetValStyle}>
+                    {analytics.summary.requestsSent + analytics.summary.requestsOpened + analytics.summary.reviewsSubmitted}
+                  </div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
+                    Sent: {analytics.summary.requestsSent} | Open: {analytics.summary.requestsOpened}
+                  </div>
                 </div>
                 <div className="glass-card" style={{ padding: '1.25rem' }}>
-                  <div style={widgetLabelStyle}>QR Scan Count</div>
-                  <div style={widgetValStyle}>{analytics.summary.totalScans}</div>
+                  <div style={widgetLabelStyle}>QR Scans</div>
+                  <div style={widgetValStyle}>{analytics.summary.totalQrScans}</div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
+                    Active QRs: {analytics.summary.activeQrs}
+                  </div>
                 </div>
                 <div className="glass-card" style={{ padding: '1.25rem' }}>
-                  <div style={widgetLabelStyle}>Conversion Rate</div>
+                  <div style={widgetLabelStyle}>Conversion CTR</div>
                   <div style={widgetValStyle}>{analytics.summary.conversionRate}%</div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
+                    Active Campaign: {analytics.summary.activeCampaigns}
+                  </div>
                 </div>
               </div>
 
-              {/* Charts Section */}
-              <div className="glass-card" style={{ padding: '2rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                  <h3 style={{ margin: 0 }}>Review Growth & Performance</h3>
-                  <select value={timeline} onChange={(e) => setTimeline(e.target.value)} style={selectStyle}>
-                    <option value="daily">Daily</option>
-                    <option value="weekly">Weekly</option>
-                    <option value="monthly">Monthly</option>
-                    <option value="yearly">Yearly</option>
-                  </select>
-                </div>
+              {/* Visual Performance Charts (Row 1) */}
+              <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1.5rem', width: '100%' }}>
+                
+                {/* Growth and Trends Line/Bar Chart */}
+                <div className="glass-card" style={{ padding: '1.5rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                    <h3 style={{ margin: 0 }}>Review Growth Cumulative Trend</h3>
+                    <select value={timeline} onChange={(e) => setTimeline(e.target.value)} style={selectStyle}>
+                      <option value="daily">Daily</option>
+                      <option value="weekly">Weekly</option>
+                      <option value="monthly">Monthly</option>
+                      <option value="yearly">Yearly</option>
+                    </select>
+                  </div>
 
-                {analytics.timeline && analytics.timeline.length > 0 ? (
-                  <div>
-                    {/* SVG Line / Bar Performance Chart */}
+                  {analytics.timeline && analytics.timeline.length > 0 ? (
                     <svg viewBox="0 0 800 200" style={{ width: '100%', height: 'auto', background: 'rgba(255,255,255,0.01)', borderRadius: '4px', padding: '10px' }}>
                       {/* Grid Lines */}
                       <line x1="50" y1="30" x2="750" y2="30" stroke="rgba(255,255,255,0.05)" />
                       <line x1="50" y1="90" x2="750" y2="90" stroke="rgba(255,255,255,0.05)" />
                       <line x1="50" y1="150" x2="750" y2="150" stroke="rgba(255,255,255,0.05)" />
 
-                      {/* Render Bars for counts */}
-                      {analytics.timeline.map((data, idx) => {
-                        const x = 50 + (idx * (700 / analytics.timeline.length)) + 15;
-                        const maxVal = Math.max(...analytics.timeline.map(d => d.reviewsCount), 1);
-                        const height = (data.reviewsCount / maxVal) * 120;
-                        const y = 150 - height;
+                      {/* Cumulative trend line */}
+                      {(() => {
+                        const maxVal = Math.max(...analytics.timeline.map(d => d.cumulativeCount), 1);
+                        const points = analytics.timeline.map((data, idx) => {
+                          const x = 50 + (idx * (700 / Math.max(1, analytics.timeline.length - 1)));
+                          const y = 150 - (data.cumulativeCount / maxVal) * 120;
+                          return `${x},${y}`;
+                        }).join(' ');
+
                         return (
-                          <g key={idx}>
-                            <rect x={x} y={y} width="20" height={height} rx="2" fill="var(--accent-secondary)" opacity="0.6" />
-                            <text x={x + 10} y="175" fill="var(--text-secondary)" fontSize="10" textAnchor="middle">{data.bucket}</text>
-                            <text x={x + 10} y={y - 5} fill="#fff" fontSize="10" textAnchor="middle">{data.reviewsCount}</text>
-                          </g>
+                          <>
+                            <polyline fill="none" stroke="var(--accent-secondary)" strokeWidth="3" points={points} />
+                            {analytics.timeline.map((data, idx) => {
+                              const x = 50 + (idx * (700 / Math.max(1, analytics.timeline.length - 1)));
+                              const y = 150 - (data.cumulativeCount / maxVal) * 120;
+                              return (
+                                <g key={idx} cursor="pointer" onClick={() => { setActiveTab('inbox'); setFilterStatus(''); }}>
+                                  <circle cx={x} cy={y} r="4" fill="#fff" stroke="var(--accent-secondary)" strokeWidth="2" />
+                                  <text x={x} y="175" fill="var(--text-secondary)" fontSize="9" textAnchor="middle">{data.bucket}</text>
+                                  <text x={x} y={y - 8} fill="#fff" fontSize="9" textAnchor="middle" fontWeight="bold">{data.cumulativeCount}</text>
+                                </g>
+                              );
+                            })}
+                          </>
                         );
-                      })}
+                      })()}
                     </svg>
-                    <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem', fontSize: '0.85rem', color: 'var(--text-secondary)', justifyContent: 'center' }}>
-                      <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                        <span style={{ width: '12px', height: '12px', backgroundColor: 'var(--accent-secondary)', opacity: 0.6, borderRadius: '2px' }} />
-                        Volume of Feedback Captured
-                      </span>
-                    </div>
+                  ) : (
+                    <div style={{ padding: '4rem', textAlign: 'center', opacity: 0.5 }}>No growth records found for this time window.</div>
+                  )}
+                </div>
+
+                {/* Rating Distribution Breakdown */}
+                <div className="glass-card" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  <h3 style={{ margin: 0 }}>Rating Scores</h3>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '0.5rem' }}>
+                    {[5, 4, 3, 2, 1].map(stars => {
+                      const count = analytics.ratingDistribution[stars] || 0;
+                      const pct = analytics.summary.totalReviews > 0 ? (count / analytics.summary.totalReviews) * 100 : 0;
+                      return (
+                        <div key={stars} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
+                          <span style={{ width: '45px', textAlign: 'right' }}>{stars} ★</span>
+                          <div style={{ flex: 1, height: '8px', backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: '4px', overflow: 'hidden' }}>
+                            <div style={{ width: `${pct}%`, height: '100%', backgroundColor: '#f59e0b', borderRadius: '4px' }} />
+                          </div>
+                          <span style={{ width: '30px', opacity: 0.7 }}>{count}</span>
+                        </div>
+                      );
+                    })}
                   </div>
-                ) : (
-                  <div style={{ padding: '2rem', textAlign: 'center', opacity: 0.5 }}>No timeline performance trends loaded yet.</div>
-                )}
+                </div>
+
               </div>
+
+              {/* Data Lists Row (Top QRs / Top Campaigns) */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.5rem', width: '100%' }}>
+                
+                {/* Top QR Codes */}
+                <div className="glass-card" style={{ padding: '1.5rem' }}>
+                  <h3 style={{ margin: '0 0 1rem 0' }}>Top Performing QR Stands</h3>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                    {analytics.topQrs.map((qr, idx) => (
+                      <div key={idx} onClick={() => setActiveTab('qrs')} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem', backgroundColor: 'rgba(255,255,255,0.02)', borderRadius: '4px', cursor: 'pointer' }}>
+                        <div>
+                          <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{qr.name}</div>
+                          <div style={{ fontSize: '0.75rem', opacity: 0.6 }}>Class: {qr.type}</div>
+                        </div>
+                        <div style={{ textAlign: 'right' }}>
+                          <div style={{ fontWeight: 700, color: 'var(--accent-secondary)' }}>{qr.scanCounter} Scans</div>
+                        </div>
+                      </div>
+                    ))}
+                    {analytics.topQrs.length === 0 && <div style={{ opacity: 0.5, fontSize: '0.9rem' }}>No scans tracked yet.</div>}
+                  </div>
+                </div>
+
+                {/* Top Campaigns */}
+                <div className="glass-card" style={{ padding: '1.5rem' }}>
+                  <h3 style={{ margin: '0 0 1rem 0' }}>Top Campaigns CTR</h3>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                    {analytics.topCampaigns.map((camp, idx) => (
+                      <div key={idx} onClick={() => setActiveTab('campaigns')} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem', backgroundColor: 'rgba(255,255,255,0.02)', borderRadius: '4px', cursor: 'pointer' }}>
+                        <div>
+                          <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{camp.name}</div>
+                          <div style={{ fontSize: '0.75rem', opacity: 0.6 }}>Sent: {camp.totalSent} | Conv: {camp.totalCompleted}</div>
+                        </div>
+                        <div style={{ textAlign: 'right' }}>
+                          <div style={{ fontWeight: 700, color: '#4caf50' }}>{camp.conversionRate}% CTR</div>
+                        </div>
+                      </div>
+                    ))}
+                    {analytics.topCampaigns.length === 0 && <div style={{ opacity: 0.5, fontSize: '0.9rem' }}>No campaigns registered.</div>}
+                  </div>
+                </div>
+
+              </div>
+
+              {/* scheduled reports & CSV export Row */}
+              <div className="glass-card" style={{ padding: '1.5rem', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '1rem' }}>
+                <div>
+                  <h4 style={{ margin: '0 0 0.25rem 0' }}>Daily/Weekly Reports</h4>
+                  <p style={{ margin: 0, fontSize: '0.85rem', opacity: 0.7 }}>
+                    Receive automated summary email briefings at: <strong>{analytics.scheduledReportsConfig?.recipients?.join(', ') || 'user@example.com'}</strong>
+                  </p>
+                </div>
+                <button className="btn btn-secondary" onClick={() => {
+                  // Client-side CSV generation
+                  const headers = 'Bucket,Reviews Count,Cumulative Growth,Average Rating\n';
+                  const rows = (analytics.timeline || []).map(t => `${t.bucket},${t.reviewsCount},${t.cumulativeCount},${t.averageRating}`).join('\n');
+                  const blob = new Blob([headers + rows], { type: 'text/csv' });
+                  const url = window.URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.setAttribute('href', url);
+                  a.setAttribute('download', 'manacity-reviews-report.csv');
+                  a.click();
+                }}>
+                  Export Report (CSV)
+                </button>
+              </div>
+
             </div>
           )}
 

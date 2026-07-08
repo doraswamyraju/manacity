@@ -921,7 +921,7 @@ exports.submitPublicReview = async (req, res) => {
 
 exports.getAnalytics = async (req, res) => {
   try {
-    const { locationId, timeline = 'monthly' } = req.query; // timeline: daily, weekly, monthly, yearly
+    const { locationId, timeline = 'monthly', startDate, endDate } = req.query;
 
     if (!locationId) {
       return res.status(400).json({ error: 'Location ID is required.' });
@@ -937,40 +937,111 @@ exports.getAnalytics = async (req, res) => {
       return res.status(404).json({ error: 'Location not found or access denied.' });
     }
 
-    // 1. Fetch counts
-    const totalRequests = await prisma.reviewRequest.count({
-      where: { campaign: { locationId } }
-    });
+    // Date filters mapping
+    let dateFilter = {};
+    if (startDate && endDate) {
+      dateFilter = {
+        createdAt: {
+          gte: new Date(startDate),
+          lte: new Date(endDate)
+        }
+      };
+    }
 
-    const totalScansObj = await prisma.reviewQRCode.aggregate({
-      where: { locationId },
-      _sum: { scanCounter: true }
-    });
-    const totalScans = totalScansObj._sum.scanCounter || 0;
+    // 1. KPIs
+    const [
+      totalReviews,
+      googleReviews,
+      internalReviews,
+      totalQrScansObj,
+      requestsSent,
+      requestsOpened,
+      reviewsSubmitted,
+      activeCampaigns,
+      activeQrs,
+      averageRatingObj
+    ] = await Promise.all([
+      // Total reviews
+      prisma.review.count({ where: { locationId, ...dateFilter } }),
+      // Google reviews
+      prisma.review.count({ where: { locationId, source: 'GOOGLE', ...dateFilter } }),
+      // Internal reviews
+      prisma.review.count({ where: { locationId, source: 'INTERNAL', ...dateFilter } }),
+      // Total QR scans
+      prisma.qRScan.count({ where: { qrCode: { locationId }, ...dateFilter } }),
+      // Requests sent
+      prisma.reviewRequest.count({ where: { campaign: { locationId }, status: 'SENT', ...dateFilter } }),
+      // Requests opened
+      prisma.reviewRequest.count({ where: { campaign: { locationId }, status: 'OPENED', ...dateFilter } }),
+      // Reviews submitted via campaign link
+      prisma.reviewRequest.count({ where: { campaign: { locationId }, status: 'COMPLETED', ...dateFilter } }),
+      // Active campaigns
+      prisma.reviewCampaign.count({ where: { locationId, isActive: true } }),
+      // Active QR codes
+      prisma.reviewQRCode.count({ where: { locationId, isActive: true } }),
+      // Average rating
+      prisma.review.aggregate({
+        where: { locationId, ...dateFilter },
+        _avg: { rating: true }
+      })
+    ]);
 
-    const totalFeedback = await prisma.review.count({
-      where: { locationId }
-    });
-
-    const averageRatingObj = await prisma.review.aggregate({
-      where: { locationId },
-      _avg: { rating: true }
-    });
     const averageRating = parseFloat((averageRatingObj._avg.rating || 0).toFixed(2));
+    const totalRequests = requestsSent + requestsOpened + reviewsSubmitted;
+    const conversionRate = totalRequests > 0 ? parseFloat(((reviewsSubmitted / totalRequests) * 100).toFixed(2)) : 0;
 
-    // Calculate CTRs
-    const openedRequests = await prisma.reviewRequest.count({
-      where: { campaign: { locationId }, status: 'OPENED' }
+    // 2. Chart: Rating Distribution (1★–5★)
+    const ratingDistribution = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+    const ratingsGroup = await prisma.review.groupBy({
+      by: ['rating'],
+      where: { locationId, ...dateFilter },
+      _count: { id: true }
     });
-    const conversionRate = totalRequests > 0 ? parseFloat(((openedRequests / totalRequests) * 100).toFixed(2)) : 0;
+    ratingsGroup.forEach(g => {
+      ratingDistribution[g.rating] = g._count.id;
+    });
 
-    // 2. Fetch timeline grouping aggregations
-    const reviews = await prisma.review.findMany({
+    // 3. Chart: Review Sources Distribution
+    const reviewSources = { GOOGLE: 0, INTERNAL: 0, FACEBOOK: 0, WEBSITE: 0, MANUAL: 0 };
+    const sourcesGroup = await prisma.review.groupBy({
+      by: ['source'],
+      where: { locationId, ...dateFilter },
+      _count: { id: true }
+    });
+    sourcesGroup.forEach(g => {
+      reviewSources[g.source] = g._count.id;
+    });
+
+    // 4. Chart: Conversion Funnel
+    const conversionFunnel = {
+      sent: requestsSent + requestsOpened + reviewsSubmitted,
+      opened: requestsOpened + reviewsSubmitted,
+      completed: reviewsSubmitted
+    };
+
+    // 5. Chart: Top QR Codes
+    const topQrs = await prisma.reviewQRCode.findMany({
       where: { locationId },
-      select: { createdAt: true, rating: true }
+      orderBy: { scanCounter: 'desc' },
+      take: 5,
+      select: { name: true, type: true, scanCounter: true, lastScan: true }
     });
 
-    // Grouping by time bucket (mock/simple aggregation grouping based on time ranges)
+    // 6. Chart: Top Campaigns
+    const topCampaigns = await prisma.reviewCampaign.findMany({
+      where: { locationId },
+      orderBy: { conversionRate: 'desc' },
+      take: 5,
+      select: { name: true, totalSent: true, totalCompleted: true, conversionRate: true, averageRating: true }
+    });
+
+    // 7. Timeline aggregates (Growth and Trends)
+    const reviews = await prisma.review.findMany({
+      where: { locationId, ...dateFilter },
+      select: { createdAt: true, rating: true },
+      orderBy: { createdAt: 'asc' }
+    });
+
     const timelineData = [];
     const groups = {};
 
@@ -985,35 +1056,57 @@ exports.getAnalytics = async (req, res) => {
       } else if (timeline === 'yearly') {
         bucket = `${date.getFullYear()}`;
       } else {
-        // default monthly
         bucket = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
       }
 
       if (!groups[bucket]) {
-        groups[bucket] = { total: 0, sumRating: 0 };
+        groups[bucket] = { count: 0, sumRating: 0 };
       }
-      groups[bucket].total += 1;
+      groups[bucket].count += 1;
       groups[bucket].sumRating += rev.rating;
     });
 
+    let cumulativeCount = 0;
     Object.keys(groups).sort().forEach(bucket => {
+      cumulativeCount += groups[bucket].count;
       timelineData.push({
         bucket,
-        reviewsCount: groups[bucket].total,
-        averageRating: parseFloat((groups[bucket].sumRating / groups[bucket].total).toFixed(2))
+        reviewsCount: groups[bucket].count,
+        cumulativeCount,
+        averageRating: parseFloat((groups[bucket].sumRating / groups[bucket].count).toFixed(2))
       });
     });
+
+    // 8. Scheduled Reports Config Interface placeholder response
+    const scheduledReportsConfig = {
+      dailyEnabled: true,
+      weeklyEnabled: true,
+      monthlyEnabled: true,
+      recipients: [req.user.email]
+    };
 
     res.json({
       status: 'success',
       summary: {
-        totalRequests,
-        totalScans,
-        totalFeedback,
+        totalReviews,
+        googleReviews,
+        internalReviews,
         averageRating,
-        conversionRate
+        totalQrScans: totalQrScansObj,
+        conversionRate,
+        requestsSent,
+        requestsOpened,
+        reviewsSubmitted,
+        activeCampaigns,
+        activeQrs
       },
-      timeline: timelineData
+      ratingDistribution,
+      reviewSources,
+      conversionFunnel,
+      topQrs,
+      topCampaigns,
+      timeline: timelineData,
+      scheduledReportsConfig
     });
   } catch (error) {
     console.error('Get analytics error:', error);
