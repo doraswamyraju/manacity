@@ -173,12 +173,14 @@ function Home({ onNavigateToLogin, onNavigateToRegister, onNavigateToPrivacy, on
         color: 'var(--text-secondary)'
       }}>
         <div>
-          <p>&copy; {new Date().getFullYear()} ManaCity. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} Rajugari Ventures. All rights reserved.</p>
+          <p style={{ fontSize: '0.8rem', marginTop: '0.25rem' }}>ManaCity is a product developed, owned, and operated by Rajugari Ventures.</p>
         </div>
-        <div style={{ display: 'flex', gap: '1.5rem' }}>
+        <div style={{ display: 'flex', gap: '1.25rem', flexWrap: 'wrap' }}>
           <a href="/privacy" onClick={(e) => { e.preventDefault(); onNavigateToPrivacy(); }} style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}>Privacy Policy</a>
-          <a href="/terms" onClick={(e) => { e.preventDefault(); onNavigateToTerms(); }} style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}>Terms of Service</a>
-          <a href="/delete-account" onClick={(e) => { e.preventDefault(); onNavigateToDelete(); }} style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}>Delete Account</a>
+          <a href="/terms" onClick={(e) => { e.preventDefault(); onNavigateToTerms(); }} style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}>Terms</a>
+          <a href="/delete-account" onClick={(e) => { e.preventDefault(); onNavigateToDelete(); }} style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}>Data Deletion</a>
+          <span style={{ color: 'var(--text-secondary)' }}>Support: support@manacity.in</span>
         </div>
       </footer>
     </div>

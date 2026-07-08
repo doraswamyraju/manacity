@@ -12,12 +12,12 @@ function TermsOfService() {
       <section style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
         <div>
           <h2>1. Terms Acceptance</h2>
-          <p>By accessing or using ManaCity (manacity.in), you agree to be bound by these Terms of Service. If you do not agree, please do not use our services.</p>
+          <p>By accessing or using ManaCity (manacity.in), a service developed, owned, and operated by Rajugari Ventures, you agree to be bound by these Terms of Service. If you do not agree, please do not use our services.</p>
         </div>
 
         <div>
           <h2>2. Description of Service</h2>
-          <p>ManaCity is a local business growth platform providing review management, landing page building, customer CRM, and Google Business Profile management integrations. Services are provided on subscription tiers as detailed on our Pricing page.</p>
+          <p>ManaCity is a local business growth platform owned by Rajugari Ventures, providing review management, landing page building, customer CRM, and Google Business Profile management integrations. Services are provided on subscription tiers as detailed on our Pricing page.</p>
         </div>
 
         <div>

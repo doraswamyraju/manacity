@@ -12,7 +12,7 @@ function PrivacyPolicy() {
       <section style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
         <div>
           <h2>1. Introduction</h2>
-          <p>Welcome to ManaCity ("we," "our," or "us"). We are committed to protecting your privacy and ensuring a secure experience. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our platform, including our website (manacity.in) and our mobile applications.</p>
+          <p>Welcome to ManaCity, a local business visibility platform developed, owned, and operated by Rajugari Ventures ("we," "our," or "us"). We are committed to protecting your privacy and ensuring a secure experience. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our platform, including our website (manacity.in) and our mobile applications.</p>
         </div>
 
         <div>
