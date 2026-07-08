@@ -79,6 +79,7 @@ model BusinessGroup {
   products        BusinessProduct[]
   paymentMethods  BusinessPaymentMethod[]
   languages       BusinessLanguage[]
+  websiteConfig   Website?
 }
 
 model BusinessService {
@@ -172,7 +173,6 @@ model Location {
   updatedAt       DateTime      @updatedAt
 
   // Relations
-  websites      Website[]
   reviews       Review[]
   taskProgress  TaskProgress[]
   customers     Customer[]
@@ -240,16 +240,52 @@ model ReplyTemplate {
 }
 
 model Website {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  locationId  String   @db.ObjectId
-  location    Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
-  subdomain   String   @unique
-  customDomain String? @unique
-  template    String   // e.g. "hotel", "tour", "homestay"
-  config      Json     // Styling configuration, header colors, banner images
-  pagesJson   Json     // Content sections and custom pages structure
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id              String           @id @default(auto()) @map("_id") @db.ObjectId
+  businessGroupId String           @db.ObjectId @unique
+  businessGroup   BusinessGroup    @relation(fields: [businessGroupId], references: [id], onDelete: Cascade)
+  
+  subdomain       String           @unique
+  customDomain    String?          @unique
+  isPublished     Boolean          @default(false)
+  
+  // Settings & Theme
+  theme           String           @default("default") // default, modern, elegant
+  primaryColor    String           @default("#1976d2")
+  secondaryColor  String           @default("#9c27b0")
+  font            String           @default("Outfit")
+  
+  // SEO configuration
+  metaTitle       String?
+  metaDescription String?
+  keywords        String?
+  ogImage         String?
+
+  // Analytics Configurations (Placeholders only)
+  googleAnalyticsId   String?
+  searchConsoleId     String?
+  metaPixelId         String?
+  clarityId           String?
+
+  // Relations
+  sections        WebsiteSection[]
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+}
+
+model WebsiteSection {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  websiteId    String   @db.ObjectId
+  website      Website  @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+  
+  type         String   // e.g. HERO, ABOUT, SERVICES, PRODUCTS, GALLERY, REVIEWS, CONTACT, FAQ, CTA, FOOTER
+  enabled      Boolean  @default(true)
+  displayOrder Int      @default(0)
+  settings     Json     // Config parameters for specific section (e.g. title alignments, background colors)
+  
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([websiteId, type])
 }
 
 model Customer {

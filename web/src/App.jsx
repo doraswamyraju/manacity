@@ -11,6 +11,7 @@ import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
 import DeleteAccount from './pages/DeleteAccount';
 import OnboardingWizard from './pages/OnboardingWizard';
+import WebsiteBuilder from './pages/WebsiteBuilder';
 
 function App() {
   const [view, setView] = useState('landing'); // landing, login, register, dashboard, locations, billing, admin, onboarding
@@ -157,6 +158,10 @@ function App() {
         <AdminDashboard onBack={() => setView('dashboard')} />
       )}
 
+      {view === 'website-builder' && (
+        <WebsiteBuilder onBack={() => setView('dashboard')} />
+      )}
+
       {view === 'onboarding' && (
         <OnboardingWizard 
           onCompleteOnboarding={(updatedBg) => {
@@ -243,6 +248,21 @@ function App() {
               }}
             >
               Setup Business Location {(!businessGroup || !businessGroup.isSetupComplete) && '🔒'}
+            </button>
+
+            <button 
+              className="btn btn-primary" 
+              onClick={() => setView('website-builder')} 
+              disabled={!businessGroup || !businessGroup.isSetupComplete}
+              style={{ 
+                width: '100%', 
+                backgroundColor: 'var(--accent-secondary)', 
+                borderColor: 'var(--accent-secondary)',
+                opacity: (!businessGroup || !businessGroup.isSetupComplete) ? 0.5 : 1,
+                cursor: (!businessGroup || !businessGroup.isSetupComplete) ? 'not-allowed' : 'pointer'
+              }}
+            >
+              Smart Website Builder {(!businessGroup || !businessGroup.isSetupComplete) && '🔒'}
             </button>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>

@@ -5,10 +5,14 @@ const auth = require('../middleware/auth');
 const checkSubscriptionLimit = require('../middleware/subscriptionCheck');
 
 // Protected admin builder routes
-router.get('/:locationId', auth, websiteController.getWebsite);
-router.post('/', auth, checkSubscriptionLimit('website'), websiteController.saveWebsite);
+router.get('/', auth, websiteController.getWebsite);
+router.post('/save', auth, websiteController.saveWebsite);
+router.post('/sections/save', auth, websiteController.saveWebsiteSections);
 
-// Public dynamic renderer (Nginx reverse proxies this to subdomain hosting)
+// Public dynamic renderer & SEO files
 router.get('/public/:subdomain', websiteController.renderPublicWebsite);
+router.get('/public/:subdomain/sitemap.xml', websiteController.getSitemap);
+router.get('/public/:subdomain/robots.txt', websiteController.getRobots);
+router.get('/public/:subdomain/manifest.json', websiteController.getManifest);
 
 module.exports = router;
