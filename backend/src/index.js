@@ -17,6 +17,7 @@ const reviewRoutes = require('./routes/reviewRoutes');
 const crmRoutes = require('./routes/crmRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const reviewSystemRoutes = require('./routes/reviewSystemRoutes');
+const phase1Routes = require('./routes/phase1Routes');
 
 // Middleware
 app.use(cors());
@@ -32,6 +33,8 @@ app.use('/api/review', reviewRoutes);
 app.use('/api/reviews', reviewSystemRoutes);
 app.use('/api/crm', crmRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/phase1', phase1Routes);
+
 
 // Sample Test Route
 app.get('/', (req, res) => {

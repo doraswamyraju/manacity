@@ -1,150 +1,103 @@
-# ManaCity - Stage-by-Stage Execution Plan (Version 1.0)
+# ManaCity - Architecture, Roles & Phase 1 Execution Plan (v3.0)
 
-This document outlines the detailed, stage-by-stage technical execution plan for building the ManaCity platform foundation. The application is architected as a monorepo containing the backend service, web dashboard/landing pages, and native Android and iOS client apps.
-
----
-
-## Stage 1: Core Foundation & Database Design
-
-### Goal
-Establish the monorepo workspace structure, initialize core projects, and deploy the unified database schema that supports multi-tenancy, gamification, and mock Google Business Profiles.
-
-### Proposed Changes
-
-#### [Folder Structure](file:///d:/manacity)
-Create the directory structure:
-* `/backend` - Node.js + Express + Prisma + MongoDB API server (running on Port 5009)
-* `/web` - React/Vite web application (Dashboard & Public Landing Pages)
-* `/android` - Android Studio Native Kotlin project
-* `/ios` - Xcode Native Swift project
-
-#### [schema.prisma](file:///d:/manacity/backend/prisma/schema.prisma)
-Define relational database models optimized for MongoDB covering:
-* `User` (Auth, profiles, roles: Business Owner vs. Super Admin)
-* `Business` (Multi-location support: `BusinessGroup` and `Location` models)
-* `Subscription` (Plans, states, usage counters)
-* `Task` & `TaskProgress` (XP points, completion state, categories)
-* `Review` & `ReplyTemplate` (Manual reviews, response templates, ratings)
-* `Website` (Config, styling, domain setup, pages JSON)
-* `Customer` (CRM, lead capture details)
+This document details the refined role structure, public aggregator portal (`manacity.in`), Super Admin controls, and the updated Phase 1–3 execution plan for ManaCity.
 
 ---
 
-## Stage 2: Authentication & Session Management
+## 1. User Roles & Access Architecture
 
-### Goal
-Implement secure multi-platform authentication (Email/Password & Google OAuth) with session tokens valid for Web, Android, and iOS.
-
-### Proposed Changes
-* **Backend:** Implement JWT-based signup, login, password reset, and email verification endpoints. Set up Google OAuth token verification flow.
-* **Web UI:** Create responsive Auth screens (Login, Register, Forgot Password, Verify Email) with premium styling and smooth animations.
-* **Android (Kotlin):** Integrate Firebase Auth / native Google Sign-In SDK and build the login Jetpack Compose screens.
-* **iOS (Swift):** Build Swift login view using SwiftUI, Keychain services for secure token storage, and Sign In with Apple/Google.
+1. **Super Admin (Platform Owner - Us):**
+   - Full control over `manacity.in` frontend, listing moderation, category management, platform analytics, billing, user access, and system-wide settings.
+2. **Admin / Business Owner:**
+   - Signs up, connects Google Places API / imports business profile, creates automated website, manages products/services, views lead analytics, and configures optional marketplace add-ons.
+3. **End-User / Customer:**
+   - Public visitors searching for products, services, or local businesses on `manacity.in` (Justdial-style local aggregator portal) or visiting specific business subdomains (`[city].manacity.in/[business-slug]`). Can generate leads via Call, WhatsApp, and Inquiry forms.
 
 ---
 
-## Stage 3: Business & Multi-Location Registration
+## 2. Updated Phase 1 Execution Sequence (MVP Focus)
 
-### Goal
-Allow business owners to register a parent business profile and manage multiple branches/locations under a single dashboard account.
+### Step 1: Public Aggregator Portal (`manacity.in`)
+- **Justdial-style Local Directory & Search:**
+  - Search bar (Search by Product, Service, Business Name, or City).
+  - City selector & Category grids (e.g., Digital Marketing, Rice Mills, Clinics, Hotels).
+  - Rich business cards with ratings, phone/WhatsApp lead buttons, operating status, and direct link to 1-Click Generated Website.
+  - SEO-optimized directory routes (`manacity.in/[city]/[category]` and `[city].manacity.in/[business-slug]`).
 
-### Proposed Changes
-* **Backend API:** Create endpoints to CRUD locations, upload gallery assets (integrated with Cloud Storage), and save operating hours, categories, services, and social links.
-* **Web/Mobile Clients:** Design step-by-step registration wizard. Users configure profile photos, logos, products, services, and location details.
+### Step 2: Super Admin Management Dashboard
+- Control center to manage public frontend content, categories, global product/service library items, directory listings moderation, user roles, and platform metrics.
 
----
-
-## Stage 4: Subscription & Limits System (Module 4)
-
-### Goal
-Implement the subscription engine restricting features and location counts based on the active tier (Free, Starter, Growth, Premium, Agency, Enterprise).
-
-### Proposed Changes
-* **Backend middleware:** Rate limits and feature gates checking the business’s current tier.
-* **Billing System:** Integrate Stripe in test mode (or mock billing framework) to handle plan upgrades, renewals, and invoice generation.
+### Step 3: Admin (Business Owner) Onboarding & Places Integration
+- Signup/Login wizard.
+- Google Places API business search & 1-click import.
+- Instant 1-Click Website generator + centralized library selector.
+- Business Dashboard showing daily leads, call clicks, WhatsApp clicks, and Let's Track telemetry.
 
 ---
 
-## Stage 5: Smart Tasks Engine & Gamified Business Score (Modules 6 & 7)
+## 3. Detailed Stage-by-Stage Plan
 
-### Goal
-Introduce the gamified loop where business owners improve their overall score and earn rewards by performing operations.
+### Stage 1: Role-Based DB Schema & Aggregator Core
+* **Prisma Models:**
+  * `User` (Roles: `SUPER_ADMIN`, `BUSINESS_OWNER`, `CUSTOMER`).
+  * `DirectoryListing` (Aggregator search index, category tags, city routing, lead metrics).
+  * `ProductServiceLibrary` (Master global catalog managed by Super Admin).
+  * `Lead` & `LetsTrackVisitor` (Multi-tenant lead dispatcher & telemetry).
 
-### Proposed Changes
-* **Backend Engine:**
-  * Auto-generate tasks based on profile completeness (e.g., "Add Business Hours" -> 50 XP).
-  * Calculate scores dynamically across categories: Profile, Activity, Trust, Reviews, Website, and Photos.
-  * Define XP levels, streaks tracker, and badges rewards logic.
-* **Web & Mobile Dashboards:** Visual gauges showing real-time scores, active streaks, task lists with XP progress bars, and unlocked badges.
+### Stage 2: Public Aggregator Web UI (`manacity.in`)
+* **React/Vite App (`/web`):**
+  * Homepage aggregator UI: Hero search, City picker, Featured categories, Trending local businesses.
+  * Search Results & Category Listing Pages with filtering by rating, city, and category.
+  * Business Detail & Lead Modal (Direct Call & WhatsApp integration).
 
----
+### Stage 3: Super Admin Portal
+* Admin management screens: Listing approval, Category management, Product/Service master library editor, and platform lead analytics.
 
-## Stage 6: Smart Website Builder & Tourism Templates (Modules 8 & 11)
-
-### Goal
-Generate and host static or dynamically generated SEO-friendly websites using the business profile information.
-
-### Proposed Changes
-* **Builder Engine:** Dynamic page generation engine mapping database business details (About, Products, Gallery, Reviews) to a selected template.
-* **Tourism Templates:** Pre-designed CSS/HTML components for Hotels, Travel Agencies, Taxis, Tour Operators, and Homestays.
-* **Hosting/Routing:** Serve generated sites on subdomains (e.g., `businessname.manacity.com`) with preliminary custom domain routing support.
+### Stage 4: Admin (Business Owner) 2-Minute Onboarding & 1-Click Builder
+* 1-Click Google Places import -> Instant Website layout -> Lead Dashboard & Let's Track activation.
 
 ---
 
-## Stage 7: Smart Reviews & Request Campaigns (Modules 9 & 10)
+## 4. Verification Plan
 
-### Goal
-Provide review gathering tools and manual review management before the Google API sync is activated.
+### Automated Tests
+* Jest API tests for role-based authentication (`SUPER_ADMIN` vs `BUSINESS_OWNER` vs public `CUSTOMER`).
+* Search index query verification for products, services, and categories on `manacity.in`.
 
-### Proposed Changes
-* **Review Landing Page:** A public landing page where customers can rate their experience and write feedback.
-* **Review Request Engine:** Generator for:
-  * QR Codes (pointing to the Review Landing Page).
-  * Email / SMS templates.
-  * WhatsApp redirection links.
-* **Review Management Hub:** A dashboard panel to read reviews, mark sentiment, draft replies, and apply AI/pre-built templates.
+### Manual Verification
+* Test public searching on `manacity.in` aggregator homepage.
+* Verify Super Admin control panel actions.
+* Verify 2-minute Business Owner onboarding flow.
 
----
-
-## Stage 8: Media Library, CRM & Communications (Modules 12, 13, 14, 16)
-
-### Goal
-Centralize reusable content, customer contacts, media assets, and push notifications.
-
-### Proposed Changes
-* **Media Library:** Folder structures for Logos, Gallery, and Banners.
-* **Customer CRM:** Lead capture databases, client interaction notes, status pipelines.
-* **Notification Dispatcher:** In-app notifications feed, email alerts (using Nodemailer/SendGrid), and Push Notifications (via Firebase Cloud Messaging for Android & iOS).
 
 ---
 
-## Stage 9: Super Admin & Reporting (Modules 17 & 18)
+## Add-on Marketplace (Cross-Plan Modular Subscriptions)
 
-### Goal
-Manage platform metrics, system users, global subscription plans, billing audits, and global notification broadcasts.
+Business owners can enable optional modular features on any plan:
 
-### Proposed Changes
-* **Super Admin Portal:** Exclusive view showing audit logs, system-wide analytics, pricing configurations, and customer support tickets.
-* **Report Generator:** Weekly/Monthly PDF email summaries showing task progress, site visits, and review stats.
-
----
-
-## Stage 10: Google Business Profile API Readiness & Verification (Module 20)
-
-### Goal
-Launch public-facing assets to satisfy Google's verification process for full API access.
-
-### Proposed Changes
-* **Public Site:** Premium main landing page with interactive feature breakdowns, pricing tables, FAQ, Documentation, and Support contact pages.
-* **Compliance Pages:** Privacy Policy, Terms of Service, and OAuth Consent screen assets matching Google's guidelines.
+| Add-on Module | Monthly Price | Core Capabilities |
+| :--- | :---: | :--- |
+| **Let's Track (5 users)** | ₹99 | Team location and visitor tracking |
+| **CRM / Lead Management** | ₹99 | Pipeline management, customer notes, follow-up reminders |
+| **Inventory Management** | ₹99 | Stock tracking, low-stock alerts, product catalog sync |
+| **Billing & Invoicing** | ₹99 | Quick invoice creation, payment status, GST receipts |
+| **QR Review System** | ₹99 | Custom printable QR codes & instant review landing pages |
+| **WhatsApp Automation** | ₹149 | Automated lead notifications & WhatsApp messaging workflows |
+| **Appointment Booking** | ₹99 | Calendar sync, booking slot management, reminder alerts |
+| **Staff Management** | ₹99 | Role permissions, staff activity logs, shift scheduling |
+| **AI Image Generation** | Usage / Sub | Pay-per-use AI banner & product photo generator |
 
 ---
 
 ## Verification Plan
 
 ### Automated Tests
-* **Backend:** Jest unit tests verifying database transactions, token verification, and score math.
-* **Web UI:** Cypress/Playwright flows for registration and site generation.
+* **Backend:** Unit/Integration tests with Jest for Google Places importer, catalog search, Let's Track tenant routing, lead tracking, and pricing engine.
+* **Web UI:** End-to-end tests for 2-minute onboarding flow, website dynamic rendering, and catalog updates.
 
 ### Manual Verification
-* Deploy mock endpoints. Connect native Android emulator and iOS simulator to mock backend API, verifying offline capabilities and state updates.
+* Test onboarding wizard using Google Places search and verify complete section generation.
+* Test Let's Track notification pipeline across web and mobile endpoints.
+* Verify directory subdomains (`city.manacity.in/business`) and lead tracking counters.
+

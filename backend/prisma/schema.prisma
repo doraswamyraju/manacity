@@ -80,6 +80,9 @@ model BusinessGroup {
   paymentMethods  BusinessPaymentMethod[]
   languages       BusinessLanguage[]
   websiteConfig   Website?
+  directoryListing DirectoryListing?
+  leads           Lead[]
+  letsTrackVisitors LetsTrackVisitor[]
 }
 
 model BusinessService {
@@ -447,3 +450,71 @@ model QRScan {
   
   createdAt       DateTime      @default(now())
 }
+
+// --------------------------------------------------
+// Phase 1 MVP Core Models: Product/Service Library, Directory, Leads & Let's Track
+// --------------------------------------------------
+
+model ProductServiceLibrary {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  category    String   // e.g. "Digital Marketing", "Rice Mill", "Clinics"
+  type        String   // "SERVICE" or "PRODUCT"
+  description String?
+  imageUrl    String?
+  defaultPrice Float?
+  tags        String[]
+  seoKeywords String[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model DirectoryListing {
+  id              String        @id @default(auto()) @map("_id") @db.ObjectId
+  businessGroupId String        @db.ObjectId @unique
+  businessGroup   BusinessGroup @relation(fields: [businessGroupId], references: [id], onDelete: Cascade)
+  city            String        // e.g., "tirupati", "hyderabad"
+  slug            String        // e.g., "abc-digital"
+  category        String
+  services        Json?
+  products        Json?
+  reviews         Json?
+  contactPhone    String?
+  whatsAppNumber  String?
+  websiteUrl      String?
+  callClicks      Int           @default(0)
+  whatsAppClicks  Int           @default(0)
+  viewCount       Int           @default(0)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@unique([city, slug])
+}
+
+model Lead {
+  id              String        @id @default(auto()) @map("_id") @db.ObjectId
+  businessGroupId String        @db.ObjectId
+  businessGroup   BusinessGroup @relation(fields: [businessGroupId], references: [id], onDelete: Cascade)
+  visitorLocation String?
+  viewedServices  String[]
+  viewedProducts  String[]
+  channel         String        // "CALL", "WHATSAPP", "FORM"
+  contactName     String?
+  contactEmail    String?
+  contactPhone    String?
+  message         String?
+  createdAt       DateTime      @default(now())
+}
+
+model LetsTrackVisitor {
+  id              String        @id @default(auto()) @map("_id") @db.ObjectId
+  businessGroupId String        @db.ObjectId
+  businessGroup   BusinessGroup @relation(fields: [businessGroupId], references: [id], onDelete: Cascade)
+  visitorIp       String?
+  locationCity    String?
+  deviceType      String?
+  pageViewed      String?
+  notifiedOwner   Boolean       @default(false)
+  createdAt       DateTime      @default(now())
+}
+
