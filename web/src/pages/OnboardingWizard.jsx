@@ -24,20 +24,26 @@ function StepBusinessInfo({ initialData, onNext, onSaveDraft }) {
     try {
       // Send Google Places Search & Import request
       const res = await axios.post('/api/phase1/google-places/import', {
-        placeId: 'mock-place-id-123',
-        businessName: placesQuery,
-        category: 'Digital Services',
-        address: `${placesQuery} Street, Tirupati, Andhra Pradesh`,
-        phone: '+91 98765 43210',
-        website: `https://manacity.in/${placesQuery.toLowerCase().replace(/\s+/g, '-')}`,
-        rating: 4.8
+        businessName: placesQuery
       });
 
       if (res.data && res.data.data) {
         const place = res.data.data.importedPlace;
-        setName(place.businessName);
-        setDescription(`Imported Google Business profile for ${place.businessName}. High customer rating of ${place.rating}/5.`);
+        setName(place.name);
+        setDescription(`Imported Google Business profile for ${place.name}. High customer rating of ${place.rating}/5.`);
         setImportSuccess(true);
+
+        // Auto-complete step progress and take business owner straight to dashboard
+        setTimeout(() => {
+          if (onNext) {
+            onNext({
+              name: place.name,
+              description: `Official profile for ${place.name} located at ${place.address}`,
+              address: place.address,
+              isSetupComplete: true
+            });
+          }
+        }, 1200);
       }
     } catch (err) {
       setError('Failed to import Google Places profile. You can type manually below.');
@@ -45,6 +51,7 @@ function StepBusinessInfo({ initialData, onNext, onSaveDraft }) {
       setImporting(false);
     }
   };
+
 
   const handleUpload = async (e, type) => {
     const file = e.target.files[0];
