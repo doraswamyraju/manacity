@@ -31,13 +31,16 @@ exports.register = async (req, res) => {
     // Hash password
     const passwordHash = await bcrypt.hash(password, 10);
 
+    // Enforce role assignment (never allow SUPER_ADMIN signup)
+    const assignedRole = (req.body.role === 'CUSTOMER') ? 'CUSTOMER' : 'BUSINESS_OWNER';
+
     // Create user
     const user = await prisma.user.create({
       data: {
         email,
         name,
         passwordHash,
-        role: 'BUSINESS_OWNER'
+        role: assignedRole
       }
     });
 
