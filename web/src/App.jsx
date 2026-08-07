@@ -76,9 +76,14 @@ function App() {
 
   const handleAuthSuccess = (authenticatedUser) => {
     setUser(authenticatedUser);
-    setView('dashboard');
+    if (authenticatedUser.role === 'BUSINESS_OWNER') {
+      setView('onboarding');
+    } else {
+      setView('landing');
+    }
     fetchOnboardingState();
   };
+
 
   const handleLogout = () => {
     localStorage.removeItem('token');
