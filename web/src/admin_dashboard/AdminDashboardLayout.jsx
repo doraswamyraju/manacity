@@ -198,10 +198,10 @@ function AdminDashboardLayout({ user, businessGroup, onLogout, setView }) {
                           <Eye size={18} color="#3b82f6" />
                         </div>
                         <strong style={{ fontSize: '1.6rem', fontWeight: 900, color: isDark ? '#fff' : '#0f172a' }}>
-                          {gbpPerformance?.businessImpressions?.total?.toLocaleString()}
+                          {gbpData?.businessImpressions?.total?.toLocaleString()}
                         </strong>
                         <div style={{ fontSize: '0.75rem', color: '#10b981', fontWeight: 700, marginTop: '0.25rem' }}>
-                          {gbpPerformance?.businessImpressions?.growthPercentage} growth vs last month
+                          {gbpData?.businessImpressions?.growthPercentage} growth vs last month
                         </div>
                       </div>
 
@@ -211,7 +211,7 @@ function AdminDashboardLayout({ user, businessGroup, onLogout, setView }) {
                           <MousePointer size={18} color="#818cf8" />
                         </div>
                         <strong style={{ fontSize: '1.6rem', fontWeight: 900, color: isDark ? '#fff' : '#0f172a' }}>
-                          {gbpPerformance?.customerActions?.websiteClicks?.toLocaleString()}
+                          {gbpData?.customerActions?.websiteClicks?.toLocaleString()}
                         </strong>
                         <div style={{ fontSize: '0.75rem', color: isDark ? '#94a3b8' : '#64748b', marginTop: '0.25rem' }}>
                           Direct visits from Google Profile
@@ -224,7 +224,7 @@ function AdminDashboardLayout({ user, businessGroup, onLogout, setView }) {
                           <PhoneCall size={18} color="#34d399" />
                         </div>
                         <strong style={{ fontSize: '1.6rem', fontWeight: 900, color: isDark ? '#fff' : '#0f172a' }}>
-                          {gbpPerformance?.customerActions?.phoneCalls}
+                          {gbpData?.customerActions?.phoneCalls}
                         </strong>
                         <div style={{ fontSize: '0.75rem', color: isDark ? '#94a3b8' : '#64748b', marginTop: '0.25rem' }}>
                           Clicks on Call button
@@ -237,7 +237,7 @@ function AdminDashboardLayout({ user, businessGroup, onLogout, setView }) {
                           <Navigation size={18} color="#fbbf24" />
                         </div>
                         <strong style={{ fontSize: '1.6rem', fontWeight: 900, color: isDark ? '#fff' : '#0f172a' }}>
-                          {gbpPerformance?.customerActions?.directionRequests}
+                          {gbpData?.customerActions?.directionRequests}
                         </strong>
                         <div style={{ fontSize: '0.75rem', color: isDark ? '#94a3b8' : '#64748b', marginTop: '0.25rem' }}>
                           Google Maps navigation routes
