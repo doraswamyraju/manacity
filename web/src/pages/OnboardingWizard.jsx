@@ -1162,6 +1162,12 @@ const inputStyle = {
   boxSizing: 'border-box'
 };
 
+const selectStyle = {
+  ...inputStyle,
+  cursor: 'pointer',
+  backgroundColor: '#0f172a'
+};
+
 const chipStyle = {
   backgroundColor: 'rgba(25, 118, 210, 0.1)',
   border: '1px solid var(--border-color)',
