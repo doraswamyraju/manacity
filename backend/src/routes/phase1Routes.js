@@ -6,6 +6,7 @@ const directoryLeadController = require('../controllers/directoryLeadController'
 const auth = require('../middleware/auth');
 
 // Google Places Onboarding & central library
+router.get('/google-places/autocomplete', auth, phase1Controller.autocompleteGooglePlaces);
 router.post('/google-places/import', auth, phase1Controller.importGooglePlaces);
 router.get('/library', phase1Controller.getLibraryItems);
 router.post('/library/add', phase1Controller.addLibraryItemToBusiness);

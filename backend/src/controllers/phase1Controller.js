@@ -3,6 +3,69 @@ const prisma = new PrismaClient();
 
 const axios = require('axios');
 
+// Google Places Autocomplete API (Live Type-Ahead Predictions)
+exports.autocompleteGooglePlaces = async (req, res) => {
+  try {
+    const { input } = req.query;
+    const apiKey = process.env.GOOGLE_PLACES_API_KEY;
+
+    if (!input || !input.trim()) {
+      return res.status(200).json({ predictions: [] });
+    }
+
+    if (!apiKey) {
+      return res.status(200).json({ predictions: [] });
+    }
+
+    // Call Google Places API (New v1) Autocomplete
+    try {
+      const apiRes = await axios.post(
+        'https://places.googleapis.com/v1/places:autocomplete',
+        { input: input.trim() },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Goog-Api-Key': apiKey
+          }
+        }
+      );
+
+      if (apiRes.data && apiRes.data.suggestions) {
+        const predictions = apiRes.data.suggestions
+          .filter(s => s.placePrediction)
+          .map(s => ({
+            placeId: s.placePrediction.placeId,
+            name: s.placePrediction.structuredFormat?.mainText?.text || s.placePrediction.text?.text,
+            description: s.placePrediction.text?.text
+          }));
+        return res.status(200).json({ predictions });
+      }
+    } catch (newErr) {
+      console.warn('Places API (New v1) autocomplete warning, trying legacy:', newErr.response?.data || newErr.message);
+      
+      // Fallback to Places Autocomplete Legacy
+      try {
+        const legacyRes = await axios.get(`https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(input)}&key=${apiKey}`);
+        if (legacyRes.data && legacyRes.data.predictions) {
+          const predictions = legacyRes.data.predictions.map(p => ({
+            placeId: p.place_id,
+            name: p.structured_formatting?.main_text || p.description,
+            description: p.description
+          }));
+          return res.status(200).json({ predictions });
+        }
+      } catch (legacyErr) {
+        console.warn('Legacy Places Autocomplete warning:', legacyErr.response?.data || legacyErr.message);
+      }
+    }
+
+    return res.status(200).json({ predictions: [] });
+  } catch (error) {
+    console.error('Autocomplete error:', error);
+    return res.status(500).json({ error: 'Failed to fetch autocomplete suggestions' });
+  }
+};
+
 // Google Places Real API Search & Importer
 exports.importGooglePlaces = async (req, res) => {
   try {
@@ -23,8 +86,50 @@ exports.importGooglePlaces = async (req, res) => {
       category: 'General Business'
     };
 
-    // Perform Google Places API lookup (supporting both Places API New v1 and Legacy Text Search)
-    if (apiKey && businessName) {
+    // If specific Place ID is selected by user from predictions dropdown
+    if (apiKey && placeId) {
+      try {
+        const placeDetailsRes = await axios.get(
+          `https://places.googleapis.com/v1/places/${placeId}`,
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              'X-Goog-Api-Key': apiKey,
+              'X-Goog-FieldMask': 'displayName,formattedAddress,rating,types,nationalPhoneNumber,websiteUri'
+            }
+          }
+        );
+        if (placeDetailsRes.data) {
+          const pd = placeDetailsRes.data;
+          fetchedData.name = pd.displayName?.text || fetchedData.name;
+          fetchedData.address = pd.formattedAddress || fetchedData.address;
+          fetchedData.rating = pd.rating || fetchedData.rating;
+          fetchedData.phone = pd.nationalPhoneNumber || fetchedData.phone;
+          fetchedData.website = pd.websiteUri || fetchedData.website;
+          if (pd.types && pd.types.length > 0) {
+            fetchedData.category = pd.types[0].replace(/_/g, ' ').toUpperCase();
+          }
+        }
+      } catch (pdErr) {
+        console.warn('Place Details (New v1) failed, trying legacy details:', pdErr.response?.data || pdErr.message);
+        try {
+          const legacyDetails = await axios.get(`https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&key=${apiKey}`);
+          if (legacyDetails.data && legacyDetails.data.result) {
+            const r = legacyDetails.data.result;
+            fetchedData.name = r.name || fetchedData.name;
+            fetchedData.address = r.formatted_address || fetchedData.address;
+            fetchedData.rating = r.rating || fetchedData.rating;
+            fetchedData.phone = r.formatted_phone_number || fetchedData.phone;
+            fetchedData.website = r.website || fetchedData.website;
+            if (r.types && r.types.length > 0) {
+              fetchedData.category = r.types[0].replace(/_/g, ' ').toUpperCase();
+            }
+          }
+        } catch (e) {
+          console.warn('Legacy Place Details warning:', e.message);
+        }
+      }
+    } else if (apiKey && businessName) {
       try {
         // First try Places API (New) endpoint v1
         const newPlacesRes = await axios.post(
@@ -52,8 +157,6 @@ exports.importGooglePlaces = async (req, res) => {
         }
       } catch (newApiErr) {
         console.warn('Places API (New v1) failed, trying legacy Text Search:', newApiErr.response?.data || newApiErr.message);
-        
-        // Fallback to Places API (Legacy) endpoint
         try {
           const legacyRes = await axios.get(`https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(businessName)}&key=${apiKey}`);
           if (legacyRes.data && legacyRes.data.results && legacyRes.data.results.length > 0) {
