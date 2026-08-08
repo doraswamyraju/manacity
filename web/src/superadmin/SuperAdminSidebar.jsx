@@ -26,7 +26,7 @@ function SuperAdminSidebar({
   setIsHovered,
   theme
 }) {
-  // 1. Inner options show only when explicitly clicked on parent menu item
+  // Submenu toggle state
   const [openSubmenu, setOpenSubmenu] = useState(null);
 
   const isExpanded = isPinned || isHovered;
@@ -56,14 +56,17 @@ function SuperAdminSidebar({
 
   const handleParentClick = (item) => {
     if (item.subItems) {
-      // Toggle submenu only on click
+      // Toggle accordion submenu expansion
       setOpenSubmenu(openSubmenu === item.id ? null : item.id);
     } else {
       setActiveTab(item.id);
     }
   };
 
-  // 4. Sidebar background color distinct from main dashboard background
+  const handleSubItemClick = (subId) => {
+    setActiveTab(subId);
+  };
+
   const sidebarBg = isDark ? '#090d16' : '#f1f5f9';
 
   return (
@@ -81,7 +84,7 @@ function SuperAdminSidebar({
           : 'none'
       }}
     >
-      {/* 5. ManaCity Logo in Header */}
+      {/* ManaCity Brand & Logo Header */}
       <div style={{
         padding: '1.25rem 1rem',
         borderBottom: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid #e2e8f0',
@@ -143,29 +146,51 @@ function SuperAdminSidebar({
           const Icon = item.icon;
           const isSubOpen = openSubmenu === item.id;
           
-          // 3. Exact active state check so inactive items never stay highlighted white/outlined
-          const isItemActive = activeTab === item.id || (item.subItems && item.subItems.some(sub => activeTab === sub.id));
+          // Strict active checks to prevent lingering white outlines/highlights on non-active items
+          const isDirectActive = activeTab === item.id;
+          const isChildActive = item.subItems && item.subItems.some(sub => activeTab === sub.id);
+          const isParentActive = isDirectActive || isChildActive;
 
           return (
             <div key={item.id} style={{ display: 'flex', flexDirection: 'column' }}>
               <button
                 onClick={() => handleParentClick(item)}
-                style={isItemActive ? (isDark ? activeDarkStyle : activeLightStyle) : (isDark ? navDarkStyle : navLightStyle)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '0.65rem 0.75rem',
+                  borderRadius: '10px',
+                  cursor: 'pointer',
+                  fontSize: '0.88rem',
+                  textAlign: 'left',
+                  transition: 'all 0.2s ease',
+                  border: isParentActive
+                    ? (isDark ? '1px solid rgba(99, 102, 241, 0.4)' : '1px solid rgba(99, 102, 241, 0.3)')
+                    : '1px solid transparent',
+                  backgroundColor: isParentActive
+                    ? (isDark ? 'rgba(99, 102, 241, 0.18)' : 'rgba(99, 102, 241, 0.1)')
+                    : 'transparent',
+                  color: isParentActive
+                    ? (isDark ? '#ffffff' : '#4338ca')
+                    : (isDark ? '#94a3b8' : '#475569'),
+                  fontWeight: isParentActive ? 700 : 500
+                }}
                 title={!isExpanded ? item.label : undefined}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                   <div style={{
                     padding: '0.4rem',
                     borderRadius: '8px',
-                    backgroundColor: isItemActive
-                      ? (isDark ? 'rgba(99, 102, 241, 0.3)' : '#4338ca')
+                    backgroundColor: isParentActive
+                      ? (isDark ? 'rgba(99, 102, 241, 0.35)' : '#4338ca')
                       : (isDark ? 'rgba(255, 255, 255, 0.04)' : '#e2e8f0'),
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     flexShrink: 0
                   }}>
-                    <Icon size={18} color={isItemActive ? '#fff' : (isDark ? item.color : '#334155')} />
+                    <Icon size={18} color={isParentActive ? '#fff' : (isDark ? item.color : '#475569')} />
                   </div>
                   {isExpanded && <span style={{ fontSize: '0.88rem', whiteSpace: 'nowrap' }}>{item.label}</span>}
                 </div>
@@ -178,8 +203,8 @@ function SuperAdminSidebar({
                         fontWeight: 800,
                         padding: '0.15rem 0.45rem',
                         borderRadius: '10px',
-                        backgroundColor: isItemActive ? (isDark ? '#6366f1' : '#4338ca') : (isDark ? 'rgba(255, 255, 255, 0.08)' : '#e2e8f0'),
-                        color: isItemActive ? '#fff' : (isDark ? '#94a3b8' : '#475569')
+                        backgroundColor: isParentActive ? (isDark ? '#6366f1' : '#4338ca') : (isDark ? 'rgba(255, 255, 255, 0.08)' : '#e2e8f0'),
+                        color: isParentActive ? '#fff' : (isDark ? '#94a3b8' : '#475569')
                       }}>
                         {item.badge}
                       </span>
@@ -191,7 +216,7 @@ function SuperAdminSidebar({
                 )}
               </button>
 
-              {/* 1. Inner options shown ONLY when clicked */}
+              {/* Submenu Inner Options: Expanded ONLY when openSubmenu matches this parent AND sidebar is expanded */}
               {isExpanded && item.subItems && isSubOpen && (
                 <div style={{
                   display: 'flex',
@@ -204,28 +229,33 @@ function SuperAdminSidebar({
                 }}>
                   {item.subItems.map(sub => {
                     const SubIcon = sub.icon;
+                    // Only the exact active sub-item tab is highlighted
                     const isSubActive = activeTab === sub.id;
 
                     return (
                       <button
                         key={sub.id}
-                        onClick={() => setActiveTab(sub.id)}
+                        onClick={() => handleSubItemClick(sub.id)}
                         style={{
                           display: 'flex',
                           alignItems: 'center',
                           gap: '0.6rem',
                           padding: '0.5rem 0.65rem',
                           borderRadius: '6px',
-                          backgroundColor: isSubActive ? (isDark ? 'rgba(99, 102, 241, 0.25)' : 'rgba(99, 102, 241, 0.12)') : 'transparent',
                           border: 'none',
-                          color: isSubActive ? (isDark ? '#818cf8' : '#4338ca') : (isDark ? '#94a3b8' : '#64748b'),
+                          backgroundColor: isSubActive
+                            ? (isDark ? 'rgba(99, 102, 241, 0.25)' : 'rgba(99, 102, 241, 0.12)')
+                            : 'transparent',
+                          color: isSubActive
+                            ? (isDark ? '#818cf8' : '#4338ca')
+                            : (isDark ? '#94a3b8' : '#64748b'),
                           fontWeight: isSubActive ? 700 : 500,
                           fontSize: '0.82rem',
                           cursor: 'pointer',
                           textAlign: 'left'
                         }}
                       >
-                        <SubIcon size={14} />
+                        <SubIcon size={14} color={isSubActive ? (isDark ? '#818cf8' : '#4338ca') : (isDark ? '#94a3b8' : '#64748b')} />
                         <span>{sub.label}</span>
                       </button>
                     );
@@ -265,42 +295,6 @@ const sidebarStyle = {
   top: 0,
   zIndex: 50,
   transition: 'width 0.25s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.25s ease'
-};
-
-const navDarkStyle = {
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  padding: '0.65rem 0.75rem',
-  borderRadius: '10px',
-  backgroundColor: 'transparent',
-  border: 'none',
-  color: '#94a3b8',
-  cursor: 'pointer',
-  fontWeight: 500,
-  transition: 'all 0.2s ease',
-  textAlign: 'left'
-};
-
-const activeDarkStyle = {
-  ...navDarkStyle,
-  background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.25) 0%, rgba(168, 85, 247, 0.25) 100%)',
-  border: '1px solid rgba(99, 102, 241, 0.4)',
-  color: '#fff',
-  fontWeight: 700
-};
-
-const navLightStyle = {
-  ...navDarkStyle,
-  color: '#475569'
-};
-
-const activeLightStyle = {
-  ...navLightStyle,
-  backgroundColor: 'rgba(99, 102, 241, 0.12)',
-  border: '1px solid rgba(99, 102, 241, 0.3)',
-  color: '#4338ca',
-  fontWeight: 700
 };
 
 export default SuperAdminSidebar;
