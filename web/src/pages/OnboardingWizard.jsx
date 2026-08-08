@@ -131,22 +131,25 @@ function StepBusinessInfo({ initialData, onNext, onSaveDraft }) {
       <h3 style={{ fontSize: '1.4rem', fontWeight: 600, color: 'var(--accent-secondary)' }}>Step 1: Business Information & Google Places Import</h3>
       
       {/* Google Places 1-Click Auto Import Box */}
-      <div style={{ backgroundColor: 'rgba(99, 102, 241, 0.1)', border: '1px solid #6366f1', padding: '1rem', borderRadius: '10px', marginBottom: '0.5rem', position: 'relative' }}>
+      <div style={{ backgroundColor: 'rgba(99, 102, 241, 0.1)', border: '1px solid #6366f1', padding: '1rem', borderRadius: '10px', marginBottom: '0.5rem' }}>
         <label style={{ fontSize: '0.85rem', fontWeight: 600, color: '#818cf8', display: 'block', marginBottom: '0.4rem' }}>
           ⚡ 1-Click Import from Google Places API
         </label>
         <div style={{ display: 'flex', gap: '0.5rem', position: 'relative' }}>
           <input
             type="text"
-            placeholder="Type your business name (e.g. My Tax Filer)..."
+            placeholder="Type your business name (e.g. Rajugari Ventures)..."
             value={placesQuery}
             onChange={e => {
               setPlacesQuery(e.target.value);
               setSelectedPlaceId(null);
+              if (!showDropdown && e.target.value.trim().length >= 2) {
+                setShowDropdown(true);
+              }
             }}
-            onFocus={() => { if (predictions.length > 0) setShowDropdown(true); }}
+            onFocus={() => { if (placesQuery.trim().length >= 2) setShowDropdown(true); }}
             onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleGooglePlacesImport(); } }}
-            style={{ flex: 1, padding: '0.6rem', borderRadius: '6px', backgroundColor: '#0f172a', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: '0.85rem' }}
+            style={{ flex: 1, padding: '0.6rem', borderRadius: '6px', backgroundColor: '#0f172a', border: '1px solid rgba(255,255,255,0.2)', color: '#fff', fontSize: '0.85rem' }}
           />
           <button
             type="button"
@@ -157,49 +160,49 @@ function StepBusinessInfo({ initialData, onNext, onSaveDraft }) {
           >
             {importing ? 'Importing...' : 'Auto-Import'}
           </button>
+
+          {/* Live Autocomplete Dropdown */}
+          {showDropdown && (predictions.length > 0 || searchingPredictions) && (
+            <div style={{
+              position: 'absolute',
+              top: '100%',
+              left: 0,
+              right: 0,
+              backgroundColor: '#0f172a',
+              border: '1px solid #6366f1',
+              borderRadius: '6px',
+              boxShadow: '0 12px 30px rgba(0,0,0,0.8)',
+              zIndex: 9999,
+              marginTop: '4px',
+              maxHeight: '250px',
+              overflowY: 'auto'
+            }}>
+              {searchingPredictions && (
+                <div style={{ padding: '0.6rem 0.8rem', fontSize: '0.8rem', color: '#818cf8' }}>
+                  🔍 Searching Google Places matching profiles...
+                </div>
+              )}
+              {predictions.map((p) => (
+                <div
+                  key={p.placeId}
+                  onClick={() => handleSelectPrediction(p)}
+                  style={{
+                    padding: '0.65rem 0.85rem',
+                    borderBottom: '1px solid rgba(255,255,255,0.08)',
+                    cursor: 'pointer',
+                    fontSize: '0.85rem',
+                    textAlign: 'left'
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.backgroundColor = 'rgba(99, 102, 241, 0.25)'}
+                  onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
+                >
+                  <strong style={{ color: '#fff', display: 'block', fontSize: '0.9rem' }}>{p.name}</strong>
+                  <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>{p.description}</span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
-
-        {/* Live Autocomplete Dropdown */}
-        {showDropdown && predictions.length > 0 && (
-          <div style={{
-            position: 'absolute',
-            top: 'calc(100% - 0.5rem)',
-            left: '1rem',
-            right: '1rem',
-            backgroundColor: '#0f172a',
-            border: '1px solid #6366f1',
-            borderRadius: '6px',
-            boxShadow: '0 10px 25px rgba(0,0,0,0.5)',
-            zIndex: 100,
-            maxHeight: '220px',
-            overflowY: 'auto'
-          }}>
-            {predictions.map((p) => (
-              <div
-                key={p.placeId}
-                onClick={() => handleSelectPrediction(p)}
-                style={{
-                  padding: '0.6rem 0.8rem',
-                  borderBottom: '1px solid rgba(255,255,255,0.05)',
-                  cursor: 'pointer',
-                  fontSize: '0.85rem',
-                  textAlign: 'left'
-                }}
-                onMouseEnter={e => e.currentTarget.style.backgroundColor = 'rgba(99, 102, 241, 0.2)'}
-                onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
-              >
-                <strong style={{ color: '#fff', display: 'block' }}>{p.name}</strong>
-                <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{p.description}</span>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {searchingPredictions && (
-          <span style={{ fontSize: '0.75rem', color: '#818cf8', marginTop: '0.3rem', display: 'block' }}>
-            Searching Google Places matching profiles...
-          </span>
-        )}
 
         {importSuccess && (
           <span style={{ fontSize: '0.85rem', color: '#10b981', marginTop: '0.5rem', display: 'block', fontWeight: 600 }}>
