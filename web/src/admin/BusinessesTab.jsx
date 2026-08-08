@@ -1,16 +1,115 @@
-import React from 'react';
-import { Search, Trash2, Power, Eye, CheckCircle2, AlertCircle } from 'lucide-react';
+import React, { useState } from 'react';
+import { Search, Trash2, Power, AlertTriangle, X } from 'lucide-react';
 
 function BusinessesTab({ businesses, searchQuery, setSearchQuery, handleStatusChange, handleDeleteBusiness, theme }) {
   const isDark = theme === 'dark';
+
+  // Custom UI Confirmation Modal State (replaces native window.confirm)
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const filteredBusinesses = businesses.filter(b =>
     b.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     b.owner?.email?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    setIsDeleting(true);
+    try {
+      await handleDeleteBusiness(deleteTarget.id, deleteTarget.name);
+    } finally {
+      setIsDeleting(false);
+      setDeleteTarget(null);
+    }
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      
+      {/* Custom Confirmation Modal */}
+      {deleteTarget && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.75)',
+          backdropFilter: 'blur(4px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 9999
+        }}>
+          <div style={{
+            backgroundColor: isDark ? '#1e293b' : '#ffffff',
+            border: isDark ? '1px solid rgba(239, 68, 68, 0.4)' : '1px solid #fca5a5',
+            borderRadius: '16px',
+            padding: '1.75rem',
+            maxWidth: '440px',
+            width: '90%',
+            boxShadow: '0 20px 40px rgba(0,0,0,0.4)',
+            color: isDark ? '#fff' : '#0f172a'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                <AlertTriangle size={22} color="#ef4444" />
+                <h3 style={{ fontSize: '1.1rem', fontWeight: 800, margin: 0, color: '#ef4444' }}>
+                  Delete Business Group?
+                </h3>
+              </div>
+              <button
+                onClick={() => setDeleteTarget(null)}
+                style={{ backgroundColor: 'transparent', border: 'none', color: isDark ? '#94a3b8' : '#64748b', cursor: 'pointer' }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <p style={{ fontSize: '0.88rem', color: isDark ? '#cbd5e1' : '#475569', marginBottom: '1.25rem', lineHeight: 1.5 }}>
+              Are you sure you want to permanently delete <strong style={{ color: isDark ? '#fff' : '#0f172a' }}>"{deleteTarget.name}"</strong>? This will remove all associated locations and data from the platform.
+            </p>
+
+            <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => setDeleteTarget(null)}
+                style={{
+                  padding: '0.55rem 1rem',
+                  borderRadius: '8px',
+                  backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : '#f1f5f9',
+                  border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid #cbd5e1',
+                  color: isDark ? '#fff' : '#334155',
+                  cursor: 'pointer',
+                  fontWeight: 600,
+                  fontSize: '0.85rem'
+                }}
+              >
+                Cancel
+              </button>
+
+              <button
+                onClick={confirmDelete}
+                disabled={isDeleting}
+                style={{
+                  padding: '0.55rem 1.25rem',
+                  borderRadius: '8px',
+                  backgroundColor: '#ef4444',
+                  border: 'none',
+                  color: '#fff',
+                  cursor: 'pointer',
+                  fontWeight: 700,
+                  fontSize: '0.85rem',
+                  boxShadow: '0 4px 12px rgba(239, 68, 68, 0.3)'
+                }}
+              >
+                {isDeleting ? 'Deleting...' : 'Yes, Delete Permanently'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div style={{
         display: 'flex',
         alignItems: 'center',
@@ -74,15 +173,6 @@ function BusinessesTab({ businesses, searchQuery, setSearchQuery, handleStatusCh
                     <span style={{ color: isDark ? '#cbd5e1' : '#334155', display: 'block' }}>{bus.owner?.name}</span>
                     <span style={{ color: isDark ? '#64748b' : '#94a3b8', fontSize: '0.78rem' }}>{bus.owner?.email}</span>
                   </td>
-                  <td style={{ padding: '0.85rem 1rem' }}>
-                    {bus.websiteConfig ? (
-                      <span style={{ color: '#10b981', fontSize: '0.8rem', fontWeight: 600 }}>
-                        ✓ {bus.websiteConfig.isPublished ? 'Published' : 'Draft'}
-                      </span>
-                    ) : (
-                      <span style={{ color: isDark ? '#64748b' : '#94a3b8', fontSize: '0.8rem' }}>Not created</span>
-                    )}
-                  </td>
                   <td style={{ padding: '0.85rem 1rem', color: isDark ? '#cbd5e1' : '#334155' }}>{bus._count?.locations || 0}</td>
                   
                   {/* Status Badge */}
@@ -143,7 +233,7 @@ function BusinessesTab({ businesses, searchQuery, setSearchQuery, handleStatusCh
                       )}
 
                       <button
-                        onClick={() => handleDeleteBusiness(bus.id, bus.name)}
+                        onClick={() => setDeleteTarget({ id: bus.id, name: bus.name })}
                         style={{
                           padding: '0.35rem 0.65rem',
                           backgroundColor: 'rgba(239, 68, 68, 0.15)',

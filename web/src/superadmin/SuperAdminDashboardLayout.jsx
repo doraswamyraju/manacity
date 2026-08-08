@@ -136,10 +136,9 @@ function SuperAdminDashboardLayout({ user, onLogout }) {
   };
 
   const handleDeleteBusiness = async (businessId, name) => {
-    if (!window.confirm(`Are you sure you want to permanently delete "${name}"?`)) return;
     try {
       await axios.delete(`/api/admin/businesses/${businessId}`);
-      setBusinesses(businesses.filter(b => b.id !== businessId));
+      setBusinesses(prev => prev.filter(b => b.id !== businessId));
     } catch (err) {
       alert('Failed to delete business');
     }
