@@ -49,9 +49,14 @@ function App() {
     const savedUser = localStorage.getItem('user');
 
     if (token && savedUser) {
+      const parsedUser = JSON.parse(savedUser);
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      setUser(JSON.parse(savedUser));
-      setView('dashboard');
+      setUser(parsedUser);
+      if (parsedUser.role === 'SUPER_ADMIN') {
+        setView('admin');
+      } else {
+        setView('dashboard');
+      }
       fetchOnboardingState();
       
       // Verify token freshness with backend
@@ -60,6 +65,9 @@ function App() {
           if (res.data.status === 'success') {
             setUser(res.data.user);
             localStorage.setItem('user', JSON.stringify(res.data.user));
+            if (res.data.user.role === 'SUPER_ADMIN') {
+              setView('admin');
+            }
           }
         })
         .catch(() => {
@@ -76,10 +84,12 @@ function App() {
 
   const handleAuthSuccess = (authenticatedUser) => {
     setUser(authenticatedUser);
-    if (authenticatedUser.role === 'BUSINESS_OWNER') {
+    if (authenticatedUser.role === 'SUPER_ADMIN') {
+      setView('admin');
+    } else if (authenticatedUser.role === 'BUSINESS_OWNER') {
       setView('onboarding');
     } else {
-      setView('landing');
+      setView('dashboard');
     }
     fetchOnboardingState();
   };
