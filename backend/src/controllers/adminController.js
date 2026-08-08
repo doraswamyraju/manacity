@@ -136,8 +136,8 @@ exports.getBusinesses = async (req, res) => {
 
     res.json({ status: 'success', businesses });
   } catch (error) {
-    console.error('Fetch businesses error:', error);
-    res.status(500).json({ error: 'Failed to fetch business directory.' });
+    console.error('Fetch businesses detailed error:', error?.message || error, error?.stack);
+    res.status(500).json({ error: 'Failed to fetch business directory.', details: error?.message || String(error) });
   }
 };
 
