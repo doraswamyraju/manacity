@@ -18,9 +18,13 @@ function StepBusinessInfo({ initialData, onNext, onSaveDraft }) {
   const [importSuccess, setImportSuccess] = useState(false);
 
   const handleGooglePlacesImport = async () => {
-    if (!placesQuery.trim()) return;
+    if (!placesQuery.trim()) {
+      setError('Please type a business name to search on Google Places.');
+      return;
+    }
     setImporting(true);
     setError('');
+    setImportSuccess(false);
     try {
       // Send Google Places Search & Import request
       const res = await axios.post('/api/phase1/google-places/import', {
@@ -30,7 +34,7 @@ function StepBusinessInfo({ initialData, onNext, onSaveDraft }) {
       if (res.data && res.data.data) {
         const place = res.data.data.importedPlace;
         setName(place.name);
-        setDescription(`Imported Google Business profile for ${place.name}. High customer rating of ${place.rating}/5.`);
+        setDescription(`Imported Google Business profile for ${place.name}. Rating: ${place.rating}/5.`);
         setImportSuccess(true);
 
         // Auto-complete step progress and take business owner straight to dashboard
@@ -46,7 +50,9 @@ function StepBusinessInfo({ initialData, onNext, onSaveDraft }) {
         }, 1000);
       }
     } catch (err) {
-      setError('Failed to import Google Places profile. You can type manually below.');
+      console.error('Google Places Import Error:', err);
+      const serverErrMsg = err.response?.data?.error || err.message;
+      setError(`Failed to import profile (${serverErrMsg}). You can type your business details manually below.`);
     } finally {
       setImporting(false);
     }
