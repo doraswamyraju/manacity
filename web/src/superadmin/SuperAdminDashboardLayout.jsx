@@ -226,6 +226,7 @@ function SuperAdminDashboardLayout({ user, onLogout }) {
                   searchQuery={searchQuery}
                   setSearchQuery={setSearchQuery}
                   handleToggleRole={handleToggleRole}
+                  theme={theme}
                 />
               )}
               {activeTab === 'businesses' && (
@@ -233,6 +234,7 @@ function SuperAdminDashboardLayout({ user, onLogout }) {
                   businesses={businesses}
                   searchQuery={searchQuery}
                   setSearchQuery={setSearchQuery}
+                  theme={theme}
                 />
               )}
 
