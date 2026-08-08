@@ -23,21 +23,51 @@ exports.importGooglePlaces = async (req, res) => {
       category: 'General Business'
     };
 
-    // If Places API key is present, perform real Places API lookup
+    // Perform Google Places API lookup (supporting both Places API New v1 and Legacy Text Search)
     if (apiKey && businessName) {
       try {
-        const placesRes = await axios.get(`https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(businessName)}&key=${apiKey}`);
-        if (placesRes.data && placesRes.data.results && placesRes.data.results.length > 0) {
-          const topResult = placesRes.data.results[0];
-          fetchedData.name = topResult.name || fetchedData.name;
-          fetchedData.address = topResult.formatted_address || fetchedData.address;
+        // First try Places API (New) endpoint v1
+        const newPlacesRes = await axios.post(
+          'https://places.googleapis.com/v1/places:searchText',
+          { textQuery: businessName },
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              'X-Goog-Api-Key': apiKey,
+              'X-Goog-FieldMask': 'places.displayName,places.formattedAddress,places.rating,places.types,places.nationalPhoneNumber,places.websiteUri'
+            }
+          }
+        );
+
+        if (newPlacesRes.data && newPlacesRes.data.places && newPlacesRes.data.places.length > 0) {
+          const topResult = newPlacesRes.data.places[0];
+          fetchedData.name = topResult.displayName?.text || fetchedData.name;
+          fetchedData.address = topResult.formattedAddress || fetchedData.address;
           fetchedData.rating = topResult.rating || fetchedData.rating;
+          fetchedData.phone = topResult.nationalPhoneNumber || fetchedData.phone;
+          fetchedData.website = topResult.websiteUri || fetchedData.website;
           if (topResult.types && topResult.types.length > 0) {
             fetchedData.category = topResult.types[0].replace(/_/g, ' ').toUpperCase();
           }
         }
-      } catch (e) {
-        console.warn('Google Places API call warning:', e.message);
+      } catch (newApiErr) {
+        console.warn('Places API (New v1) failed, trying legacy Text Search:', newApiErr.response?.data || newApiErr.message);
+        
+        // Fallback to Places API (Legacy) endpoint
+        try {
+          const legacyRes = await axios.get(`https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(businessName)}&key=${apiKey}`);
+          if (legacyRes.data && legacyRes.data.results && legacyRes.data.results.length > 0) {
+            const topResult = legacyRes.data.results[0];
+            fetchedData.name = topResult.name || fetchedData.name;
+            fetchedData.address = topResult.formatted_address || fetchedData.address;
+            fetchedData.rating = topResult.rating || fetchedData.rating;
+            if (topResult.types && topResult.types.length > 0) {
+              fetchedData.category = topResult.types[0].replace(/_/g, ' ').toUpperCase();
+            }
+          }
+        } catch (legacyErr) {
+          console.warn('Legacy Places API call warning:', legacyErr.response?.data || legacyErr.message);
+        }
       }
     }
 
