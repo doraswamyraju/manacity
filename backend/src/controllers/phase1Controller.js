@@ -13,8 +13,8 @@ exports.autocompleteGooglePlaces = async (req, res) => {
       return res.status(200).json({ predictions: [] });
     }
 
-    if (!apiKey || apiKey.includes('AIzaSyBCJczIeN7KD92YfIHKZBZ5EKyRKE')) {
-      return res.status(400).json({ error: 'Google Places API Key is missing or invalid in server configuration.' });
+    if (!apiKey) {
+      return res.status(400).json({ error: 'Google Places API Key is missing in server configuration.' });
     }
 
     // Call Google Places API (New v1) Autocomplete
