@@ -251,6 +251,7 @@ function SuperAdminDashboardLayout({ user, onLogout }) {
                 </div>
               )}
 
+              {activeTab === 'overview' && <OverviewTab metrics={metrics} theme={theme} />}
               {activeTab === 'users' && (
                 <UsersTab
                   users={users}
