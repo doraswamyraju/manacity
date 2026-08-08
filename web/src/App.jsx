@@ -16,6 +16,7 @@ import ReviewManagement from './pages/ReviewManagement';
 import PublicReviewLanding from './pages/PublicReviewLanding';
 import ReviewPosterPrint from './pages/ReviewPosterPrint';
 import SuperAdminDashboardLayout from './superadmin/SuperAdminDashboardLayout';
+import AdminDashboardLayout from './admin_dashboard/AdminDashboardLayout';
 
 function App() {
   const [view, setView] = useState('landing'); // landing, login, register, dashboard, locations, billing, admin, onboarding
@@ -141,6 +142,17 @@ function App() {
 
   if (view === 'admin') {
     return <SuperAdminDashboardLayout user={user} onLogout={handleLogout} />;
+  }
+
+  if (view === 'dashboard' && user && user.role !== 'SUPER_ADMIN') {
+    return (
+      <AdminDashboardLayout
+        user={user}
+        businessGroup={businessGroup}
+        onLogout={handleLogout}
+        setView={setView}
+      />
+    );
   }
 
   return (

@@ -1,0 +1,235 @@
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import { RefreshCw, MapPin, Globe, Star, CheckCircle, ShieldCheck, Zap } from 'lucide-react';
+
+import AdminSidebar from './AdminSidebar';
+import AdminTopbar from './AdminTopbar';
+
+// Business Admin Module Views
+import Locations from '../pages/Locations';
+import WebsiteBuilder from '../pages/WebsiteBuilder';
+import ReviewManagement from '../pages/ReviewManagement';
+import Billing from '../pages/Billing';
+import LMSAllLeadsTab from '../admin/lms/LMSAllLeadsTab';
+
+function AdminDashboardLayout({ user, businessGroup, onLogout, setView }) {
+  // Persist active tab in localStorage
+  const [activeTab, setActiveTabState] = useState(() => {
+    return localStorage.getItem('admin_activetab') || 'overview';
+  });
+
+  const setActiveTab = (tabId) => {
+    localStorage.setItem('admin_activetab', tabId);
+    setActiveTabState(tabId);
+  };
+  
+  // Sidebar State: Collapsible, Hover Expand, Pin Option
+  const [isPinned, setIsPinned] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+
+  // Persistent Light / Dark Theme in localStorage
+  const [theme, setTheme] = useState(() => {
+    return localStorage.getItem('admin_theme') || 'dark';
+  });
+
+  const toggleTheme = () => {
+    setTheme(prev => {
+      const nextTheme = prev === 'dark' ? 'light' : 'dark';
+      localStorage.setItem('admin_theme', nextTheme);
+      return nextTheme;
+    });
+  };
+
+  const isDark = theme === 'dark';
+
+  return (
+    <div style={{
+      display: 'flex',
+      minHeight: '100vh',
+      backgroundColor: isDark ? '#0b0f19' : '#f8fafc',
+      color: isDark ? '#fff' : '#0f172a',
+      width: '100%',
+      transition: 'background-color 0.25s ease, color 0.25s ease'
+    }}>
+      
+      {/* 1. Business Admin Sidebar */}
+      <AdminSidebar
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        isPinned={isPinned}
+        setIsPinned={setIsPinned}
+        isHovered={isHovered}
+        setIsHovered={setIsHovered}
+        theme={theme}
+      />
+
+      {/* Main Panel Content Area */}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+        
+        {/* 2. Top Bar */}
+        <AdminTopbar
+          user={user}
+          businessGroup={businessGroup}
+          onRefresh={() => window.location.reload()}
+          onLogout={onLogout}
+          theme={theme}
+          toggleTheme={toggleTheme}
+        />
+
+        {/* 3. SPA Content View */}
+        <main style={{ flex: 1, padding: '2rem', maxWidth: '1200px', width: '100%', margin: '0 auto' }}>
+          
+          {/* OVERVIEW TAB */}
+          {activeTab === 'overview' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+              
+              {/* Business Overview Banner */}
+              <div style={{
+                background: isDark
+                  ? 'linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(59, 130, 246, 0.2) 100%)'
+                  : 'linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(59, 130, 246, 0.08) 100%)',
+                border: isDark ? '1px solid rgba(16, 185, 129, 0.3)' : '1px solid rgba(16, 185, 129, 0.2)',
+                borderRadius: '16px',
+                padding: '1.75rem 2rem',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                boxShadow: isDark ? '0 8px 32px rgba(0,0,0,0.2)' : '0 4px 20px rgba(16, 185, 129, 0.08)'
+              }}>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                    <Zap size={18} color="#10b981" />
+                    <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#10b981', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                      Business Portal Overview
+                    </span>
+                  </div>
+                  <h2 style={{ fontSize: '1.75rem', fontWeight: 900, color: isDark ? '#fff' : '#0f172a', margin: 0, letterSpacing: '-0.02em' }}>
+                    Welcome, <span className="gradient-text">{user?.name}</span>
+                  </h2>
+                  <p style={{ color: isDark ? '#cbd5e1' : '#64748b', fontSize: '0.9rem', margin: '0.35rem 0 0 0' }}>
+                    Manage your business profile, multi-location listings, AI website builder & customer reviews.
+                  </p>
+                </div>
+              </div>
+
+              {/* Quick Launch Cards */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: '1.25rem' }}>
+                <div
+                  onClick={() => setActiveTab('locations')}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '1.25rem',
+                    backgroundColor: isDark ? '#1e293b' : '#ffffff',
+                    border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid #e2e8f0',
+                    borderRadius: '14px',
+                    padding: '1.35rem',
+                    cursor: 'pointer',
+                    boxShadow: isDark ? 'none' : '0 4px 15px rgba(0,0,0,0.03)'
+                  }}
+                >
+                  <div style={{ padding: '0.85rem', background: 'linear-gradient(135deg, rgba(56, 189, 248, 0.2) 0%, rgba(56, 189, 248, 0.4) 100%)', borderRadius: '12px', color: isDark ? '#38bdf8' : '#0284c7' }}>
+                    <MapPin size={26} />
+                  </div>
+                  <div>
+                    <strong style={{ fontSize: '1.1rem', color: isDark ? '#fff' : '#0f172a', fontWeight: 800, display: 'block' }}>Locations</strong>
+                    <span style={{ fontSize: '0.82rem', color: isDark ? '#94a3b8' : '#64748b' }}>Manage places & maps</span>
+                  </div>
+                </div>
+
+                <div
+                  onClick={() => setActiveTab('website-builder')}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '1.25rem',
+                    backgroundColor: isDark ? '#1e293b' : '#ffffff',
+                    border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid #e2e8f0',
+                    borderRadius: '14px',
+                    padding: '1.35rem',
+                    cursor: 'pointer',
+                    boxShadow: isDark ? 'none' : '0 4px 15px rgba(0,0,0,0.03)'
+                  }}
+                >
+                  <div style={{ padding: '0.85rem', background: 'linear-gradient(135deg, rgba(129, 140, 248, 0.2) 0%, rgba(129, 140, 248, 0.4) 100%)', borderRadius: '12px', color: isDark ? '#818cf8' : '#4338ca' }}>
+                    <Globe size={26} />
+                  </div>
+                  <div>
+                    <strong style={{ fontSize: '1.1rem', color: isDark ? '#fff' : '#0f172a', fontWeight: 800, display: 'block' }}>Website Builder</strong>
+                    <span style={{ fontSize: '0.82rem', color: isDark ? '#94a3b8' : '#64748b' }}>Design your website</span>
+                  </div>
+                </div>
+
+                <div
+                  onClick={() => setActiveTab('reviews')}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '1.25rem',
+                    backgroundColor: isDark ? '#1e293b' : '#ffffff',
+                    border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid #e2e8f0',
+                    borderRadius: '14px',
+                    padding: '1.35rem',
+                    cursor: 'pointer',
+                    boxShadow: isDark ? 'none' : '0 4px 15px rgba(0,0,0,0.03)'
+                  }}
+                >
+                  <div style={{ padding: '0.85rem', background: 'linear-gradient(135deg, rgba(251, 191, 36, 0.2) 0%, rgba(251, 191, 36, 0.4) 100%)', borderRadius: '12px', color: isDark ? '#fbbf24' : '#b45309' }}>
+                    <Star size={26} />
+                  </div>
+                  <div>
+                    <strong style={{ fontSize: '1.1rem', color: isDark ? '#fff' : '#0f172a', fontWeight: 800, display: 'block' }}>Review Hub</strong>
+                    <span style={{ fontSize: '0.82rem', color: isDark ? '#94a3b8' : '#64748b' }}>QR & Customer feedback</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Business Profile Setup Status */}
+              <div style={{
+                backgroundColor: isDark ? '#1e293b' : '#ffffff',
+                border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid #e2e8f0',
+                borderRadius: '16px',
+                padding: '1.5rem',
+                boxShadow: isDark ? 'none' : '0 4px 15px rgba(0,0,0,0.03)'
+              }}>
+                <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: isDark ? '#f8fafc' : '#0f172a', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                  <ShieldCheck size={20} color="#10b981" /> Profile Configuration Status
+                </h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem', fontSize: '0.9rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', color: isDark ? '#cbd5e1' : '#475569' }}>
+                    <span>Business Name & Contact</span>
+                    <span style={{ color: '#10b981', fontWeight: 700 }}>✓ Configured</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', color: isDark ? '#cbd5e1' : '#475569' }}>
+                    <span>Address & Google Maps Link</span>
+                    <span style={{ color: '#10b981', fontWeight: 700 }}>✓ Synchronized</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', color: isDark ? '#cbd5e1' : '#475569' }}>
+                    <span>Live Aggregator Search Indexing</span>
+                    <span style={{ color: '#10b981', fontWeight: 700 }}>✓ Active</span>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          )}
+
+          {/* OTHER MODULE TABS */}
+          {activeTab === 'locations' && <Locations onBack={() => setActiveTab('overview')} />}
+          {activeTab === 'website-builder' && <WebsiteBuilder onBack={() => setActiveTab('overview')} />}
+          {activeTab === 'reviews' && <ReviewManagement onBack={() => setActiveTab('overview')} />}
+          {activeTab === 'billing' && <Billing onBack={() => setActiveTab('overview')} />}
+          
+          {/* LMS Submodules */}
+          {(activeTab === 'lms' || activeTab === 'lms-all' || activeTab === 'lms-reports' || activeTab === 'lms-qr' || activeTab === 'lms-settings') && (
+            <LMSAllLeadsTab theme={theme} />
+          )}
+
+        </main>
+      </div>
+
+    </div>
+  );
+}
+
+export default AdminDashboardLayout;
