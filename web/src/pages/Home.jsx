@@ -199,7 +199,7 @@ export default function Home({ onNavigateToLogin, onNavigateToRegister, onNaviga
               <button onClick={onNavigateToLogin} className="btn btn-secondary" style={{ padding: '0.5rem 1.25rem' }}>
                 Sign In
               </button>
-              <button onClick={onNavigateToRegister} className="btn btn-primary" style={{ padding: '0.5rem 1.25rem', background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)' }}>
+              <button onClick={onNavigateToLogin} className="btn btn-primary" style={{ padding: '0.5rem 1.25rem', background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)' }}>
                 List Your Business
               </button>
             </div>

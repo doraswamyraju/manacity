@@ -90,6 +90,25 @@ function Login({ onAuthSuccess, onNavigateToRegister }) {
         </div>
       )}
 
+      {/* 1-Click Google / Gmail Sign In Prominent Button */}
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '1.5rem', gap: '0.5rem' }}>
+        <GoogleLogin
+          onSuccess={handleGoogleSuccess}
+          onError={handleGoogleError}
+          text="continue_with"
+          theme="filled_dark"
+          shape="rectangular"
+          width="340px"
+        />
+        <span style={{ fontSize: '0.78rem', color: '#818cf8', fontWeight: 600 }}>⚡ Fast 1-Click Gmail Authentication</span>
+      </div>
+
+      <div style={{ display: 'flex', alignItems: 'center', margin: '1rem 0 1.25rem 0', gap: '0.5rem' }}>
+        <hr style={{ flex: 1, border: 'none', borderTop: '1px solid var(--border-color)', opacity: 0.3 }} />
+        <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>or sign in with email</span>
+        <hr style={{ flex: 1, border: 'none', borderTop: '1px solid var(--border-color)', opacity: 0.3 }} />
+      </div>
+
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', textAlign: 'left' }}>
           <label style={{ fontSize: '0.9rem', fontWeight: 500, color: 'var(--text-primary)' }}>Email Address</label>
@@ -148,23 +167,6 @@ function Login({ onAuthSuccess, onNavigateToRegister }) {
           {loading ? 'Signing In...' : 'Sign In'}
         </button>
       </form>
-
-      <div style={{ display: 'flex', alignItems: 'center', margin: '1.25rem 0', gap: '0.5rem' }}>
-        <hr style={{ flex: 1, border: 'none', borderTop: '1px solid var(--border-color)', opacity: 0.3 }} />
-        <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>or</span>
-        <hr style={{ flex: 1, border: 'none', borderTop: '1px solid var(--border-color)', opacity: 0.3 }} />
-      </div>
-
-      <div style={{ display: 'flex', justifyContent: 'center' }}>
-        <GoogleLogin
-          onSuccess={handleGoogleSuccess}
-          onError={handleGoogleError}
-          text="continue_with"
-          theme="filled_dark"
-          shape="rectangular"
-          width="340px"
-        />
-      </div>
 
       <div style={{ marginTop: '1.5rem', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
         Don't have an account?{' '}

@@ -4,6 +4,7 @@ import axios from 'axios';
 // --- Step 1: Business Information & Google Places Importer ---
 function StepBusinessInfo({ initialData, onNext, onAutoFill }) {
   const [name, setName] = useState(initialData.name || '');
+  const [category, setCategory] = useState(initialData.category || 'Digital Marketing');
   const [description, setDescription] = useState(initialData.description || '');
   const [yearStarted, setYearStarted] = useState(initialData.yearStarted || '');
   const [logoUrl, setLogoUrl] = useState(initialData.logoUrl || '');
@@ -15,7 +16,10 @@ function StepBusinessInfo({ initialData, onNext, onAutoFill }) {
   // Sync state if initialData is updated via auto-fill
   useEffect(() => {
     if (initialData.name) setName(initialData.name);
+    if (initialData.category) setCategory(initialData.category);
     if (initialData.description) setDescription(initialData.description);
+    if (initialData.logoUrl) setLogoUrl(initialData.logoUrl);
+    if (initialData.coverImageUrl) setCoverImageUrl(initialData.coverImageUrl);
   }, [initialData]);
 
   // Google Places Importer State
@@ -79,19 +83,27 @@ function StepBusinessInfo({ initialData, onNext, onAutoFill }) {
 
       if (res.data && res.data.data) {
         const place = res.data.data.importedPlace;
+        const parsed = place.parsedAddress || {};
+
         setName(place.name || name);
+        if (place.category) setCategory(place.category);
         setDescription(`Official Google Business profile for ${place.name || name}. Rating: ${place.rating || '4.8'}/5.`);
         setImportSuccess(true);
 
         if (onAutoFill) {
           onAutoFill({
             name: place.name,
+            category: place.category || 'Digital Marketing',
             description: `Official Google Business profile for ${place.name}. Rating: ${place.rating || '4.8'}/5.`,
-            address: place.address || '',
+            address: parsed.street || place.address || '',
+            city: parsed.city || 'Tirupati',
+            state: parsed.state || 'Andhra Pradesh',
+            country: parsed.country || 'India',
+            pinCode: parsed.pinCode || '517501',
             mobileNumber: place.phone || '',
             whatsAppNumber: place.phone || '',
             website: place.website || '',
-            category: place.category || 'General Business'
+            supportEmail: ''
           });
         }
       }
@@ -112,11 +124,14 @@ function StepBusinessInfo({ initialData, onNext, onAutoFill }) {
     else setUploadingCover(true);
 
     try {
-      const formData = new FormData();
-      formData.append('media', file);
-      const response = await axios.post('/api/business/media', formData);
-      if (type === 'logo') setLogoUrl(response.data.url);
-      else setCoverImageUrl(response.data.url);
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        const base64Data = reader.result;
+        const response = await axios.post('/api/business/media', { base64Data });
+        if (type === 'logo') setLogoUrl(response.data.url);
+        else setCoverImageUrl(response.data.url);
+      };
+      reader.readAsDataURL(file);
     } catch (err) {
       setError('File upload failed.');
     } finally {
@@ -131,7 +146,7 @@ function StepBusinessInfo({ initialData, onNext, onAutoFill }) {
       return;
     }
     setError('');
-    const data = { name, description, yearStarted, logoUrl, coverImageUrl };
+    const data = { name, category, description, yearStarted, logoUrl, coverImageUrl };
     onNext(data);
   };
 
@@ -234,6 +249,22 @@ function StepBusinessInfo({ initialData, onNext, onAutoFill }) {
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+        <label style={{ fontSize: '0.9rem', fontWeight: 500 }}>Business Category *</label>
+        <select 
+          value={category} 
+          onChange={(e) => setCategory(e.target.value)} 
+          style={selectStyle}
+        >
+          <option value="Digital Marketing">Digital Marketing</option>
+          <option value="Rice Mill">Rice Mill</option>
+          <option value="Clinics & Health">Clinics & Health</option>
+          <option value="Hotels & Lodging">Hotels & Lodging</option>
+          <option value="Services">Services</option>
+          <option value="General Business">General Business</option>
+        </select>
+      </div>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
         <label style={{ fontSize: '0.9rem', fontWeight: 500 }}>Business Description</label>
         <textarea 
           value={description} 
@@ -281,22 +312,38 @@ function StepBusinessInfo({ initialData, onNext, onAutoFill }) {
 
 // --- Step 2: Contact Information ---
 function StepContactInfo({ initialData, onNext, onBack }) {
-  const [mobileNumber, setMobileNumber] = useState(initialData.mobileNumber || '');
-  const [whatsAppNumber, setWhatsAppNumber] = useState(initialData.whatsAppNumber || '');
+  const cleanDigits = (val) => {
+    if (!val) return '';
+    const digits = val.replace(/\D/g, '');
+    if (digits.length === 12 && digits.startsWith('91')) return digits.slice(2);
+    if (digits.length === 11 && digits.startsWith('0')) return digits.slice(1);
+    return digits;
+  };
+
+  const [mobileNumber, setMobileNumber] = useState(cleanDigits(initialData.mobileNumber));
+  const [whatsAppNumber, setWhatsAppNumber] = useState(cleanDigits(initialData.whatsAppNumber));
   const [email, setEmail] = useState(initialData.email || '');
   const [website, setWebsite] = useState(initialData.website || '');
   const [supportEmail, setSupportEmail] = useState(initialData.supportEmail || '');
   const [error, setError] = useState('');
 
+  useEffect(() => {
+    if (initialData.mobileNumber) setMobileNumber(cleanDigits(initialData.mobileNumber));
+    if (initialData.whatsAppNumber) setWhatsAppNumber(cleanDigits(initialData.whatsAppNumber));
+    if (initialData.email) setEmail(initialData.email);
+    if (initialData.website) setWebsite(initialData.website);
+  }, [initialData]);
+
   const handleNext = () => {
-    const phoneRegex = /^[0-9]{10}$/;
+    const phoneDigits = mobileNumber.replace(/\D/g, '');
+    const waDigits = whatsAppNumber.replace(/\D/g, '');
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    if (mobileNumber && !phoneRegex.test(mobileNumber)) {
+    if (phoneDigits && (phoneDigits.length < 10 || phoneDigits.length > 12)) {
       setError('Mobile Number must be a valid 10-digit number.');
       return;
     }
-    if (whatsAppNumber && !phoneRegex.test(whatsAppNumber)) {
+    if (waDigits && (waDigits.length < 10 || waDigits.length > 12)) {
       setError('WhatsApp Number must be a valid 10-digit number.');
       return;
     }
@@ -310,7 +357,7 @@ function StepContactInfo({ initialData, onNext, onBack }) {
     }
 
     setError('');
-    onNext({ mobileNumber, whatsAppNumber, email, website, supportEmail });
+    onNext({ mobileNumber: phoneDigits || mobileNumber, whatsAppNumber: waDigits || whatsAppNumber, email, website, supportEmail });
   };
 
   return (
@@ -384,14 +431,22 @@ function StepContactInfo({ initialData, onNext, onBack }) {
 
 // --- Step 3: Address ---
 function StepAddress({ initialData, onNext, onBack }) {
-  const [country, setCountry] = useState(initialData.country || '');
-  const [state, setState] = useState(initialData.state || '');
-  const [city, setCity] = useState(initialData.city || '');
+  const [country, setCountry] = useState(initialData.country || 'India');
+  const [state, setState] = useState(initialData.state || 'Andhra Pradesh');
+  const [city, setCity] = useState(initialData.city || 'Tirupati');
   const [areaLocality, setAreaLocality] = useState(initialData.areaLocality || '');
   const [address, setAddress] = useState(initialData.address || '');
-  const [pinCode, setPinCode] = useState(initialData.pinCode || '');
+  const [pinCode, setPinCode] = useState(initialData.pinCode || '517501');
   const [googleMapsLink, setGoogleMapsLink] = useState(initialData.googleMapsLink || '');
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (initialData.country) setCountry(initialData.country);
+    if (initialData.state) setState(initialData.state);
+    if (initialData.city) setCity(initialData.city);
+    if (initialData.address) setAddress(initialData.address);
+    if (initialData.pinCode) setPinCode(initialData.pinCode);
+  }, [initialData]);
 
   const handleNext = () => {
     if (!country || !state || !city || !pinCode || !address) {

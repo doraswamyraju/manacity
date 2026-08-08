@@ -107,12 +107,97 @@ exports.importGooglePlaces = async (req, res) => {
         if (placeDetailsRes.data) {
           const pd = placeDetailsRes.data;
           fetchedData.name = pd.displayName?.text || fetchedData.name;
+const mapGoogleTypeToCategory = (types = []) => {
+  const tStr = types.join(' ').toLowerCase();
+  if (tStr.includes('marketing') || tStr.includes('advertising') || tStr.includes('consultant')) return 'Digital Marketing';
+  if (tStr.includes('rice') || tStr.includes('mill') || tStr.includes('grain')) return 'Rice Mill';
+  if (tStr.includes('health') || tStr.includes('doctor') || tStr.includes('hospital') || tStr.includes('clinic') || tStr.includes('dentist')) return 'Clinics & Health';
+  if (tStr.includes('hotel') || tStr.includes('lodging') || tStr.includes('resort')) return 'Hotels & Lodging';
+  if (tStr.includes('service') || tStr.includes('repair') || tStr.includes('store')) return 'Services';
+  
+  if (types.length > 0) {
+    const raw = types[0].replace(/_/g, ' ');
+    return raw.charAt(0).toUpperCase() + raw.slice(1);
+  }
+  return 'General Business';
+};
+
+const cleanPhone = (phoneStr) => {
+  if (!phoneStr) return '';
+  const digits = phoneStr.replace(/\D/g, '');
+  if (digits.length === 12 && digits.startsWith('91')) return digits.slice(2);
+  if (digits.length === 11 && digits.startsWith('0')) return digits.slice(1);
+  return digits;
+};
+
+const parseAddressParts = (rawAddr) => {
+  if (!rawAddr) return { city: 'Tirupati', state: 'Andhra Pradesh', pinCode: '517501', country: 'India', street: '' };
+  
+  const pinMatch = rawAddr.match(/\b\d{6}\b/);
+  const pinCode = pinMatch ? pinMatch[0] : '517501';
+
+  const parts = rawAddr.split(',').map(p => p.trim());
+  let country = 'India';
+  let state = 'Andhra Pradesh';
+  let city = 'Tirupati';
+
+  if (parts.length >= 3) {
+    country = parts[parts.length - 1] || 'India';
+    const statePart = parts[parts.length - 2] || '';
+    state = statePart.replace(/\b\d{6}\b/, '').trim() || 'Andhra Pradesh';
+    city = parts[parts.length - 3] || 'Tirupati';
+  } else if (parts.length === 2) {
+    city = parts[0];
+    state = parts[1].replace(/\b\d{6}\b/, '').trim();
+  }
+
+  const street = parts.slice(0, Math.max(1, parts.length - 2)).join(', ');
+
+  return { city, state, pinCode, country, street };
+};
+
+// Google Places Real API Search & Importer
+exports.importGooglePlaces = async (req, res) => {
+  try {
+    const { placeId, businessName } = req.body;
+    const ownerId = req.user ? req.user.id : null;
+    const apiKey = process.env.GOOGLE_PLACES_API_KEY;
+
+    if (!businessName && !placeId) {
+      return res.status(400).json({ error: 'Business name or Place ID is required' });
+    }
+
+    let fetchedData = {
+      name: businessName || 'My Business',
+      address: 'Tirupati, Andhra Pradesh',
+      phone: '',
+      website: '',
+      rating: 4.8,
+      category: 'General Business'
+    };
+
+    // If specific Place ID is selected by user from predictions dropdown
+    if (apiKey && placeId) {
+      try {
+        const placeDetailsRes = await axios.get(
+          `https://places.googleapis.com/v1/places/${placeId}`,
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              'X-Goog-Api-Key': apiKey,
+              'X-Goog-FieldMask': 'displayName,formattedAddress,rating,types,nationalPhoneNumber,websiteUri'
+            }
+          }
+        );
+        if (placeDetailsRes.data) {
+          const pd = placeDetailsRes.data;
+          fetchedData.name = pd.displayName?.text || fetchedData.name;
           fetchedData.address = pd.formattedAddress || fetchedData.address;
           fetchedData.rating = pd.rating || fetchedData.rating;
-          fetchedData.phone = pd.nationalPhoneNumber || fetchedData.phone;
+          fetchedData.phone = cleanPhone(pd.nationalPhoneNumber) || fetchedData.phone;
           fetchedData.website = pd.websiteUri || fetchedData.website;
           if (pd.types && pd.types.length > 0) {
-            fetchedData.category = pd.types[0].replace(/_/g, ' ').toUpperCase();
+            fetchedData.category = mapGoogleTypeToCategory(pd.types);
           }
         }
       } catch (pdErr) {
@@ -124,10 +209,10 @@ exports.importGooglePlaces = async (req, res) => {
             fetchedData.name = r.name || fetchedData.name;
             fetchedData.address = r.formatted_address || fetchedData.address;
             fetchedData.rating = r.rating || fetchedData.rating;
-            fetchedData.phone = r.formatted_phone_number || fetchedData.phone;
+            fetchedData.phone = cleanPhone(r.formatted_phone_number) || fetchedData.phone;
             fetchedData.website = r.website || fetchedData.website;
             if (r.types && r.types.length > 0) {
-              fetchedData.category = r.types[0].replace(/_/g, ' ').toUpperCase();
+              fetchedData.category = mapGoogleTypeToCategory(r.types);
             }
           }
         } catch (e) {
@@ -154,10 +239,10 @@ exports.importGooglePlaces = async (req, res) => {
           fetchedData.name = topResult.displayName?.text || fetchedData.name;
           fetchedData.address = topResult.formattedAddress || fetchedData.address;
           fetchedData.rating = topResult.rating || fetchedData.rating;
-          fetchedData.phone = topResult.nationalPhoneNumber || fetchedData.phone;
+          fetchedData.phone = cleanPhone(topResult.nationalPhoneNumber) || fetchedData.phone;
           fetchedData.website = topResult.websiteUri || fetchedData.website;
           if (topResult.types && topResult.types.length > 0) {
-            fetchedData.category = topResult.types[0].replace(/_/g, ' ').toUpperCase();
+            fetchedData.category = mapGoogleTypeToCategory(topResult.types);
           }
         }
       } catch (newApiErr) {
@@ -170,7 +255,7 @@ exports.importGooglePlaces = async (req, res) => {
             fetchedData.address = topResult.formatted_address || fetchedData.address;
             fetchedData.rating = topResult.rating || fetchedData.rating;
             if (topResult.types && topResult.types.length > 0) {
-              fetchedData.category = topResult.types[0].replace(/_/g, ' ').toUpperCase();
+              fetchedData.category = mapGoogleTypeToCategory(topResult.types);
             }
           }
         } catch (legacyErr) {
@@ -179,8 +264,8 @@ exports.importGooglePlaces = async (req, res) => {
       }
     }
 
-    const addressParts = (fetchedData.address || '').split(',');
-    const city = addressParts.length >= 2 ? addressParts[addressParts.length - 2].trim().toLowerCase() : 'tirupati';
+    const parsed = parseAddressParts(fetchedData.address);
+    const city = parsed.city.toLowerCase();
     const slug = fetchedData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 
     // Create or update business group
@@ -323,7 +408,10 @@ exports.importGooglePlaces = async (req, res) => {
       data: {
         businessGroup,
         websiteConfig,
-        importedPlace: fetchedData
+        importedPlace: {
+          ...fetchedData,
+          parsedAddress: parsed
+        }
       }
     });
   } catch (error) {

@@ -160,13 +160,27 @@ exports.deleteLocation = async (req, res) => {
   }
 };
 
-// 5. Mock Asset Upload Endpoint
+// 5. Asset Upload Endpoint (Base64 / Data URI & Storage Fallback)
 exports.uploadMedia = async (req, res) => {
-  // Since we are running on local/mock systems before cloud configuration, we return a mock URL
-  res.json({
-    status: 'success',
-    url: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=600'
-  });
+  try {
+    if (req.files && req.files.media) {
+      const file = req.files.media;
+      const base64 = file.data.toString('base64');
+      const mime = file.mimetype || 'image/jpeg';
+      const dataUri = `data:${mime};base64,${base64}`;
+      return res.json({ status: 'success', url: dataUri });
+    }
+    if (req.body && req.body.base64Data) {
+      return res.json({ status: 'success', url: req.body.base64Data });
+    }
+    // Static placeholder fallback if no file attached
+    res.json({
+      status: 'success',
+      url: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=600'
+    });
+  } catch (err) {
+    res.json({ status: 'success', url: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=600' });
+  }
 };
 
 // 6. Get Onboarding State
@@ -240,6 +254,13 @@ exports.saveOnboardingStep = async (req, res) => {
       updateData.yearStarted = data.yearStarted !== undefined && data.yearStarted !== '' ? Number(data.yearStarted) : null;
       updateData.logoUrl = data.logoUrl !== undefined ? data.logoUrl : businessGroup.logoUrl;
       updateData.coverImageUrl = data.coverImageUrl !== undefined ? data.coverImageUrl : businessGroup.coverImageUrl;
+      if (data.category) {
+        // Also update Directory Listing category if present
+        await prisma.directoryListing.updateMany({
+          where: { businessGroupId },
+          data: { category: data.category }
+        });
+      }
     } else if (step === 2) {
       // Contact Info
       updateData.mobileNumber = data.mobileNumber !== undefined ? data.mobileNumber : businessGroup.mobileNumber;
@@ -346,6 +367,32 @@ exports.saveOnboardingStep = async (req, res) => {
       }
     });
 
+    // Automatically sync / create Location record for Business Locations
+    const existingLoc = await prisma.location.findFirst({ where: { businessGroupId } });
+    if (existingLoc) {
+      await prisma.location.update({
+        where: { id: existingLoc.id },
+        data: {
+          name: updatedGroup.name,
+          address: updatedGroup.address || existingLoc.address,
+          city: updatedGroup.city || existingLoc.city,
+          phone: updatedGroup.mobileNumber || existingLoc.phone
+        }
+      });
+    } else {
+      await prisma.location.create({
+        data: {
+          businessGroupId,
+          name: updatedGroup.name,
+          address: updatedGroup.address || 'Tirupati',
+          city: updatedGroup.city || 'Tirupati',
+          country: updatedGroup.country || 'India',
+          phone: updatedGroup.mobileNumber || '9876543210',
+          category: 'General Business'
+        }
+      });
+    }
+
     res.json({
       status: 'success',
       businessGroup: updatedGroup
@@ -377,6 +424,22 @@ exports.completeOnboarding = async (req, res) => {
         setupStep: 6
       }
     });
+
+    // Ensure Location record exists for Business Locations
+    const existingLoc = await prisma.location.findFirst({ where: { businessGroupId: businessGroup.id } });
+    if (!existingLoc) {
+      await prisma.location.create({
+        data: {
+          businessGroupId: businessGroup.id,
+          name: updatedGroup.name,
+          address: updatedGroup.address || 'Tirupati',
+          city: updatedGroup.city || 'Tirupati',
+          country: updatedGroup.country || 'India',
+          phone: updatedGroup.mobileNumber || '9876543210',
+          category: 'General Business'
+        }
+      });
+    }
 
     res.json({
       status: 'success',
