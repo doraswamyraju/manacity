@@ -16,6 +16,11 @@ enum AuthProvider {
 
 enum Role {
   SUPER_ADMIN
+  ADMIN
+  EMPLOYEE
+  REFERRAL_PARTNER
+  AGENT
+  CUSTOMER
   BUSINESS_OWNER
 }
 
@@ -44,6 +49,8 @@ model BusinessGroup {
   owner           User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+
+  status          String   @default("LIVE") // LIVE, DISABLED, PENDING
 
   // Wizard Onboarding progress tracking
   setupStep       Int      @default(1) // Current step (1-6)

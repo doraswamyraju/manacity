@@ -1,12 +1,22 @@
 import React from 'react';
-import { Search } from 'lucide-react';
+import { Search, Shield } from 'lucide-react';
 
-function UsersTab({ users, searchQuery, setSearchQuery, handleToggleRole, theme }) {
+function UsersTab({ users, searchQuery, setSearchQuery, handleRoleChange, theme }) {
   const isDark = theme === 'dark';
   const filteredUsers = users.filter(u =>
     u.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     u.email?.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const availableRoles = [
+    { value: 'SUPER_ADMIN', label: 'Super Admin' },
+    { value: 'ADMIN', label: 'Admin' },
+    { value: 'EMPLOYEE', label: 'Employee' },
+    { value: 'REFERRAL_PARTNER', label: 'Referral Partner' },
+    { value: 'AGENT', label: 'Agent' },
+    { value: 'CUSTOMER', label: 'Customer' },
+    { value: 'BUSINESS_OWNER', label: 'Business Owner' }
+  ];
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -54,10 +64,9 @@ function UsersTab({ users, searchQuery, setSearchQuery, handleToggleRole, theme 
             }}>
               <th style={{ padding: '0.85rem 1rem' }}>User</th>
               <th style={{ padding: '0.85rem 1rem' }}>Provider</th>
-              <th style={{ padding: '0.85rem 1rem' }}>Role</th>
+              <th style={{ padding: '0.85rem 1rem' }}>Assign Role</th>
               <th style={{ padding: '0.85rem 1rem' }}>Businesses</th>
               <th style={{ padding: '0.85rem 1rem' }}>Registered</th>
-              <th style={{ padding: '0.85rem 1rem', textAlign: 'right' }}>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -68,38 +77,35 @@ function UsersTab({ users, searchQuery, setSearchQuery, handleToggleRole, theme 
                   <span style={{ color: isDark ? '#94a3b8' : '#64748b', fontSize: '0.8rem' }}>{userItem.email}</span>
                 </td>
                 <td style={{ padding: '0.85rem 1rem', color: isDark ? '#cbd5e1' : '#334155' }}>{userItem.provider}</td>
+                
+                {/* Role Dropdown Selector */}
                 <td style={{ padding: '0.85rem 1rem' }}>
-                  <span style={{
-                    padding: '0.2rem 0.5rem',
-                    borderRadius: '4px',
-                    fontSize: '0.75rem',
-                    fontWeight: 700,
-                    backgroundColor: userItem.role === 'SUPER_ADMIN' ? 'rgba(168, 85, 247, 0.2)' : 'rgba(59, 130, 246, 0.15)',
-                    color: userItem.role === 'SUPER_ADMIN' ? '#c084fc' : '#2563eb'
-                  }}>
-                    {userItem.role}
-                  </span>
+                  <select
+                    value={userItem.role || 'BUSINESS_OWNER'}
+                    onChange={(e) => handleRoleChange(userItem.id, e.target.value)}
+                    style={{
+                      padding: '0.4rem 0.75rem',
+                      borderRadius: '8px',
+                      backgroundColor: isDark ? '#0f172a' : '#f8fafc',
+                      border: isDark ? '1px solid rgba(255, 255, 255, 0.15)' : '1px solid #cbd5e1',
+                      color: isDark ? '#fff' : '#0f172a',
+                      fontSize: '0.82rem',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      outline: 'none'
+                    }}
+                  >
+                    {availableRoles.map(r => (
+                      <option key={r.value} value={r.value}>
+                        {r.label}
+                      </option>
+                    ))}
+                  </select>
                 </td>
+
                 <td style={{ padding: '0.85rem 1rem', color: isDark ? '#cbd5e1' : '#334155' }}>{userItem._count?.businessGroups || 0}</td>
                 <td style={{ padding: '0.85rem 1rem', color: isDark ? '#64748b' : '#94a3b8', fontSize: '0.8rem' }}>
                   {new Date(userItem.createdAt).toLocaleDateString()}
-                </td>
-                <td style={{ padding: '0.85rem 1rem', textAlign: 'right' }}>
-                  <button
-                    onClick={() => handleToggleRole(userItem.id, userItem.role)}
-                    style={{
-                      padding: '0.35rem 0.75rem',
-                      backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : '#f1f5f9',
-                      border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid #cbd5e1',
-                      color: isDark ? '#fff' : '#334155',
-                      borderRadius: '6px',
-                      cursor: 'pointer',
-                      fontSize: '0.75rem',
-                      fontWeight: 600
-                    }}
-                  >
-                    Toggle Role
-                  </button>
                 </td>
               </tr>
             ))}

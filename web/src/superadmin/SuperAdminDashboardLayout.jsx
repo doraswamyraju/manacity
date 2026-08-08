@@ -105,8 +105,7 @@ function SuperAdminDashboardLayout({ user, onLogout }) {
     }
   };
 
-  const handleToggleRole = async (userId, currentRole) => {
-    const newRole = currentRole === 'SUPER_ADMIN' ? 'BUSINESS_OWNER' : 'SUPER_ADMIN';
+  const handleRoleChange = async (userId, newRole) => {
     try {
       await axios.patch(`/api/admin/users/${userId}/role`, { role: newRole });
       setUsers(users.map(u => u.id === userId ? { ...u, role: newRole } : u));
@@ -124,6 +123,25 @@ function SuperAdminDashboardLayout({ user, onLogout }) {
       console.error('Fetch businesses error:', err);
     } finally {
       setTabLoading(false);
+    }
+  };
+
+  const handleBusinessStatusChange = async (businessId, newStatus) => {
+    try {
+      await axios.patch(`/api/admin/businesses/${businessId}/status`, { status: newStatus });
+      setBusinesses(businesses.map(b => b.id === businessId ? { ...b, status: newStatus } : b));
+    } catch (err) {
+      alert('Failed to update business status');
+    }
+  };
+
+  const handleDeleteBusiness = async (businessId, name) => {
+    if (!window.confirm(`Are you sure you want to permanently delete "${name}"?`)) return;
+    try {
+      await axios.delete(`/api/admin/businesses/${businessId}`);
+      setBusinesses(businesses.filter(b => b.id !== businessId));
+    } catch (err) {
+      alert('Failed to delete business');
     }
   };
 
@@ -233,13 +251,12 @@ function SuperAdminDashboardLayout({ user, onLogout }) {
                 </div>
               )}
 
-              {activeTab === 'overview' && <OverviewTab metrics={metrics} theme={theme} />}
               {activeTab === 'users' && (
                 <UsersTab
                   users={users}
                   searchQuery={searchQuery}
                   setSearchQuery={setSearchQuery}
-                  handleToggleRole={handleToggleRole}
+                  handleRoleChange={handleRoleChange}
                   theme={theme}
                 />
               )}
@@ -248,6 +265,8 @@ function SuperAdminDashboardLayout({ user, onLogout }) {
                   businesses={businesses}
                   searchQuery={searchQuery}
                   setSearchQuery={setSearchQuery}
+                  handleStatusChange={handleBusinessStatusChange}
+                  handleDeleteBusiness={handleDeleteBusiness}
                   theme={theme}
                 />
               )}

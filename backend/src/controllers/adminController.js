@@ -86,13 +86,15 @@ exports.getUsers = async (req, res) => {
   }
 };
 
-// 3. Update User Role (e.g. promote to SUPER_ADMIN or change to BUSINESS_OWNER)
+// 3. Update User Role (dropdown options: SUPER_ADMIN, ADMIN, EMPLOYEE, REFERRAL_PARTNER, AGENT, CUSTOMER, BUSINESS_OWNER)
 exports.updateUserRole = async (req, res) => {
   try {
     const { userId } = req.params;
     const { role } = req.body;
 
-    if (!['SUPER_ADMIN', 'BUSINESS_OWNER'].includes(role)) {
+    const validRoles = ['SUPER_ADMIN', 'ADMIN', 'EMPLOYEE', 'REFERRAL_PARTNER', 'AGENT', 'CUSTOMER', 'BUSINESS_OWNER'];
+
+    if (!validRoles.includes(role)) {
       return res.status(400).json({ error: 'Invalid user role specified.' });
     }
 
@@ -131,6 +133,44 @@ exports.getBusinesses = async (req, res) => {
   } catch (error) {
     console.error('Fetch businesses error:', error);
     res.status(500).json({ error: 'Failed to fetch business directory.' });
+  }
+};
+
+// 4b. Update Business Status (LIVE / DISABLED / PENDING)
+exports.updateBusinessStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    if (!['LIVE', 'DISABLED', 'PENDING'].includes(status)) {
+      return res.status(400).json({ error: 'Invalid business status.' });
+    }
+
+    const updated = await prisma.businessGroup.update({
+      where: { id },
+      data: { status }
+    });
+
+    res.json({ status: 'success', business: updated });
+  } catch (error) {
+    console.error('Update business status error:', error);
+    res.status(500).json({ error: 'Failed to update business status.' });
+  }
+};
+
+// 4c. Delete Business Group
+exports.deleteBusiness = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    await prisma.businessGroup.delete({
+      where: { id }
+    });
+
+    res.json({ status: 'success', message: 'Business group deleted successfully.' });
+  } catch (error) {
+    console.error('Delete business error:', error);
+    res.status(500).json({ error: 'Failed to delete business group.' });
   }
 };
 
