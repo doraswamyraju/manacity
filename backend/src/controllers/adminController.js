@@ -123,7 +123,7 @@ exports.getBusinesses = async (req, res) => {
           select: { locations: true, services: true, products: true }
         },
         websiteConfig: {
-          select: { id: true, published: true, customDomain: true, slug: true }
+          select: { id: true, isPublished: true, customDomain: true, slug: true }
         }
       },
       orderBy: { createdAt: 'desc' }

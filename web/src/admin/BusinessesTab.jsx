@@ -74,6 +74,15 @@ function BusinessesTab({ businesses, searchQuery, setSearchQuery, handleStatusCh
                     <span style={{ color: isDark ? '#cbd5e1' : '#334155', display: 'block' }}>{bus.owner?.name}</span>
                     <span style={{ color: isDark ? '#64748b' : '#94a3b8', fontSize: '0.78rem' }}>{bus.owner?.email}</span>
                   </td>
+                  <td style={{ padding: '0.85rem 1rem' }}>
+                    {bus.websiteConfig ? (
+                      <span style={{ color: '#10b981', fontSize: '0.8rem', fontWeight: 600 }}>
+                        ✓ {bus.websiteConfig.isPublished ? 'Published' : 'Draft'}
+                      </span>
+                    ) : (
+                      <span style={{ color: isDark ? '#64748b' : '#94a3b8', fontSize: '0.8rem' }}>Not created</span>
+                    )}
+                  </td>
                   <td style={{ padding: '0.85rem 1rem', color: isDark ? '#cbd5e1' : '#334155' }}>{bus._count?.locations || 0}</td>
                   
                   {/* Status Badge */}
