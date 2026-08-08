@@ -1,7 +1,56 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
-
 const axios = require('axios');
+
+// Helper Functions
+const mapGoogleTypeToCategory = (types = []) => {
+  const tStr = types.join(' ').toLowerCase();
+  if (tStr.includes('marketing') || tStr.includes('advertising') || tStr.includes('consultant')) return 'Digital Marketing';
+  if (tStr.includes('rice') || tStr.includes('mill') || tStr.includes('grain')) return 'Rice Mill';
+  if (tStr.includes('health') || tStr.includes('doctor') || tStr.includes('hospital') || tStr.includes('clinic') || tStr.includes('dentist')) return 'Clinics & Health';
+  if (tStr.includes('hotel') || tStr.includes('lodging') || tStr.includes('resort')) return 'Hotels & Lodging';
+  if (tStr.includes('service') || tStr.includes('repair') || tStr.includes('store')) return 'Services';
+  
+  if (types.length > 0) {
+    const raw = types[0].replace(/_/g, ' ');
+    return raw.charAt(0).toUpperCase() + raw.slice(1);
+  }
+  return 'General Business';
+};
+
+const cleanPhone = (phoneStr) => {
+  if (!phoneStr) return '';
+  const digits = phoneStr.replace(/\D/g, '');
+  if (digits.length === 12 && digits.startsWith('91')) return digits.slice(2);
+  if (digits.length === 11 && digits.startsWith('0')) return digits.slice(1);
+  return digits;
+};
+
+const parseAddressParts = (rawAddr) => {
+  if (!rawAddr) return { city: 'Tirupati', state: 'Andhra Pradesh', pinCode: '517501', country: 'India', street: '' };
+  
+  const pinMatch = rawAddr.match(/\b\d{6}\b/);
+  const pinCode = pinMatch ? pinMatch[0] : '517501';
+
+  const parts = rawAddr.split(',').map(p => p.trim());
+  let country = 'India';
+  let state = 'Andhra Pradesh';
+  let city = 'Tirupati';
+
+  if (parts.length >= 3) {
+    country = parts[parts.length - 1] || 'India';
+    const statePart = parts[parts.length - 2] || '';
+    state = statePart.replace(/\b\d{6}\b/, '').trim() || 'Andhra Pradesh';
+    city = parts[parts.length - 3] || 'Tirupati';
+  } else if (parts.length === 2) {
+    city = parts[0];
+    state = parts[1].replace(/\b\d{6}\b/, '').trim();
+  }
+
+  const street = parts.slice(0, Math.max(1, parts.length - 2)).join(', ');
+
+  return { city, state, pinCode, country, street };
+};
 
 // Google Places Autocomplete API (Live Type-Ahead Predictions)
 exports.autocompleteGooglePlaces = async (req, res) => {
@@ -69,91 +118,6 @@ exports.autocompleteGooglePlaces = async (req, res) => {
     console.error('Autocomplete error:', error);
     return res.status(500).json({ error: 'Failed to fetch autocomplete suggestions' });
   }
-};
-
-// Google Places Real API Search & Importer
-exports.importGooglePlaces = async (req, res) => {
-  try {
-    const { placeId, businessName } = req.body;
-    const ownerId = req.user ? req.user.id : null;
-    const apiKey = process.env.GOOGLE_PLACES_API_KEY;
-
-    if (!businessName && !placeId) {
-      return res.status(400).json({ error: 'Business name or Place ID is required' });
-    }
-
-    let fetchedData = {
-      name: businessName || 'My Business',
-      address: 'Tirupati, Andhra Pradesh',
-      phone: '',
-      website: '',
-      rating: 4.8,
-      category: 'General Business'
-    };
-
-    // If specific Place ID is selected by user from predictions dropdown
-    if (apiKey && placeId) {
-      try {
-        const placeDetailsRes = await axios.get(
-          `https://places.googleapis.com/v1/places/${placeId}`,
-          {
-            headers: {
-              'Content-Type': 'application/json',
-              'X-Goog-Api-Key': apiKey,
-              'X-Goog-FieldMask': 'displayName,formattedAddress,rating,types,nationalPhoneNumber,websiteUri'
-            }
-          }
-        );
-        if (placeDetailsRes.data) {
-          const pd = placeDetailsRes.data;
-          fetchedData.name = pd.displayName?.text || fetchedData.name;
-const mapGoogleTypeToCategory = (types = []) => {
-  const tStr = types.join(' ').toLowerCase();
-  if (tStr.includes('marketing') || tStr.includes('advertising') || tStr.includes('consultant')) return 'Digital Marketing';
-  if (tStr.includes('rice') || tStr.includes('mill') || tStr.includes('grain')) return 'Rice Mill';
-  if (tStr.includes('health') || tStr.includes('doctor') || tStr.includes('hospital') || tStr.includes('clinic') || tStr.includes('dentist')) return 'Clinics & Health';
-  if (tStr.includes('hotel') || tStr.includes('lodging') || tStr.includes('resort')) return 'Hotels & Lodging';
-  if (tStr.includes('service') || tStr.includes('repair') || tStr.includes('store')) return 'Services';
-  
-  if (types.length > 0) {
-    const raw = types[0].replace(/_/g, ' ');
-    return raw.charAt(0).toUpperCase() + raw.slice(1);
-  }
-  return 'General Business';
-};
-
-const cleanPhone = (phoneStr) => {
-  if (!phoneStr) return '';
-  const digits = phoneStr.replace(/\D/g, '');
-  if (digits.length === 12 && digits.startsWith('91')) return digits.slice(2);
-  if (digits.length === 11 && digits.startsWith('0')) return digits.slice(1);
-  return digits;
-};
-
-const parseAddressParts = (rawAddr) => {
-  if (!rawAddr) return { city: 'Tirupati', state: 'Andhra Pradesh', pinCode: '517501', country: 'India', street: '' };
-  
-  const pinMatch = rawAddr.match(/\b\d{6}\b/);
-  const pinCode = pinMatch ? pinMatch[0] : '517501';
-
-  const parts = rawAddr.split(',').map(p => p.trim());
-  let country = 'India';
-  let state = 'Andhra Pradesh';
-  let city = 'Tirupati';
-
-  if (parts.length >= 3) {
-    country = parts[parts.length - 1] || 'India';
-    const statePart = parts[parts.length - 2] || '';
-    state = statePart.replace(/\b\d{6}\b/, '').trim() || 'Andhra Pradesh';
-    city = parts[parts.length - 3] || 'Tirupati';
-  } else if (parts.length === 2) {
-    city = parts[0];
-    state = parts[1].replace(/\b\d{6}\b/, '').trim();
-  }
-
-  const street = parts.slice(0, Math.max(1, parts.length - 2)).join(', ');
-
-  return { city, state, pinCode, country, street };
 };
 
 // Google Places Real API Search & Importer
@@ -489,8 +453,6 @@ exports.getLibraryItems = async (req, res) => {
         items = defaultCatalog.filter(item => item.category === 'GENERAL BUSINESS' || item.category === 'DIGITAL MARKETING');
       }
     }
-
-    return res.status(200).json({ items });
 
     return res.status(200).json({ items });
   } catch (error) {
