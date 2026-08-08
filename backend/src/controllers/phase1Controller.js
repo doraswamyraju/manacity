@@ -48,50 +48,105 @@ exports.importGooglePlaces = async (req, res) => {
     // Create or update business group
     let businessGroup = null;
     if (ownerId) {
-      businessGroup = await prisma.businessGroup.create({
-        data: {
-          name: fetchedData.name,
-          ownerId: ownerId,
-          description: `Imported Google Place listing for ${fetchedData.name}`,
-          mobileNumber: fetchedData.phone || '9876543210',
-          whatsAppNumber: fetchedData.phone || '9876543210',
-          website: fetchedData.website,
-          address: fetchedData.address,
-          city: city,
-          isSetupComplete: true,
-          setupStep: 6
-        }
+      // Check if user already has a business group
+      const existingGroup = await prisma.businessGroup.findFirst({
+        where: { ownerId }
       });
+
+      if (existingGroup) {
+        businessGroup = await prisma.businessGroup.update({
+          where: { id: existingGroup.id },
+          data: {
+            name: fetchedData.name,
+            description: `Imported Google Place listing for ${fetchedData.name}`,
+            mobileNumber: fetchedData.phone || existingGroup.mobileNumber || '9876543210',
+            whatsAppNumber: fetchedData.phone || existingGroup.whatsAppNumber || '9876543210',
+            website: fetchedData.website || existingGroup.website,
+            address: fetchedData.address || existingGroup.address,
+            city: city,
+            isSetupComplete: true,
+            setupStep: 6
+          }
+        });
+      } else {
+        businessGroup = await prisma.businessGroup.create({
+          data: {
+            name: fetchedData.name,
+            ownerId: ownerId,
+            description: `Imported Google Place listing for ${fetchedData.name}`,
+            mobileNumber: fetchedData.phone || '9876543210',
+            whatsAppNumber: fetchedData.phone || '9876543210',
+            website: fetchedData.website,
+            address: fetchedData.address,
+            city: city,
+            isSetupComplete: true,
+            setupStep: 6
+          }
+        });
+      }
     }
 
-    // Auto-create Website configuration
+    // Auto-create/update Website configuration
     let websiteConfig = null;
     if (businessGroup) {
-      websiteConfig = await prisma.website.create({
-        data: {
-          businessGroupId: businessGroup.id,
-          subdomain: slug,
-          isPublished: true,
-          theme: 'modern',
-          primaryColor: '#1976d2',
-          secondaryColor: '#9c27b0',
-          metaTitle: `${fetchedData.name} - Official Website`,
-          metaDescription: `Welcome to ${fetchedData.name} in ${city}. Explore our services and products.`
-        }
+      const existingWebsite = await prisma.website.findUnique({
+        where: { businessGroupId: businessGroup.id }
       });
 
-      // Auto-create Directory Listing
-      await prisma.directoryListing.create({
-        data: {
-          businessGroupId: businessGroup.id,
-          city: city,
-          slug: slug,
-          category: fetchedData.category,
-          contactPhone: fetchedData.phone,
-          whatsAppNumber: fetchedData.phone,
-          websiteUrl: fetchedData.website
-        }
+      if (existingWebsite) {
+        websiteConfig = await prisma.website.update({
+          where: { businessGroupId: businessGroup.id },
+          data: {
+            subdomain: slug,
+            metaTitle: `${fetchedData.name} - Official Website`,
+            metaDescription: `Welcome to ${fetchedData.name} in ${city}. Explore our services and products.`
+          }
+        });
+      } else {
+        websiteConfig = await prisma.website.create({
+          data: {
+            businessGroupId: businessGroup.id,
+            subdomain: slug,
+            isPublished: true,
+            theme: 'modern',
+            primaryColor: '#1976d2',
+            secondaryColor: '#9c27b0',
+            metaTitle: `${fetchedData.name} - Official Website`,
+            metaDescription: `Welcome to ${fetchedData.name} in ${city}. Explore our services and products.`
+          }
+        });
+      }
+
+      // Auto-create or update Directory Listing
+      const existingListing = await prisma.directoryListing.findFirst({
+        where: { businessGroupId: businessGroup.id }
       });
+
+      if (existingListing) {
+        await prisma.directoryListing.update({
+          where: { id: existingListing.id },
+          data: {
+            city: city,
+            slug: slug,
+            category: fetchedData.category,
+            contactPhone: fetchedData.phone || existingListing.contactPhone,
+            whatsAppNumber: fetchedData.phone || existingListing.whatsAppNumber,
+            websiteUrl: fetchedData.website || existingListing.websiteUrl
+          }
+        });
+      } else {
+        await prisma.directoryListing.create({
+          data: {
+            businessGroupId: businessGroup.id,
+            city: city,
+            slug: slug,
+            category: fetchedData.category,
+            contactPhone: fetchedData.phone,
+            whatsAppNumber: fetchedData.phone,
+            websiteUrl: fetchedData.website
+          }
+        });
+      }
     }
 
     return res.status(200).json({

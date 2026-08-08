@@ -41,9 +41,9 @@ function StepBusinessInfo({ initialData, onNext, onSaveDraft }) {
               description: `Official profile for ${place.name} located at ${place.address}`,
               address: place.address,
               isSetupComplete: true
-            });
+            }, res.data.data.businessGroup);
           }
-        }, 1200);
+        }, 1000);
       }
     } catch (err) {
       setError('Failed to import Google Places profile. You can type manually below.');
@@ -770,10 +770,20 @@ export default function OnboardingWizard({ onCompleteOnboarding, onCancel }) {
       .finally(() => setLoading(false));
   }, []);
 
-  const saveStepProgress = async (nextStep, updatedData) => {
+  const saveStepProgress = async (nextStep, updatedData, directBusinessGroup) => {
     setSaving(true);
     const newFormData = { ...formData, ...updatedData };
     setFormData(newFormData);
+
+    if (updatedData && updatedData.isSetupComplete) {
+      if (directBusinessGroup) {
+        onCompleteOnboarding(directBusinessGroup);
+      } else {
+        handleFinalSubmit();
+      }
+      setSaving(false);
+      return;
+    }
 
     try {
       await axios.post('/api/business/save-step', {
@@ -833,7 +843,7 @@ export default function OnboardingWizard({ onCompleteOnboarding, onCancel }) {
       {step === 1 && (
         <StepBusinessInfo 
           initialData={formData} 
-          onNext={(data) => saveStepProgress(2, data)} 
+          onNext={(data, directBg) => saveStepProgress(2, data, directBg)} 
         />
       )}
 

@@ -3,8 +3,10 @@ const router = express.Router();
 const phase1Controller = require('../controllers/phase1Controller');
 const directoryLeadController = require('../controllers/directoryLeadController');
 
+const auth = require('../middleware/auth');
+
 // Google Places Onboarding & central library
-router.post('/google-places/import', phase1Controller.importGooglePlaces);
+router.post('/google-places/import', auth, phase1Controller.importGooglePlaces);
 router.get('/library', phase1Controller.getLibraryItems);
 router.post('/library/add', phase1Controller.addLibraryItemToBusiness);
 
