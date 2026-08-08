@@ -139,6 +139,10 @@ function App() {
     return <DeleteAccount />;
   }
 
+  if (view === 'admin') {
+    return <SuperAdminDashboardLayout user={user} onLogout={handleLogout} />;
+  }
+
   return (
     <div style={{
       display: 'flex',
