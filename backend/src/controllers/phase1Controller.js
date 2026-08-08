@@ -13,8 +13,8 @@ exports.autocompleteGooglePlaces = async (req, res) => {
       return res.status(200).json({ predictions: [] });
     }
 
-    if (!apiKey) {
-      return res.status(200).json({ predictions: [] });
+    if (!apiKey || apiKey.includes('AIzaSyBCJczIeN7KD92YfIHKZBZ5EKyRKE')) {
+      return res.status(400).json({ error: 'Google Places API Key is missing or invalid in server configuration.' });
     }
 
     // Call Google Places API (New v1) Autocomplete
@@ -41,22 +41,27 @@ exports.autocompleteGooglePlaces = async (req, res) => {
         return res.status(200).json({ predictions });
       }
     } catch (newErr) {
-      console.warn('Places API (New v1) autocomplete warning, trying legacy:', newErr.response?.data || newErr.message);
+      const errMsg = newErr.response?.data?.error?.message || newErr.message;
+      console.warn('Places API (New v1) autocomplete warning, trying legacy:', errMsg);
       
       // Fallback to Places Autocomplete Legacy
       try {
         const legacyRes = await axios.get(`https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(input)}&key=${apiKey}`);
-        if (legacyRes.data && legacyRes.data.predictions) {
+        if (legacyRes.data && legacyRes.data.status === 'OK' && legacyRes.data.predictions) {
           const predictions = legacyRes.data.predictions.map(p => ({
             placeId: p.place_id,
             name: p.structured_formatting?.main_text || p.description,
             description: p.description
           }));
           return res.status(200).json({ predictions });
+        } else if (legacyRes.data && (legacyRes.data.status === 'REQUEST_DENIED' || legacyRes.data.status === 'INVALID_REQUEST')) {
+          return res.status(400).json({ error: legacyRes.data.error_message || 'Google Places API Key denied by Google.' });
         }
       } catch (legacyErr) {
         console.warn('Legacy Places Autocomplete warning:', legacyErr.response?.data || legacyErr.message);
       }
+
+      return res.status(400).json({ error: `Google Places API Error: ${errMsg}` });
     }
 
     return res.status(200).json({ predictions: [] });

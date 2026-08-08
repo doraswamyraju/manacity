@@ -36,9 +36,12 @@ function StepBusinessInfo({ initialData, onNext, onSaveDraft }) {
         if (res.data && res.data.predictions) {
           setPredictions(res.data.predictions);
           setShowDropdown(res.data.predictions.length > 0);
+          setError('');
         }
       } catch (err) {
         console.warn('Autocomplete fetch error:', err);
+        const apiErrMsg = err.response?.data?.error || err.message;
+        setError(apiErrMsg);
       } finally {
         setSearchingPredictions(false);
       }
