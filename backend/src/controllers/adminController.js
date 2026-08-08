@@ -114,7 +114,7 @@ exports.updateUserRole = async (req, res) => {
 // 4. Fetch all Business Groups / Listings Moderation
 exports.getBusinesses = async (req, res) => {
   try {
-    const businesses = await prisma.businessGroup.findMany({
+    const rawBusinesses = await prisma.businessGroup.findMany({
       include: {
         owner: {
           select: { id: true, name: true, email: true }
@@ -128,6 +128,11 @@ exports.getBusinesses = async (req, res) => {
       },
       orderBy: { createdAt: 'desc' }
     });
+
+    const businesses = rawBusinesses.map(b => ({
+      ...b,
+      status: b.status || 'LIVE'
+    }));
 
     res.json({ status: 'success', businesses });
   } catch (error) {
