@@ -4,7 +4,26 @@ const adminController = require('../controllers/adminController');
 const auth = require('../middleware/auth');
 const admin = require('../middleware/admin');
 
-// Mount secured admin panels metrics
-router.get('/metrics', auth, admin, adminController.getSystemMetrics);
+// All endpoints secured with auth + admin checks
+router.use(auth, admin);
+
+// Metrics & Audit
+router.get('/metrics', adminController.getSystemMetrics);
+
+// Users Management
+router.get('/users', adminController.getUsers);
+router.patch('/users/:userId/role', adminController.updateUserRole);
+
+// Business & Directory Moderation
+router.get('/businesses', adminController.getBusinesses);
+
+// Global Master Catalog Library
+router.get('/catalog', adminController.getMasterCatalog);
+router.post('/catalog', adminController.createMasterCatalogItem);
+router.delete('/catalog/:id', adminController.deleteMasterCatalogItem);
+
+// Subscriptions
+router.get('/subscriptions', adminController.getSubscriptions);
 
 module.exports = router;
+
