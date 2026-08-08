@@ -23,11 +23,17 @@ function SuperAdminDashboardLayout({ user, onLogout }) {
   const [isPinned, setIsPinned] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
 
-  // Light / Dark Theme State
-  const [theme, setTheme] = useState('dark');
+  // 2. Persistent Light / Dark Theme in localStorage
+  const [theme, setTheme] = useState(() => {
+    return localStorage.getItem('superadmin_theme') || 'dark';
+  });
 
   const toggleTheme = () => {
-    setTheme(prev => prev === 'dark' ? 'light' : 'dark');
+    setTheme(prev => {
+      const nextTheme = prev === 'dark' ? 'light' : 'dark';
+      localStorage.setItem('superadmin_theme', nextTheme);
+      return nextTheme;
+    });
   };
 
   const [metrics, setMetrics] = useState(null);
@@ -188,7 +194,7 @@ function SuperAdminDashboardLayout({ user, onLogout }) {
       {/* Main Panel Content Area */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
         
-        {/* 2. Top Navigation Header with Light/Dark Mode Switch */}
+        {/* 2. Top Navigation Header with Persistent Light/Dark Mode Switch */}
         <SuperAdminTopbar
           user={user}
           onRefresh={fetchAdminOverview}
@@ -242,7 +248,7 @@ function SuperAdminDashboardLayout({ user, onLogout }) {
               {(activeTab === 'lms' || activeTab === 'lms-all') && <LMSAllLeadsTab theme={theme} />}
               {activeTab === 'lms-reports' && <LMSAllLeadsTab theme={theme} />}
               {activeTab === 'lms-settings' && <LMSAllLeadsTab theme={theme} />}
-              {activeTab === 'lms-subscriptions' && <SubscriptionsTab subscriptions={subscriptions} />}
+              {activeTab === 'lms-subscriptions' && <SubscriptionsTab subscriptions={subscriptions} theme={theme} />}
 
               {activeTab === 'catalog' && (
                 <CatalogTab
@@ -252,10 +258,11 @@ function SuperAdminDashboardLayout({ user, onLogout }) {
                   itemMessage={itemMessage}
                   handleCreateCatalogItem={handleCreateCatalogItem}
                   handleDeleteCatalogItem={handleDeleteCatalogItem}
+                  theme={theme}
                 />
               )}
-              {activeTab === 'subscriptions' && <SubscriptionsTab subscriptions={subscriptions} />}
-              {activeTab === 'logs' && <AuditLogsTab logs={logs} />}
+              {activeTab === 'subscriptions' && <SubscriptionsTab subscriptions={subscriptions} theme={theme} />}
+              {activeTab === 'logs' && <AuditLogsTab logs={logs} theme={theme} />}
             </>
           )}
 

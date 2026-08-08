@@ -1,20 +1,38 @@
 import React from 'react';
 import { Plus, Database, Trash2 } from 'lucide-react';
 
-function CatalogTab({ catalog, newItem, setNewItem, itemMessage, handleCreateCatalogItem, handleDeleteCatalogItem }) {
+function CatalogTab({ catalog, newItem, setNewItem, itemMessage, handleCreateCatalogItem, handleDeleteCatalogItem, theme }) {
+  const isDark = theme === 'dark';
+
+  const formInputStyle = {
+    width: '100%',
+    padding: '0.65rem',
+    borderRadius: '8px',
+    backgroundColor: isDark ? '#0f172a' : '#f8fafc',
+    border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid #cbd5e1',
+    color: isDark ? '#fff' : '#0f172a',
+    fontSize: '0.85rem'
+  };
+
   return (
     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
       {/* Creator Form */}
-      <div className="glass-card" style={{ backgroundColor: '#1e293b', border: '1px solid rgba(255,255,255,0.08)' }}>
-        <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '1rem', color: '#f8fafc', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+      <div style={{
+        backgroundColor: isDark ? '#1e293b' : '#ffffff',
+        border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid #e2e8f0',
+        borderRadius: '16px',
+        padding: '1.5rem',
+        boxShadow: isDark ? 'none' : '0 4px 15px rgba(0,0,0,0.03)'
+      }}>
+        <h3 style={{ fontSize: '1.1rem', fontWeight: 800, marginBottom: '1rem', color: isDark ? '#f8fafc' : '#0f172a', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <Plus size={18} color="#6366f1" /> Create Master Item
         </h3>
-        <p style={{ fontSize: '0.85rem', color: '#94a3b8', marginBottom: '1rem' }}>
+        <p style={{ fontSize: '0.85rem', color: isDark ? '#94a3b8' : '#64748b', marginBottom: '1rem' }}>
           Add products or services to the global catalog library so businesses can import them with 1-click.
         </p>
 
         {itemMessage && (
-          <div style={{ backgroundColor: 'rgba(16, 185, 129, 0.15)', color: '#10b981', padding: '0.5rem 0.75rem', borderRadius: '6px', fontSize: '0.85rem', marginBottom: '1rem' }}>
+          <div style={{ backgroundColor: 'rgba(16, 185, 129, 0.15)', color: '#10b981', padding: '0.5rem 0.75rem', borderRadius: '6px', fontSize: '0.85rem', marginBottom: '1rem', fontWeight: 600 }}>
             ✓ {itemMessage}
           </div>
         )}
@@ -69,25 +87,39 @@ function CatalogTab({ catalog, newItem, setNewItem, itemMessage, handleCreateCat
             style={formInputStyle}
           />
 
-          <button type="submit" className="btn btn-primary" style={{ backgroundColor: '#6366f1', padding: '0.6rem' }}>
+          <button type="submit" className="btn btn-primary" style={{ backgroundColor: '#6366f1', padding: '0.65rem', fontWeight: 700 }}>
             Publish Master Item
           </button>
         </form>
       </div>
 
       {/* Master Items List */}
-      <div className="glass-card" style={{ backgroundColor: '#1e293b', border: '1px solid rgba(255,255,255,0.08)' }}>
-        <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '1rem', color: '#f8fafc', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <Database size={18} color="#a855f7" /> Master Catalog Library
+      <div style={{
+        backgroundColor: isDark ? '#1e293b' : '#ffffff',
+        border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid #e2e8f0',
+        borderRadius: '16px',
+        padding: '1.5rem',
+        boxShadow: isDark ? 'none' : '0 4px 15px rgba(0,0,0,0.03)'
+      }}>
+        <h3 style={{ fontSize: '1.1rem', fontWeight: 800, marginBottom: '1rem', color: isDark ? '#f8fafc' : '#0f172a', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <Database size={18} color="#c084fc" /> Master Catalog Library
         </h3>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', maxHeight: '420px', overflowY: 'auto' }}>
           {catalog.map(catItem => (
-            <div key={catItem.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem', backgroundColor: '#0f172a', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)' }}>
+            <div key={catItem.id} style={{
+              display: 'flex',
+              justify: 'space-between',
+              alignItems: 'center',
+              padding: '0.75rem 1rem',
+              backgroundColor: isDark ? '#0f172a' : '#f8fafc',
+              borderRadius: '10px',
+              border: isDark ? '1px solid rgba(255,255,255,0.05)' : '1px solid #f1f5f9'
+            }}>
               <div>
-                <strong style={{ color: '#fff', fontSize: '0.9rem', display: 'block' }}>{catItem.name}</strong>
+                <strong style={{ color: isDark ? '#fff' : '#0f172a', fontSize: '0.9rem', display: 'block' }}>{catItem.name}</strong>
                 <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.25rem', fontSize: '0.75rem' }}>
-                  <span style={{ color: '#818cf8', backgroundColor: 'rgba(99,102,241,0.1)', padding: '0.1rem 0.4rem', borderRadius: '4px' }}>{catItem.category}</span>
-                  <span style={{ color: '#cbd5e1' }}>₹{catItem.defaultPrice || '0'}</span>
+                  <span style={{ color: isDark ? '#818cf8' : '#4338ca', backgroundColor: isDark ? 'rgba(99,102,241,0.15)' : 'rgba(99,102,241,0.1)', padding: '0.1rem 0.4rem', borderRadius: '4px', fontWeight: 600 }}>{catItem.category}</span>
+                  <span style={{ color: isDark ? '#cbd5e1' : '#475569', fontWeight: 600 }}>₹{catItem.defaultPrice || '0'}</span>
                 </div>
               </div>
               <button
@@ -103,15 +135,5 @@ function CatalogTab({ catalog, newItem, setNewItem, itemMessage, handleCreateCat
     </div>
   );
 }
-
-const formInputStyle = {
-  width: '100%',
-  padding: '0.6rem',
-  borderRadius: '6px',
-  backgroundColor: '#0f172a',
-  border: '1px solid rgba(255,255,255,0.1)',
-  color: '#fff',
-  fontSize: '0.85rem'
-};
 
 export default CatalogTab;
