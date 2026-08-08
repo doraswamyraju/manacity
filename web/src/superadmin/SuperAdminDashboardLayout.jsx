@@ -13,8 +13,23 @@ import CatalogTab from '../admin/CatalogTab';
 import SubscriptionsTab from '../admin/SubscriptionsTab';
 import AuditLogsTab from '../admin/AuditLogsTab';
 
+// LMS Module Tabs
+import LMSAllLeadsTab from '../admin/lms/LMSAllLeadsTab';
+
 function SuperAdminDashboardLayout({ user, onLogout }) {
-  const [activeTab, setActiveTab] = useState('overview'); // overview, users, businesses, catalog, subscriptions, logs
+  const [activeTab, setActiveTab] = useState('overview');
+  
+  // Sidebar State: Collapsible, Hover Expand, Pin Option
+  const [isPinned, setIsPinned] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+
+  // Light / Dark Theme State
+  const [theme, setTheme] = useState('dark');
+
+  const toggleTheme = () => {
+    setTheme(prev => prev === 'dark' ? 'light' : 'dark');
+  };
+
   const [metrics, setMetrics] = useState(null);
   const [logs, setLogs] = useState([]);
   const [users, setUsers] = useState([]);
@@ -146,19 +161,43 @@ function SuperAdminDashboardLayout({ user, onLogout }) {
     }
   };
 
+  const isDark = theme === 'dark';
+
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: '#0b0f19', color: '#fff', width: '100%' }}>
+    <div style={{
+      display: 'flex',
+      minHeight: '100vh',
+      backgroundColor: isDark ? '#0b0f19' : '#f8fafc',
+      color: isDark ? '#fff' : '#0f172a',
+      width: '100%',
+      transition: 'background-color 0.25s ease, color 0.25s ease'
+    }}>
       
-      {/* 1. Permanent SPA Left Sidebar Navigation */}
-      <SuperAdminSidebar activeTab={activeTab} setActiveTab={setActiveTab} metrics={metrics} />
+      {/* 1. Collapsible Auto-Hover Sidebar with Pin Lock & Inner Pages */}
+      <SuperAdminSidebar
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        metrics={metrics}
+        isPinned={isPinned}
+        setIsPinned={setIsPinned}
+        isHovered={isHovered}
+        setIsHovered={setIsHovered}
+        theme={theme}
+      />
 
       {/* Main Panel Content Area */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
         
-        {/* 2. Top Navigation & User Header */}
-        <SuperAdminTopbar user={user} onRefresh={fetchAdminOverview} onLogout={onLogout} />
+        {/* 2. Top Navigation Header with Light/Dark Mode Switch */}
+        <SuperAdminTopbar
+          user={user}
+          onRefresh={fetchAdminOverview}
+          onLogout={onLogout}
+          theme={theme}
+          toggleTheme={toggleTheme}
+        />
 
-        {/* 3. SPA Content View - Loads modular tab contents without full page refreshing */}
+        {/* 3. SPA Content View */}
         <main style={{ flex: 1, padding: '2rem', maxWidth: '1200px', width: '100%', margin: '0 auto' }}>
           
           {error && (
@@ -176,7 +215,7 @@ function SuperAdminDashboardLayout({ user, onLogout }) {
             <>
               {tabLoading && (
                 <div style={{ fontSize: '0.8rem', color: '#818cf8', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <RefreshCw size={14} className="animate-spin" /> Fetching real-time module data...
+                  <RefreshCw size={14} className="animate-spin" /> Loading module data...
                 </div>
               )}
 
@@ -196,6 +235,13 @@ function SuperAdminDashboardLayout({ user, onLogout }) {
                   setSearchQuery={setSearchQuery}
                 />
               )}
+
+              {/* LMS Submodules */}
+              {(activeTab === 'lms' || activeTab === 'lms-all') && <LMSAllLeadsTab theme={theme} />}
+              {activeTab === 'lms-reports' && <LMSAllLeadsTab theme={theme} />}
+              {activeTab === 'lms-settings' && <LMSAllLeadsTab theme={theme} />}
+              {activeTab === 'lms-subscriptions' && <SubscriptionsTab subscriptions={subscriptions} />}
+
               {activeTab === 'catalog' && (
                 <CatalogTab
                   catalog={catalog}
