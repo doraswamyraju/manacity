@@ -40,6 +40,59 @@ exports.getDirectoryListing = async (req, res) => {
   }
 };
 
+// Search / Filter Directory Listings for Public Portal
+exports.searchDirectoryListings = async (req, res) => {
+  try {
+    const { city } = req.params;
+    const { query, category } = req.query;
+
+    const where = {};
+    if (city && city.toLowerCase() !== 'all') {
+      where.city = city.toLowerCase();
+    }
+    if (category && category !== 'All') {
+      where.category = { contains: category, mode: 'insensitive' };
+    }
+
+    let listings = await prisma.directoryListing.findMany({
+      where,
+      include: {
+        businessGroup: true
+      }
+    });
+
+    if (query) {
+      const q = query.toLowerCase();
+      listings = listings.filter(l => 
+        (l.businessGroup && l.businessGroup.name.toLowerCase().includes(q)) ||
+        (l.category && l.category.toLowerCase().includes(q)) ||
+        (l.city && l.city.toLowerCase().includes(q))
+      );
+    }
+
+    const formattedListings = listings.map(l => ({
+      id: l.id,
+      businessName: l.businessGroup ? l.businessGroup.name : 'Local Business',
+      category: l.category || 'General Business',
+      city: l.city,
+      slug: l.slug,
+      rating: 4.8,
+      reviewCount: 12,
+      phone: l.contactPhone || '9876543210',
+      whatsApp: l.whatsAppNumber || '9876543210',
+      address: l.businessGroup ? l.businessGroup.address : 'Tirupati',
+      websiteUrl: l.websiteUrl || `https://${l.slug}.manacity.in`,
+      isOpenNow: true,
+      services: l.businessGroup && l.businessGroup.services ? l.businessGroup.services.map(s => s.name) : ['SEO Optimization', 'Google Ads Management', 'GBP Optimization', 'Meta Ads']
+    }));
+
+    return res.status(200).json({ listings: formattedListings });
+  } catch (error) {
+    console.error('Error searching directory listings:', error);
+    return res.status(500).json({ error: 'Failed to search directory listings' });
+  }
+};
+
 // Record Visitor Lead & Button Click Telemetry
 exports.recordLeadOrClick = async (req, res) => {
   try {

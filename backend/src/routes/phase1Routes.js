@@ -11,6 +11,7 @@ router.get('/library', phase1Controller.getLibraryItems);
 router.post('/library/add', phase1Controller.addLibraryItemToBusiness);
 
 // ManaCity Directory & Lead capture
+router.get('/directory/:city/all', directoryLeadController.searchDirectoryListings);
 router.get('/directory/:city/:slug', directoryLeadController.getDirectoryListing);
 router.post('/lead', directoryLeadController.recordLeadOrClick);
 router.get('/lead/dashboard/:businessGroupId', directoryLeadController.getBusinessLeads);
