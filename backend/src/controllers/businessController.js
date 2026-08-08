@@ -199,8 +199,8 @@ exports.getOnboardingState = async (req, res) => {
       }
     });
 
-    if (!businessGroup) {
-      // Auto-create business group if missing
+    // Auto-create business group ONLY if missing and user is NOT SUPER_ADMIN
+    if (!businessGroup && req.user.role !== 'SUPER_ADMIN') {
       businessGroup = await prisma.businessGroup.create({
         data: { name: `${req.user.name}'s Business`, ownerId },
         include: {

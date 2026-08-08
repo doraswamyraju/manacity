@@ -59,8 +59,8 @@ function App() {
         setView('admin');
       } else {
         setView('dashboard');
+        fetchOnboardingState();
       }
-      fetchOnboardingState();
       
       // Verify token freshness with backend
       axios.get('/api/auth/me')
