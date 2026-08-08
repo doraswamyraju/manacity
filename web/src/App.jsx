@@ -15,6 +15,7 @@ import WebsiteBuilder from './pages/WebsiteBuilder';
 import ReviewManagement from './pages/ReviewManagement';
 import PublicReviewLanding from './pages/PublicReviewLanding';
 import ReviewPosterPrint from './pages/ReviewPosterPrint';
+import SuperAdminDashboardLayout from './superadmin/SuperAdminDashboardLayout';
 
 function App() {
   const [view, setView] = useState('landing'); // landing, login, register, dashboard, locations, billing, admin, onboarding
@@ -184,7 +185,7 @@ function App() {
       )}
 
       {view === 'admin' && (
-        <AdminDashboard onBack={() => setView('dashboard')} />
+        <SuperAdminDashboardLayout user={user} onLogout={handleLogout} />
       )}
 
       {view === 'website-builder' && (

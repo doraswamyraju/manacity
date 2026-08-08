@@ -1,0 +1,221 @@
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import { RefreshCw } from 'lucide-react';
+
+import SuperAdminSidebar from './SuperAdminSidebar';
+import SuperAdminTopbar from './SuperAdminTopbar';
+
+// Modular Admin Tab Components
+import OverviewTab from '../admin/OverviewTab';
+import UsersTab from '../admin/UsersTab';
+import BusinessesTab from '../admin/BusinessesTab';
+import CatalogTab from '../admin/CatalogTab';
+import SubscriptionsTab from '../admin/SubscriptionsTab';
+import AuditLogsTab from '../admin/AuditLogsTab';
+
+function SuperAdminDashboardLayout({ user, onLogout }) {
+  const [activeTab, setActiveTab] = useState('overview'); // overview, users, businesses, catalog, subscriptions, logs
+  const [metrics, setMetrics] = useState(null);
+  const [logs, setLogs] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [businesses, setBusinesses] = useState([]);
+  const [catalog, setCatalog] = useState([]);
+  const [subscriptions, setSubscriptions] = useState([]);
+  
+  const [loading, setLoading] = useState(true);
+  const [tabLoading, setTabLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  
+  // Master Catalog Form State
+  const [newItem, setNewItem] = useState({
+    name: '',
+    category: 'Digital Marketing',
+    type: 'SERVICE',
+    description: '',
+    defaultPrice: ''
+  });
+  const [itemMessage, setItemMessage] = useState('');
+
+  // Initial fast load for platform metrics
+  useEffect(() => {
+    fetchAdminOverview();
+  }, []);
+
+  // SPA Data fetch on demand - does not reload entire dashboard layout
+  useEffect(() => {
+    if (activeTab === 'users' && users.length === 0) fetchUsers();
+    if (activeTab === 'businesses' && businesses.length === 0) fetchBusinesses();
+    if (activeTab === 'catalog' && catalog.length === 0) fetchCatalog();
+    if (activeTab === 'subscriptions' && subscriptions.length === 0) fetchSubscriptions();
+  }, [activeTab]);
+
+  const fetchAdminOverview = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const response = await axios.get('/api/admin/metrics');
+      setMetrics(response.data.metrics);
+      setLogs(response.data.auditLogs || []);
+    } catch (err) {
+      setError(err.response?.data?.error || 'Failed to retrieve administrative overview metrics.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchUsers = async () => {
+    setTabLoading(true);
+    try {
+      const response = await axios.get('/api/admin/users');
+      setUsers(response.data.users || []);
+    } catch (err) {
+      console.error('Fetch users error:', err);
+    } finally {
+      setTabLoading(false);
+    }
+  };
+
+  const handleToggleRole = async (userId, currentRole) => {
+    const newRole = currentRole === 'SUPER_ADMIN' ? 'BUSINESS_OWNER' : 'SUPER_ADMIN';
+    try {
+      await axios.patch(`/api/admin/users/${userId}/role`, { role: newRole });
+      setUsers(users.map(u => u.id === userId ? { ...u, role: newRole } : u));
+    } catch (err) {
+      alert('Failed to update user role');
+    }
+  };
+
+  const fetchBusinesses = async () => {
+    setTabLoading(true);
+    try {
+      const response = await axios.get('/api/admin/businesses');
+      setBusinesses(response.data.businesses || []);
+    } catch (err) {
+      console.error('Fetch businesses error:', err);
+    } finally {
+      setTabLoading(false);
+    }
+  };
+
+  const fetchCatalog = async () => {
+    setTabLoading(true);
+    try {
+      const response = await axios.get('/api/admin/catalog');
+      setCatalog(response.data.catalog || []);
+    } catch (err) {
+      console.error('Fetch catalog error:', err);
+    } finally {
+      setTabLoading(false);
+    }
+  };
+
+  const handleCreateCatalogItem = async (e) => {
+    e.preventDefault();
+    setItemMessage('');
+    try {
+      const response = await axios.post('/api/admin/catalog', newItem);
+      if (response.data.status === 'success') {
+        setCatalog([response.data.item, ...catalog]);
+        setItemMessage('Master product/service catalog item published!');
+        setNewItem({ name: '', category: 'Digital Marketing', type: 'SERVICE', description: '', defaultPrice: '' });
+      }
+    } catch (err) {
+      setItemMessage('Failed to publish catalog item.');
+    }
+  };
+
+  const handleDeleteCatalogItem = async (id) => {
+    try {
+      await axios.delete(`/api/admin/catalog/${id}`);
+      setCatalog(catalog.filter(item => item.id !== id));
+    } catch (err) {
+      alert('Failed to delete catalog item');
+    }
+  };
+
+  const fetchSubscriptions = async () => {
+    setTabLoading(true);
+    try {
+      const response = await axios.get('/api/admin/subscriptions');
+      setSubscriptions(response.data.subscriptions || []);
+    } catch (err) {
+      console.error('Fetch subscriptions error:', err);
+    } finally {
+      setTabLoading(false);
+    }
+  };
+
+  return (
+    <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: '#0b0f19', color: '#fff', width: '100%' }}>
+      
+      {/* 1. Permanent SPA Left Sidebar Navigation */}
+      <SuperAdminSidebar activeTab={activeTab} setActiveTab={setActiveTab} metrics={metrics} />
+
+      {/* Main Panel Content Area */}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+        
+        {/* 2. Top Navigation & User Header */}
+        <SuperAdminTopbar user={user} onRefresh={fetchAdminOverview} onLogout={onLogout} />
+
+        {/* 3. SPA Content View - Loads modular tab contents without full page refreshing */}
+        <main style={{ flex: 1, padding: '2rem', maxWidth: '1200px', width: '100%', margin: '0 auto' }}>
+          
+          {error && (
+            <div style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', border: '1px solid #ef4444', color: '#ef4444', padding: '0.75rem 1rem', borderRadius: '8px', marginBottom: '1.5rem' }}>
+              {error}
+            </div>
+          )}
+
+          {loading ? (
+            <div style={{ padding: '4rem 0', textAlign: 'center', color: '#94a3b8' }}>
+              <RefreshCw size={28} className="animate-spin" style={{ margin: '0 auto 0.75rem auto', display: 'block', color: '#818cf8' }} />
+              Initializing Super Admin Console...
+            </div>
+          ) : (
+            <>
+              {tabLoading && (
+                <div style={{ fontSize: '0.8rem', color: '#818cf8', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <RefreshCw size={14} className="animate-spin" /> Fetching real-time module data...
+                </div>
+              )}
+
+              {activeTab === 'overview' && <OverviewTab metrics={metrics} />}
+              {activeTab === 'users' && (
+                <UsersTab
+                  users={users}
+                  searchQuery={searchQuery}
+                  setSearchQuery={setSearchQuery}
+                  handleToggleRole={handleToggleRole}
+                />
+              )}
+              {activeTab === 'businesses' && (
+                <BusinessesTab
+                  businesses={businesses}
+                  searchQuery={searchQuery}
+                  setSearchQuery={setSearchQuery}
+                />
+              )}
+              {activeTab === 'catalog' && (
+                <CatalogTab
+                  catalog={catalog}
+                  newItem={newItem}
+                  setNewItem={setNewItem}
+                  itemMessage={itemMessage}
+                  handleCreateCatalogItem={handleCreateCatalogItem}
+                  handleDeleteCatalogItem={handleDeleteCatalogItem}
+                />
+              )}
+              {activeTab === 'subscriptions' && <SubscriptionsTab subscriptions={subscriptions} />}
+              {activeTab === 'logs' && <AuditLogsTab logs={logs} />}
+            </>
+          )}
+
+        </main>
+      </div>
+
+    </div>
+  );
+}
+
+export default SuperAdminDashboardLayout;
