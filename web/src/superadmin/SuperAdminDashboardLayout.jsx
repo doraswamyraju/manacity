@@ -17,7 +17,15 @@ import AuditLogsTab from '../admin/AuditLogsTab';
 import LMSAllLeadsTab from '../admin/lms/LMSAllLeadsTab';
 
 function SuperAdminDashboardLayout({ user, onLogout }) {
-  const [activeTab, setActiveTab] = useState('overview');
+  // Persist active tab in localStorage so browser refresh stays on the current tab
+  const [activeTab, setActiveTabState] = useState(() => {
+    return localStorage.getItem('superadmin_activetab') || 'overview';
+  });
+
+  const setActiveTab = (tabId) => {
+    localStorage.setItem('superadmin_activetab', tabId);
+    setActiveTabState(tabId);
+  };
   
   // Sidebar State: Collapsible, Hover Expand, Pin Option
   const [isPinned, setIsPinned] = useState(false);

@@ -26,8 +26,10 @@ function SuperAdminSidebar({
   setIsHovered,
   theme
 }) {
-  // Submenu accordion toggle state
-  const [openSubmenu, setOpenSubmenu] = useState(null);
+  // Submenu accordion toggle state (auto-expand parent on load if activeTab is a sub-item)
+  const [openSubmenu, setOpenSubmenu] = useState(() => {
+    return activeTab && activeTab.startsWith('lms') ? 'lms' : null;
+  });
 
   const isExpanded = isPinned || isHovered;
   const isDark = theme === 'dark';
