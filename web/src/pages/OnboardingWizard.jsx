@@ -102,9 +102,10 @@ function StepBusinessInfo({ initialData, onNext, onSaveDraft }) {
         <div style={{ display: 'flex', gap: '0.5rem' }}>
           <input
             type="text"
-            placeholder="Search your business on Google Places..."
+            placeholder="Search your business on Google Places (e.g. My Tax Filer)..."
             value={placesQuery}
             onChange={e => setPlacesQuery(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleGooglePlacesImport(); } }}
             style={{ flex: 1, padding: '0.6rem', borderRadius: '6px', backgroundColor: '#0f172a', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: '0.85rem' }}
           />
           <button
@@ -114,12 +115,12 @@ function StepBusinessInfo({ initialData, onNext, onSaveDraft }) {
             disabled={importing}
             style={{ backgroundColor: '#6366f1', fontSize: '0.85rem', padding: '0.6rem 1rem' }}
           >
-            {importing ? 'Importing...' : 'Auto-Import'}
+            {importing ? 'Searching & Importing...' : 'Auto-Import'}
           </button>
         </div>
         {importSuccess && (
-          <span style={{ fontSize: '0.8rem', color: '#10b981', marginTop: '0.4rem', display: 'block' }}>
-            ✓ Successfully imported business name, address & rating from Google Places!
+          <span style={{ fontSize: '0.85rem', color: '#10b981', marginTop: '0.5rem', display: 'block', fontWeight: 600 }}>
+            ✓ Successfully imported business name, address & rating from Google Places! Redirecting...
           </span>
         )}
       </div>
