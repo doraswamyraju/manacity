@@ -163,7 +163,10 @@ function App() {
       )}
 
       {view === 'locations' && (
-        <Locations onBack={() => setView('dashboard')} />
+        <Locations 
+          onBack={() => setView('dashboard')} 
+          onNavigateToOnboarding={() => setView('onboarding')}
+        />
       )}
 
       {view === 'billing' && (
@@ -184,9 +187,9 @@ function App() {
 
       {view === 'onboarding' && (
         <OnboardingWizard 
-          onCompleteOnboarding={(updatedBg) => {
+          onCompleteOnboarding={(updatedBg, targetView) => {
             setBusinessGroup(updatedBg);
-            setView('dashboard');
+            setView(targetView || 'dashboard');
           }}
           onCancel={() => setView('dashboard')}
         />

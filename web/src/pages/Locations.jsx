@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { MapPin, Phone, Clock, Plus, Trash2, ArrowLeft, Briefcase, Award, Flame, CheckCircle, Circle, Target, Globe, MessageSquare, Star, Send, Copy, Share2, Users, ChevronRight, UserPlus, Info } from 'lucide-react';
 
-function Locations({ onBack }) {
+function Locations({ onBack, onNavigateToOnboarding }) {
   const [locations, setLocations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showWizard, setShowWizard] = useState(false);
@@ -733,7 +733,7 @@ function Locations({ onBack }) {
               <h2 style={{ fontSize: '2rem', fontWeight: 700, color: '#fff' }}>Business Locations</h2>
               <p style={{ color: 'var(--text-secondary)' }}>Manage your branches and view optimization rankings</p>
             </div>
-            <button className="btn btn-primary" onClick={() => setShowWizard(true)}>
+            <button className="btn btn-primary" onClick={() => onNavigateToOnboarding ? onNavigateToOnboarding() : setShowWizard(true)}>
               <Plus size={18} /> Add Location
             </button>
           </div>
@@ -745,7 +745,7 @@ function Locations({ onBack }) {
               <Briefcase size={48} style={{ color: 'var(--text-muted)', marginBottom: '1rem' }} />
               <h3 style={{ fontSize: '1.3rem', marginBottom: '0.5rem' }}>No Locations Found</h3>
               <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>Get started by adding your first business location branch.</p>
-              <button className="btn btn-primary" onClick={() => setShowWizard(true)}>
+              <button className="btn btn-primary" onClick={() => onNavigateToOnboarding ? onNavigateToOnboarding() : setShowWizard(true)}>
                 Add First Location
               </button>
             </div>

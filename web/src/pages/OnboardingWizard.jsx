@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
 // --- Step 1: Business Information & Google Places Importer ---
-function StepBusinessInfo({ initialData, onNext, onSaveDraft }) {
+function StepBusinessInfo({ initialData, onNext, onAutoFill }) {
   const [name, setName] = useState(initialData.name || '');
   const [description, setDescription] = useState(initialData.description || '');
   const [yearStarted, setYearStarted] = useState(initialData.yearStarted || '');
@@ -11,6 +11,12 @@ function StepBusinessInfo({ initialData, onNext, onSaveDraft }) {
   const [error, setError] = useState('');
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [uploadingCover, setUploadingCover] = useState(false);
+
+  // Sync state if initialData is updated via auto-fill
+  useEffect(() => {
+    if (initialData.name) setName(initialData.name);
+    if (initialData.description) setDescription(initialData.description);
+  }, [initialData]);
 
   // Google Places Importer State
   const [placesQuery, setPlacesQuery] = useState('');
@@ -73,21 +79,21 @@ function StepBusinessInfo({ initialData, onNext, onSaveDraft }) {
 
       if (res.data && res.data.data) {
         const place = res.data.data.importedPlace;
-        setName(place.name);
-        setDescription(`Imported Google Business profile for ${place.name}. Rating: ${place.rating}/5.`);
+        setName(place.name || name);
+        setDescription(`Official Google Business profile for ${place.name || name}. Rating: ${place.rating || '4.8'}/5.`);
         setImportSuccess(true);
 
-        // Auto-complete step progress and take business owner straight to dashboard
-        setTimeout(() => {
-          if (onNext) {
-            onNext({
-              name: place.name,
-              description: `Official profile for ${place.name} located at ${place.address}`,
-              address: place.address,
-              isSetupComplete: true
-            }, res.data.data.businessGroup);
-          }
-        }, 1000);
+        if (onAutoFill) {
+          onAutoFill({
+            name: place.name,
+            description: `Official Google Business profile for ${place.name}. Rating: ${place.rating || '4.8'}/5.`,
+            address: place.address || '',
+            mobileNumber: place.phone || '',
+            whatsAppNumber: place.phone || '',
+            website: place.website || '',
+            category: place.category || 'General Business'
+          });
+        }
       }
     } catch (err) {
       console.error('Google Places Import Error:', err);
@@ -470,6 +476,23 @@ function StepBusinessDetails({ initialData, onNext, onBack }) {
   const [newProduct, setNewProduct] = useState('');
   const [error, setError] = useState('');
 
+  // Master Category Library State
+  const [libraryItems, setLibraryItems] = useState([]);
+  const [loadingLibrary, setLoadingLibrary] = useState(false);
+
+  useEffect(() => {
+    setLoadingLibrary(true);
+    const cat = initialData.category || 'All';
+    axios.get(`/api/phase1/library?category=${encodeURIComponent(cat)}`)
+      .then(res => {
+        if (res.data && res.data.items) {
+          setLibraryItems(res.data.items);
+        }
+      })
+      .catch(err => console.warn('Library load error:', err))
+      .finally(() => setLoadingLibrary(false));
+  }, [initialData.category]);
+
   const handleDayToggle = (day) => {
     if (workingDays.includes(day)) {
       setWorkingDays(workingDays.filter(d => d !== day));
@@ -586,6 +609,74 @@ function StepBusinessDetails({ initialData, onNext, onBack }) {
             <span key={lang} style={chipStyle} onClick={() => setLanguagesSpoken(languagesSpoken.filter(l => l !== lang))}>{lang} ✗</span>
           ))}
         </div>
+      </div>
+
+      {/* Category Master Product & Service Library Recommendations */}
+      <div style={{ backgroundColor: 'rgba(99, 102, 241, 0.08)', border: '1px solid #6366f1', padding: '1rem', borderRadius: '10px' }}>
+        <h4 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#818cf8', marginBottom: '0.4rem' }}>
+          ⚡ Recommended Master Catalog Items ({initialData.category || 'General Business'})
+        </h4>
+        <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.75rem' }}>
+          Click <strong>+ Add</strong> on any item to attach it directly to your business profile catalog.
+        </p>
+
+        {loadingLibrary ? (
+          <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Loading category catalog...</span>
+        ) : libraryItems.length === 0 ? (
+          <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>No catalog suggestions found for this category.</span>
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '0.5rem' }}>
+            {libraryItems.map(item => {
+              const isAdded = item.type === 'SERVICE' ? servicesOffered.includes(item.name) : productsOffered.includes(item.name);
+              return (
+                <div 
+                  key={item.id} 
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    padding: '0.5rem 0.75rem',
+                    backgroundColor: isAdded ? 'rgba(16, 185, 129, 0.1)' : '#0f172a',
+                    border: isAdded ? '1px solid #10b981' : '1px solid rgba(255,255,255,0.1)',
+                    borderRadius: '6px',
+                    fontSize: '0.82rem'
+                  }}
+                >
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.1rem', overflow: 'hidden' }}>
+                    <span style={{ color: '#fff', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.name}</span>
+                    <span style={{ fontSize: '0.72rem', color: 'var(--text-secondary)' }}>
+                      {item.type} {item.price ? `| ₹${item.price}` : ''}
+                    </span>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (item.type === 'SERVICE') {
+                        if (!servicesOffered.includes(item.name)) setServicesOffered([...servicesOffered, item.name]);
+                      } else {
+                        if (!productsOffered.includes(item.name)) setProductsOffered([...productsOffered, item.name]);
+                      }
+                    }}
+                    disabled={isAdded}
+                    style={{
+                      padding: '0.25rem 0.5rem',
+                      fontSize: '0.75rem',
+                      borderRadius: '4px',
+                      border: 'none',
+                      backgroundColor: isAdded ? '#10b981' : '#6366f1',
+                      color: '#fff',
+                      cursor: isAdded ? 'default' : 'pointer',
+                      marginLeft: '0.5rem'
+                    }}
+                  >
+                    {isAdded ? '✓ Added' : '+ Add'}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
@@ -866,6 +957,11 @@ export default function OnboardingWizard({ onCompleteOnboarding, onCancel }) {
       .finally(() => setLoading(false));
   }, []);
 
+  const handleAutoFill = (importedData) => {
+    const newFormData = { ...formData, ...importedData };
+    setFormData(newFormData);
+  };
+
   const saveStepProgress = async (nextStep, updatedData, directBusinessGroup) => {
     setSaving(true);
     const newFormData = { ...formData, ...updatedData };
@@ -873,7 +969,7 @@ export default function OnboardingWizard({ onCompleteOnboarding, onCancel }) {
 
     if (updatedData && updatedData.isSetupComplete) {
       if (directBusinessGroup) {
-        onCompleteOnboarding(directBusinessGroup);
+        onCompleteOnboarding(directBusinessGroup, 'website-builder');
       } else {
         handleFinalSubmit();
       }
@@ -899,7 +995,7 @@ export default function OnboardingWizard({ onCompleteOnboarding, onCancel }) {
     try {
       const response = await axios.post('/api/business/complete-onboarding');
       if (response.data.status === 'success') {
-        onCompleteOnboarding(response.data.businessGroup);
+        onCompleteOnboarding(response.data.businessGroup, 'website-builder');
       }
     } catch (err) {
       console.error('Failed to finalize onboarding:', err);
@@ -940,6 +1036,7 @@ export default function OnboardingWizard({ onCompleteOnboarding, onCancel }) {
         <StepBusinessInfo 
           initialData={formData} 
           onNext={(data, directBg) => saveStepProgress(2, data, directBg)} 
+          onAutoFill={handleAutoFill}
         />
       )}
 
