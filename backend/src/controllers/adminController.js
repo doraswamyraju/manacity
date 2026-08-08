@@ -120,10 +120,7 @@ exports.getBusinesses = async (req, res) => {
           select: { id: true, name: true, email: true }
         },
         _count: {
-          select: { locations: true, services: true, products: true }
-        },
-        websiteConfig: {
-          select: { id: true, isPublished: true, customDomain: true, slug: true }
+          select: { locations: true }
         }
       },
       orderBy: { createdAt: 'desc' }
