@@ -26,7 +26,7 @@ function SuperAdminSidebar({
   setIsHovered,
   theme
 }) {
-  // Submenu toggle state
+  // Submenu accordion toggle state
   const [openSubmenu, setOpenSubmenu] = useState(null);
 
   const isExpanded = isPinned || isHovered;
@@ -56,9 +56,11 @@ function SuperAdminSidebar({
 
   const handleParentClick = (item) => {
     if (item.subItems) {
-      // Toggle accordion submenu expansion
+      // Toggle inner submenu expansion for this parent
       setOpenSubmenu(openSubmenu === item.id ? null : item.id);
     } else {
+      // When navigating to any non-submenu module (e.g., User Directory, Catalog), close any open submenus
+      setOpenSubmenu(null);
       setActiveTab(item.id);
     }
   };
@@ -146,7 +148,6 @@ function SuperAdminSidebar({
           const Icon = item.icon;
           const isSubOpen = openSubmenu === item.id;
           
-          // Strict active checks to prevent lingering white outlines/highlights on non-active items
           const isDirectActive = activeTab === item.id;
           const isChildActive = item.subItems && item.subItems.some(sub => activeTab === sub.id);
           const isParentActive = isDirectActive || isChildActive;
@@ -229,7 +230,6 @@ function SuperAdminSidebar({
                 }}>
                   {item.subItems.map(sub => {
                     const SubIcon = sub.icon;
-                    // Only the exact active sub-item tab is highlighted
                     const isSubActive = activeTab === sub.id;
 
                     return (
