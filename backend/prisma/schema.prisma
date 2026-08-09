@@ -479,7 +479,9 @@ model QRScan {
 model ProductServiceLibrary {
   id              String            @id @default(auto()) @map("_id") @db.ObjectId
   name            String
+  slug            String?
   category        String            // e.g. "Digital Marketing", "Rice Mill", "Clinics"
+
   type            String            // "SERVICE" or "PRODUCT"
   description     String?
   imageUrl        String?
