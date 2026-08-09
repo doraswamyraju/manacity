@@ -238,12 +238,7 @@ exports.createMasterCatalogItem = async (req, res) => {
 };
 
 
-    res.json({ status: 'success', item: newItem });
-  } catch (error) {
-    console.error('Create catalog item error:', error);
-    res.status(500).json({ error: 'Failed to create catalog item.' });
-  }
-};
+
 
 // 6b. Update Master Catalog Item
 exports.updateMasterCatalogItem = async (req, res) => {
