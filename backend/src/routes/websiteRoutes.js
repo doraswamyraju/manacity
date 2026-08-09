@@ -6,8 +6,10 @@ const checkSubscriptionLimit = require('../middleware/subscriptionCheck');
 
 // Protected admin builder routes
 router.get('/', auth, websiteController.getWebsite);
+router.get('/:locationId', auth, websiteController.getWebsite);
 router.post('/save', auth, websiteController.saveWebsite);
 router.post('/sections/save', auth, websiteController.saveWebsiteSections);
+
 
 // Public dynamic renderer & SEO files
 router.get('/public/:subdomain', websiteController.renderPublicWebsite);
