@@ -1,20 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import {
-  Globe,
-  Link,
-  MapPin,
-  Search,
   Save,
   CheckCircle2,
   AlertCircle,
-  ExternalLink,
-  Code,
-  Sliders,
-  Plus,
-  Trash2,
   RefreshCw
 } from 'lucide-react';
+
+// Modular Subcomponent Imports stacked under URL & SEO Settings
+import UrlPreviewModule from './url_settings/UrlPreviewModule';
+import PermalinkPatternsModule from './url_settings/PermalinkPatternsModule';
+import CitySlugMappingModule from './url_settings/CitySlugMappingModule';
+import SeoMetadataModule from './url_settings/SeoMetadataModule';
 
 export default function UrlSettingsTab({ theme = 'dark' }) {
   const isDark = theme === 'dark';
@@ -84,53 +81,6 @@ export default function UrlSettingsTab({ theme = 'dark' }) {
     } finally {
       setSaving(false);
     }
-  };
-
-  const handleCityChange = (index, field, value) => {
-    const updated = [...citySlugMapping];
-    updated[index][field] = value;
-    setCitySlugMapping(updated);
-  };
-
-  const handleAddCity = () => {
-    setCitySlugMapping([
-      ...citySlugMapping,
-      { cityId: `city-${Date.now()}`, name: 'New City', slug: 'new-city', active: true }
-    ]);
-  };
-
-  const handleRemoveCity = (index) => {
-    const updated = citySlugMapping.filter((_, i) => i !== index);
-    setCitySlugMapping(updated);
-  };
-
-  // Helper to build preview URL
-  const formatUrl = (pattern, params) => {
-    let result = pattern;
-    result = result.replace(':city', params.city || 'city');
-    result = result.replace(':category', params.category || 'category');
-    result = result.replace(':slug', params.slug || 'business-slug');
-    return `${seoSettings.canonicalDomain || 'https://manacity.in'}${result}`;
-  };
-
-  const cardStyle = {
-    backgroundColor: isDark ? '#111827' : '#ffffff',
-    border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid #e2e8f0',
-    borderRadius: '12px',
-    padding: '1.5rem',
-    marginBottom: '1.5rem',
-    boxShadow: isDark ? '0 4px 20px rgba(0,0,0,0.3)' : '0 2px 10px rgba(0,0,0,0.04)'
-  };
-
-  const inputStyle = {
-    width: '100%',
-    padding: '0.65rem 0.85rem',
-    borderRadius: '8px',
-    border: isDark ? '1px solid rgba(255,255,255,0.12)' : '1px solid #cbd5e1',
-    backgroundColor: isDark ? '#1f2937' : '#f8fafc',
-    color: isDark ? '#fff' : '#0f172a',
-    fontSize: '0.9rem',
-    outline: 'none'
   };
 
   if (loading) {
@@ -203,290 +153,42 @@ export default function UrlSettingsTab({ theme = 'dark' }) {
         </div>
       )}
 
-      {/* Stacked Control 1: Live URL Preview Sandbox */}
-      <div style={cardStyle}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '1rem' }}>
-          <Globe size={20} color="#818cf8" />
-          <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: isDark ? '#fff' : '#0f172a', margin: 0 }}>
-            1. Live Aggregator URL Preview
-          </h3>
-        </div>
-        <p style={{ fontSize: '0.85rem', color: isDark ? '#9ca3af' : '#64748b', marginTop: 0, marginBottom: '1rem' }}>
-          Test how canonical search links and business profile permalinks render dynamically across manacity.in.
-        </p>
+      {/* Stacked Submodule 1: Live URL Preview Sandbox */}
+      <UrlPreviewModule
+        isDark={isDark}
+        categoryPattern={categoryPattern}
+        listingPattern={listingPattern}
+        canonicalDomain={seoSettings.canonicalDomain}
+        sampleCity={sampleCity}
+        setSampleCity={setSampleCity}
+        sampleCategory={sampleCategory}
+        setSampleCategory={setSampleCategory}
+        sampleBusinessSlug={sampleBusinessSlug}
+        setSampleBusinessSlug={setSampleBusinessSlug}
+      />
 
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-          gap: '1rem',
-          marginBottom: '1rem'
-        }}>
-          <div>
-            <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: isDark ? '#9ca3af' : '#475569', marginBottom: '0.35rem' }}>
-              Sample City Slug
-            </label>
-            <input
-              type="text"
-              value={sampleCity}
-              onChange={(e) => setSampleCity(e.target.value)}
-              style={inputStyle}
-            />
-          </div>
+      {/* Stacked Submodule 2: Permalink Patterns & Structure */}
+      <PermalinkPatternsModule
+        isDark={isDark}
+        categoryPattern={categoryPattern}
+        setCategoryPattern={setCategoryPattern}
+        listingPattern={listingPattern}
+        setListingPattern={setListingPattern}
+      />
 
-          <div>
-            <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: isDark ? '#9ca3af' : '#475569', marginBottom: '0.35rem' }}>
-              Sample Category Slug
-            </label>
-            <input
-              type="text"
-              value={sampleCategory}
-              onChange={(e) => setSampleCategory(e.target.value)}
-              style={inputStyle}
-            />
-          </div>
+      {/* Stacked Submodule 3: City Slug & Region Mappings */}
+      <CitySlugMappingModule
+        isDark={isDark}
+        citySlugMapping={citySlugMapping}
+        setCitySlugMapping={setCitySlugMapping}
+      />
 
-          <div>
-            <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: isDark ? '#9ca3af' : '#475569', marginBottom: '0.35rem' }}>
-              Sample Business Listing Slug
-            </label>
-            <input
-              type="text"
-              value={sampleBusinessSlug}
-              onChange={(e) => setSampleBusinessSlug(e.target.value)}
-              style={inputStyle}
-            />
-          </div>
-        </div>
-
-        {/* Live Rendered Output */}
-        <div style={{
-          backgroundColor: isDark ? '#090d16' : '#f1f5f9',
-          borderRadius: '8px',
-          padding: '1rem',
-          border: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid #cbd5e1'
-        }}>
-          <div style={{ marginBottom: '0.65rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#38bdf8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              Rendered Category URL:
-            </span>
-            <code style={{ fontSize: '0.9rem', color: isDark ? '#34d399' : '#059669', fontWeight: 600 }}>
-              {formatUrl(categoryPattern, { city: sampleCity, category: sampleCategory })}
-            </code>
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#c084fc', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              Rendered Business Profile URL:
-            </span>
-            <code style={{ fontSize: '0.9rem', color: isDark ? '#818cf8' : '#4f46e5', fontWeight: 600 }}>
-              {formatUrl(listingPattern, { city: sampleCity, category: sampleCategory, slug: sampleBusinessSlug })}
-            </code>
-          </div>
-        </div>
-      </div>
-
-      {/* Stacked Control 2: Category & Listing Permalink Patterns */}
-      <div style={cardStyle}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '1rem' }}>
-          <Link size={20} color="#38bdf8" />
-          <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: isDark ? '#fff' : '#0f172a', margin: 0 }}>
-            2. Permalink Patterns & Structure
-          </h3>
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
-          {/* Category Pattern */}
-          <div>
-            <label style={{ display: 'block', fontSize: '0.88rem', fontWeight: 700, color: isDark ? '#e2e8f0' : '#1e293b', marginBottom: '0.5rem' }}>
-              Category Search Permalinks
-            </label>
-            <select
-              value={categoryPattern}
-              onChange={(e) => setCategoryPattern(e.target.value)}
-              style={inputStyle}
-            >
-              <option value="/:city/:category">manacity.in/:city/:category (Recommended e.g. /tirupati/digital-marketing)</option>
-              <option value="/:city/c/:category">manacity.in/:city/c/:category (e.g. /tirupati/c/digital-marketing)</option>
-              <option value="/c/:category">manacity.in/c/:category (Global e.g. /c/digital-marketing)</option>
-            </select>
-            <span style={{ display: 'block', fontSize: '0.76rem', color: isDark ? '#9ca3af' : '#64748b', marginTop: '0.35rem' }}>
-              Determines how city-wise category pages are indexed for SEO.
-            </span>
-          </div>
-
-          {/* Listing Pattern */}
-          <div>
-            <label style={{ display: 'block', fontSize: '0.88rem', fontWeight: 700, color: isDark ? '#e2e8f0' : '#1e293b', marginBottom: '0.5rem' }}>
-              Business Profile Permalinks
-            </label>
-            <select
-              value={listingPattern}
-              onChange={(e) => setListingPattern(e.target.value)}
-              style={inputStyle}
-            >
-              <option value="/biz/:slug">manacity.in/biz/:slug (Recommended e.g. /biz/abc-digital)</option>
-              <option value="/:city/b/:slug">manacity.in/:city/b/:slug (e.g. /tirupati/b/abc-digital)</option>
-              <option value="/:city/:category/:slug">manacity.in/:city/:category/:slug (e.g. /tirupati/digital-marketing/abc-digital)</option>
-            </select>
-            <span style={{ display: 'block', fontSize: '0.76rem', color: isDark ? '#9ca3af' : '#64748b', marginTop: '0.35rem' }}>
-              Defines canonical public URLs for business detail storefronts.
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* Stacked Control 3: City Slug Mappings */}
-      <div style={cardStyle}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-            <MapPin size={20} color="#34d399" />
-            <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: isDark ? '#fff' : '#0f172a', margin: 0 }}>
-              3. City Slug & Region Mappings
-            </h3>
-          </div>
-
-          <button
-            onClick={handleAddCity}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.35rem',
-              backgroundColor: isDark ? 'rgba(52, 211, 153, 0.15)' : 'rgba(52, 211, 153, 0.1)',
-              color: '#34d399',
-              border: '1px solid rgba(52, 211, 153, 0.3)',
-              borderRadius: '6px',
-              padding: '0.4rem 0.8rem',
-              fontSize: '0.82rem',
-              fontWeight: 700,
-              cursor: 'pointer'
-            }}
-          >
-            <Plus size={16} />
-            Add City Slug
-          </button>
-        </div>
-
-        <p style={{ fontSize: '0.85rem', color: isDark ? '#9ca3af' : '#64748b', marginTop: 0, marginBottom: '1rem' }}>
-          Manage URL slugs for cities where manacity.in aggregates local business listings.
-        </p>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-          {citySlugMapping.map((city, idx) => (
-            <div
-              key={city.cityId || idx}
-              style={{
-                display: 'grid',
-                gridTemplateColumns: '1.5fr 1.5fr 1fr 40px',
-                gap: '0.85rem',
-                alignItems: 'center',
-                backgroundColor: isDark ? '#1f2937' : '#f8fafc',
-                padding: '0.65rem 0.85rem',
-                borderRadius: '8px',
-                border: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid #e2e8f0'
-              }}
-            >
-              <div>
-                <input
-                  type="text"
-                  placeholder="City Display Name"
-                  value={city.name}
-                  onChange={(e) => handleCityChange(idx, 'name', e.target.value)}
-                  style={inputStyle}
-                />
-              </div>
-
-              <div>
-                <input
-                  type="text"
-                  placeholder="URL Slug (e.g. tirupati)"
-                  value={city.slug}
-                  onChange={(e) => handleCityChange(idx, 'slug', e.target.value.toLowerCase().replace(/\s+/g, '-'))}
-                  style={inputStyle}
-                />
-              </div>
-
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <input
-                  type="checkbox"
-                  id={`city-active-${idx}`}
-                  checked={city.active}
-                  onChange={(e) => handleCityChange(idx, 'active', e.target.checked)}
-                  style={{ width: '16px', height: '16px', cursor: 'pointer' }}
-                />
-                <label htmlFor={`city-active-${idx}`} style={{ fontSize: '0.82rem', fontWeight: 600, color: isDark ? '#d1d5db' : '#334155', cursor: 'pointer' }}>
-                  {city.active ? 'Active' : 'Disabled'}
-                </label>
-              </div>
-
-              <button
-                onClick={() => handleRemoveCity(idx)}
-                title="Remove City"
-                style={{
-                  backgroundColor: 'transparent',
-                  border: 'none',
-                  color: '#f87171',
-                  cursor: 'pointer',
-                  padding: '0.35rem',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}
-              >
-                <Trash2 size={18} />
-              </button>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Stacked Control 4: SEO Metadata & Domain Canonical */}
-      <div style={cardStyle}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '1rem' }}>
-          <Search size={20} color="#fbbf24" />
-          <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: isDark ? '#fff' : '#0f172a', margin: 0 }}>
-            4. Global SEO Metadata & Canonical Domain
-          </h3>
-        </div>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          <div>
-            <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: isDark ? '#9ca3af' : '#475569', marginBottom: '0.35rem' }}>
-              Canonical Domain Base URL
-            </label>
-            <input
-              type="text"
-              value={seoSettings.canonicalDomain}
-              onChange={(e) => setSeoSettings({ ...seoSettings, canonicalDomain: e.target.value })}
-              placeholder="https://manacity.in"
-              style={inputStyle}
-            />
-          </div>
-
-          <div>
-            <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: isDark ? '#9ca3af' : '#475569', marginBottom: '0.35rem' }}>
-              Aggregator Platform Meta Title
-            </label>
-            <input
-              type="text"
-              value={seoSettings.siteTitle}
-              onChange={(e) => setSeoSettings({ ...seoSettings, siteTitle: e.target.value })}
-              style={inputStyle}
-            />
-          </div>
-
-          <div>
-            <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: isDark ? '#9ca3af' : '#475569', marginBottom: '0.35rem' }}>
-              Aggregator Meta Description
-            </label>
-            <textarea
-              rows={2}
-              value={seoSettings.metaDescription}
-              onChange={(e) => setSeoSettings({ ...seoSettings, metaDescription: e.target.value })}
-              style={{ ...inputStyle, resize: 'vertical' }}
-            />
-          </div>
-        </div>
-      </div>
+      {/* Stacked Submodule 4: Global SEO Metadata & Canonical Domain */}
+      <SeoMetadataModule
+        isDark={isDark}
+        seoSettings={seoSettings}
+        setSeoSettings={setSeoSettings}
+      />
     </div>
   );
 }
