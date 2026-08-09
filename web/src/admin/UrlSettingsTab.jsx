@@ -4,7 +4,12 @@ import {
   Save,
   CheckCircle2,
   AlertCircle,
-  RefreshCw
+  RefreshCw,
+  Globe,
+  Link as LinkIcon,
+  MapPin,
+  Search,
+  Layers
 } from 'lucide-react';
 
 // Modular Subcomponent Imports stacked under URL & SEO Settings
@@ -13,7 +18,7 @@ import PermalinkPatternsModule from './url_settings/PermalinkPatternsModule';
 import CitySlugMappingModule from './url_settings/CitySlugMappingModule';
 import SeoMetadataModule from './url_settings/SeoMetadataModule';
 
-export default function UrlSettingsTab({ theme = 'dark' }) {
+export default function UrlSettingsTab({ activeTab = 'url-settings', setActiveTab, theme = 'dark' }) {
   const isDark = theme === 'dark';
 
   const [loading, setLoading] = useState(true);
@@ -83,6 +88,22 @@ export default function UrlSettingsTab({ theme = 'dark' }) {
     }
   };
 
+  const subNavItems = [
+    { id: 'url-all', label: 'All Stacked Modules', icon: Layers },
+    { id: 'url-preview', label: 'URL Preview Sandbox', icon: Globe },
+    { id: 'url-permalinks', label: 'Permalink Patterns', icon: LinkIcon },
+    { id: 'url-cities', label: 'City Slugs & Regions', icon: MapPin },
+    { id: 'url-seo', label: 'SEO & Canonical Meta', icon: Search }
+  ];
+
+  const currentTab = activeTab === 'url-settings' ? 'url-all' : activeTab;
+
+  const handleSubTabChange = (tabId) => {
+    if (setActiveTab) {
+      setActiveTab(tabId === 'url-all' ? 'url-settings' : tabId);
+    }
+  };
+
   if (loading) {
     return (
       <div style={{ padding: '3rem', textAlign: 'center', color: isDark ? '#9ca3af' : '#64748b' }}>
@@ -99,7 +120,7 @@ export default function UrlSettingsTab({ theme = 'dark' }) {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        marginBottom: '1.5rem',
+        marginBottom: '1rem',
         paddingBottom: '1rem',
         borderBottom: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid #cbd5e1'
       }}>
@@ -135,6 +156,51 @@ export default function UrlSettingsTab({ theme = 'dark' }) {
         </button>
       </div>
 
+      {/* Sub-Navigation Pill Bar */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '0.5rem',
+        marginBottom: '1.5rem',
+        overflowX: 'auto',
+        paddingBottom: '0.35rem'
+      }}>
+        {subNavItems.map((item) => {
+          const Icon = item.icon;
+          const isActive = currentTab === item.id || (item.id === 'url-all' && currentTab === 'url-settings');
+          return (
+            <button
+              key={item.id}
+              onClick={() => handleSubTabChange(item.id)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.45rem',
+                padding: '0.55rem 0.95rem',
+                borderRadius: '20px',
+                fontSize: '0.84rem',
+                fontWeight: 700,
+                border: isActive
+                  ? '1px solid #6366f1'
+                  : isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid #cbd5e1',
+                backgroundColor: isActive
+                  ? (isDark ? 'rgba(99, 102, 241, 0.2)' : 'rgba(99, 102, 241, 0.12)')
+                  : (isDark ? '#1f2937' : '#ffffff'),
+                color: isActive
+                  ? (isDark ? '#a5b4fc' : '#4f46e5')
+                  : (isDark ? '#9ca3af' : '#64748b'),
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+                transition: 'all 0.15s ease-in-out'
+              }}
+            >
+              <Icon size={16} />
+              {item.label}
+            </button>
+          );
+        })}
+      </div>
+
       {/* Notification Toast */}
       {message.text && (
         <div style={{
@@ -153,42 +219,47 @@ export default function UrlSettingsTab({ theme = 'dark' }) {
         </div>
       )}
 
-      {/* Stacked Submodule 1: Live URL Preview Sandbox */}
-      <UrlPreviewModule
-        isDark={isDark}
-        categoryPattern={categoryPattern}
-        listingPattern={listingPattern}
-        canonicalDomain={seoSettings.canonicalDomain}
-        sampleCity={sampleCity}
-        setSampleCity={setSampleCity}
-        sampleCategory={sampleCategory}
-        setSampleCategory={setSampleCategory}
-        sampleBusinessSlug={sampleBusinessSlug}
-        setSampleBusinessSlug={setSampleBusinessSlug}
-      />
+      {/* Render Submodules based on Active Selection */}
+      {(currentTab === 'url-all' || currentTab === 'url-settings' || currentTab === 'url-preview') && (
+        <UrlPreviewModule
+          isDark={isDark}
+          categoryPattern={categoryPattern}
+          listingPattern={listingPattern}
+          canonicalDomain={seoSettings.canonicalDomain}
+          sampleCity={sampleCity}
+          setSampleCity={setSampleCity}
+          sampleCategory={sampleCategory}
+          setSampleCategory={setSampleCategory}
+          sampleBusinessSlug={sampleBusinessSlug}
+          setSampleBusinessSlug={setSampleBusinessSlug}
+        />
+      )}
 
-      {/* Stacked Submodule 2: Permalink Patterns & Structure */}
-      <PermalinkPatternsModule
-        isDark={isDark}
-        categoryPattern={categoryPattern}
-        setCategoryPattern={setCategoryPattern}
-        listingPattern={listingPattern}
-        setListingPattern={setListingPattern}
-      />
+      {(currentTab === 'url-all' || currentTab === 'url-settings' || currentTab === 'url-permalinks') && (
+        <PermalinkPatternsModule
+          isDark={isDark}
+          categoryPattern={categoryPattern}
+          setCategoryPattern={setCategoryPattern}
+          listingPattern={listingPattern}
+          setListingPattern={setListingPattern}
+        />
+      )}
 
-      {/* Stacked Submodule 3: City Slug & Region Mappings */}
-      <CitySlugMappingModule
-        isDark={isDark}
-        citySlugMapping={citySlugMapping}
-        setCitySlugMapping={setCitySlugMapping}
-      />
+      {(currentTab === 'url-all' || currentTab === 'url-settings' || currentTab === 'url-cities') && (
+        <CitySlugMappingModule
+          isDark={isDark}
+          citySlugMapping={citySlugMapping}
+          setCitySlugMapping={setCitySlugMapping}
+        />
+      )}
 
-      {/* Stacked Submodule 4: Global SEO Metadata & Canonical Domain */}
-      <SeoMetadataModule
-        isDark={isDark}
-        seoSettings={seoSettings}
-        setSeoSettings={setSeoSettings}
-      />
+      {(currentTab === 'url-all' || currentTab === 'url-settings' || currentTab === 'url-seo') && (
+        <SeoMetadataModule
+          isDark={isDark}
+          seoSettings={seoSettings}
+          setSeoSettings={setSeoSettings}
+        />
+      )}
     </div>
   );
 }

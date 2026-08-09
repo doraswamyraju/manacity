@@ -16,9 +16,11 @@ import {
   FolderTree,
   Wrench,
   Package,
-  Link
+  Link,
+  Globe,
+  MapPin,
+  Search
 } from 'lucide-react';
-
 
 function SuperAdminSidebar({
   activeTab,
@@ -31,11 +33,11 @@ function SuperAdminSidebar({
   theme
 }) {
   // Submenu accordion toggle state (auto-expand parent on load if activeTab is a sub-item)
-  // Submenu accordion toggle state (auto-expand parent on load if activeTab is a sub-item)
   const [openSubmenu, setOpenSubmenu] = useState(() => {
     if (activeTab && activeTab.startsWith('lms')) return 'lms';
     if (activeTab && (activeTab.startsWith('library') || activeTab === 'catalog')) return 'library';
-    return 'library';
+    if (activeTab && (activeTab.startsWith('url-') || activeTab === 'url-settings')) return 'url-settings';
+    return null;
   });
 
   const isExpanded = isPinned || isHovered;
@@ -76,21 +78,37 @@ function SuperAdminSidebar({
       ]
     },
     { id: 'subscriptions', label: 'Subscriptions', icon: CreditCard, badge: null, color: '#fbbf24' },
-    { id: 'url-settings', label: 'URL & SEO Settings', icon: Link, badge: null, color: '#38bdf8' },
+    {
+      id: 'url-settings',
+      label: 'URL & SEO Settings',
+      icon: Link,
+      color: '#38bdf8',
+      badge: null,
+      subItems: [
+        { id: 'url-preview', label: 'URL Preview Sandbox', icon: Globe },
+        { id: 'url-permalinks', label: 'Permalink Patterns', icon: Link },
+        { id: 'url-cities', label: 'City Slugs & Regions', icon: MapPin },
+        { id: 'url-seo', label: 'SEO & Canonical Meta', icon: Search }
+      ]
+    },
     { id: 'logs', label: 'Audit Logs', icon: List, badge: null, color: '#f472b6' }
   ];
 
 
+
   const handleParentClick = (item) => {
     if (item.subItems) {
-      // Toggle inner submenu expansion for this parent
-      setOpenSubmenu(openSubmenu === item.id ? null : item.id);
+      const willBeOpen = openSubmenu !== item.id;
+      setOpenSubmenu(willBeOpen ? item.id : null);
+      if (willBeOpen && item.subItems.length > 0 && (!activeTab || !activeTab.startsWith(item.id.replace('-settings', '')))) {
+        setActiveTab(item.subItems[0].id);
+      }
     } else {
-      // When navigating to any non-submenu module (e.g., User Directory, Catalog), close any open submenus
       setOpenSubmenu(null);
       setActiveTab(item.id);
     }
   };
+
 
   const handleSubItemClick = (subId) => {
     setActiveTab(subId);

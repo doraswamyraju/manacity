@@ -315,7 +315,8 @@ function SuperAdminDashboardLayout({ user, onLogout }) {
               {activeTab === 'lms-subscriptions' && <SubscriptionsTab subscriptions={subscriptions} theme={theme} />}
 
               {activeTab === 'subscriptions' && <SubscriptionsTab subscriptions={subscriptions} theme={theme} />}
-              {activeTab === 'url-settings' && <UrlSettingsTab theme={theme} />}
+              {(activeTab === 'url-settings' || activeTab.startsWith('url-')) && <UrlSettingsTab activeTab={activeTab} setActiveTab={setActiveTab} theme={theme} />}
+
               {activeTab === 'logs' && <AuditLogsTab logs={logs} theme={theme} />}
 
             </>
