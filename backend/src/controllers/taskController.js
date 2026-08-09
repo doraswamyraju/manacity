@@ -30,10 +30,10 @@ exports.getLocationTasks = async (req, res) => {
       where: { id: locationId },
       include: {
         taskProgress: { include: { task: true } },
-        websites: true,
         reviews: true
       }
     });
+
 
     if (!location) {
       return res.status(404).json({ error: 'Location not found.' });

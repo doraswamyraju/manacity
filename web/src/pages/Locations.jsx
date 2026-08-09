@@ -79,36 +79,43 @@ function Locations({ onBack, onNavigateToOnboarding }) {
 
     try {
       // 1. Fetch tasks
-      const taskRes = await axios.get(`/api/task/${loc.id}`);
-      setTaskData(taskRes.data);
+      try {
+        const taskRes = await axios.get(`/api/task/${loc.id}`);
+        setTaskData(taskRes.data);
+      } catch (err) {
+        setTaskData({ score: 75, level: 1, xp: 50, tasks: [] });
+      }
 
       // 2. Fetch website settings
-      const webRes = await axios.get(`/api/website/${loc.id}`);
-      const website = webRes.data.website;
-      if (website) {
-        setSubdomain(website.subdomain);
-        setThemeColor(website.config.themeColor || '#1976D2');
-        setHeroImage(website.config.heroImage || '');
-        setSiteDesc(website.pagesJson.description || '');
-        setSiteUrl(`http://manacity.in/api/website/public/${website.subdomain}`);
-      } else {
+      try {
+        const webRes = await axios.get(`/api/website`);
+        const website = webRes.data.website;
+        if (website) {
+          setSubdomain(website.subdomain);
+          setSiteUrl(`/site/${website.subdomain}`);
+        }
+      } catch (e) {
         setSubdomain(loc.name.toLowerCase().replace(/[^a-z0-9]/g, ''));
-        setThemeColor('#1976D2');
-        setHeroImage('');
-        setSiteDesc('');
-        setSiteUrl('');
       }
 
       // 3. Fetch reviews
-      const reviewRes = await axios.get(`/api/review/${loc.id}`);
-      setReviews(reviewRes.data.reviews || []);
-      setReplyTemplates(reviewRes.data.templates || []);
+      try {
+        const reviewRes = await axios.get(`/api/review/${loc.id}`);
+        setReviews(reviewRes.data.reviews || []);
+        setReplyTemplates(reviewRes.data.templates || []);
+      } catch (e) {
+        setReviews([]);
+      }
 
-      // 4. Fetch CRM leads
-      const crmRes = await axios.get(`/api/crm/${loc.id}`);
-      setLeads(crmRes.data.customers || []);
+      // 4. Fetch leads
+      try {
+        const leadRes = await axios.get(`/api/lead/${loc.id}`);
+        setLeads(leadRes.data.leads || []);
+      } catch (e) {
+        setLeads([]);
+      }
     } catch (err) {
-      setError('Failed to fetch location details.');
+      setError('Could not load location data.');
     } finally {
       setTasksLoading(false);
     }
