@@ -8,7 +8,15 @@ exports.getSystemMetrics = async (req, res) => {
     const totalLocations = await prisma.location.count();
     const totalWebsites = await prisma.website.count();
     const totalReviews = await prisma.review.count();
-    const totalBusinessGroups = await prisma.businessGroup.count();
+    const totalBusinessGroups = await prisma.businessGroup.count({
+      where: {
+        owner: {
+          role: {
+            not: 'CUSTOMER'
+          }
+        }
+      }
+    });
 
     // Query active plans segmentations
     const subscriptions = await prisma.subscription.findMany({
@@ -115,9 +123,16 @@ exports.updateUserRole = async (req, res) => {
 exports.getBusinesses = async (req, res) => {
   try {
     const rawBusinesses = await prisma.businessGroup.findMany({
+      where: {
+        owner: {
+          role: {
+            not: 'CUSTOMER'
+          }
+        }
+      },
       include: {
         owner: {
-          select: { id: true, name: true, email: true }
+          select: { id: true, name: true, email: true, role: true }
         },
         _count: {
           select: { locations: true }

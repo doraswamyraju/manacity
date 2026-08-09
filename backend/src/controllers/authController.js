@@ -44,24 +44,26 @@ exports.register = async (req, res) => {
       }
     });
 
-    // Create default BusinessGroup for user
-    const businessGroup = await prisma.businessGroup.create({
-      data: {
-        name: `${name}'s Businesses`,
-        ownerId: user.id
-      }
-    });
+    // Only create default BusinessGroup & Subscription if role is BUSINESS_OWNER
+    if (assignedRole === 'BUSINESS_OWNER') {
+      const businessGroup = await prisma.businessGroup.create({
+        data: {
+          name: `${name}'s Businesses`,
+          ownerId: user.id
+        }
+      });
 
-    // Setup initial free subscription
-    await prisma.subscription.create({
-      data: {
-        businessGroupId: businessGroup.id,
-        tier: 'FREE',
-        status: 'ACTIVE',
-        locationLimit: 1,
-        websiteLimit: 1
-      }
-    });
+      // Setup initial free subscription
+      await prisma.subscription.create({
+        data: {
+          businessGroupId: businessGroup.id,
+          tier: 'FREE',
+          status: 'ACTIVE',
+          locationLimit: 1,
+          websiteLimit: 1
+        }
+      });
+    }
 
     const token = generateToken(user.id);
 
@@ -176,6 +178,8 @@ exports.googleAuth = async (req, res) => {
           }
         });
       } else {
+        const requestedRole = (req.body && req.body.role === 'CUSTOMER') ? 'CUSTOMER' : 'BUSINESS_OWNER';
+
         // Create new Google OAuth user (passwordHash is left undefined/null)
         user = await prisma.user.create({
           data: {
@@ -184,28 +188,30 @@ exports.googleAuth = async (req, res) => {
             provider: 'GOOGLE',
             googleId,
             profilePicture,
-            role: 'BUSINESS_OWNER'
+            role: requestedRole
           }
         });
 
-        // Create default BusinessGroup for user
-        const businessGroup = await prisma.businessGroup.create({
-          data: {
-            name: `${user.name}'s Businesses`,
-            ownerId: user.id
-          }
-        });
+        // Only create default BusinessGroup for BUSINESS_OWNER user
+        if (requestedRole === 'BUSINESS_OWNER') {
+          const businessGroup = await prisma.businessGroup.create({
+            data: {
+              name: `${user.name}'s Businesses`,
+              ownerId: user.id
+            }
+          });
 
-        // Setup initial free subscription
-        await prisma.subscription.create({
-          data: {
-            businessGroupId: businessGroup.id,
-            tier: 'FREE',
-            status: 'ACTIVE',
-            locationLimit: 1,
-            websiteLimit: 1
-          }
-        });
+          // Setup initial free subscription
+          await prisma.subscription.create({
+            data: {
+              businessGroupId: businessGroup.id,
+              tier: 'FREE',
+              status: 'ACTIVE',
+              locationLimit: 1,
+              websiteLimit: 1
+            }
+          });
+        }
       }
     } else {
       // Update profile picture and details if they changed in Google profile
