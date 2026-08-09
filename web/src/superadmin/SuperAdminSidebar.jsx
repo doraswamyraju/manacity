@@ -286,6 +286,8 @@ function SuperAdminSidebar({
             </div>
           );
         })}
+      </nav>
+
       {/* Library Health Widget (as shown in design screenshot) */}
       {isExpanded && (
         <div style={{
