@@ -57,9 +57,16 @@ exports.searchDirectoryListings = async (req, res) => {
     let listings = await prisma.directoryListing.findMany({
       where,
       include: {
-        businessGroup: true
+        businessGroup: {
+          include: {
+            locations: true
+          }
+        }
       }
     });
+
+    // Filter out orphaned listings or businesses with 0 active locations
+    listings = listings.filter(l => l.businessGroup && l.businessGroup.locations && l.businessGroup.locations.length > 0);
 
     if (query) {
       const q = query.toLowerCase();
@@ -70,14 +77,16 @@ exports.searchDirectoryListings = async (req, res) => {
       );
     }
 
+
     const formattedListings = listings.map(l => ({
       id: l.id,
       businessName: l.businessGroup ? l.businessGroup.name : 'Local Business',
       category: l.category || 'General Business',
       city: l.city,
       slug: l.slug,
-      rating: l.rating || (l.businessGroup && l.businessGroup.rating) ? l.businessGroup.rating : 4.9,
-      reviewCount: l.reviewCount || (l.businessGroup && l.businessGroup.reviewCount) ? l.businessGroup.reviewCount : 63,
+      rating: (l.reviews && l.reviews.rating) ? l.reviews.rating : (l.rating || 4.9),
+      reviewCount: (l.reviews && l.reviews.reviewCount) ? l.reviews.reviewCount : (l.reviewCount || 63),
+
 
       phone: l.contactPhone || '9876543210',
       whatsApp: l.whatsAppNumber || '9876543210',

@@ -148,12 +148,21 @@ exports.deleteLocation = async (req, res) => {
       return res.status(404).json({ error: 'Location profile not found.' });
     }
 
+    const bgId = location.businessGroupId;
+
     await prisma.location.delete({ where: { id } });
+
+    // Also delete DirectoryListing if no locations remain for this business
+    const remainingLocs = await prisma.location.count({ where: { businessGroupId: bgId } });
+    if (remainingLocs === 0) {
+      await prisma.directoryListing.deleteMany({ where: { businessGroupId: bgId } });
+    }
 
     res.json({
       status: 'success',
       message: 'Location profile deleted successfully.'
     });
+
   } catch (error) {
     console.error('Delete location error:', error);
     res.status(500).json({ error: 'Failed to delete location profile.' });

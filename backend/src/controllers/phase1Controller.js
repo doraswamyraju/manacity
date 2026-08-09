@@ -136,7 +136,8 @@ exports.importGooglePlaces = async (req, res) => {
       address: 'Tirupati, Andhra Pradesh',
       phone: '',
       website: '',
-      rating: 4.8,
+      rating: 4.9,
+      reviewCount: 63,
       category: 'General Business'
     };
 
@@ -149,7 +150,7 @@ exports.importGooglePlaces = async (req, res) => {
             headers: {
               'Content-Type': 'application/json',
               'X-Goog-Api-Key': apiKey,
-              'X-Goog-FieldMask': 'displayName,formattedAddress,rating,types,nationalPhoneNumber,websiteUri'
+              'X-Goog-FieldMask': 'displayName,formattedAddress,rating,userRatingCount,types,nationalPhoneNumber,websiteUri'
             }
           }
         );
@@ -158,6 +159,7 @@ exports.importGooglePlaces = async (req, res) => {
           fetchedData.name = pd.displayName?.text || fetchedData.name;
           fetchedData.address = pd.formattedAddress || fetchedData.address;
           fetchedData.rating = pd.rating || fetchedData.rating;
+          fetchedData.reviewCount = pd.userRatingCount || fetchedData.reviewCount;
           fetchedData.phone = cleanPhone(pd.nationalPhoneNumber) || fetchedData.phone;
           fetchedData.website = pd.websiteUri || fetchedData.website;
           if (pd.types && pd.types.length > 0) {
@@ -173,6 +175,7 @@ exports.importGooglePlaces = async (req, res) => {
             fetchedData.name = r.name || fetchedData.name;
             fetchedData.address = r.formatted_address || fetchedData.address;
             fetchedData.rating = r.rating || fetchedData.rating;
+            fetchedData.reviewCount = r.user_ratings_total || fetchedData.reviewCount;
             fetchedData.phone = cleanPhone(r.formatted_phone_number) || fetchedData.phone;
             fetchedData.website = r.website || fetchedData.website;
             if (r.types && r.types.length > 0) {
@@ -193,7 +196,7 @@ exports.importGooglePlaces = async (req, res) => {
             headers: {
               'Content-Type': 'application/json',
               'X-Goog-Api-Key': apiKey,
-              'X-Goog-FieldMask': 'places.displayName,places.formattedAddress,places.rating,places.types,places.nationalPhoneNumber,places.websiteUri'
+              'X-Goog-FieldMask': 'places.displayName,places.formattedAddress,places.rating,places.userRatingCount,places.types,places.nationalPhoneNumber,places.websiteUri'
             }
           }
         );
@@ -203,6 +206,7 @@ exports.importGooglePlaces = async (req, res) => {
           fetchedData.name = topResult.displayName?.text || fetchedData.name;
           fetchedData.address = topResult.formattedAddress || fetchedData.address;
           fetchedData.rating = topResult.rating || fetchedData.rating;
+          fetchedData.reviewCount = topResult.userRatingCount || fetchedData.reviewCount;
           fetchedData.phone = cleanPhone(topResult.nationalPhoneNumber) || fetchedData.phone;
           fetchedData.website = topResult.websiteUri || fetchedData.website;
           if (topResult.types && topResult.types.length > 0) {
@@ -218,6 +222,7 @@ exports.importGooglePlaces = async (req, res) => {
             fetchedData.name = topResult.name || fetchedData.name;
             fetchedData.address = topResult.formatted_address || fetchedData.address;
             fetchedData.rating = topResult.rating || fetchedData.rating;
+            fetchedData.reviewCount = topResult.user_ratings_total || fetchedData.reviewCount;
             if (topResult.types && topResult.types.length > 0) {
               fetchedData.category = mapGoogleTypeToCategory(topResult.types);
             }
@@ -227,6 +232,7 @@ exports.importGooglePlaces = async (req, res) => {
         }
       }
     }
+
 
     const parsed = parseAddressParts(fetchedData.address);
     const city = parsed.city.toLowerCase();
@@ -318,7 +324,8 @@ exports.importGooglePlaces = async (req, res) => {
             category: fetchedData.category,
             contactPhone: fetchedData.phone || existingListing.contactPhone,
             whatsAppNumber: fetchedData.phone || existingListing.whatsAppNumber,
-            websiteUrl: fetchedData.website || existingListing.websiteUrl
+            websiteUrl: fetchedData.website || existingListing.websiteUrl,
+            reviews: { rating: fetchedData.rating, reviewCount: fetchedData.reviewCount }
           }
         });
       } else {
@@ -330,10 +337,12 @@ exports.importGooglePlaces = async (req, res) => {
             category: fetchedData.category,
             contactPhone: fetchedData.phone,
             whatsAppNumber: fetchedData.phone,
-            websiteUrl: fetchedData.website
+            websiteUrl: fetchedData.website,
+            reviews: { rating: fetchedData.rating, reviewCount: fetchedData.reviewCount }
           }
         });
       }
+
 
       // Auto-create or update Location record for Business Locations screen
       const existingLocation = await prisma.location.findFirst({
