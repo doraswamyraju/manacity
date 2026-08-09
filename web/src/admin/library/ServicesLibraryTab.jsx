@@ -456,9 +456,13 @@ function ServicesLibraryTab({ catalog = [], theme, handleCreateCatalogItem, hand
                 <Download size={14} /> Export
               </button>
 
-              <button style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', padding: '0.5rem 1rem', borderRadius: '8px', backgroundColor: '#6366f1', color: '#fff', border: 'none', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer' }}>
+              <button
+                onClick={openCreateModal}
+                style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', padding: '0.5rem 1rem', borderRadius: '8px', backgroundColor: '#6366f1', color: '#fff', border: 'none', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer' }}
+              >
                 <Plus size={16} /> Add Service
               </button>
+
             </div>
 
           </div>
@@ -597,9 +601,10 @@ function ServicesLibraryTab({ catalog = [], theme, handleCreateCatalogItem, hand
               Quick Actions
             </h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              <button style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'none', border: 'none', color: '#818cf8', fontWeight: 700, fontSize: '0.82rem', cursor: 'pointer', padding: '0.35rem 0' }}>
+              <button onClick={openCreateModal} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'none', border: 'none', color: '#818cf8', fontWeight: 700, fontSize: '0.82rem', cursor: 'pointer', padding: '0.35rem 0' }}>
                 <Plus size={14} /> Add New Service
               </button>
+
               <button style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'none', border: 'none', color: textMuted, fontWeight: 600, fontSize: '0.82rem', cursor: 'pointer', padding: '0.35rem 0' }}>
                 <Download size={14} /> Bulk Import Services
               </button>
