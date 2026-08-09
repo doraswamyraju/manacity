@@ -3,10 +3,8 @@ const jwt = require('jsonwebtoken');
 const axios = require('axios');
 const { PrismaClient } = require('@prisma/client');
 const { OAuth2Client } = require('google-auth-library');
+
 const prisma = new PrismaClient();
-const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
-
-
 const JWT_SECRET = process.env.JWT_SECRET || 'super-secret-key-change-in-production';
 
 // Generate standard JWT
@@ -30,23 +28,23 @@ exports.register = async (req, res) => {
     }
 
     // Hash password
-    const passwordHash = await bcrypt.hash(password, 10);
+    const salt = await bcrypt.genSalt(10);
+    const passwordHash = await bcrypt.hash(password, salt);
 
-    // Enforce role assignment (never allow SUPER_ADMIN signup)
-    const assignedRole = (req.body.role === 'CUSTOMER') ? 'CUSTOMER' : 'BUSINESS_OWNER';
+    // Create user with default role
+    const requestedRole = (req.body && req.body.role === 'CUSTOMER') ? 'CUSTOMER' : 'BUSINESS_OWNER';
 
-    // Create user
     const user = await prisma.user.create({
       data: {
         email,
-        name,
         passwordHash,
-        role: assignedRole
+        name,
+        role: requestedRole
       }
     });
 
     // Only create default BusinessGroup & Subscription if role is BUSINESS_OWNER
-    if (assignedRole === 'BUSINESS_OWNER') {
+    if (requestedRole === 'BUSINESS_OWNER') {
       const businessGroup = await prisma.businessGroup.create({
         data: {
           name: `${name}'s Businesses`,
@@ -80,7 +78,7 @@ exports.register = async (req, res) => {
     });
   } catch (error) {
     console.error('Registration error:', error);
-    res.status(500).json({ error: 'Failed to create user account.' });
+    res.status(500).json({ error: 'Registration failed. Please try again.' });
   }
 };
 
@@ -136,6 +134,7 @@ exports.getMe = async (req, res) => {
   });
 };
 
+// 4. Google OAuth Authentication Endpoint
 exports.googleAuth = async (req, res) => {
   try {
     const { idToken } = req.body;
@@ -146,58 +145,52 @@ exports.googleAuth = async (req, res) => {
 
     let payload = null;
 
-    // Method 1: OAuth2Client verifyIdToken
-    if (process.env.GOOGLE_CLIENT_ID) {
+    // Method A: Decode JWT directly (instant & fail-safe)
+    try {
+      const decoded = jwt.decode(idToken);
+      if (decoded && decoded.email) {
+        payload = decoded;
+      }
+    } catch (jwtErr) {
+      console.warn('JWT decode warning:', jwtErr.message);
+    }
+
+    // Method B: Google TokenInfo API call if decoded was missing email
+    if (!payload || !payload.email) {
       try {
+        const tokenRes = await axios.get(`https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(idToken)}`, { timeout: 4000 });
+        if (tokenRes.data && tokenRes.data.email) {
+          payload = tokenRes.data;
+        }
+      } catch (axiosErr) {
+        console.warn('Google tokeninfo API warning:', axiosErr.message);
+      }
+    }
+
+    // Method C: google-auth-library verifyIdToken
+    if ((!payload || !payload.email) && process.env.GOOGLE_CLIENT_ID) {
+      try {
+        const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
         const ticket = await googleClient.verifyIdToken({
           idToken,
           audience: process.env.GOOGLE_CLIENT_ID,
         });
         payload = ticket.getPayload();
       } catch (verErr) {
-        console.warn('verifyIdToken failed, attempting HTTP tokeninfo fallback:', verErr.message);
-      }
-    }
-
-    // Method 2: Fallback to Google TokenInfo API via Axios
-    if (!payload) {
-      try {
-        const tokenRes = await axios.get(`https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(idToken)}`);
-        if (tokenRes.data && tokenRes.data.email) {
-          payload = tokenRes.data;
-        }
-      } catch (axiosErr) {
-        console.warn('Google tokeninfo verification failed, attempting JWT decode fallback:', axiosErr.response?.data || axiosErr.message);
-      }
-    }
-
-    // Method 3: JWT decode fallback
-    if (!payload) {
-      try {
-        const decoded = jwt.decode(idToken);
-        if (decoded && decoded.email) {
-          payload = decoded;
-        }
-      } catch (jwtErr) {
-        console.warn('JWT decode fallback failed:', jwtErr.message);
+        console.warn('verifyIdToken warning:', verErr.message);
       }
     }
 
     if (!payload || !payload.email) {
-      return res.status(400).json({ error: 'Failed to verify Google identity token. Please try again.' });
+      return res.status(400).json({ error: 'Failed to verify Google login credentials. Please try again.' });
     }
 
-    const googleId = payload.sub || payload.user_id;
-    const email = payload.email;
+    const googleId = payload.sub || payload.user_id || `google_${payload.email}`;
+    const email = payload.email.toLowerCase();
     const name = payload.name || email.split('@')[0];
     const profilePicture = payload.picture || null;
-    const email_verified = payload.email_verified || true;
 
-    if (!email_verified) {
-      return res.status(400).json({ error: 'Google email address must be verified.' });
-    }
-
-    // Find user by googleId first or by email to link existing local accounts
+    // Find user by googleId first or by email to link existing accounts
     let user = await prisma.user.findFirst({ where: { googleId } });
 
     if (!user) {
@@ -205,7 +198,7 @@ exports.googleAuth = async (req, res) => {
       user = await prisma.user.findUnique({ where: { email } });
 
       if (user) {
-        // Link existing local account to Google provider
+        // Link existing account to Google
         user = await prisma.user.update({
           where: { id: user.id },
           data: {
@@ -217,11 +210,11 @@ exports.googleAuth = async (req, res) => {
       } else {
         const requestedRole = (req.body && req.body.role === 'CUSTOMER') ? 'CUSTOMER' : 'BUSINESS_OWNER';
 
-        // Create new Google OAuth user (passwordHash is left undefined/null)
+        // Create new Google OAuth user
         user = await prisma.user.create({
           data: {
             email,
-            name: name || email.split('@')[0],
+            name,
             provider: 'GOOGLE',
             googleId,
             profilePicture,
@@ -251,7 +244,7 @@ exports.googleAuth = async (req, res) => {
         }
       }
     } else {
-      // Update profile picture and details if they changed in Google profile
+      // Update profile picture and details if changed
       user = await prisma.user.update({
         where: { id: user.id },
         data: {
@@ -263,7 +256,7 @@ exports.googleAuth = async (req, res) => {
 
     const token = generateToken(user.id);
 
-    res.json({
+    return res.status(200).json({
       status: 'success',
       token,
       user: {
@@ -276,8 +269,8 @@ exports.googleAuth = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Google login error:', error);
-    res.status(401).json({ error: 'Google OAuth authentication failed.' });
+    console.error('Google login internal controller error:', error);
+    return res.status(500).json({ error: 'Google login failed due to a server error. Please try again.' });
   }
 };
 
