@@ -13,7 +13,9 @@ import {
   FileText,
   Settings,
   Zap,
-  FolderTree
+  FolderTree,
+  Wrench,
+  Package
 } from 'lucide-react';
 
 function SuperAdminSidebar({
