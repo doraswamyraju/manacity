@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { MapPin, Phone, Clock, Plus, Trash2, ArrowLeft, Briefcase, Award, Flame, CheckCircle, Circle, Target, Globe, MessageSquare, Star, Send, Copy, Share2, Users, ChevronRight, UserPlus, Info } from 'lucide-react';
+import { MapPin, Phone, Clock, Plus, Trash2, ArrowLeft, Briefcase, Award, Flame, CheckCircle, Circle, Target, Globe, MessageSquare, Star, Send, Copy, Share2, Users, ChevronRight, UserPlus, Info, ExternalLink } from 'lucide-react';
+
 
 function Locations({ onBack, onNavigateToOnboarding }) {
   const [locations, setLocations] = useState([]);

@@ -34,6 +34,8 @@ app.use('/api/website', websiteRoutes);
 app.use('/api/review', reviewRoutes);
 app.use('/api/reviews', reviewSystemRoutes);
 app.use('/api/crm', crmRoutes);
+app.use('/api/lead', crmRoutes);
+
 app.use('/api/admin', adminRoutes);
 app.use('/api/phase1', phase1Routes);
 
