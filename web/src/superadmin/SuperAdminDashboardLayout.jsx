@@ -156,25 +156,31 @@ function SuperAdminDashboardLayout({ user, onLogout }) {
     }
   };
 
-  const handleCreateCatalogItem = async (e) => {
-    e.preventDefault();
-    setItemMessage('');
-    try {
-      const response = await axios.post('/api/admin/catalog', newItem);
-      if (response.data.status === 'success') {
-        setCatalog([response.data.item, ...catalog]);
-        setItemMessage('Master product/service catalog item published!');
-        setNewItem({ name: '', category: 'Digital Marketing', type: 'SERVICE', description: '', defaultPrice: '' });
-      }
-    } catch (err) {
-      setItemMessage('Failed to publish catalog item.');
+  const handleCreateCatalogItem = async (itemData) => {
+    const response = await axios.post('/api/admin/catalog', itemData);
+    if (response.data.status === 'success') {
+      setCatalog(prev => [response.data.item, ...prev]);
+    }
+  };
+
+  const handleUpdateCatalogItem = async (id, itemData) => {
+    const response = await axios.put(`/api/admin/catalog/${id}`, itemData);
+    if (response.data.status === 'success') {
+      setCatalog(prev => prev.map(item => item.id === id ? response.data.item : item));
+    }
+  };
+
+  const handleUpdateCatalogStatus = async (id, newStatus, rejectionReason) => {
+    const response = await axios.patch(`/api/admin/catalog/${id}/status`, { status: newStatus, rejectionReason });
+    if (response.data.status === 'success') {
+      setCatalog(prev => prev.map(item => item.id === id ? response.data.item : item));
     }
   };
 
   const handleDeleteCatalogItem = async (id) => {
     try {
       await axios.delete(`/api/admin/catalog/${id}`);
-      setCatalog(catalog.filter(item => item.id !== id));
+      setCatalog(prev => prev.filter(item => item.id !== id));
     } catch (err) {
       alert('Failed to delete catalog item');
     }
@@ -280,10 +286,10 @@ function SuperAdminDashboardLayout({ user, onLogout }) {
               {activeTab === 'catalog' && (
                 <CatalogTab
                   catalog={catalog}
-                  newItem={newItem}
-                  setNewItem={setNewItem}
-                  itemMessage={itemMessage}
+                  onRefresh={fetchCatalog}
                   handleCreateCatalogItem={handleCreateCatalogItem}
+                  handleUpdateCatalogItem={handleUpdateCatalogItem}
+                  handleUpdateCatalogStatus={handleUpdateCatalogStatus}
                   handleDeleteCatalogItem={handleDeleteCatalogItem}
                   theme={theme}
                 />

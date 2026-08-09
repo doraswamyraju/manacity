@@ -191,42 +191,154 @@ exports.deleteBusiness = async (req, res) => {
   }
 };
 
-// In-memory Master Catalog Store for global items template library
-let masterCatalogStore = [
-  { id: 'cat-1', name: 'SEO & Google Profile Optimization', category: 'Digital Marketing', type: 'SERVICE', description: 'Comprehensive local search and Google Business Profile setup', defaultPrice: '2999' },
-  { id: 'cat-2', name: 'NFC Tap & Review Standee', category: 'Hardware/Print', type: 'PRODUCT', description: 'Acrylic NFC enabled table stand for high-speed review capture', defaultPrice: '799' },
-  { id: 'cat-3', name: 'Social Media Banner Design Pack', category: 'Creative & Design', type: 'SERVICE', description: 'Custom promotional posters and social templates pack', defaultPrice: '1499' },
-  { id: 'cat-4', name: 'WhatsApp Automation Gateway', category: 'Software Add-on', type: 'SERVICE', description: 'Automated review reminders sent directly via WhatsApp API', defaultPrice: '999' }
+// Initial Seed Data if Master Library is Empty
+const initialMasterItems = [
+  {
+    name: 'SEO & Google Business Profile Optimization',
+    category: 'Digital Marketing',
+    type: 'SERVICE',
+    description: 'Comprehensive local search ranking and Google Business Profile optimization to drive local map pack leads.',
+    photos: ['https://images.unsplash.com/photo-1432888498266-38ffec3eaf0a?w=600&auto=format&fit=crop'],
+    customerLogos: ['https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=200&auto=format&fit=crop'],
+    defaultPrice: 2999,
+    status: 'APPROVED'
+  },
+  {
+    name: 'NFC Tap & Review Standee',
+    category: 'Hardware/Print',
+    type: 'PRODUCT',
+    description: 'High quality acrylic table stand with embedded NFC chip and QR code for instant 5-star customer reviews.',
+    photos: ['https://images.unsplash.com/photo-1556742049-0a67daf4007a?w=600&auto=format&fit=crop'],
+    customerLogos: ['https://images.unsplash.com/photo-1599305445671-ac291c95aaa9?w=200&auto=format&fit=crop'],
+    defaultPrice: 799,
+    status: 'APPROVED'
+  },
+  {
+    name: 'Social Media Promotional Graphics Pack',
+    category: 'Creative & Design',
+    type: 'SERVICE',
+    description: 'Custom branded social media banners, festival graphics, and promotional story templates.',
+    photos: ['https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=600&auto=format&fit=crop'],
+    customerLogos: ['https://images.unsplash.com/photo-1516876437184-593fda40c7ce?w=200&auto=format&fit=crop'],
+    defaultPrice: 1499,
+    status: 'APPROVED'
+  },
+  {
+    name: 'WhatsApp Lead & Review Automation Gateway',
+    category: 'Software Add-on',
+    type: 'SERVICE',
+    description: 'Automated review requests, discount offers, and inquiry follow-ups via official WhatsApp API.',
+    photos: ['https://images.unsplash.com/photo-1611746872915-64382b5c76da?w=600&auto=format&fit=crop'],
+    customerLogos: ['https://images.unsplash.com/photo-1572021335469-31706a17aaef?w=200&auto=format&fit=crop'],
+    defaultPrice: 999,
+    status: 'APPROVED'
+  }
 ];
 
-// 5. Fetch Master Catalog Library Items
+// 5. Fetch Master Catalog Library Items (Auto-seed if empty)
 exports.getMasterCatalog = async (req, res) => {
   try {
-    res.json({ status: 'success', catalog: masterCatalogStore });
+    let catalog = await prisma.productServiceLibrary.findMany({
+      orderBy: { createdAt: 'desc' }
+    });
+
+    if (catalog.length === 0) {
+      console.log('Seeding initial Product/Services library items into DB...');
+      await prisma.productServiceLibrary.createMany({
+        data: initialMasterItems
+      });
+      catalog = await prisma.productServiceLibrary.findMany({
+        orderBy: { createdAt: 'desc' }
+      });
+    }
+
+    res.json({ status: 'success', catalog });
   } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch catalog.' });
+    console.error('Fetch master catalog error:', error);
+    res.status(500).json({ error: 'Failed to fetch catalog library.' });
   }
 };
 
 // 6. Create Master Catalog Item
 exports.createMasterCatalogItem = async (req, res) => {
   try {
-    const { name, category, type, description, defaultPrice } = req.body;
-    if (!name) return res.status(400).json({ error: 'Item name is required.' });
+    const { name, category, type, description, defaultPrice, photos, customerLogos, tags, seoKeywords, status, requestedBy } = req.body;
+    if (!name) return res.status(400).json({ error: 'Item title is required.' });
 
-    const newItem = {
-      id: `cat-${Date.now()}`,
-      name,
-      category: category || 'General',
-      type: type || 'SERVICE',
-      description: description || '',
-      defaultPrice: defaultPrice || '0'
-    };
+    const newItem = await prisma.productServiceLibrary.create({
+      data: {
+        name,
+        category: category || 'General',
+        type: type || 'SERVICE',
+        description: description || '',
+        defaultPrice: defaultPrice ? parseFloat(defaultPrice) : null,
+        photos: Array.isArray(photos) ? photos.filter(Boolean) : (photos ? [photos] : []),
+        customerLogos: Array.isArray(customerLogos) ? customerLogos.filter(Boolean) : (customerLogos ? [customerLogos] : []),
+        tags: Array.isArray(tags) ? tags : [],
+        seoKeywords: Array.isArray(seoKeywords) ? seoKeywords : [],
+        status: status || 'APPROVED',
+        requestedBy: requestedBy || null
+      }
+    });
 
-    masterCatalogStore.unshift(newItem);
     res.json({ status: 'success', item: newItem });
   } catch (error) {
+    console.error('Create catalog item error:', error);
     res.status(500).json({ error: 'Failed to create catalog item.' });
+  }
+};
+
+// 6b. Update Master Catalog Item
+exports.updateMasterCatalogItem = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, category, type, description, defaultPrice, photos, customerLogos, tags, status, rejectionReason } = req.body;
+
+    const updated = await prisma.productServiceLibrary.update({
+      where: { id },
+      data: {
+        ...(name && { name }),
+        ...(category && { category }),
+        ...(type && { type }),
+        description: description !== undefined ? description : undefined,
+        defaultPrice: defaultPrice !== undefined ? (defaultPrice ? parseFloat(defaultPrice) : null) : undefined,
+        photos: Array.isArray(photos) ? photos.filter(Boolean) : undefined,
+        customerLogos: Array.isArray(customerLogos) ? customerLogos.filter(Boolean) : undefined,
+        tags: Array.isArray(tags) ? tags : undefined,
+        ...(status && { status }),
+        ...(rejectionReason !== undefined && { rejectionReason })
+      }
+    });
+
+    res.json({ status: 'success', item: updated });
+  } catch (error) {
+    console.error('Update catalog item error:', error);
+    res.status(500).json({ error: 'Failed to update catalog item.' });
+  }
+};
+
+// 6c. Approve/Reject Master Catalog Item Request
+exports.updateCatalogStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status, rejectionReason } = req.body;
+
+    if (!['APPROVED', 'PENDING', 'REJECTED'].includes(status)) {
+      return res.status(400).json({ error: 'Invalid status specified.' });
+    }
+
+    const updated = await prisma.productServiceLibrary.update({
+      where: { id },
+      data: {
+        status,
+        ...(rejectionReason !== undefined && { rejectionReason })
+      }
+    });
+
+    res.json({ status: 'success', item: updated });
+  } catch (error) {
+    console.error('Update catalog status error:', error);
+    res.status(500).json({ error: 'Failed to update catalog item status.' });
   }
 };
 
@@ -234,9 +346,12 @@ exports.createMasterCatalogItem = async (req, res) => {
 exports.deleteMasterCatalogItem = async (req, res) => {
   try {
     const { id } = req.params;
-    masterCatalogStore = masterCatalogStore.filter(item => item.id !== id);
+    await prisma.productServiceLibrary.delete({
+      where: { id }
+    });
     res.json({ status: 'success', message: 'Item deleted successfully.' });
   } catch (error) {
+    console.error('Delete catalog item error:', error);
     res.status(500).json({ error: 'Failed to delete catalog item.' });
   }
 };

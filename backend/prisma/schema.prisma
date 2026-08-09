@@ -93,19 +93,33 @@ model BusinessGroup {
 }
 
 model BusinessService {
-  id              String        @id @default(auto()) @map("_id") @db.ObjectId
-  businessGroupId String        @db.ObjectId
-  businessGroup   BusinessGroup @relation(fields: [businessGroupId], references: [id], onDelete: Cascade)
+  id              String                @id @default(auto()) @map("_id") @db.ObjectId
+  businessGroupId String                @db.ObjectId
+  businessGroup   BusinessGroup         @relation(fields: [businessGroupId], references: [id], onDelete: Cascade)
+  libraryItemId   String?               @db.ObjectId
+  libraryItem     ProductServiceLibrary? @relation(fields: [libraryItemId], references: [id])
   name            String
-  createdAt       DateTime      @default(now())
+  description     String?
+  price           Float?
+  photos          String[]
+  customerLogos   String[]
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
 }
 
 model BusinessProduct {
-  id              String        @id @default(auto()) @map("_id") @db.ObjectId
-  businessGroupId String        @db.ObjectId
-  businessGroup   BusinessGroup @relation(fields: [businessGroupId], references: [id], onDelete: Cascade)
+  id              String                @id @default(auto()) @map("_id") @db.ObjectId
+  businessGroupId String                @db.ObjectId
+  businessGroup   BusinessGroup         @relation(fields: [businessGroupId], references: [id], onDelete: Cascade)
+  libraryItemId   String?               @db.ObjectId
+  libraryItem     ProductServiceLibrary? @relation(fields: [libraryItemId], references: [id])
   name            String
-  createdAt       DateTime      @default(now())
+  description     String?
+  price           Float?
+  photos          String[]
+  customerLogos   String[]
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
 }
 
 model BusinessPaymentMethod {
@@ -463,17 +477,26 @@ model QRScan {
 // --------------------------------------------------
 
 model ProductServiceLibrary {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  name        String
-  category    String   // e.g. "Digital Marketing", "Rice Mill", "Clinics"
-  type        String   // "SERVICE" or "PRODUCT"
-  description String?
-  imageUrl    String?
-  defaultPrice Float?
-  tags        String[]
-  seoKeywords String[]
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id              String            @id @default(auto()) @map("_id") @db.ObjectId
+  name            String
+  category        String            // e.g. "Digital Marketing", "Rice Mill", "Clinics"
+  type            String            // "SERVICE" or "PRODUCT"
+  description     String?
+  imageUrl        String?
+  photos          String[]          // Array of product/service photo URLs
+  customerLogos   String[]          // Array of customer/client logo URLs
+  defaultPrice    Float?
+  tags            String[]
+  seoKeywords     String[]
+  status          String            @default("APPROVED") // APPROVED, PENDING, REJECTED
+  requestedBy     String?           // Business owner email/name if requested
+  rejectionReason String?
+  
+  services        BusinessService[]
+  products        BusinessProduct[]
+
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
 }
 
 model DirectoryListing {

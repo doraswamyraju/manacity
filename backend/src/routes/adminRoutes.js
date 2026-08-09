@@ -22,6 +22,8 @@ router.delete('/businesses/:id', adminController.deleteBusiness);
 // Global Master Catalog Library
 router.get('/catalog', adminController.getMasterCatalog);
 router.post('/catalog', adminController.createMasterCatalogItem);
+router.put('/catalog/:id', adminController.updateMasterCatalogItem);
+router.patch('/catalog/:id/status', adminController.updateCatalogStatus);
 router.delete('/catalog/:id', adminController.deleteMasterCatalogItem);
 
 // Subscriptions
