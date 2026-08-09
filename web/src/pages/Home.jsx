@@ -56,19 +56,20 @@ export default function Home({
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [themeMode, setThemeMode] = useState('light');
+  const [themeMode, setThemeMode] = useState('dark');
 
   const toggleTheme = () => {
-    const nextTheme = themeMode === 'light' ? 'dark' : 'light';
+    const nextTheme = themeMode === 'dark' ? 'light' : 'dark';
     setThemeMode(nextTheme);
-    if (nextTheme === 'dark') {
-      document.body.classList.add('dark-mode');
-      document.body.setAttribute('data-theme', 'dark');
+    if (nextTheme === 'light') {
+      document.body.classList.add('light-mode');
+      document.body.setAttribute('data-theme', 'light');
     } else {
-      document.body.classList.remove('dark-mode');
+      document.body.classList.remove('light-mode');
       document.body.removeAttribute('data-theme');
     }
   };
+
 
 
   // Modals & Overlays
@@ -342,9 +343,10 @@ export default function Home({
               cursor: 'pointer'
             }}
           >
-            {themeMode === 'light' ? <Sun size={14} color="#f59e0b" /> : <Moon size={14} color="#38bdf8" />}
-            {themeMode === 'light' ? 'Light Mode' : 'Dark Mode'}
+            {themeMode === 'dark' ? <Moon size={14} color="#38bdf8" /> : <Sun size={14} color="#f59e0b" />}
+            {themeMode === 'dark' ? 'Dark Mode' : 'Light Mode'}
           </button>
+
           <a href="#hiring" style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}>We Are Hiring</a>
           <a href="#advertise" style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}>Advertise</a>
           <button onClick={onNavigateToRegister} style={{ background: 'rgba(255,152,0,0.15)', color: '#ff9800', border: '1px solid rgba(255,152,0,0.4)', padding: '0.35rem 0.75rem', borderRadius: '6px', fontWeight: 700, cursor: 'pointer' }}>
