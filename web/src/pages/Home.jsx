@@ -318,15 +318,15 @@ export default function Home({
         zIndex: 100
       }}>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <img src="/logo.png" alt="ManaCity Logo" style={{ height: '36px' }} />
-          <span style={{ fontSize: '0.78rem', padding: '0.25rem 0.65rem', borderRadius: '12px', background: 'linear-gradient(90deg, #6366f1, #a855f7)', color: '#fff', fontWeight: 800 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <img src="/logo.png" alt="ManaCity Logo" style={{ height: '32px' }} />
+          <span className="desktop-only" style={{ fontSize: '0.78rem', padding: '0.25rem 0.65rem', borderRadius: '12px', background: 'linear-gradient(90deg, #6366f1, #a855f7)', color: '#fff', fontWeight: 800 }}>
             ManaCity Directory
           </span>
         </div>
 
         {/* Desktop Header Links */}
-        <div style={{ display: 'flex', gap: '1.25rem', alignItems: 'center', fontSize: '0.86rem', color: 'var(--text-secondary)' }}>
+        <div className="desktop-only" style={{ display: 'flex', gap: '1.25rem', alignItems: 'center', fontSize: '0.86rem', color: 'var(--text-secondary)' }}>
           <button
             onClick={toggleTheme}
             style={{
@@ -370,10 +370,62 @@ export default function Home({
           )}
         </div>
 
+        {/* Clean Mobile Header Actions (Justdial Mobile Style) */}
+        <div className="mobile-only" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <button
+            onClick={onNavigateToRegister}
+            style={{
+              backgroundColor: '#3b82f6',
+              color: '#fff',
+              border: 'none',
+              padding: '0.4rem 0.7rem',
+              borderRadius: '8px',
+              fontSize: '0.75rem',
+              fontWeight: 800,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.25rem'
+            }}
+          >
+            📢 Advertise
+          </button>
+          <button
+            onClick={toggleTheme}
+            style={{
+              backgroundColor: 'var(--bg-tertiary)',
+              border: '1px solid var(--border-color)',
+              color: 'var(--text-primary)',
+              padding: '0.4rem',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center'
+            }}
+            title="Toggle Theme"
+          >
+            {themeMode === 'dark' ? <Moon size={16} color="#38bdf8" /> : <Sun size={16} color="#f59e0b" />}
+          </button>
+          <button
+            onClick={() => user ? (window.location.href = user.role === 'SUPER_ADMIN' ? '/admin' : '/dashboard') : onNavigateToLogin()}
+            style={{
+              backgroundColor: 'rgba(255,255,255,0.06)',
+              border: '1px solid var(--border-color)',
+              color: '#fff',
+              padding: '0.4rem',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center'
+            }}
+          >
+            <User size={16} />
+          </button>
+        </div>
+
       </header>
 
-      {/* Floating Side Action Badges (Right fixed) */}
-      <div style={{ position: 'fixed', right: 0, top: '40%', zIndex: 99, display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+      {/* Floating Side Action Badges (Desktop Only) */}
+      <div className="desktop-only" style={{ position: 'fixed', right: 0, top: '40%', zIndex: 99, display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
         <button onClick={onNavigateToRegister} style={{ writingMode: 'vertical-rl', backgroundColor: '#3b82f6', color: '#fff', padding: '0.85rem 0.4rem', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px', border: 'none', fontWeight: 800, fontSize: '0.78rem', cursor: 'pointer' }}>
           Free Listing
         </button>
@@ -382,9 +434,10 @@ export default function Home({
         </button>
       </div>
 
+
       {/* 2. Hero Search & Promo Banners Section (Matching Justdial Screenshot 1) */}
-      <section style={{ padding: '2.5rem 2rem 2rem 2rem', maxWidth: '1280px', margin: '0 auto', width: '100%' }}>
-        <h1 style={{ fontSize: '2.2rem', fontWeight: 900, marginBottom: '1.25rem', color: '#fff' }}>
+      <section className="home-section-padding">
+        <h1 style={{ fontSize: 'clamp(1.3rem, 5vw, 2.2rem)', fontWeight: 900, marginBottom: '1.25rem', color: '#fff' }}>
           Search across <span style={{ color: '#38bdf8' }}>'10,000+' Verified Businesses</span>
         </h1>
 
@@ -398,9 +451,9 @@ export default function Home({
           borderRadius: '12px',
           boxShadow: '0 10px 30px rgba(0, 0, 0, 0.4)',
           border: '1px solid rgba(255, 255, 255, 0.1)',
-          marginBottom: '2rem'
+          marginBottom: '1.5rem'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#0f172a', padding: '0.65rem 1rem', borderRadius: '8px', flex: '1 1 200px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#0f172a', padding: '0.65rem 1rem', borderRadius: '8px', flex: '1 1 180px' }}>
             <MapPin size={18} color="#38bdf8" />
             <select
               value={selectedCity}
@@ -411,11 +464,11 @@ export default function Home({
             </select>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#0f172a', padding: '0.65rem 1rem', borderRadius: '8px', flex: '3 1 350px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#0f172a', padding: '0.65rem 1rem', borderRadius: '8px', flex: '3 1 260px' }}>
             <Search size={18} color="#94a3b8" />
             <input
               type="text"
-              placeholder="Search for Spa, Salons, Rice Mills, SEO, Electricians..."
+              placeholder="Search for Spa, Salons, Rice Mills, SEO..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               style={{ background: 'transparent', border: 'none', color: '#fff', width: '100%', outline: 'none', fontSize: '0.92rem' }}
@@ -423,80 +476,76 @@ export default function Home({
             <Mic size={18} color="#6366f1" style={{ cursor: 'pointer' }} />
           </div>
 
-          <button type="submit" className="btn btn-primary" style={{ padding: '0.65rem 1.75rem', borderRadius: '8px', fontWeight: 800, background: '#38bdf8', color: '#0f172a' }}>
+          <button type="submit" className="btn btn-primary" style={{ padding: '0.65rem 1.75rem', borderRadius: '8px', fontWeight: 800, background: '#38bdf8', color: '#0f172a', width: '100%', maxWidth: '120px' }}>
             Search
           </button>
         </form>
 
         {/* Hero Feature Banner Carousel Grid */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: '2.5fr 1fr 1fr 1fr 1fr',
-          gap: '1rem'
-        }}>
+        <div className="hero-banner-grid">
           {/* Main Airfare / Offer Banner */}
           <div style={{
             background: 'linear-gradient(135deg, #0284c7, #0369a1)',
             borderRadius: '16px',
-            padding: '1.75rem',
+            padding: '1.5rem',
             color: '#fff',
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'space-between',
             position: 'relative',
             overflow: 'hidden',
-            minHeight: '220px'
+            minHeight: '180px'
           }}>
             <div>
-              <span style={{ fontSize: '0.8rem', fontWeight: 700, backgroundColor: 'rgba(255,255,255,0.2)', padding: '0.25rem 0.6rem', borderRadius: '12px' }}>
+              <span style={{ fontSize: '0.78rem', fontWeight: 700, backgroundColor: 'rgba(255,255,255,0.2)', padding: '0.25rem 0.6rem', borderRadius: '12px' }}>
                 FLIGHTS & TRAVEL
               </span>
-              <h3 style={{ fontSize: '1.6rem', fontWeight: 900, marginTop: '0.65rem', marginBottom: '0.35rem' }}>
+              <h3 style={{ fontSize: '1.4rem', fontWeight: 900, marginTop: '0.65rem', marginBottom: '0.35rem' }}>
                 Fly at Lowest Airfares
               </h3>
-              <p style={{ fontSize: '0.9rem', color: '#e0f2fe' }}>Instant ticket bookings & budget-friendly stays</p>
+              <p style={{ fontSize: '0.85rem', color: '#e0f2fe' }}>Instant ticket bookings & budget-friendly stays</p>
             </div>
 
-            <button style={{ width: 'fit-content', backgroundColor: '#fff', color: '#0284c7', border: 'none', padding: '0.55rem 1.25rem', borderRadius: '8px', fontWeight: 900, cursor: 'pointer' }}>
+            <button style={{ width: 'fit-content', backgroundColor: '#fff', color: '#0284c7', border: 'none', padding: '0.5rem 1.1rem', borderRadius: '8px', fontWeight: 900, cursor: 'pointer', marginTop: '0.75rem' }}>
               Book Now
             </button>
           </div>
 
           {/* Vertical Feature Card 1: B2B */}
-          <div style={{ backgroundColor: '#1e293b', borderRadius: '16px', padding: '1.25rem', border: '1px solid rgba(255,255,255,0.08)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+          <div style={{ backgroundColor: '#1e293b', borderRadius: '16px', padding: '1.15rem', border: '1px solid rgba(255,255,255,0.08)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
             <div>
               <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#38bdf8' }}>B2B</span>
-              <h4 style={{ fontSize: '1rem', fontWeight: 800, margin: '0.35rem 0' }}>Quick Quotes</h4>
+              <h4 style={{ fontSize: '0.95rem', fontWeight: 800, margin: '0.35rem 0' }}>Quick Quotes</h4>
               <p style={{ fontSize: '0.78rem', color: '#94a3b8' }}>Manufacturers & Wholesale</p>
             </div>
             <ChevronRight size={18} color="#38bdf8" />
           </div>
 
           {/* Vertical Feature Card 2: REPAIRS & SERVICES */}
-          <div style={{ backgroundColor: '#1e293b', borderRadius: '16px', padding: '1.25rem', border: '1px solid rgba(255,255,255,0.08)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+          <div style={{ backgroundColor: '#1e293b', borderRadius: '16px', padding: '1.15rem', border: '1px solid rgba(255,255,255,0.08)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
             <div>
               <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#34d399' }}>REPAIRS</span>
-              <h4 style={{ fontSize: '1rem', fontWeight: 800, margin: '0.35rem 0' }}>Get Vendor</h4>
+              <h4 style={{ fontSize: '0.95rem', fontWeight: 800, margin: '0.35rem 0' }}>Get Vendor</h4>
               <p style={{ fontSize: '0.78rem', color: '#94a3b8' }}>AC, Electrician, Plumber</p>
             </div>
             <ChevronRight size={18} color="#34d399" />
           </div>
 
           {/* Vertical Feature Card 3: REAL ESTATE */}
-          <div style={{ backgroundColor: '#1e293b', borderRadius: '16px', padding: '1.25rem', border: '1px solid rgba(255,255,255,0.08)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+          <div style={{ backgroundColor: '#1e293b', borderRadius: '16px', padding: '1.15rem', border: '1px solid rgba(255,255,255,0.08)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
             <div>
               <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#c084fc' }}>REAL ESTATE</span>
-              <h4 style={{ fontSize: '1rem', fontWeight: 800, margin: '0.35rem 0' }}>Finest Agents</h4>
+              <h4 style={{ fontSize: '0.95rem', fontWeight: 800, margin: '0.35rem 0' }}>Finest Agents</h4>
               <p style={{ fontSize: '0.78rem', color: '#94a3b8' }}>Rent & Buy Properties</p>
             </div>
             <ChevronRight size={18} color="#c084fc" />
           </div>
 
           {/* Vertical Feature Card 4: DOCTORS */}
-          <div style={{ backgroundColor: '#1e293b', borderRadius: '16px', padding: '1.25rem', border: '1px solid rgba(255,255,255,0.08)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+          <div style={{ backgroundColor: '#1e293b', borderRadius: '16px', padding: '1.15rem', border: '1px solid rgba(255,255,255,0.08)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
             <div>
               <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#f87171' }}>DOCTORS</span>
-              <h4 style={{ fontSize: '1rem', fontWeight: 800, margin: '0.35rem 0' }}>Book Consultation</h4>
+              <h4 style={{ fontSize: '0.95rem', fontWeight: 800, margin: '0.35rem 0' }}>Book Consultation</h4>
               <p style={{ fontSize: '0.78rem', color: '#94a3b8' }}>Clinics & Dentists</p>
             </div>
             <ChevronRight size={18} color="#f87171" />
@@ -504,17 +553,13 @@ export default function Home({
         </div>
       </section>
 
-      {/* 3. Popular Category Icon Grid - 18 Tiles (Matching Justdial Screenshot 1) */}
-      <section style={{ padding: '1.5rem 2rem 2.5rem 2rem', maxWidth: '1280px', margin: '0 auto', width: '100%' }}>
-        <h2 style={{ fontSize: '1.3rem', fontWeight: 800, marginBottom: '1.25rem', color: '#fff' }}>
+      {/* 3. Popular Category Icon Grid - 4 columns on mobile, 9 columns on desktop (Matching Justdial Screenshot 1) */}
+      <section className="home-section-padding">
+        <h2 style={{ fontSize: '1.25rem', fontWeight: 800, marginBottom: '1rem', color: '#fff' }}>
           Explore Popular Categories
         </h2>
 
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(9, 1fr)',
-          gap: '1rem'
-        }}>
+        <div className="category-icon-grid">
           {iconCategories.map((cat, idx) => {
             const Icon = cat.icon;
             return (
@@ -524,7 +569,7 @@ export default function Home({
                 style={{
                   backgroundColor: '#1e293b',
                   borderRadius: '14px',
-                  padding: '1rem 0.5rem',
+                  padding: '0.85rem 0.35rem',
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
@@ -540,12 +585,12 @@ export default function Home({
                   <span style={{
                     position: 'absolute',
                     top: '-6px',
-                    right: '6px',
+                    right: '4px',
                     backgroundColor: '#ef4444',
                     color: '#fff',
-                    fontSize: '0.62rem',
+                    fontSize: '0.58rem',
                     fontWeight: 800,
-                    padding: '0.1rem 0.35rem',
+                    padding: '0.1rem 0.3rem',
                     borderRadius: '6px'
                   }}>
                     {cat.badge}
@@ -554,16 +599,16 @@ export default function Home({
                 <div style={{
                   backgroundColor: `${cat.color}20`,
                   color: cat.color,
-                  padding: '0.7rem',
+                  padding: '0.6rem',
                   borderRadius: '50%',
-                  marginBottom: '0.5rem',
+                  marginBottom: '0.4rem',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center'
                 }}>
-                  <Icon size={20} />
+                  <Icon size={18} />
                 </div>
-                <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#e2e8f0', lineHeight: 1.2 }}>
+                <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#e2e8f0', lineHeight: 1.2 }}>
                   {cat.name}
                 </span>
               </div>
@@ -573,28 +618,24 @@ export default function Home({
       </section>
 
       {/* 4. Multi-Column Collection Cards Grid (Matching Justdial Screenshot 2) */}
-      <section style={{ padding: '1rem 2rem 2.5rem 2rem', maxWidth: '1280px', margin: '0 auto', width: '100%' }}>
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
-          gap: '1.5rem'
-        }}>
+      <section className="home-section-padding">
+        <div className="collections-grid">
           {collections.map((col, idx) => (
             <div
               key={idx}
               style={{
                 backgroundColor: '#1e293b',
                 borderRadius: '16px',
-                padding: '1.5rem',
+                padding: '1.25rem',
                 border: '1px solid rgba(255,255,255,0.08)'
               }}
             >
-              <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#fff', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <span style={{ width: '8px', height: '18px', backgroundColor: col.color, borderRadius: '4px' }}></span>
+              <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#fff', marginBottom: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{ width: '6px', height: '16px', backgroundColor: col.color, borderRadius: '4px' }}></span>
                 {col.title}
               </h3>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.75rem' }}>
                 {col.items.map((sub, sIdx) => (
                   <div
                     key={sIdx}
@@ -604,9 +645,9 @@ export default function Home({
                     <img
                       src={sub.img}
                       alt={sub.name}
-                      style={{ width: '100%', height: '90px', objectFit: 'cover', borderRadius: '10px', marginBottom: '0.4rem' }}
+                      style={{ width: '100%', height: '75px', objectFit: 'cover', borderRadius: '10px', marginBottom: '0.35rem' }}
                     />
-                    <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#cbd5e1' }}>
+                    <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#cbd5e1' }}>
                       {sub.name}
                     </span>
                   </div>
@@ -618,21 +659,22 @@ export default function Home({
       </section>
 
       {/* 5. Travel Bookings Hub Section (Matching Justdial Screenshot 2) */}
-      <section style={{ padding: '1rem 2rem 2.5rem 2rem', maxWidth: '1280px', margin: '0 auto', width: '100%' }}>
+      <section className="home-section-padding">
         <div style={{
           backgroundColor: '#1e293b',
           borderRadius: '16px',
-          padding: '1.75rem',
+          padding: '1.5rem',
           border: '1px solid rgba(255,255,255,0.08)'
         }}>
-          <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: '#fff', marginBottom: '0.35rem' }}>
+          <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#fff', marginBottom: '0.25rem' }}>
             Travel & Tour Bookings
           </h3>
-          <p style={{ fontSize: '0.85rem', color: '#94a3b8', marginTop: 0, marginBottom: '1.25rem' }}>
+          <p style={{ fontSize: '0.82rem', color: '#94a3b8', marginTop: 0, marginBottom: '1rem' }}>
             Instant ticket bookings & vehicle rentals for your best travel experience.
           </p>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '1rem' }}>
+          <div className="travel-grid">
+
             {[
               { label: 'Flight', desc: 'Affordable Airfares', icon: Plane, color: '#38bdf8' },
               { label: 'Bus', desc: 'Comfort Rides', icon: Bus, color: '#f43f5e' },

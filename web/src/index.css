@@ -163,11 +163,45 @@ body {
 }
 
 /* -------------------------------------------------- */
+/* RESPONSIVE GRID LAYOUT CLASSES (Desktop & Mobile) */
+/* -------------------------------------------------- */
+.category-icon-grid {
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+  gap: 1rem;
+}
+
+.collections-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+}
+
+.hero-banner-grid {
+  display: grid;
+  grid-template-columns: 2.5fr 1fr 1fr 1fr 1fr;
+  gap: 1rem;
+}
+
+.travel-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 1rem;
+}
+
+.home-section-padding {
+  padding: 2.5rem 2rem 2rem 2rem;
+  max-width: 1280px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* -------------------------------------------------- */
 /* MOBILE OPTIMIZATIONS & RESPONSIVE DESIGN (<= 768px) */
 /* -------------------------------------------------- */
 @media (max-width: 768px) {
   body {
-    padding-bottom: 70px; /* Compensation for fixed 5-icon bottom navigation bar */
+    padding-bottom: 75px; /* Compensation for fixed 5-icon bottom navigation bar */
   }
 
   .desktop-only {
@@ -178,7 +212,31 @@ body {
     display: flex !important;
   }
 
-  /* Responsive Grids */
+  .home-section-padding {
+    padding: 1.25rem 1rem !important;
+  }
+
+  /* Responsive Grids matching Justdial Mobile Screenshot 1 */
+  .category-icon-grid {
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 0.65rem !important;
+  }
+
+  .collections-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+  }
+
+  .hero-banner-grid {
+    grid-template-columns: 1fr !important;
+    gap: 0.75rem !important;
+  }
+
+  .travel-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.65rem !important;
+  }
+
   .dashboard-grid {
     grid-template-columns: 1fr !important;
     gap: 1rem !important;
@@ -191,20 +249,6 @@ body {
 
   .grid-2-col-mobile {
     grid-template-columns: repeat(2, 1fr) !important;
-  }
-
-  /* Horizontal Category Pill Slider */
-  .horizontal-scroll-mobile {
-    display: flex !important;
-    overflow-x: auto !important;
-    scroll-snap-type: x mandatory;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-    padding: 0.5rem 0.75rem !important;
-    gap: 0.75rem !important;
-  }
-  .horizontal-scroll-mobile::-webkit-scrollbar {
-    display: none;
   }
 
   /* Floating Bottom Search Button for Mobile */
@@ -247,4 +291,5 @@ body {
     display: none !important;
   }
 }
+
 
