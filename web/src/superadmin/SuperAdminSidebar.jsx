@@ -27,8 +27,11 @@ function SuperAdminSidebar({
   theme
 }) {
   // Submenu accordion toggle state (auto-expand parent on load if activeTab is a sub-item)
+  // Submenu accordion toggle state (auto-expand parent on load if activeTab is a sub-item)
   const [openSubmenu, setOpenSubmenu] = useState(() => {
-    return activeTab && activeTab.startsWith('lms') ? 'lms' : null;
+    if (activeTab && activeTab.startsWith('lms')) return 'lms';
+    if (activeTab && (activeTab.startsWith('library') || activeTab === 'catalog')) return 'library';
+    return 'library';
   });
 
   const isExpanded = isPinned || isHovered;
@@ -38,6 +41,23 @@ function SuperAdminSidebar({
     { id: 'overview', label: 'Platform Overview', icon: Activity, badge: null, color: '#818cf8' },
     { id: 'users', label: 'User Directory', icon: Users, badge: metrics?.totalUsers, color: '#38bdf8' },
     { id: 'businesses', label: 'Business Directory', icon: Building2, badge: metrics?.totalBusinessGroups || metrics?.totalLocations, color: '#34d399' },
+    {
+      id: 'library',
+      label: 'Library Management',
+      icon: Database,
+      color: '#c084fc',
+      badge: null,
+      subItems: [
+        { id: 'library-overview', label: 'Overview', icon: Zap },
+        { id: 'library-services', label: 'Services Library', icon: Wrench },
+        { id: 'library-products', label: 'Products Library', icon: Package },
+        { id: 'library-categories', label: 'Categories', icon: FolderTree },
+        { id: 'library-attributes', label: 'Attributes', icon: Settings },
+        { id: 'library-tags', label: 'Tags & Labels', icon: FileText },
+        { id: 'library-units', label: 'Units & Pricing', icon: CreditCard },
+        { id: 'library-media', label: 'Media Library', icon: List }
+      ]
+    },
     {
       id: 'lms',
       label: 'LMS (Lead System)',
@@ -51,7 +71,6 @@ function SuperAdminSidebar({
         { id: 'lms-subscriptions', label: 'Lead Subscriptions', icon: CreditCard }
       ]
     },
-    { id: 'catalog', label: 'Master Catalog', icon: Database, badge: null, color: '#c084fc' },
     { id: 'subscriptions', label: 'Subscriptions', icon: CreditCard, badge: null, color: '#fbbf24' },
     { id: 'logs', label: 'Audit Logs', icon: List, badge: null, color: '#f472b6' }
   ];
@@ -267,7 +286,57 @@ function SuperAdminSidebar({
             </div>
           );
         })}
-      </nav>
+      {/* Library Health Widget (as shown in design screenshot) */}
+      {isExpanded && (
+        <div style={{
+          margin: '0.5rem 0.65rem 1rem 0.65rem',
+          padding: '0.85rem',
+          borderRadius: '12px',
+          backgroundColor: isDark ? '#0f172a' : '#ffffff',
+          border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid #cbd5e1',
+          boxShadow: isDark ? 'none' : '0 2px 8px rgba(0,0,0,0.04)'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+            <span style={{ fontSize: '0.75rem', fontWeight: 800, color: isDark ? '#f8fafc' : '#0f172a' }}>Library Health</span>
+            <span style={{ fontSize: '0.7rem', fontWeight: 800, color: '#10b981', backgroundColor: 'rgba(16,185,129,0.15)', padding: '0.1rem 0.4rem', borderRadius: '4px' }}>Excellent</span>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.65rem' }}>
+            <div style={{
+              width: '40px',
+              height: '40px',
+              borderRadius: '50%',
+              border: '3px solid #10b981',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontWeight: 800,
+              fontSize: '0.78rem',
+              color: isDark ? '#fff' : '#0f172a'
+            }}>
+              92%
+            </div>
+            <div style={{ fontSize: '0.72rem', color: isDark ? '#94a3b8' : '#64748b' }}>
+              Overall data quality & completeness rate.
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', fontSize: '0.72rem', color: isDark ? '#cbd5e1' : '#475569' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span>Missing Images</span>
+              <strong style={{ color: '#f59e0b' }}>23</strong>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span>Uncategorized Items</span>
+              <strong style={{ color: '#f59e0b' }}>8</strong>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span>Duplicate Items</span>
+              <strong style={{ color: '#ef4444' }}>5</strong>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Footer Pin Status */}
       {isExpanded && (

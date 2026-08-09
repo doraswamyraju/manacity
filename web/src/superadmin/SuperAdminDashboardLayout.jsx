@@ -16,6 +16,16 @@ import AuditLogsTab from '../admin/AuditLogsTab';
 // LMS Module Tabs
 import LMSAllLeadsTab from '../admin/lms/LMSAllLeadsTab';
 
+// Library Management Submodules
+import LibraryOverviewTab from '../admin/library/LibraryOverviewTab';
+import ServicesLibraryTab from '../admin/library/ServicesLibraryTab';
+import ProductsLibraryTab from '../admin/library/ProductsLibraryTab';
+import CategoriesTab from '../admin/library/CategoriesTab';
+import AttributesTab from '../admin/library/AttributesTab';
+import TagsLabelsTab from '../admin/library/TagsLabelsTab';
+import UnitsPricingTab from '../admin/library/UnitsPricingTab';
+import MediaLibraryTab from '../admin/library/MediaLibraryTab';
+
 function SuperAdminDashboardLayout({ user, onLogout }) {
   // Persist active tab in localStorage so browser refresh stays on the current tab
   const [activeTab, setActiveTabState] = useState(() => {
@@ -277,23 +287,30 @@ function SuperAdminDashboardLayout({ user, onLogout }) {
                 />
               )}
 
+              {/* Library Management Submodules */}
+              {activeTab === 'library-overview' && <LibraryOverviewTab catalog={catalog} theme={theme} />}
+              {(activeTab === 'library-services' || activeTab === 'library' || activeTab === 'catalog') && (
+                <ServicesLibraryTab
+                  catalog={catalog}
+                  theme={theme}
+                  handleCreateCatalogItem={handleCreateCatalogItem}
+                  handleUpdateCatalogItem={handleUpdateCatalogItem}
+                  handleDeleteCatalogItem={handleDeleteCatalogItem}
+                />
+              )}
+              {activeTab === 'library-products' && <ProductsLibraryTab catalog={catalog} theme={theme} />}
+              {activeTab === 'library-categories' && <CategoriesTab theme={theme} />}
+              {activeTab === 'library-attributes' && <AttributesTab theme={theme} />}
+              {activeTab === 'library-tags' && <TagsLabelsTab theme={theme} />}
+              {activeTab === 'library-units' && <UnitsPricingTab theme={theme} />}
+              {activeTab === 'library-media' && <MediaLibraryTab theme={theme} />}
+
               {/* LMS Submodules */}
               {(activeTab === 'lms' || activeTab === 'lms-all') && <LMSAllLeadsTab theme={theme} />}
               {activeTab === 'lms-reports' && <LMSAllLeadsTab theme={theme} />}
               {activeTab === 'lms-settings' && <LMSAllLeadsTab theme={theme} />}
               {activeTab === 'lms-subscriptions' && <SubscriptionsTab subscriptions={subscriptions} theme={theme} />}
 
-              {activeTab === 'catalog' && (
-                <CatalogTab
-                  catalog={catalog}
-                  onRefresh={fetchCatalog}
-                  handleCreateCatalogItem={handleCreateCatalogItem}
-                  handleUpdateCatalogItem={handleUpdateCatalogItem}
-                  handleUpdateCatalogStatus={handleUpdateCatalogStatus}
-                  handleDeleteCatalogItem={handleDeleteCatalogItem}
-                  theme={theme}
-                />
-              )}
               {activeTab === 'subscriptions' && <SubscriptionsTab subscriptions={subscriptions} theme={theme} />}
               {activeTab === 'logs' && <AuditLogsTab logs={logs} theme={theme} />}
             </>
