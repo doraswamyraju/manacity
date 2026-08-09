@@ -327,9 +327,20 @@ export default function WebsiteBuilder({ onBack }) {
         }}
       >
         <div style={{ padding: '0.5rem 1rem', borderBottom: '1px solid var(--border-color)', textAlign: 'left', fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span>Live Site Preview (Subdomain: {subdomain || 'unset'}.manacity.in)</span>
+          <span>
+            Live Site URL:{' '}
+            <a
+              href={`/site/${subdomain}`}
+              target="_blank"
+              rel="noreferrer"
+              style={{ color: '#38bdf8', fontWeight: 700, textDecoration: 'underline' }}
+            >
+              manacity.in/site/{subdomain || 'demo'}
+            </a>
+          </span>
           <span style={{ color: isPublished ? '#4caf50' : 'var(--accent-error)' }}>{isPublished ? '● Published' : '● Draft'}</span>
         </div>
+
 
         {/* Inline Theme Engine Style Injection */}
         <div style={themeVars}>

@@ -17,6 +17,7 @@ import WebsiteBuilder from './pages/WebsiteBuilder';
 import ReviewManagement from './pages/ReviewManagement';
 import PublicReviewLanding from './pages/PublicReviewLanding';
 import ReviewPosterPrint from './pages/ReviewPosterPrint';
+import PublicBusinessWebsite from './pages/PublicBusinessWebsite';
 import SuperAdminDashboardLayout from './superadmin/SuperAdminDashboardLayout';
 import AdminDashboardLayout from './admin_dashboard/AdminDashboardLayout';
 import CustomerDashboardLayout from './customer_dashboard/CustomerDashboardLayout';
@@ -42,6 +43,8 @@ function App() {
     const isPublicRoute = 
       location.pathname.startsWith('/review/') ||
       location.pathname.startsWith('/r/') ||
+      location.pathname.startsWith('/site/') ||
+      location.pathname.startsWith('/biz/') ||
       location.pathname === '/print-review-qr' ||
       location.pathname === '/privacy' ||
       location.pathname === '/terms' ||
@@ -118,11 +121,13 @@ function App() {
 
   return (
     <Routes>
-      {/* Public Aggregator Directory Routes */}
+      {/* Public Aggregator Directory & Storefront Routes */}
       <Route path="/" element={<Home onNavigateToLogin={() => navigate('/login')} onNavigateToRegister={() => navigate('/register')} user={user} />} />
       <Route path="/:city" element={<Home onNavigateToLogin={() => navigate('/login')} onNavigateToRegister={() => navigate('/register')} user={user} />} />
       <Route path="/:city/:category" element={<Home onNavigateToLogin={() => navigate('/login')} onNavigateToRegister={() => navigate('/register')} user={user} />} />
-      <Route path="/biz/:slug" element={<Home onNavigateToLogin={() => navigate('/login')} onNavigateToRegister={() => navigate('/register')} user={user} />} />
+      <Route path="/biz/:slug" element={<PublicBusinessWebsite />} />
+      <Route path="/site/:subdomain" element={<PublicBusinessWebsite />} />
+
 
       {/* Auth Routes */}
       <Route path="/login" element={<Login onAuthSuccess={handleAuthSuccess} onNavigateToRegister={() => navigate('/register')} />} />

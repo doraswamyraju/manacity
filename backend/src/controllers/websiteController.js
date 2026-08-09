@@ -250,40 +250,63 @@ exports.saveWebsiteSections = async (req, res) => {
   }
 };
 
-// 4. Public Site API Endpoint (used by Nginx dynamically)
+// 4. Public Site API Endpoint (used by Nginx dynamically or path renderer)
 exports.renderPublicWebsite = async (req, res) => {
   try {
     const { subdomain } = req.params;
 
-    const website = await prisma.website.findUnique({
-      where: { subdomain },
+    let website = await prisma.website.findFirst({
+      where: {
+        OR: [
+          { subdomain: subdomain },
+          { customDomain: subdomain }
+        ]
+      },
       include: {
         sections: true,
         businessGroup: {
           include: {
-            documents: true,
             services: true,
-            products: true,
-            paymentMethods: true,
-            languages: true
+            products: true
           }
         }
       }
     });
 
-    if (!website || !website.isPublished) {
+    if (!website) {
+      // Find primary business group
+      const bg = await prisma.businessGroup.findFirst({
+        take: 1,
+        include: {
+          services: true,
+          products: true
+        }
+      });
+
+      if (bg) {
+        return res.status(200).json({
+          status: 'success',
+          businessGroup: bg,
+          services: bg.services || [],
+          products: bg.products || []
+        });
+      }
       return res.status(404).json({ error: 'Website is either unpublished or not found.' });
     }
 
     res.json({
       status: 'success',
-      website
+      businessGroup: website.businessGroup,
+      website,
+      services: website.businessGroup?.services || [],
+      products: website.businessGroup?.products || []
     });
   } catch (error) {
     console.error('Render public site error:', error);
     res.status(500).json({ error: 'Failed to query dynamic site specifications.' });
   }
 };
+
 
 // 5. Dynamic Sitemap Generation
 exports.getSitemap = async (req, res) => {

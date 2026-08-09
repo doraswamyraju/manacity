@@ -64,121 +64,132 @@ function Login({ onAuthSuccess, onNavigateToRegister }) {
   };
 
   return (
-    <div className="glass-card" style={{ maxWidth: '420px', width: '100%', padding: '2.5rem' }}>
-      <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-        <img 
-          src="/logo.png" 
-          alt="ManaCity Logo" 
-          style={{ width: '100%', maxWidth: '200px', marginBottom: '1rem' }} 
-        />
-        <h2 style={{ fontSize: '1.8rem', fontWeight: 700, color: 'var(--text-primary)' }}>Welcome Back</h2>
-        <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>Sign in to manage your business growth</p>
-      </div>
-
-      {error && (
-        <div style={{
-          backgroundColor: 'rgba(239, 68, 68, 0.1)',
-          border: '1px solid var(--accent-error)',
-          color: 'var(--accent-error)',
-          padding: '0.75rem',
-          borderRadius: 'var(--radius-sm)',
-          fontSize: '0.9rem',
-          marginBottom: '1.5rem',
-          textAlign: 'center'
-        }}>
-          {error}
-        </div>
-      )}
-
-      {/* 1-Click Google / Gmail Sign In Prominent Button */}
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '1.5rem', gap: '0.5rem' }}>
-        <GoogleLogin
-          onSuccess={handleGoogleSuccess}
-          onError={handleGoogleError}
-          text="continue_with"
-          theme="filled_dark"
-          shape="rectangular"
-          width="340px"
-        />
-        <span style={{ fontSize: '0.78rem', color: '#818cf8', fontWeight: 600 }}>⚡ Fast 1-Click Gmail Authentication</span>
-      </div>
-
-      <div style={{ display: 'flex', alignItems: 'center', margin: '1rem 0 1.25rem 0', gap: '0.5rem' }}>
-        <hr style={{ flex: 1, border: 'none', borderTop: '1px solid var(--border-color)', opacity: 0.3 }} />
-        <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>or sign in with email</span>
-        <hr style={{ flex: 1, border: 'none', borderTop: '1px solid var(--border-color)', opacity: 0.3 }} />
-      </div>
-
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', textAlign: 'left' }}>
-          <label style={{ fontSize: '0.9rem', fontWeight: 500, color: 'var(--text-primary)' }}>Email Address</label>
-          <input 
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="name@company.com"
-            required
-            style={{
-              padding: '0.75rem 1rem',
-              backgroundColor: 'rgba(255, 255, 255, 0.03)',
-              border: '1px solid var(--border-color)',
-              borderRadius: 'var(--radius-sm)',
-              color: '#fff',
-              fontSize: '0.95rem',
-              outline: 'none',
-              fontFamily: 'var(--font-sans)',
-              transition: 'border-color var(--transition-fast)'
-            }}
-            onFocus={(e) => e.target.style.borderColor = 'var(--accent-primary)'}
-            onBlur={(e) => e.target.style.borderColor = 'var(--border-color)'}
+    <div style={{
+      minHeight: '100vh',
+      width: '100%',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: '#090d16',
+      padding: '2rem'
+    }}>
+      <div className="glass-card" style={{ maxWidth: '420px', width: '100%', padding: '2.5rem' }}>
+        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+          <img 
+            src="/logo.png" 
+            alt="ManaCity Logo" 
+            style={{ width: '100%', maxWidth: '200px', marginBottom: '1rem' }} 
           />
+          <h2 style={{ fontSize: '1.8rem', fontWeight: 700, color: 'var(--text-primary)' }}>Welcome Back</h2>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>Sign in to manage your business growth</p>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', textAlign: 'left' }}>
-          <label style={{ fontSize: '0.9rem', fontWeight: 500, color: 'var(--text-primary)' }}>Password</label>
-          <input 
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="••••••••"
-            required
-            style={{
-              padding: '0.75rem 1rem',
-              backgroundColor: 'rgba(255, 255, 255, 0.03)',
-              border: '1px solid var(--border-color)',
-              borderRadius: 'var(--radius-sm)',
-              color: '#fff',
-              fontSize: '0.95rem',
-              outline: 'none',
-              fontFamily: 'var(--font-sans)',
-              transition: 'border-color var(--transition-fast)'
-            }}
-            onFocus={(e) => e.target.style.borderColor = 'var(--accent-primary)'}
-            onBlur={(e) => e.target.style.borderColor = 'var(--border-color)'}
+        {error && (
+          <div style={{
+            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+            border: '1px solid var(--accent-error)',
+            color: 'var(--accent-error)',
+            padding: '0.75rem',
+            borderRadius: 'var(--radius-sm)',
+            fontSize: '0.9rem',
+            marginBottom: '1.5rem',
+            textAlign: 'center'
+          }}>
+            {error}
+          </div>
+        )}
+
+        {/* 1-Click Google / Gmail Sign In Prominent Button */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '1.5rem', gap: '0.5rem' }}>
+          <GoogleLogin
+            onSuccess={handleGoogleSuccess}
+            onError={handleGoogleError}
+            text="continue_with"
+            theme="filled_dark"
+            shape="rectangular"
+            width="340px"
           />
+          <span style={{ fontSize: '0.78rem', color: '#818cf8', fontWeight: 600 }}>⚡ Fast 1-Click Gmail Authentication</span>
         </div>
 
-        <button 
-          type="submit" 
-          className="btn btn-primary" 
-          disabled={loading}
-          style={{ width: '100%', marginTop: '0.5rem', height: '46px' }}
-        >
-          {loading ? 'Signing In...' : 'Sign In'}
-        </button>
-      </form>
+        <div style={{ display: 'flex', alignItems: 'center', margin: '1rem 0 1.25rem 0', gap: '0.5rem' }}>
+          <hr style={{ flex: 1, border: 'none', borderTop: '1px solid var(--border-color)', opacity: 0.3 }} />
+          <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>or sign in with email</span>
+          <hr style={{ flex: 1, border: 'none', borderTop: '1px solid var(--border-color)', opacity: 0.3 }} />
+        </div>
 
-      <div style={{ marginTop: '1.5rem', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-        Don't have an account?{' '}
-        <span 
-          onClick={onNavigateToRegister}
-          style={{ color: 'var(--accent-secondary)', cursor: 'pointer', fontWeight: 600 }}
-        >
-          Sign Up
-        </span>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', textAlign: 'left' }}>
+            <label style={{ fontSize: '0.9rem', fontWeight: 500, color: 'var(--text-primary)' }}>Email Address</label>
+            <input 
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="name@company.com"
+              required
+              style={{
+                padding: '0.75rem 1rem',
+                backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                border: '1px solid var(--border-color)',
+                borderRadius: 'var(--radius-sm)',
+                color: '#fff',
+                fontSize: '0.95rem',
+                outline: 'none',
+                fontFamily: 'var(--font-sans)',
+                transition: 'border-color var(--transition-fast)'
+              }}
+              onFocus={(e) => e.target.style.borderColor = 'var(--accent-primary)'}
+              onBlur={(e) => e.target.style.borderColor = 'var(--border-color)'}
+            />
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', textAlign: 'left' }}>
+            <label style={{ fontSize: '0.9rem', fontWeight: 500, color: 'var(--text-primary)' }}>Password</label>
+            <input 
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••"
+              required
+              style={{
+                padding: '0.75rem 1rem',
+                backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                border: '1px solid var(--border-color)',
+                borderRadius: 'var(--radius-sm)',
+                color: '#fff',
+                fontSize: '0.95rem',
+                outline: 'none',
+                fontFamily: 'var(--font-sans)',
+                transition: 'border-color var(--transition-fast)'
+              }}
+              onFocus={(e) => e.target.style.borderColor = 'var(--accent-primary)'}
+              onBlur={(e) => e.target.style.borderColor = 'var(--border-color)'}
+            />
+          </div>
+
+          <button 
+            type="submit" 
+            className="btn btn-primary" 
+            disabled={loading}
+            style={{ width: '100%', marginTop: '0.5rem', height: '46px' }}
+          >
+            {loading ? 'Signing In...' : 'Sign In'}
+          </button>
+        </form>
+
+        <div style={{ marginTop: '1.5rem', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+          Don't have an account?{' '}
+          <span 
+            onClick={onNavigateToRegister}
+            style={{ color: 'var(--accent-secondary)', cursor: 'pointer', fontWeight: 600 }}
+          >
+            Sign Up
+          </span>
+        </div>
       </div>
     </div>
   );
 }
 
 export default Login;
+
