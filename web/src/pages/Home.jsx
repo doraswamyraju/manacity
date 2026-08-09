@@ -848,15 +848,32 @@ export default function Home({
                       )}
                     </div>
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', backgroundColor: 'rgba(234, 179, 8, 0.15)', padding: '0.2rem 0.5rem', borderRadius: '6px', color: '#facc15', fontSize: '0.82rem', fontWeight: 700 }}>
+                    <div 
+                      onClick={() => {
+                        const reviewsUrl = item.googleReviewsUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.businessName + ' ' + (item.address || 'Tirupati'))}`;
+                        window.open(reviewsUrl, '_blank');
+                      }}
+                      style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', backgroundColor: 'rgba(234, 179, 8, 0.15)', padding: '0.2rem 0.5rem', borderRadius: '6px', color: '#facc15', fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer' }}
+                      title="Click to view live Google Reviews"
+                    >
                       <Star size={13} fill="#facc15" />
                       {item.rating} ({item.reviewCount})
+                      <ExternalLink size={11} color="#facc15" />
                     </div>
                   </div>
 
-                  <h3 style={{ fontSize: '1.15rem', fontWeight: 800, marginBottom: '0.35rem', color: '#f8fafc' }}>
+                  <h3
+                    onClick={() => {
+                      const siteUrl = item.websiteUrl || `/site/${item.slug || 'kumar-shirts'}`;
+                      window.open(siteUrl, '_blank');
+                    }}
+                    style={{ fontSize: '1.15rem', fontWeight: 800, marginBottom: '0.35rem', color: '#f8fafc', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
+                    title="Click to open business website"
+                  >
                     {item.businessName}
+                    <ExternalLink size={14} color="#38bdf8" />
                   </h3>
+
 
                   <p style={{ fontSize: '0.82rem', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.85rem' }}>
                     <MapPin size={14} color="#64748b" />

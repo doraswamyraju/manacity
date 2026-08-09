@@ -24,7 +24,8 @@ import {
   X,
   Trash2,
   Image as ImageIcon,
-  Users
+  Users,
+  Copy
 } from 'lucide-react';
 
 function ProductsLibraryTab({ catalog = [], theme, handleCreateCatalogItem, handleUpdateCatalogItem, handleDeleteCatalogItem }) {
@@ -323,6 +324,26 @@ function ProductsLibraryTab({ catalog = [], theme, handleCreateCatalogItem, hand
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '0.4rem' }}>
                         <button onClick={() => setViewingProduct(prd)} style={{ background: 'none', border: 'none', color: textMuted, cursor: 'pointer', padding: '0.2rem' }} title="View Details"><Eye size={15} /></button>
                         <button onClick={() => openEditModal(prd)} style={{ background: 'none', border: 'none', color: textMuted, cursor: 'pointer', padding: '0.2rem' }} title="Edit Product"><Edit2 size={15} /></button>
+                        <button
+                          onClick={() => {
+                            const copyPayload = {
+                              name: `${prd.name} (Copy)`,
+                              slug: `${prd.slug || prd.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-copy-${Date.now().toString().slice(-4)}`,
+                              category: prd.category || 'General',
+                              type: 'PRODUCT',
+                              defaultPrice: prd.defaultPrice || '',
+                              description: prd.description || '',
+                              photos: prd.photos || [],
+                              customerLogos: prd.customerLogos || []
+                            };
+                            handleCreateCatalogItem && handleCreateCatalogItem(copyPayload);
+                          }}
+                          style={{ background: 'none', border: 'none', color: '#10b981', cursor: 'pointer', padding: '0.2rem' }}
+                          title="Duplicate Product"
+                        >
+                          <Copy size={15} />
+                        </button>
+
                         <button onClick={() => handleDeleteCatalogItem && handleDeleteCatalogItem(prd.id)} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '0.2rem' }} title="Delete Product"><Trash2 size={15} /></button>
                       </div>
                     </td>

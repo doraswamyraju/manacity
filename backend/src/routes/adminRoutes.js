@@ -31,9 +31,11 @@ router.get('/aggregator/leads', aggregatorAdminController.getPublicLeads);
 // Global Master Catalog Library
 router.get('/catalog', adminController.getMasterCatalog);
 router.post('/catalog', adminController.createMasterCatalogItem);
+router.post('/catalog/:id/duplicate', adminController.duplicateMasterCatalogItem);
 router.put('/catalog/:id', adminController.updateMasterCatalogItem);
 router.patch('/catalog/:id/status', adminController.updateCatalogStatus);
 router.delete('/catalog/:id', adminController.deleteMasterCatalogItem);
+
 
 // Subscriptions
 router.get('/subscriptions', adminController.getSubscriptions);

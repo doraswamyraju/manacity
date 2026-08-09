@@ -23,8 +23,10 @@ import {
   CheckCircle,
   AlertCircle,
   Trash2,
-  X
+  X,
+  Copy
 } from 'lucide-react';
+
 
 function ServicesLibraryTab({ catalog = [], theme, handleCreateCatalogItem, handleUpdateCatalogItem, handleDeleteCatalogItem }) {
   const isDark = theme === 'dark';
@@ -550,6 +552,26 @@ function ServicesLibraryTab({ catalog = [], theme, handleCreateCatalogItem, hand
                           >
                             <Edit2 size={15} />
                           </button>
+                          <button
+                            onClick={() => {
+                              const copyPayload = {
+                                name: `${srv.name} (Copy)`,
+                                slug: `${srv.slug || srv.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-copy-${Date.now().toString().slice(-4)}`,
+                                category: srv.category || 'Digital Marketing',
+                                type: 'SERVICE',
+                                defaultPrice: srv.defaultPrice || '',
+                                description: srv.description || '',
+                                photos: srv.photos || [],
+                                customerLogos: srv.customerLogos || []
+                              };
+                              handleCreateCatalogItem && handleCreateCatalogItem(copyPayload);
+                            }}
+                            style={{ background: 'none', border: 'none', color: '#38bdf8', cursor: 'pointer', padding: '0.2rem' }}
+                            title="Duplicate Service"
+                          >
+                            <Copy size={15} />
+                          </button>
+
                           <button
                             onClick={() => {
                               if (window.confirm(`Are you sure you want to delete "${srv.name}"?`)) {

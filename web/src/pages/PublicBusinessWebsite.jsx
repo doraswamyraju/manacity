@@ -123,7 +123,35 @@ export default function PublicBusinessWebsite() {
           </div>
         </div>
 
-        <div style={{ display: 'flex', gap: '0.75rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <div 
+            onClick={() => {
+              const reviewsUrl = bg.googleReviewsUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(bg.name + ' ' + (bg.city || 'Tirupati'))}`;
+              window.open(reviewsUrl, '_blank');
+            }}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.4rem',
+              backgroundColor: 'rgba(251, 191, 36, 0.15)',
+              border: '1px solid rgba(251, 191, 36, 0.4)',
+              color: '#fbbf24',
+              padding: '0.4rem 0.85rem',
+              borderRadius: '20px',
+              fontSize: '0.82rem',
+              fontWeight: 800,
+              cursor: 'pointer'
+            }}
+            title="Click to view live Google Reviews"
+          >
+            <Star size={15} fill="#fbbf24" color="#fbbf24" />
+            <span>{bg.googleRating || bg.rating || 4.9} ★</span>
+            <span style={{ color: '#cbd5e1', fontWeight: 600, fontSize: '0.75rem' }}>
+              ({bg.googleReviewCount || bg.reviewCount || 63} Google Reviews)
+            </span>
+            <ExternalLink size={12} color="#94a3b8" />
+          </div>
+
           <a href={`tel:${bg.mobileNumber}`} className="btn" style={{ backgroundColor: '#10b981', color: '#fff', padding: '0.45rem 1rem', fontSize: '0.85rem', fontWeight: 700, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
             <Phone size={14} /> Call Now
           </a>
@@ -141,22 +169,51 @@ export default function PublicBusinessWebsite() {
         borderBottom: '1px solid rgba(255,255,255,0.06)'
       }}>
         <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-          <span style={{
-            backgroundColor: `${primaryColor}20`,
-            color: primaryColor,
-            padding: '0.3rem 0.8rem',
-            borderRadius: '20px',
-            fontSize: '0.82rem',
-            fontWeight: 800,
-            textTransform: 'uppercase'
-          }}>
-            Official Business Website
-          </span>
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+            <span style={{
+              backgroundColor: `${primaryColor}20`,
+              color: primaryColor,
+              padding: '0.3rem 0.8rem',
+              borderRadius: '20px',
+              fontSize: '0.82rem',
+              fontWeight: 800,
+              textTransform: 'uppercase'
+            }}>
+              Official Business Website
+            </span>
+
+            <div 
+              onClick={() => {
+                const reviewsUrl = bg.googleReviewsUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(bg.name + ' ' + (bg.city || 'Tirupati'))}`;
+                window.open(reviewsUrl, '_blank');
+              }}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.35rem',
+                backgroundColor: 'rgba(251, 191, 36, 0.15)',
+                border: '1px solid rgba(251, 191, 36, 0.4)',
+                color: '#fbbf24',
+                padding: '0.3rem 0.75rem',
+                borderRadius: '20px',
+                fontSize: '0.82rem',
+                fontWeight: 800,
+                cursor: 'pointer'
+              }}
+              title="Click to view live Google Reviews page"
+            >
+              <Star size={14} fill="#fbbf24" color="#fbbf24" />
+              <span>{bg.googleRating || bg.rating || 4.9} ★</span>
+              <span style={{ color: '#cbd5e1', fontWeight: 600, fontSize: '0.75rem' }}>({bg.googleReviewCount || bg.reviewCount || 63} reviews)</span>
+              <ExternalLink size={12} color="#fbbf24" />
+            </div>
+          </div>
+
           <h2 style={{ fontSize: '2.5rem', fontWeight: 900, marginTop: '1rem', marginBottom: '0.85rem', color: '#fff', lineHeight: 1.2 }}>
             Welcome to {bg.name}
           </h2>
           <p style={{ fontSize: '1.05rem', color: '#94a3b8', lineHeight: 1.6, marginBottom: '2rem' }}>
-            {bg.description}
+            {bg.description || `Imported Google Business Profile and verified storefront for ${bg.name}.`}
           </p>
 
           <a href="#quote-form" className="btn btn-primary" style={{ padding: '0.75rem 2rem', fontWeight: 800, backgroundColor: primaryColor }}>
@@ -164,6 +221,7 @@ export default function PublicBusinessWebsite() {
           </a>
         </div>
       </section>
+
 
       {/* Template View Content */}
       <main style={{ maxWidth: '1100px', margin: '0 auto', padding: '3rem 1.5rem' }}>

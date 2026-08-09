@@ -87,14 +87,23 @@ function App() {
     localStorage.setItem('user', JSON.stringify(authenticatedUser));
     if (authenticatedUser.role === 'SUPER_ADMIN') {
       navigate('/admin');
-    } else if (authenticatedUser.role === 'BUSINESS_OWNER') {
-      navigate('/onboarding');
-      fetchOnboardingState();
     } else {
-      navigate('/dashboard');
-      fetchOnboardingState();
+      // Check if business profile is already created/setup to land directly on dashboard
+      axios.get('/api/business/onboarding-state')
+        .then((res) => {
+          const bg = res.data.businessGroup;
+          if (bg && (bg.isSetupComplete || (bg.setupStep && bg.setupStep >= 5) || (bg.locations && bg.locations.length > 0))) {
+            navigate('/dashboard');
+          } else {
+            navigate('/onboarding');
+          }
+        })
+        .catch(() => {
+          navigate('/dashboard');
+        });
     }
   };
+
 
   const handleLogout = () => {
     localStorage.removeItem('token');

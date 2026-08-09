@@ -237,6 +237,41 @@ exports.createMasterCatalogItem = async (req, res) => {
   }
 };
 
+// 6a2. Duplicate Master Catalog Item
+exports.duplicateMasterCatalogItem = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const existing = await prisma.productServiceLibrary.findUnique({ where: { id } });
+    if (!existing) {
+      return res.status(404).json({ error: 'Item not found in master library.' });
+    }
+
+    const itemSlug = `${existing.slug || existing.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-copy-${Date.now().toString().slice(-4)}`;
+
+    const newItem = await prisma.productServiceLibrary.create({
+      data: {
+        name: `${existing.name} (Copy)`,
+        slug: itemSlug,
+        category: existing.category,
+        type: existing.type,
+        description: existing.description || '',
+        defaultPrice: existing.defaultPrice,
+        photos: existing.photos || [],
+        customerLogos: existing.customerLogos || [],
+        tags: existing.tags || [],
+        seoKeywords: existing.seoKeywords || [],
+        status: 'APPROVED'
+      }
+    });
+
+    res.json({ status: 'success', item: newItem });
+  } catch (error) {
+    console.error('Duplicate catalog item error:', error);
+    res.status(500).json({ error: 'Failed to duplicate catalog item.' });
+  }
+};
+
+
 
 
 
