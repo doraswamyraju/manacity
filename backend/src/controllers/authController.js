@@ -137,19 +137,22 @@ exports.getMe = async (req, res) => {
 // 4. Google OAuth Authentication Endpoint
 exports.googleAuth = async (req, res) => {
   try {
-    const { idToken } = req.body;
+    const { idToken, credential } = req.body;
+    const tokenToVerify = idToken || credential;
 
-    if (!idToken) {
-      return res.status(400).json({ error: 'Google authentication token (idToken) is required.' });
+    if (!tokenToVerify) {
+      return res.status(400).json({ error: 'Google authentication token is required.' });
     }
 
     let payload = null;
 
     // Method A: Decode JWT directly (instant & fail-safe)
     try {
-      const decoded = jwt.decode(idToken);
-      if (decoded && decoded.email) {
-        payload = decoded;
+      if (typeof tokenToVerify === 'string') {
+        const decoded = jwt.decode(tokenToVerify);
+        if (decoded && decoded.email) {
+          payload = decoded;
+        }
       }
     } catch (jwtErr) {
       console.warn('JWT decode warning:', jwtErr.message);
@@ -158,12 +161,12 @@ exports.googleAuth = async (req, res) => {
     // Method B: Google TokenInfo API call if decoded was missing email
     if (!payload || !payload.email) {
       try {
-        const tokenRes = await axios.get(`https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(idToken)}`, { timeout: 4000 });
+        const tokenRes = await axios.get(`https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(tokenToVerify)}`, { timeout: 5000 });
         if (tokenRes.data && tokenRes.data.email) {
           payload = tokenRes.data;
         }
       } catch (axiosErr) {
-        console.warn('Google tokeninfo API warning:', axiosErr.message);
+        console.warn('Google tokeninfo API warning:', axiosErr.response?.data || axiosErr.message);
       }
     }
 
@@ -172,7 +175,7 @@ exports.googleAuth = async (req, res) => {
       try {
         const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
         const ticket = await googleClient.verifyIdToken({
-          idToken,
+          idToken: tokenToVerify,
           audience: process.env.GOOGLE_CLIENT_ID,
         });
         payload = ticket.getPayload();
@@ -185,24 +188,27 @@ exports.googleAuth = async (req, res) => {
       return res.status(400).json({ error: 'Failed to verify Google login credentials. Please try again.' });
     }
 
-    const googleId = payload.sub || payload.user_id || `google_${payload.email}`;
-    const email = payload.email.toLowerCase();
+    const email = String(payload.email).toLowerCase().trim();
+    const googleId = String(payload.sub || payload.user_id || `google_${email}`);
     const name = payload.name || email.split('@')[0];
     const profilePicture = payload.picture || null;
 
-    // Find user by googleId first or by email to link existing accounts
-    let user = await prisma.user.findFirst({ where: { googleId } });
+    // Search user safely
+    let user = await prisma.user.findFirst({
+      where: { googleId: googleId }
+    });
 
     if (!user) {
-      // Check if user already exists by email (linked account scenario)
-      user = await prisma.user.findUnique({ where: { email } });
+      user = await prisma.user.findUnique({
+        where: { email: email }
+      });
 
       if (user) {
-        // Link existing account to Google
+        // Link existing account to Google provider
         user = await prisma.user.update({
           where: { id: user.id },
           data: {
-            googleId,
+            googleId: googleId,
             provider: 'GOOGLE',
             profilePicture: profilePicture || user.profilePicture
           }
@@ -210,14 +216,14 @@ exports.googleAuth = async (req, res) => {
       } else {
         const requestedRole = (req.body && req.body.role === 'CUSTOMER') ? 'CUSTOMER' : 'BUSINESS_OWNER';
 
-        // Create new Google OAuth user
+        // Create new Google user
         user = await prisma.user.create({
           data: {
-            email,
-            name,
+            email: email,
+            name: name,
             provider: 'GOOGLE',
-            googleId,
-            profilePicture,
+            googleId: googleId,
+            profilePicture: profilePicture,
             role: requestedRole
           }
         });
@@ -269,10 +275,12 @@ exports.googleAuth = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Google login internal controller error:', error);
+    console.error('Google auth controller catch block error:', error);
     return res.status(500).json({ error: 'Google login failed due to a server error. Please try again.' });
   }
 };
+
+
 
 // 5. Delete User Account and all cascaded data
 exports.deleteAccount = async (req, res) => {
