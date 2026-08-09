@@ -37,7 +37,8 @@ function AdminSidebar({
   const menuItems = [
     { id: 'overview', label: 'Business Overview', icon: LayoutDashboard, badge: null, color: '#34d399' },
     { id: 'locations', label: 'Business Locations', icon: MapPin, badge: null, color: '#38bdf8' },
-    { id: 'website-builder', label: 'Website Builder', icon: Globe, badge: 'AI', color: '#818cf8' },
+    { id: 'website-builder', label: 'Website Builder', icon: Globe, badge: 'PRO', color: '#818cf8' },
+
     { id: 'reviews', label: 'Review Management', icon: Star, badge: null, color: '#fbbf24' },
     {
       id: 'lms',

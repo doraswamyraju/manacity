@@ -317,7 +317,7 @@ function AdminDashboardLayout({ user, businessGroup, onLogout, setView }) {
 
                   <div style={{ backgroundColor: isDark ? '#0f172a' : '#f8fafc', padding: '1.25rem', borderRadius: '12px', border: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid #e2e8f0' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', color: isDark ? '#94a3b8' : '#64748b', fontSize: '0.82rem', marginBottom: '0.5rem' }}>
-                      <span>AI Website Views</span>
+                      <span>Storefront Website Views</span>
                       <Globe size={18} color="#38bdf8" />
                     </div>
                     <strong style={{ fontSize: '1.6rem', fontWeight: 900, color: isDark ? '#fff' : '#0f172a' }}>
@@ -403,7 +403,8 @@ function AdminDashboardLayout({ user, businessGroup, onLogout, setView }) {
           )}
 
           {/* OTHER MODULE TABS */}
-          {activeTab === 'locations' && <Locations onBack={() => setActiveTab('overview')} />}
+          {activeTab === 'locations' && <Locations onBack={() => setActiveTab('overview')} onNavigateToOnboarding={() => window.location.href = '/onboarding'} />}
+
           {activeTab === 'website-builder' && <WebsiteBuilder onBack={() => setActiveTab('overview')} />}
           {activeTab === 'reviews' && <ReviewManagement onBack={() => setActiveTab('overview')} />}
           {activeTab === 'billing' && <Billing onBack={() => setActiveTab('overview')} />}

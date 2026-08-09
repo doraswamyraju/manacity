@@ -201,15 +201,48 @@ export default function WebsiteBuilder({ onBack }) {
         <div style={editorSectionStyle}>
           <h3 style={editorHeaderStyle}>Theme & Colors</h3>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-              <label style={{ fontSize: '0.85rem' }}>Theme Template</label>
-              <select value={theme} onChange={(e) => setTheme(e.target.value)} style={inputStyle}>
-                <option value="default">Default Card Grid</option>
-                <option value="elegant">Elegant Bordered</option>
-                <option value="modern">Modern Dynamic</option>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', gridColumn: '1 / -1' }}>
+              <label style={{ fontSize: '0.85rem', fontWeight: 700, color: '#38bdf8' }}>Select Website Template (5 Pre-built Layouts)</label>
+              <select value={theme} onChange={(e) => setTheme(e.target.value)} style={{ ...inputStyle, fontWeight: 700, backgroundColor: '#0f172a' }}>
+                <option value="modern-corporate">1. Modern Corporate (Sleek Dark & Glass)</option>
+                <option value="e-commerce">2. E-Commerce Storefront (Products & Buy Buttons)</option>
+                <option value="service-booking">3. Service & Appointment Booking</option>
+                <option value="restaurant-menu">4. Restaurant & Dining Menu Layout</option>
+                <option value="clinic-healthcare">5. Clinic & Healthcare Portal</option>
               </select>
+
+              {/* Visual Template Cards */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '0.5rem', marginTop: '0.5rem' }}>
+                {[
+                  { id: 'modern-corporate', name: 'Corporate', color: '#6366f1' },
+                  { id: 'e-commerce', name: 'Storefront', color: '#10b981' },
+                  { id: 'service-booking', name: 'Services', color: '#38bdf8' },
+                  { id: 'restaurant-menu', name: 'Dining', color: '#f43f5e' },
+                  { id: 'clinic-healthcare', name: 'Clinic', color: '#c084fc' }
+                ].map(tmpl => (
+                  <div
+                    key={tmpl.id}
+                    onClick={() => setTheme(tmpl.id)}
+                    style={{
+                      border: theme === tmpl.id ? `2px solid ${tmpl.color}` : '1px solid rgba(255,255,255,0.1)',
+                      backgroundColor: theme === tmpl.id ? `${tmpl.color}20` : '#0f172a',
+                      borderRadius: '8px',
+                      padding: '0.5rem 0.25rem',
+                      textAlign: 'center',
+                      cursor: 'pointer',
+                      fontSize: '0.75rem',
+                      fontWeight: 700,
+                      color: theme === tmpl.id ? '#fff' : '#94a3b8'
+                    }}
+                  >
+                    <div style={{ width: '100%', height: '4px', backgroundColor: tmpl.color, borderRadius: '2px', marginBottom: '0.35rem' }} />
+                    {tmpl.name}
+                  </div>
+                ))}
+              </div>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', marginTop: '0.5rem' }}>
               <label style={{ fontSize: '0.85rem' }}>Primary Font</label>
               <select value={font} onChange={(e) => setFont(e.target.value)} style={inputStyle}>
                 <option value="Outfit">Outfit</option>
@@ -218,6 +251,7 @@ export default function WebsiteBuilder({ onBack }) {
                 <option value="monospace">Monospace</option>
               </select>
             </div>
+
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '1rem' }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>

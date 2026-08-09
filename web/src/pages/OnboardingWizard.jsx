@@ -1071,82 +1071,95 @@ export default function OnboardingWizard({ onCompleteOnboarding, onCancel }) {
   const progressPercent = Math.min(Math.round(((step - 1) / 5) * 100), 100);
 
   return (
-    <div className="glass-card" style={{ maxWidth: '600px', width: '100%', padding: '2.5rem' }}>
-      {/* Wizard Header */}
-      <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
-        <h2 style={{ fontSize: '1.8rem', fontWeight: 700, color: 'var(--text-primary)' }}>Business Onboarding</h2>
-        <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Configure your profile to unlock full platform capability.</p>
-        
-        {/* Progress Bar */}
-        <div style={{ marginTop: '1.25rem', width: '100%', height: '8px', backgroundColor: 'rgba(255, 255, 255, 0.05)', borderRadius: '4px', overflow: 'hidden' }}>
-          <div style={{ width: `${progressPercent}%`, height: '100%', backgroundColor: 'var(--accent-secondary)', transition: 'width 0.4s ease' }} />
+    <div style={{
+      minHeight: '100vh',
+      width: '100%',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: '#090d16',
+      padding: '2rem'
+    }}>
+      <div className="glass-card" style={{ maxWidth: '650px', width: '100%', padding: '2.5rem' }}>
+        {/* Wizard Header */}
+        <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
+          <h2 style={{ fontSize: '1.8rem', fontWeight: 700, color: 'var(--text-primary)' }}>Business Onboarding</h2>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Configure your profile to unlock full platform capability.</p>
+          
+          {/* Progress Bar */}
+          <div style={{ marginTop: '1.25rem', width: '100%', height: '8px', backgroundColor: 'rgba(255, 255, 255, 0.05)', borderRadius: '4px', overflow: 'hidden' }}>
+            <div style={{ width: `${progressPercent}%`, height: '100%', backgroundColor: 'var(--accent-secondary)', transition: 'width 0.4s ease' }} />
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '0.35rem' }}>
+            <span>Progress: {progressPercent}%</span>
+            {saving && <span style={{ color: 'var(--accent-secondary)' }}>Auto-saving...</span>}
+          </div>
         </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '0.35rem' }}>
-          <span>Progress: {progressPercent}%</span>
-          {saving && <span style={{ color: 'var(--accent-secondary)' }}>Auto-saving...</span>}
+
+        {step === 1 && (
+          <StepBusinessInfo 
+            initialData={formData} 
+            onNext={(data, directBg) => saveStepProgress(2, data, directBg)} 
+            onAutoFill={handleAutoFill}
+          />
+        )}
+
+        {step === 2 && (
+          <StepContactInfo 
+            initialData={formData} 
+            onNext={(data) => saveStepProgress(3, data)} 
+            onBack={() => setStep(1)} 
+          />
+        )}
+
+        {step === 3 && (
+          <StepAddress 
+            initialData={formData} 
+            onNext={(data) => saveStepProgress(4, data)} 
+            onBack={() => setStep(2)} 
+          />
+        )}
+
+        {step === 4 && (
+          <StepBusinessDetails 
+            initialData={formData} 
+            onNext={(data) => saveStepProgress(5, data)} 
+            onBack={() => setStep(3)} 
+          />
+        )}
+
+        {step === 5 && (
+          <StepSocialLinks 
+            initialData={formData} 
+            onNext={(data) => saveStepProgress(6, data)} 
+            onBack={() => setStep(4)} 
+          />
+        )}
+
+        {step === 6 && (
+          <StepCompletion 
+            summaryData={formData} 
+            onComplete={handleFinalSubmit} 
+            onBack={() => setStep(5)} 
+            onNavigateToStep={(s) => setStep(s)} 
+          />
+        )}
+
+        <div style={{ marginTop: '1.5rem', textAlign: 'center' }}>
+          <span 
+            onClick={onCancel}
+            style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', cursor: 'pointer', textDecoration: 'underline' }}
+          >
+            Cancel and return to Dashboard
+          </span>
         </div>
-      </div>
-
-      {step === 1 && (
-        <StepBusinessInfo 
-          initialData={formData} 
-          onNext={(data, directBg) => saveStepProgress(2, data, directBg)} 
-          onAutoFill={handleAutoFill}
-        />
-      )}
-
-      {step === 2 && (
-        <StepContactInfo 
-          initialData={formData} 
-          onNext={(data) => saveStepProgress(3, data)} 
-          onBack={() => setStep(1)} 
-        />
-      )}
-
-      {step === 3 && (
-        <StepAddress 
-          initialData={formData} 
-          onNext={(data) => saveStepProgress(4, data)} 
-          onBack={() => setStep(2)} 
-        />
-      )}
-
-      {step === 4 && (
-        <StepBusinessDetails 
-          initialData={formData} 
-          onNext={(data) => saveStepProgress(5, data)} 
-          onBack={() => setStep(3)} 
-        />
-      )}
-
-      {step === 5 && (
-        <StepSocialLinks 
-          initialData={formData} 
-          onNext={(data) => saveStepProgress(6, data)} 
-          onBack={() => setStep(4)} 
-        />
-      )}
-
-      {step === 6 && (
-        <StepCompletion 
-          summaryData={formData} 
-          onComplete={handleFinalSubmit} 
-          onBack={() => setStep(5)} 
-          onNavigateToStep={(s) => setStep(s)} 
-        />
-      )}
-
-      <div style={{ marginTop: '1.5rem', textAlign: 'center' }}>
-        <span 
-          onClick={onCancel}
-          style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', cursor: 'pointer', textDecoration: 'underline' }}
-        >
-          Cancel and return to Dashboard
-        </span>
       </div>
     </div>
   );
 }
+
+
+
 
 // Styling Constants
 const inputStyle = {
