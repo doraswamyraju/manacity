@@ -31,9 +31,9 @@ model User {
   name           String
   role           Role         @default(BUSINESS_OWNER)
   provider       AuthProvider @default(LOCAL)
-  googleId       String?      @unique
-  appleId        String?      @unique
-  microsoftId    String?      @unique
+  googleId       String?
+  appleId        String?
+  microsoftId    String?
   profilePicture String?
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
@@ -259,7 +259,7 @@ model Review {
   location        Location     @relation(fields: [locationId], references: [id], onDelete: Cascade)
   
   source          ReviewSource @default(INTERNAL)
-  sourceReviewId  String?      @unique // External ID (e.g. from Google API)
+  sourceReviewId  String?      // External ID (e.g. from Google API)
   rating          Int          // 1 to 5
   
   // Existing fields for backward compatibility
@@ -298,7 +298,7 @@ model Website {
   businessGroup   BusinessGroup    @relation(fields: [businessGroupId], references: [id], onDelete: Cascade)
   
   subdomain       String           @unique
-  customDomain    String?          @unique
+  customDomain    String?
   isPublished     Boolean          @default(false)
   
   // Settings & Theme

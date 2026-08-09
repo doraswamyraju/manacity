@@ -161,7 +161,7 @@ exports.googleAuth = async (req, res) => {
     }
 
     // Find user by googleId first or by email to link existing local accounts
-    let user = await prisma.user.findUnique({ where: { googleId } });
+    let user = await prisma.user.findFirst({ where: { googleId } });
 
     if (!user) {
       // Check if user already exists by email (linked account scenario)
