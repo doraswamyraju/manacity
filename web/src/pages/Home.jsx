@@ -37,6 +37,8 @@ import {
   Train,
   Compass,
   Mic,
+  Sun,
+  Moon,
   Plus
 } from 'lucide-react';
 
@@ -54,6 +56,20 @@ export default function Home({
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [themeMode, setThemeMode] = useState('light');
+
+  const toggleTheme = () => {
+    const nextTheme = themeMode === 'light' ? 'dark' : 'light';
+    setThemeMode(nextTheme);
+    if (nextTheme === 'dark') {
+      document.body.classList.add('dark-mode');
+      document.body.setAttribute('data-theme', 'dark');
+    } else {
+      document.body.classList.remove('dark-mode');
+      document.body.removeAttribute('data-theme');
+    }
+  };
+
 
   // Modals & Overlays
   const [selectedLeadModal, setSelectedLeadModal] = useState(null);
@@ -172,20 +188,21 @@ export default function Home({
     const allMocks = [
       {
         id: '1',
-        businessName: 'ABC Digital Marketing Solutions',
+        businessName: 'Rajugari Ventures - A Digital Marketing Agency in Tirupati',
         category: 'Digital Marketing',
         city: 'tirupati',
-        slug: 'abc-digital',
+        slug: 'rajugariventures',
         rating: 4.9,
-        reviewCount: 48,
-        address: 'Car Street, Near Temple, Tirupati',
-        phone: '+91 98765 43210',
-        whatsApp: '+91 98765 43210',
-        websiteUrl: 'https://tirupati.manacity.in/abc-digital',
+        reviewCount: 63,
+        address: 'Shop No.38, 1st Floor, Tuda Complex, near Anna Canteen, Bairagi patteda, Tirupati, Andhra Pradesh 517502',
+        phone: '+91 079979 91101',
+        whatsApp: '+91 079979 91101',
+        websiteUrl: '/site/rajugariventures',
         services: ['SEO Optimization', 'Google Ads Management', 'GBP Optimization', 'Meta Ads'],
         verified: true,
         isSponsored: true
       },
+
       {
         id: '2',
         businessName: 'Sri Venkateswara Premium Rice Mill',
@@ -284,7 +301,7 @@ export default function Home({
   };
 
   return (
-    <div style={{ width: '100%', minHeight: '100vh', backgroundColor: '#090d16', color: '#f8fafc', display: 'flex', flexDirection: 'column', paddingBottom: '70px' }}>
+    <div style={{ width: '100%', minHeight: '100vh', backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)', display: 'flex', flexDirection: 'column', paddingBottom: '70px' }}>
       
       {/* 1. Header Bar (Matching Justdial Screenshot 1 Top Nav) */}
       <header style={{
@@ -292,13 +309,14 @@ export default function Home({
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
-        borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-        backgroundColor: 'rgba(15, 23, 42, 0.95)',
+        borderBottom: '1px solid var(--border-color)',
+        backgroundColor: 'var(--bg-secondary)',
         backdropFilter: 'blur(12px)',
         position: 'sticky',
         top: 0,
         zIndex: 100
       }}>
+
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
           <img src="/logo.png" alt="ManaCity Logo" style={{ height: '36px' }} />
           <span style={{ fontSize: '0.78rem', padding: '0.25rem 0.65rem', borderRadius: '12px', background: 'linear-gradient(90deg, #6366f1, #a855f7)', color: '#fff', fontWeight: 800 }}>
@@ -307,9 +325,28 @@ export default function Home({
         </div>
 
         {/* Desktop Header Links */}
-        <div style={{ display: 'flex', gap: '1.25rem', alignItems: 'center', fontSize: '0.86rem', color: '#94a3b8' }}>
-          <a href="#hiring" style={{ color: '#94a3b8', textDecoration: 'none' }}>We Are Hiring</a>
-          <a href="#advertise" style={{ color: '#94a3b8', textDecoration: 'none' }}>Advertise</a>
+        <div style={{ display: 'flex', gap: '1.25rem', alignItems: 'center', fontSize: '0.86rem', color: 'var(--text-secondary)' }}>
+          <button
+            onClick={toggleTheme}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.4rem',
+              backgroundColor: 'var(--bg-tertiary)',
+              border: '1px solid var(--border-color)',
+              color: 'var(--text-primary)',
+              padding: '0.35rem 0.75rem',
+              borderRadius: '20px',
+              fontSize: '0.8rem',
+              fontWeight: 700,
+              cursor: 'pointer'
+            }}
+          >
+            {themeMode === 'light' ? <Sun size={14} color="#f59e0b" /> : <Moon size={14} color="#38bdf8" />}
+            {themeMode === 'light' ? 'Light Mode' : 'Dark Mode'}
+          </button>
+          <a href="#hiring" style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}>We Are Hiring</a>
+          <a href="#advertise" style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}>Advertise</a>
           <button onClick={onNavigateToRegister} style={{ background: 'rgba(255,152,0,0.15)', color: '#ff9800', border: '1px solid rgba(255,152,0,0.4)', padding: '0.35rem 0.75rem', borderRadius: '6px', fontWeight: 700, cursor: 'pointer' }}>
             Free Business Listing
           </button>
@@ -330,6 +367,7 @@ export default function Home({
             </button>
           )}
         </div>
+
       </header>
 
       {/* Floating Side Action Badges (Right fixed) */}

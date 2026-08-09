@@ -76,8 +76,9 @@ exports.searchDirectoryListings = async (req, res) => {
       category: l.category || 'General Business',
       city: l.city,
       slug: l.slug,
-      rating: 4.8,
-      reviewCount: 12,
+      rating: l.rating || (l.businessGroup && l.businessGroup.rating) ? l.businessGroup.rating : 4.9,
+      reviewCount: l.reviewCount || (l.businessGroup && l.businessGroup.reviewCount) ? l.businessGroup.reviewCount : 63,
+
       phone: l.contactPhone || '9876543210',
       whatsApp: l.whatsAppNumber || '9876543210',
       address: l.businessGroup ? l.businessGroup.address : 'Tirupati',
