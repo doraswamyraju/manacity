@@ -990,13 +990,31 @@ function ServicesLibraryTab({ catalog = [], theme, handleCreateCatalogItem, hand
                           if (file) {
                             const reader = new FileReader();
                             reader.onloadend = () => {
-                              const updated = [...formData.photos];
-                              updated[idx] = reader.result;
-                              setFormData({ ...formData, photos: updated });
+                              const img = new Image();
+                              img.src = reader.result;
+                              img.onload = () => {
+                                const canvas = document.createElement('canvas');
+                                const MAX_WIDTH = 800;
+                                const scaleSize = MAX_WIDTH / img.width;
+                                if (img.width > MAX_WIDTH) {
+                                  canvas.width = MAX_WIDTH;
+                                  canvas.height = img.height * scaleSize;
+                                } else {
+                                  canvas.width = img.width;
+                                  canvas.height = img.height;
+                                }
+                                const ctx = canvas.getContext('2d');
+                                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                                const compressedBase64 = canvas.toDataURL('image/jpeg', 0.82);
+                                const updated = [...formData.photos];
+                                updated[idx] = compressedBase64;
+                                setFormData({ ...formData, photos: updated });
+                              };
                             };
                             reader.readAsDataURL(file);
                           }
                         }}
+
                       />
                     </label>
                     {formData.photos.length > 1 && (
