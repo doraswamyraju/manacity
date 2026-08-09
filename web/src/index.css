@@ -161,3 +161,90 @@ body {
   gap: 1.5rem;
   padding: 1.5rem;
 }
+
+/* -------------------------------------------------- */
+/* MOBILE OPTIMIZATIONS & RESPONSIVE DESIGN (<= 768px) */
+/* -------------------------------------------------- */
+@media (max-width: 768px) {
+  body {
+    padding-bottom: 70px; /* Compensation for fixed 5-icon bottom navigation bar */
+  }
+
+  .desktop-only {
+    display: none !important;
+  }
+
+  .mobile-only {
+    display: flex !important;
+  }
+
+  /* Responsive Grids */
+  .dashboard-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+    padding: 0.75rem !important;
+  }
+
+  .grid-1-col-mobile {
+    grid-template-columns: 1fr !important;
+  }
+
+  .grid-2-col-mobile {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* Horizontal Category Pill Slider */
+  .horizontal-scroll-mobile {
+    display: flex !important;
+    overflow-x: auto !important;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding: 0.5rem 0.75rem !important;
+    gap: 0.75rem !important;
+  }
+  .horizontal-scroll-mobile::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Floating Bottom Search Button for Mobile */
+  .floating-mobile-search-btn {
+    position: fixed;
+    bottom: 80px;
+    right: 18px;
+    width: 54px;
+    height: 54px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #38bdf8 0%, #0284c7 100%);
+    color: #ffffff;
+    border: none;
+    box-shadow: 0 10px 25px rgba(56, 189, 248, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+    cursor: pointer;
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .floating-mobile-search-btn:active {
+    transform: scale(0.92);
+  }
+
+  /* Touch-friendly buttons */
+  button, input, select {
+    min-height: 42px;
+  }
+}
+
+@media (min-width: 769px) {
+  .mobile-only {
+    display: none !important;
+  }
+  .desktop-only {
+    display: flex !important;
+  }
+  .floating-mobile-search-btn {
+    display: none !important;
+  }
+}
+

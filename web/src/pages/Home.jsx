@@ -1015,8 +1015,18 @@ export default function Home({
         </div>
       )}
 
+      {/* Floating Search Action Button on Mobile */}
+      <button
+        className="floating-mobile-search-btn mobile-only"
+        onClick={() => setShowMobileSearchModal(true)}
+        title="Search ManaCity"
+        aria-label="Search"
+      >
+        <Search size={24} />
+      </button>
+
       {/* Mobile Bottom Navigation Bar (5 Icons) */}
-      <nav style={{
+      <nav className="mobile-only" style={{
         position: 'fixed',
         bottom: 0,
         left: 0,
@@ -1030,6 +1040,7 @@ export default function Home({
         zIndex: 1000,
         padding: '0 0.5rem'
       }}>
+
         <button
           onClick={() => {
             setSelectedCategory('All');
