@@ -15,8 +15,10 @@ import {
   Zap,
   FolderTree,
   Wrench,
-  Package
+  Package,
+  Link
 } from 'lucide-react';
+
 
 function SuperAdminSidebar({
   activeTab,
@@ -74,8 +76,10 @@ function SuperAdminSidebar({
       ]
     },
     { id: 'subscriptions', label: 'Subscriptions', icon: CreditCard, badge: null, color: '#fbbf24' },
+    { id: 'url-settings', label: 'URL & SEO Settings', icon: Link, badge: null, color: '#38bdf8' },
     { id: 'logs', label: 'Audit Logs', icon: List, badge: null, color: '#f472b6' }
   ];
+
 
   const handleParentClick = (item) => {
     if (item.subItems) {

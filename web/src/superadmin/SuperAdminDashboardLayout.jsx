@@ -25,6 +25,9 @@ import AttributesTab from '../admin/library/AttributesTab';
 import TagsLabelsTab from '../admin/library/TagsLabelsTab';
 import UnitsPricingTab from '../admin/library/UnitsPricingTab';
 import MediaLibraryTab from '../admin/library/MediaLibraryTab';
+import UrlSettingsTab from '../admin/UrlSettingsTab';
+
+
 
 function SuperAdminDashboardLayout({ user, onLogout }) {
   // Persist active tab in localStorage so browser refresh stays on the current tab
@@ -312,7 +315,9 @@ function SuperAdminDashboardLayout({ user, onLogout }) {
               {activeTab === 'lms-subscriptions' && <SubscriptionsTab subscriptions={subscriptions} theme={theme} />}
 
               {activeTab === 'subscriptions' && <SubscriptionsTab subscriptions={subscriptions} theme={theme} />}
+              {activeTab === 'url-settings' && <UrlSettingsTab theme={theme} />}
               {activeTab === 'logs' && <AuditLogsTab logs={logs} theme={theme} />}
+
             </>
           )}
 

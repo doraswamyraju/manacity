@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const adminController = require('../controllers/adminController');
+const systemSettingsController = require('../controllers/systemSettingsController');
 const auth = require('../middleware/auth');
 const admin = require('../middleware/admin');
 
@@ -29,5 +30,10 @@ router.delete('/catalog/:id', adminController.deleteMasterCatalogItem);
 // Subscriptions
 router.get('/subscriptions', adminController.getSubscriptions);
 
+// URL Structure & SEO Settings (Super Admin Stacked Control)
+router.get('/settings/url-structure', systemSettingsController.getUrlSettings);
+router.put('/settings/url-structure', systemSettingsController.updateUrlSettings);
+
 module.exports = router;
+
 

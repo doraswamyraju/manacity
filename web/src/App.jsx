@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import axios from 'axios';
+
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Locations from './pages/Locations';
@@ -20,18 +22,12 @@ import AdminDashboardLayout from './admin_dashboard/AdminDashboardLayout';
 import CustomerDashboardLayout from './customer_dashboard/CustomerDashboardLayout';
 
 function App() {
-  const [view, setView] = useState('landing'); // landing, login, register, dashboard, locations, billing, admin, onboarding
+  const navigate = useNavigate();
+  const location = useLocation();
+
   const [user, setUser] = useState(null);
   const [businessGroup, setBusinessGroup] = useState(null);
   const [loading, setLoading] = useState(true);
-
-  // Path routing checks
-  const isReviewPage = window.location.pathname.startsWith('/review/');
-  const isQrLandingPage = window.location.pathname.startsWith('/r/');
-  const isPrintQrPage = window.location.pathname === '/print-review-qr';
-  const isPrivacyPage = window.location.pathname === '/privacy';
-  const isTermsPage = window.location.pathname === '/terms';
-  const isDeletePage = window.location.pathname === '/delete-account';
 
   const fetchOnboardingState = () => {
     axios.get('/api/business/onboarding-state')
@@ -43,7 +39,15 @@ function App() {
 
   // Auto-authenticate with stored token
   useEffect(() => {
-    if (isReviewPage || isQrLandingPage || isPrivacyPage || isTermsPage || isDeletePage) {
+    const isPublicRoute = 
+      location.pathname.startsWith('/review/') ||
+      location.pathname.startsWith('/r/') ||
+      location.pathname === '/print-review-qr' ||
+      location.pathname === '/privacy' ||
+      location.pathname === '/terms' ||
+      location.pathname === '/delete-account';
+
+    if (isPublicRoute) {
       setLoading(false);
       return;
     }
@@ -55,22 +59,13 @@ function App() {
       const parsedUser = JSON.parse(savedUser);
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       setUser(parsedUser);
-      if (parsedUser.role === 'SUPER_ADMIN') {
-        setView('admin');
-      } else {
-        setView('dashboard');
-        fetchOnboardingState();
-      }
-      
+
       // Verify token freshness with backend
       axios.get('/api/auth/me')
         .then((res) => {
           if (res.data.status === 'success') {
             setUser(res.data.user);
             localStorage.setItem('user', JSON.stringify(res.data.user));
-            if (res.data.user.role === 'SUPER_ADMIN') {
-              setView('admin');
-            }
           }
         })
         .catch(() => {
@@ -80,23 +75,23 @@ function App() {
           setLoading(false);
         });
     } else {
-      setView('landing');
       setLoading(false);
     }
-  }, [isReviewPage, isPrivacyPage, isTermsPage, isDeletePage]);
+  }, []);
 
   const handleAuthSuccess = (authenticatedUser) => {
     setUser(authenticatedUser);
+    localStorage.setItem('user', JSON.stringify(authenticatedUser));
     if (authenticatedUser.role === 'SUPER_ADMIN') {
-      setView('admin');
+      navigate('/admin');
     } else if (authenticatedUser.role === 'BUSINESS_OWNER') {
-      setView('onboarding');
+      navigate('/onboarding');
+      fetchOnboardingState();
     } else {
-      setView('dashboard');
+      navigate('/dashboard');
+      fetchOnboardingState();
     }
-    fetchOnboardingState();
   };
-
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -104,7 +99,7 @@ function App() {
     delete axios.defaults.headers.common['Authorization'];
     setUser(null);
     setBusinessGroup(null);
-    setView('landing');
+    navigate('/login');
   };
 
   if (loading) {
@@ -121,237 +116,65 @@ function App() {
     );
   }
 
-  // Render compliance/public routes directly based on URL paths
-  if (isReviewPage) {
-    return <ReviewSubmit />;
-  }
-  if (isQrLandingPage) {
-    return <PublicReviewLanding />;
-  }
-  if (isPrintQrPage) {
-    return <ReviewPosterPrint />;
-  }
-  if (isPrivacyPage) {
-    return <PrivacyPolicy />;
-  }
-  if (isTermsPage) {
-    return <TermsOfService />;
-  }
-  if (isDeletePage) {
-    return <DeleteAccount />;
-  }
-
-  if (view === 'admin') {
-    return <SuperAdminDashboardLayout user={user} onLogout={handleLogout} />;
-  }
-
-  if (view === 'dashboard' && user && user.role === 'CUSTOMER') {
-    return (
-      <CustomerDashboardLayout
-        user={user}
-        onLogout={handleLogout}
-      />
-    );
-  }
-
-  if (view === 'dashboard' && user && user.role !== 'SUPER_ADMIN') {
-    return (
-      <AdminDashboardLayout
-        user={user}
-        businessGroup={businessGroup}
-        onLogout={handleLogout}
-        setView={setView}
-      />
-    );
-  }
-
   return (
-    <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      minHeight: '100vh',
-      padding: '2rem',
-      textAlign: 'center'
-    }}>
-      {view === 'landing' && (
-        <Home 
-          onNavigateToLogin={() => setView('login')}
-          onNavigateToRegister={() => setView('register')}
-          onNavigateToPrivacy={() => window.location.href = '/privacy'}
-          onNavigateToTerms={() => window.location.href = '/terms'}
-          onNavigateToDelete={() => window.location.href = '/delete-account'}
-        />
-      )}
+    <Routes>
+      {/* Public Aggregator Directory Routes */}
+      <Route path="/" element={<Home onNavigateToLogin={() => navigate('/login')} onNavigateToRegister={() => navigate('/register')} user={user} />} />
+      <Route path="/:city" element={<Home onNavigateToLogin={() => navigate('/login')} onNavigateToRegister={() => navigate('/register')} user={user} />} />
+      <Route path="/:city/:category" element={<Home onNavigateToLogin={() => navigate('/login')} onNavigateToRegister={() => navigate('/register')} user={user} />} />
+      <Route path="/biz/:slug" element={<Home onNavigateToLogin={() => navigate('/login')} onNavigateToRegister={() => navigate('/register')} user={user} />} />
 
-      {view === 'login' && (
-        <Login 
-          onAuthSuccess={handleAuthSuccess} 
-          onNavigateToRegister={() => setView('register')} 
-        />
-      )}
+      {/* Auth Routes */}
+      <Route path="/login" element={<Login onAuthSuccess={handleAuthSuccess} onNavigateToRegister={() => navigate('/register')} />} />
+      <Route path="/register" element={<Register onAuthSuccess={handleAuthSuccess} onNavigateToLogin={() => navigate('/login')} />} />
 
-      {view === 'register' && (
-        <Register 
-          onAuthSuccess={handleAuthSuccess} 
-          onNavigateToLogin={() => setView('login')} 
-        />
-      )}
+      {/* Compliance / Landing Pages */}
+      <Route path="/privacy" element={<PrivacyPolicy />} />
+      <Route path="/terms" element={<TermsOfService />} />
+      <Route path="/delete-account" element={<DeleteAccount />} />
 
-      {view === 'locations' && (
-        <Locations 
-          onBack={() => setView('dashboard')} 
-          onNavigateToOnboarding={() => setView('onboarding')}
-        />
-      )}
+      {/* Review System Pages */}
+      <Route path="/review/*" element={<ReviewSubmit />} />
+      <Route path="/r/*" element={<PublicReviewLanding />} />
+      <Route path="/print-review-qr" element={<ReviewPosterPrint />} />
 
-      {view === 'billing' && (
-        <Billing onBack={() => setView('dashboard')} />
-      )}
-
-      {view === 'admin' && (
-        <SuperAdminDashboardLayout user={user} onLogout={handleLogout} />
-      )}
-
-      {view === 'website-builder' && (
-        <WebsiteBuilder onBack={() => setView('dashboard')} />
-      )}
-
-      {view === 'reviews' && (
-        <ReviewManagement onBack={() => setView('dashboard')} />
-      )}
-
-      {view === 'onboarding' && (
-        <OnboardingWizard 
-          onCompleteOnboarding={(updatedBg, targetView) => {
-            setBusinessGroup(updatedBg);
-            setView(targetView || 'dashboard');
-          }}
-          onCancel={() => setView('dashboard')}
-        />
-      )}
-
-      {view === 'dashboard' && user && (
-        <div className="glass-card" style={{ maxWidth: '500px', width: '100%', padding: '2.5rem' }}>
-          <img 
-            src="/logo.png" 
-            alt="ManaCity Logo" 
-            style={{ width: '90%', maxWidth: '280px', marginBottom: '2rem' }} 
-          />
-          <h2 style={{ fontSize: '1.8rem', fontWeight: 700, marginBottom: '0.5rem' }}>
-            Welcome, <span className="gradient-text">{user.name}</span>!
-          </h2>
-          <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>
-            Role: <strong>{user.role}</strong> | Email: <strong>{user.email}</strong>
-          </p>
-
-          {/* Onboarding Progress Card */}
-          {(!businessGroup || !businessGroup.isSetupComplete) ? (
-            <div style={{ 
-              backgroundColor: 'rgba(255, 152, 0, 0.05)', 
-              border: '1px solid rgba(255, 152, 0, 0.2)',
-              padding: '1.25rem',
-              borderRadius: 'var(--radius-sm)',
-              marginBottom: '2rem',
-              textAlign: 'left'
-            }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                <span style={{ fontWeight: 600, color: '#ff9800' }}>
-                  Complete Business Profile ({businessGroup ? Math.min(Math.round(((businessGroup.setupStep - 1) / 5) * 100), 100) : 0}%)
-                </span>
-                <button 
-                  className="btn btn-secondary" 
-                  onClick={() => setView('onboarding')}
-                  style={{ padding: '0.35rem 0.75rem', fontSize: '0.8rem', height: 'auto', borderColor: '#ff9800', color: '#ff9800' }}
-                >
-                  Continue
-                </button>
-              </div>
-              <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                Setup your business address, working hours, services, and logo to enable search visibility, dynamic website rendering, and local mapping features.
-              </p>
-            </div>
+      {/* Super Admin Console Route */}
+      <Route 
+        path="/admin/*" 
+        element={
+          user && user.role === 'SUPER_ADMIN' ? (
+            <SuperAdminDashboardLayout user={user} onLogout={handleLogout} />
           ) : (
-            <div style={{ 
-              backgroundColor: 'rgba(76, 175, 80, 0.05)', 
-              border: '1px solid rgba(76, 175, 80, 0.2)',
-              padding: '1rem',
-              borderRadius: 'var(--radius-sm)',
-              marginBottom: '2rem',
-              textAlign: 'left'
-            }}>
-              <p style={{ color: '#4caf50', fontWeight: 600, marginBottom: '0.25rem' }}>
-                ✓ Business Profile Configured
-              </p>
-              <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-                Your business details are synchronized. All system tools, mapping, and site builders are fully unlocked.
-              </p>
-            </div>
-          )}
+            <Navigate to="/login" replace />
+          )
+        } 
+      />
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', width: '100%' }}>
-            {user.role === 'SUPER_ADMIN' && (
-              <button className="btn btn-primary" onClick={() => setView('admin')} style={{ width: '100%', backgroundColor: 'var(--accent-secondary)', borderColor: 'var(--accent-secondary)' }}>
-                Super Admin Console
-              </button>
-            )}
-            
-            <button 
-              className="btn btn-primary" 
-              onClick={() => setView('locations')} 
-              disabled={!businessGroup || !businessGroup.isSetupComplete}
-              style={{ 
-                width: '100%', 
-                opacity: (!businessGroup || !businessGroup.isSetupComplete) ? 0.5 : 1,
-                cursor: (!businessGroup || !businessGroup.isSetupComplete) ? 'not-allowed' : 'pointer'
-              }}
-            >
-              Setup Business Location {(!businessGroup || !businessGroup.isSetupComplete) && '🔒'}
-            </button>
+      {/* Business Dashboard Routes */}
+      <Route 
+        path="/dashboard/*" 
+        element={
+          user ? (
+            user.role === 'CUSTOMER' ? (
+              <CustomerDashboardLayout user={user} onLogout={handleLogout} />
+            ) : (
+              <AdminDashboardLayout user={user} businessGroup={businessGroup} onLogout={handleLogout} setView={(v) => navigate(`/${v}`)} />
+            )
+          ) : (
+            <Navigate to="/login" replace />
+          )
+        } 
+      />
 
-            <button 
-              className="btn btn-primary" 
-              onClick={() => setView('website-builder')} 
-              disabled={!businessGroup || !businessGroup.isSetupComplete}
-              style={{ 
-                width: '100%', 
-                backgroundColor: 'var(--accent-secondary)', 
-                borderColor: 'var(--accent-secondary)',
-                opacity: (!businessGroup || !businessGroup.isSetupComplete) ? 0.5 : 1,
-                cursor: (!businessGroup || !businessGroup.isSetupComplete) ? 'not-allowed' : 'pointer'
-              }}
-            >
-              Smart Website Builder {(!businessGroup || !businessGroup.isSetupComplete) && '🔒'}
-            </button>
+      <Route path="/onboarding" element={user ? <OnboardingWizard onCompleteOnboarding={(updatedBg) => { setBusinessGroup(updatedBg); navigate('/dashboard'); }} onCancel={() => navigate('/dashboard')} /> : <Navigate to="/login" replace />} />
+      <Route path="/locations" element={user ? <Locations onBack={() => navigate('/dashboard')} onNavigateToOnboarding={() => navigate('/onboarding')} /> : <Navigate to="/login" replace />} />
+      <Route path="/billing" element={user ? <Billing onBack={() => navigate('/dashboard')} /> : <Navigate to="/login" replace />} />
+      <Route path="/website-builder" element={user ? <WebsiteBuilder onBack={() => navigate('/dashboard')} /> : <Navigate to="/login" replace />} />
+      <Route path="/reviews" element={user ? <ReviewManagement onBack={() => navigate('/dashboard')} /> : <Navigate to="/login" replace />} />
 
-            <button 
-              className="btn btn-primary" 
-              onClick={() => setView('reviews')} 
-              disabled={!businessGroup || !businessGroup.isSetupComplete}
-              style={{ 
-                width: '100%', 
-                backgroundColor: 'var(--accent-secondary)', 
-                borderColor: 'var(--accent-secondary)',
-                opacity: (!businessGroup || !businessGroup.isSetupComplete) ? 0.5 : 1,
-                cursor: (!businessGroup || !businessGroup.isSetupComplete) ? 'not-allowed' : 'pointer'
-              }}
-            >
-              Review Management Console {(!businessGroup || !businessGroup.isSetupComplete) && '🔒'}
-            </button>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-              <button className="btn btn-secondary" onClick={() => setView('billing')} style={{ width: '100%' }}>
-                Billing & Tiers
-              </button>
-              <button className="btn btn-secondary" onClick={handleLogout} style={{ width: '100%' }}>
-                Sign Out
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+      {/* Fallback Catch-all Route */}
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   );
 }
 

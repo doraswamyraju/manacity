@@ -23,6 +23,8 @@ const phase1Routes = require('./routes/phase1Routes');
 app.use(cors());
 app.use(express.json());
 
+const systemSettingsController = require('./controllers/systemSettingsController');
+
 // Mount Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/business', businessRoutes);
@@ -34,6 +36,10 @@ app.use('/api/reviews', reviewSystemRoutes);
 app.use('/api/crm', crmRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/phase1', phase1Routes);
+
+// Public System Settings
+app.get('/api/public/url-settings', systemSettingsController.getUrlSettings);
+
 
 
 // Sample Test Route
