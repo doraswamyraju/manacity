@@ -21,7 +21,9 @@ import {
   ChevronLeft,
   ChevronRight,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
+  Trash2,
+  X
 } from 'lucide-react';
 
 function ServicesLibraryTab({ catalog = [], theme, handleCreateCatalogItem, handleUpdateCatalogItem, handleDeleteCatalogItem }) {
@@ -33,8 +35,66 @@ function ServicesLibraryTab({ catalog = [], theme, handleCreateCatalogItem, hand
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [selectedItems, setSelectedItems] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
+
+  // Modals state
   const [viewingService, setViewingService] = useState(null);
-  const [editingService, setEditingService] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState(null);
+
+  const [formData, setFormData] = useState({
+    name: '',
+    category: 'Digital Marketing',
+    type: 'SERVICE',
+    description: '',
+    defaultPrice: '',
+    photos: [''],
+    customerLogos: ['']
+  });
+
+  const openCreateModal = () => {
+    setEditingItem(null);
+    setFormData({
+      name: '',
+      category: 'Digital Marketing',
+      type: 'SERVICE',
+      description: '',
+      defaultPrice: '',
+      photos: [''],
+      customerLogos: ['']
+    });
+    setIsModalOpen(true);
+  };
+
+  const openEditModal = (item) => {
+    setEditingItem(item);
+    setFormData({
+      name: item.name || '',
+      category: item.category || 'Digital Marketing',
+      type: 'SERVICE',
+      description: item.description || '',
+      defaultPrice: item.defaultPrice ? String(item.defaultPrice) : (item.priceRange ? item.priceRange.replace(/[^0-9]/g, '') : ''),
+      photos: item.photos && item.photos.length ? item.photos : [item.iconUrl || ''],
+      customerLogos: item.customerLogos && item.customerLogos.length ? item.customerLogos : ['']
+    });
+    setIsModalOpen(true);
+  };
+
+  const handleFormSubmit = async (e) => {
+    e.preventDefault();
+    const payload = {
+      ...formData,
+      type: 'SERVICE',
+      photos: formData.photos.filter(Boolean),
+      customerLogos: formData.customerLogos.filter(Boolean)
+    };
+
+    if (editingItem && handleUpdateCatalogItem) {
+      await handleUpdateCatalogItem(editingItem.id, payload);
+    } else if (handleCreateCatalogItem) {
+      await handleCreateCatalogItem(payload);
+    }
+    setIsModalOpen(false);
+  };
 
   // Sample seed rows matching the screenshot exactly
   const defaultServices = [
@@ -809,6 +869,42 @@ function ServicesLibraryTab({ catalog = [], theme, handleCreateCatalogItem, hand
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+      {/* Add / Edit Service Modal */}
+      {isModalOpen && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(5px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '1rem' }}>
+          <div style={{ backgroundColor: cardBg, border: cardBorder, borderRadius: '20px', width: '100%', maxWidth: '580px', padding: '1.75rem', color: textMain }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+              <h3 style={{ fontSize: '1.1rem', fontWeight: 800, margin: 0 }}>{editingItem ? 'Edit Service' : 'Add New Service'}</h3>
+              <button onClick={() => setIsModalOpen(false)} style={{ background: 'none', border: 'none', color: textMuted, cursor: 'pointer', fontSize: '1.2rem' }}>✕</button>
+            </div>
+
+            <form onSubmit={handleFormSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+              <div>
+                <label style={{ fontSize: '0.78rem', fontWeight: 700, color: textMuted }}>Service Name *</label>
+                <input type="text" required value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} style={{ width: '100%', padding: '0.6rem', borderRadius: '8px', backgroundColor: inputBg, border: inputBorder, color: textMain, fontSize: '0.85rem' }} />
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                <div>
+                  <label style={{ fontSize: '0.78rem', fontWeight: 700, color: textMuted }}>Category</label>
+                  <input type="text" value={formData.category} onChange={e => setFormData({ ...formData, category: e.target.value })} style={{ width: '100%', padding: '0.6rem', borderRadius: '8px', backgroundColor: inputBg, border: inputBorder, color: textMain, fontSize: '0.85rem' }} />
+                </div>
+                <div>
+                  <label style={{ fontSize: '0.78rem', fontWeight: 700, color: textMuted }}>Price (₹)</label>
+                  <input type="number" value={formData.defaultPrice} onChange={e => setFormData({ ...formData, defaultPrice: e.target.value })} style={{ width: '100%', padding: '0.6rem', borderRadius: '8px', backgroundColor: inputBg, border: inputBorder, color: textMain, fontSize: '0.85rem' }} />
+                </div>
+              </div>
+              <div>
+                <label style={{ fontSize: '0.78rem', fontWeight: 700, color: textMuted }}>Description</label>
+                <textarea rows={3} value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} style={{ width: '100%', padding: '0.6rem', borderRadius: '8px', backgroundColor: inputBg, border: inputBorder, color: textMain, fontSize: '0.85rem' }} />
+              </div>
+
+              <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1rem' }}>
+                <button type="button" onClick={() => setIsModalOpen(false)} style={{ flex: 1, padding: '0.6rem', borderRadius: '8px', border: inputBorder, backgroundColor: 'transparent', color: textMain, fontWeight: 600, cursor: 'pointer' }}>Cancel</button>
+                <button type="submit" style={{ flex: 2, padding: '0.6rem', borderRadius: '8px', border: 'none', backgroundColor: '#6366f1', color: '#fff', fontWeight: 700, cursor: 'pointer' }}>Save Service</button>
+              </div>
+            </form>
           </div>
         </div>
       )}

@@ -22,6 +22,7 @@ import {
   CheckCircle,
   XCircle,
   X,
+  Trash2,
   Image as ImageIcon,
   Users
 } from 'lucide-react';
