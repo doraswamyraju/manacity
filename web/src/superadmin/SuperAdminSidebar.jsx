@@ -19,7 +19,10 @@ import {
   Link,
   Globe,
   MapPin,
-  Search
+  Search,
+  Star,
+  Sparkles,
+  ShieldCheck
 } from 'lucide-react';
 
 function SuperAdminSidebar({
@@ -37,15 +40,32 @@ function SuperAdminSidebar({
     if (activeTab && activeTab.startsWith('lms')) return 'lms';
     if (activeTab && (activeTab.startsWith('library') || activeTab === 'catalog')) return 'library';
     if (activeTab && (activeTab.startsWith('url-') || activeTab === 'url-settings')) return 'url-settings';
+    if (activeTab && (activeTab.startsWith('aggregator-') || activeTab === 'aggregator-control')) return 'aggregator-control';
     return null;
   });
+
 
   const isExpanded = isPinned || isHovered;
   const isDark = theme === 'dark';
 
   const menuItems = [
     { id: 'overview', label: 'Platform Overview', icon: Activity, badge: null, color: '#818cf8' },
+    {
+      id: 'aggregator-control',
+      label: 'Directory Aggregator',
+      icon: Building2,
+      color: '#34d399',
+      badge: 'LIVE',
+      subItems: [
+        { id: 'aggregator-overview', label: 'Directory Overview', icon: Activity },
+        { id: 'aggregator-listings', label: 'Listings & Verified', icon: ShieldCheck },
+        { id: 'aggregator-sponsored', label: 'Sponsored Positions', icon: Star },
+        { id: 'aggregator-categories', label: 'Categories & Banners', icon: Sparkles },
+        { id: 'aggregator-leads', label: 'Get Quote Inquiries', icon: Zap }
+      ]
+    },
     { id: 'users', label: 'User Directory', icon: Users, badge: metrics?.totalUsers, color: '#38bdf8' },
+
     { id: 'businesses', label: 'Business Directory', icon: Building2, badge: metrics?.totalBusinessGroups || metrics?.totalLocations, color: '#34d399' },
     {
       id: 'library',

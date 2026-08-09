@@ -26,6 +26,8 @@ import TagsLabelsTab from '../admin/library/TagsLabelsTab';
 import UnitsPricingTab from '../admin/library/UnitsPricingTab';
 import MediaLibraryTab from '../admin/library/MediaLibraryTab';
 import UrlSettingsTab from '../admin/UrlSettingsTab';
+import DirectoryControlTab from '../admin/DirectoryControlTab';
+
 
 
 
@@ -315,7 +317,9 @@ function SuperAdminDashboardLayout({ user, onLogout }) {
               {activeTab === 'lms-subscriptions' && <SubscriptionsTab subscriptions={subscriptions} theme={theme} />}
 
               {activeTab === 'subscriptions' && <SubscriptionsTab subscriptions={subscriptions} theme={theme} />}
+              {(activeTab === 'aggregator-control' || activeTab.startsWith('aggregator-')) && <DirectoryControlTab activeTab={activeTab} setActiveTab={setActiveTab} theme={theme} />}
               {(activeTab === 'url-settings' || activeTab.startsWith('url-')) && <UrlSettingsTab activeTab={activeTab} setActiveTab={setActiveTab} theme={theme} />}
+
 
               {activeTab === 'logs' && <AuditLogsTab logs={logs} theme={theme} />}
 
