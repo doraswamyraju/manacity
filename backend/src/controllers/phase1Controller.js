@@ -404,66 +404,13 @@ exports.getLibraryItems = async (req, res) => {
       where.name = { contains: query, mode: 'insensitive' };
     }
 
-    let items = await prisma.productServiceLibrary.findMany({
+    const items = await prisma.productServiceLibrary.findMany({
       where,
       orderBy: { name: 'asc' }
     });
 
-    // Provide rich category-tailored master items if DB returns empty
-    if (!items || items.length === 0) {
-      const catUpper = (category || '').toUpperCase();
-      const defaultCatalog = [
-        // Digital Marketing / Consulting
-        { id: 'lib-1', name: 'SEO Optimization & Local Search Ranking', category: 'DIGITAL MARKETING', type: 'SERVICE', price: 4999 },
-        { id: 'lib-2', name: 'Google Business Profile (GBP) Verification & Audit', category: 'DIGITAL MARKETING', type: 'SERVICE', price: 2999 },
-        { id: 'lib-3', name: 'Meta & Instagram Ads Lead Generation', category: 'DIGITAL MARKETING', type: 'SERVICE', price: 6999 },
-        { id: 'lib-4', name: 'High-Converting Website Development', category: 'DIGITAL MARKETING', type: 'SERVICE', price: 9999 },
-        { id: 'lib-5', name: 'Social Media Management (12 Posts/Mo)', category: 'DIGITAL MARKETING', type: 'SERVICE', price: 3999 },
-        { id: 'lib-6', name: 'WhatsApp Business Automation Bot', category: 'DIGITAL MARKETING', type: 'PRODUCT', price: 1499 },
-
-        // Rice Mill / Agriculture / Food
-        { id: 'lib-7', name: 'Premium Sona Masoori Rice (25kg Bag)', category: 'RICE MILL', type: 'PRODUCT', price: 1450 },
-        { id: 'lib-8', name: 'HMT Raw Steam Rice (26kg Bag)', category: 'RICE MILL', type: 'PRODUCT', price: 1650 },
-        { id: 'lib-9', name: 'Organic Whole Wheat Atta (10kg)', category: 'RICE MILL', type: 'PRODUCT', price: 420 },
-        { id: 'lib-10', name: 'Wholesale Rice Milling & Polishing', category: 'RICE MILL', type: 'SERVICE', price: 500 },
-        { id: 'lib-11', name: 'Bulk Grain Storage & Packaging', category: 'RICE MILL', type: 'SERVICE', price: 1200 },
-
-        // Clinics & Health
-        { id: 'lib-12', name: 'General Physician Consultation', category: 'CLINICS & HEALTH', type: 'SERVICE', price: 400 },
-        { id: 'lib-13', name: 'Pediatric Health Checkup', category: 'CLINICS & HEALTH', type: 'SERVICE', price: 500 },
-        { id: 'lib-14', name: 'Comprehensive Blood Test & Diagnostics', category: 'CLINICS & HEALTH', type: 'SERVICE', price: 999 },
-        { id: 'lib-15', name: 'Dental Cleaning & Polishing', category: 'CLINICS & HEALTH', type: 'SERVICE', price: 800 },
-        { id: 'lib-16', name: 'First Aid Kit & Emergency Supplies', category: 'CLINICS & HEALTH', type: 'PRODUCT', price: 350 },
-
-        // Hotels & Lodging
-        { id: 'lib-17', name: 'Deluxe Air-Conditioned Room (1 Night)', category: 'HOTELS & LODGING', type: 'PRODUCT', price: 2499 },
-        { id: 'lib-18', name: 'Executive Suite Room Booking', category: 'HOTELS & LODGING', type: 'PRODUCT', price: 4499 },
-        { id: 'lib-19', name: '24/7 Room Service & Dining', category: 'HOTELS & LODGING', type: 'SERVICE', price: 500 },
-        { id: 'lib-20', name: 'Airport & Railway Station Pickup', category: 'HOTELS & LODGING', type: 'SERVICE', price: 600 },
-
-        // General Business / Services
-        { id: 'lib-21', name: 'Professional Consultation', category: 'GENERAL BUSINESS', type: 'SERVICE', price: 1000 },
-        { id: 'lib-22', name: 'Annual Maintenance Service Contract', category: 'GENERAL BUSINESS', type: 'SERVICE', price: 2999 },
-        { id: 'lib-23', name: 'Premium Business Package', category: 'GENERAL BUSINESS', type: 'PRODUCT', price: 1999 }
-      ];
-
-      items = defaultCatalog.filter(item => {
-        let match = true;
-        if (category && category !== 'All') {
-          match = match && (item.category.includes(catUpper) || catUpper.includes(item.category) || item.category === 'GENERAL BUSINESS');
-        }
-        if (type) {
-          match = match && item.type === type;
-        }
-        return match;
-      });
-
-      if (items.length === 0) {
-        items = defaultCatalog.filter(item => item.category === 'GENERAL BUSINESS' || item.category === 'DIGITAL MARKETING');
-      }
-    }
-
     return res.status(200).json({ items });
+
   } catch (error) {
     console.error('Error fetching library items:', error);
     return res.status(500).json({ error: 'Failed to fetch library items' });

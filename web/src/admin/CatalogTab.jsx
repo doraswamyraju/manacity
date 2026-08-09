@@ -39,6 +39,7 @@ function CatalogTab({
   // Form Fields State
   const [formData, setFormData] = useState({
     name: '',
+    slug: '',
     category: 'Digital Marketing',
     type: 'SERVICE',
     description: '',
@@ -96,6 +97,7 @@ function CatalogTab({
     setEditingItem(null);
     setFormData({
       name: '',
+      slug: '',
       category: 'Digital Marketing',
       type: 'SERVICE',
       description: '',
@@ -111,6 +113,7 @@ function CatalogTab({
     setEditingItem(item);
     setFormData({
       name: item.name || '',
+      slug: item.slug || (item.name ? item.name.toLowerCase().replace(/[^a-z0-9]+/g, '-') : ''),
       category: item.category || 'General',
       type: item.type || 'SERVICE',
       description: item.description || '',
@@ -121,6 +124,7 @@ function CatalogTab({
     setFormError('');
     setIsModalOpen(true);
   };
+
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
@@ -601,8 +605,29 @@ function CatalogTab({
                     required
                     placeholder="e.g. SEO Optimization Package"
                     value={formData.name}
-                    onChange={e => setFormData({ ...formData, name: e.target.value })}
+                    onChange={e => {
+                      const newName = e.target.value;
+                      const autoSlug = newName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+                      setFormData({ ...formData, name: newName, slug: formData.slug ? formData.slug : autoSlug });
+                    }}
                     style={{ width: '100%', padding: '0.6rem', borderRadius: '8px', backgroundColor: inputBg, border: inputBorder, color: textMain, fontSize: '0.85rem' }}
+                  />
+                </div>
+              </div>
+
+              {/* SEO Slug Control */}
+              <div>
+                <label style={{ fontSize: '0.78rem', fontWeight: 700, color: textMuted, display: 'block', marginBottom: '0.35rem' }}>
+                  SEO Permalinks / URL Slug * <span style={{ color: '#38bdf8', fontSize: '0.75rem' }}>(SEO Control)</span>
+                </label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <span style={{ fontSize: '0.8rem', color: textMuted }}>manacity.in/library/</span>
+                  <input
+                    type="text"
+                    placeholder="seo-optimization-package"
+                    value={formData.slug}
+                    onChange={e => setFormData({ ...formData, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]+/g, '') })}
+                    style={{ flex: 1, padding: '0.5rem 0.75rem', borderRadius: '8px', backgroundColor: inputBg, border: inputBorder, color: textMain, fontSize: '0.85rem' }}
                   />
                 </div>
               </div>
@@ -646,24 +671,40 @@ function CatalogTab({
                 />
               </div>
 
-              {/* Photos URL List */}
+              {/* Photos Upload & URL List */}
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.35rem' }}>
-                  <label style={{ fontSize: '0.78rem', fontWeight: 700, color: textMuted }}>Product / Service Photos (URLs)</label>
+                  <label style={{ fontSize: '0.78rem', fontWeight: 700, color: textMuted }}>Product / Service Photos (Upload or URL)</label>
                   <button type="button" onClick={addPhotoInput} style={{ background: 'none', border: 'none', color: '#818cf8', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer' }}>
-                    + Add Photo URL
+                    + Add Photo Slot
                   </button>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                   {formData.photos.map((photoUrl, idx) => (
                     <div key={idx} style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                       <input
-                        type="url"
-                        placeholder="https://example.com/photo.jpg"
+                        type="text"
+                        placeholder="https://example.com/photo.jpg or Upload Image"
                         value={photoUrl}
                         onChange={e => handlePhotoUrlChange(idx, e.target.value)}
                         style={{ flex: 1, padding: '0.5rem', borderRadius: '8px', backgroundColor: inputBg, border: inputBorder, color: textMain, fontSize: '0.82rem' }}
                       />
+                      <label style={{ backgroundColor: '#38bdf8', color: '#fff', padding: '0.45rem 0.75rem', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer' }}>
+                        Upload
+                        <input
+                          type="file"
+                          accept="image/*"
+                          style={{ display: 'none' }}
+                          onChange={e => {
+                            const file = e.target.files[0];
+                            if (file) {
+                              const reader = new FileReader();
+                              reader.onloadend = () => handlePhotoUrlChange(idx, reader.result);
+                              reader.readAsDataURL(file);
+                            }
+                          }}
+                        />
+                      </label>
                       {photoUrl && (
                         <img src={photoUrl} alt="Preview" style={{ width: '32px', height: '32px', borderRadius: '4px', objectFit: 'cover' }} onError={e => { e.target.style.display = 'none'; }} />
                       )}
@@ -676,6 +717,7 @@ function CatalogTab({
                   ))}
                 </div>
               </div>
+
 
               {/* Customer Logos URL List */}
               <div>

@@ -107,19 +107,20 @@ function ProductsLibraryTab({ catalog = [], theme, handleCreateCatalogItem, hand
   ];
 
   const productCatalogList = catalog.filter(c => c.type === 'PRODUCT');
-  const allProductsList = productCatalogList.length > 0 ? productCatalogList.map((c, i) => ({
+  const allProductsList = productCatalogList.map((c) => ({
     id: c.id,
     name: c.name,
-    slug: c.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+    slug: c.slug || c.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
     sku: `SKU-${c.id.substring(0, 6).toUpperCase()}`,
-    tags: c.tags && c.tags.length ? c.tags : ['product', 'hardware'],
+    tags: c.tags && c.tags.length ? c.tags : ['product'],
     category: c.category || 'Hardware/Print',
     categoryColor: '#34d399',
-    priceRange: c.defaultPrice ? `₹${c.defaultPrice}` : '₹799 - ₹1,499',
-    usedIn: Math.floor(Math.random() * 1000) + 200,
+    priceRange: c.defaultPrice ? `₹${c.defaultPrice}` : 'Custom Quote',
+    usedIn: 0,
     status: c.status === 'APPROVED' ? 'Active' : (c.status === 'PENDING' ? 'Pending Review' : 'Inactive'),
-    iconUrl: c.photos?.[0] || defaultProducts[i % defaultProducts.length].iconUrl
-  })) : defaultProducts;
+    iconUrl: c.photos?.[0] || 'https://images.unsplash.com/photo-1556742049-0a67daf4007a?w=400&auto=format&fit=crop'
+  }));
+
 
   const filteredProducts = allProductsList.filter(item => {
     if (activeSubTab === 'ACTIVE' && item.status !== 'Active') return false;

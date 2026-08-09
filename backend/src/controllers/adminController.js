@@ -191,66 +191,12 @@ exports.deleteBusiness = async (req, res) => {
   }
 };
 
-// Initial Seed Data if Master Library is Empty
-const initialMasterItems = [
-  {
-    name: 'SEO & Google Business Profile Optimization',
-    category: 'Digital Marketing',
-    type: 'SERVICE',
-    description: 'Comprehensive local search ranking and Google Business Profile optimization to drive local map pack leads.',
-    photos: ['https://images.unsplash.com/photo-1432888498266-38ffec3eaf0a?w=600&auto=format&fit=crop'],
-    customerLogos: ['https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=200&auto=format&fit=crop'],
-    defaultPrice: 2999,
-    status: 'APPROVED'
-  },
-  {
-    name: 'NFC Tap & Review Standee',
-    category: 'Hardware/Print',
-    type: 'PRODUCT',
-    description: 'High quality acrylic table stand with embedded NFC chip and QR code for instant 5-star customer reviews.',
-    photos: ['https://images.unsplash.com/photo-1556742049-0a67daf4007a?w=600&auto=format&fit=crop'],
-    customerLogos: ['https://images.unsplash.com/photo-1599305445671-ac291c95aaa9?w=200&auto=format&fit=crop'],
-    defaultPrice: 799,
-    status: 'APPROVED'
-  },
-  {
-    name: 'Social Media Promotional Graphics Pack',
-    category: 'Creative & Design',
-    type: 'SERVICE',
-    description: 'Custom branded social media banners, festival graphics, and promotional story templates.',
-    photos: ['https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=600&auto=format&fit=crop'],
-    customerLogos: ['https://images.unsplash.com/photo-1516876437184-593fda40c7ce?w=200&auto=format&fit=crop'],
-    defaultPrice: 1499,
-    status: 'APPROVED'
-  },
-  {
-    name: 'WhatsApp Lead & Review Automation Gateway',
-    category: 'Software Add-on',
-    type: 'SERVICE',
-    description: 'Automated review requests, discount offers, and inquiry follow-ups via official WhatsApp API.',
-    photos: ['https://images.unsplash.com/photo-1611746872915-64382b5c76da?w=600&auto=format&fit=crop'],
-    customerLogos: ['https://images.unsplash.com/photo-1572021335469-31706a17aaef?w=200&auto=format&fit=crop'],
-    defaultPrice: 999,
-    status: 'APPROVED'
-  }
-];
-
-// 5. Fetch Master Catalog Library Items (Auto-seed if empty)
+// 5. Fetch Master Catalog Library Items (Database Only - No Dummy Data)
 exports.getMasterCatalog = async (req, res) => {
   try {
-    let catalog = await prisma.productServiceLibrary.findMany({
+    const catalog = await prisma.productServiceLibrary.findMany({
       orderBy: { createdAt: 'desc' }
     });
-
-    if (catalog.length === 0) {
-      console.log('Seeding initial Product/Services library items into DB...');
-      await prisma.productServiceLibrary.createMany({
-        data: initialMasterItems
-      });
-      catalog = await prisma.productServiceLibrary.findMany({
-        orderBy: { createdAt: 'desc' }
-      });
-    }
 
     res.json({ status: 'success', catalog });
   } catch (error) {
@@ -262,12 +208,15 @@ exports.getMasterCatalog = async (req, res) => {
 // 6. Create Master Catalog Item
 exports.createMasterCatalogItem = async (req, res) => {
   try {
-    const { name, category, type, description, defaultPrice, photos, customerLogos, tags, seoKeywords, status, requestedBy } = req.body;
+    const { name, slug, category, type, description, defaultPrice, photos, customerLogos, tags, seoKeywords, status, requestedBy } = req.body;
     if (!name) return res.status(400).json({ error: 'Item title is required.' });
+
+    const itemSlug = (slug || name).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 
     const newItem = await prisma.productServiceLibrary.create({
       data: {
         name,
+        slug: itemSlug,
         category: category || 'General',
         type: type || 'SERVICE',
         description: description || '',
@@ -288,18 +237,30 @@ exports.createMasterCatalogItem = async (req, res) => {
   }
 };
 
+
+    res.json({ status: 'success', item: newItem });
+  } catch (error) {
+    console.error('Create catalog item error:', error);
+    res.status(500).json({ error: 'Failed to create catalog item.' });
+  }
+};
+
 // 6b. Update Master Catalog Item
 exports.updateMasterCatalogItem = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, category, type, description, defaultPrice, photos, customerLogos, tags, status, rejectionReason } = req.body;
+    const { name, slug, category, type, description, defaultPrice, photos, customerLogos, tags, status, rejectionReason } = req.body;
+
+    const itemSlug = slug ? slug.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') : undefined;
 
     const updated = await prisma.productServiceLibrary.update({
       where: { id },
       data: {
         ...(name && { name }),
+        ...(itemSlug && { slug: itemSlug }),
         ...(category && { category }),
         ...(type && { type }),
+
         description: description !== undefined ? description : undefined,
         defaultPrice: defaultPrice !== undefined ? (defaultPrice ? parseFloat(defaultPrice) : null) : undefined,
         photos: Array.isArray(photos) ? photos.filter(Boolean) : undefined,

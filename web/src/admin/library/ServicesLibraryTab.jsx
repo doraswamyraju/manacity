@@ -220,19 +220,20 @@ function ServicesLibraryTab({ catalog = [], theme, handleCreateCatalogItem, hand
     }
   ];
 
-  // Combine props catalog and default seed data for complete representation
-  const allServicesList = catalog.length > 0 ? catalog.map((c, i) => ({
+  const serviceCatalogList = catalog.filter(c => c.type === 'SERVICE' || !c.type);
+  const allServicesList = serviceCatalogList.map((c) => ({
     id: c.id,
     name: c.name,
-    slug: c.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-    tags: c.tags && c.tags.length ? c.tags : ['popular', 'recommended'],
+    slug: c.slug || c.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+    tags: c.tags && c.tags.length ? c.tags : ['service'],
     category: c.category || 'Digital Marketing',
     categoryColor: c.category === 'Web Development' ? '#38bdf8' : (c.category === 'Design & Branding' ? '#ec4899' : '#818cf8'),
-    priceRange: c.defaultPrice ? `₹${c.defaultPrice}` : '₹2,500 - ₹25,000',
-    usedIn: Math.floor(Math.random() * 3000) + 500,
+    priceRange: c.defaultPrice ? `₹${c.defaultPrice}` : 'Custom Quote',
+    usedIn: 0,
     status: c.status === 'APPROVED' ? 'Active' : (c.status === 'PENDING' ? 'Pending Review' : 'Inactive'),
-    iconUrl: c.photos?.[0] || defaultServices[i % defaultServices.length].iconUrl
-  })) : defaultServices;
+    iconUrl: c.photos?.[0] || 'https://cdn-icons-png.flaticon.com/512/1055/1055644.png'
+  }));
+
 
   // Filter Services
   const filteredServices = allServicesList.filter(item => {
