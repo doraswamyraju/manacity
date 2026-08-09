@@ -33,6 +33,8 @@ function ServicesLibraryTab({ catalog = [], theme, handleCreateCatalogItem, hand
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [selectedItems, setSelectedItems] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
+  const [viewingService, setViewingService] = useState(null);
+  const [editingService, setEditingService] = useState(null);
 
   // Sample seed rows matching the screenshot exactly
   const defaultServices = [
@@ -469,13 +471,29 @@ function ServicesLibraryTab({ catalog = [], theme, handleCreateCatalogItem, hand
                       </td>
                       <td style={{ padding: '0.85rem 1rem', textAlign: 'right' }}>
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '0.4rem' }}>
-                          <button style={{ background: 'none', border: 'none', color: textMuted, cursor: 'pointer', padding: '0.2rem' }} title="View Details">
+                          <button
+                            onClick={() => setViewingService(srv)}
+                            style={{ background: 'none', border: 'none', color: textMuted, cursor: 'pointer', padding: '0.2rem' }}
+                            title="View Details"
+                          >
                             <Eye size={15} />
                           </button>
-                          <button style={{ background: 'none', border: 'none', color: textMuted, cursor: 'pointer', padding: '0.2rem' }} title="Edit Service">
+                          <button
+                            onClick={() => openEditModal(srv)}
+                            style={{ background: 'none', border: 'none', color: textMuted, cursor: 'pointer', padding: '0.2rem' }}
+                            title="Edit Service"
+                          >
                             <Edit2 size={15} />
                           </button>
-                          <button style={{ background: 'none', border: 'none', color: textMuted, cursor: 'pointer', padding: '0.2rem' }} title="More Actions">
+                          <button
+                            onClick={() => {
+                              if (window.confirm(`Are you sure you want to delete "${srv.name}"?`)) {
+                                handleDeleteCatalogItem && handleDeleteCatalogItem(srv.id);
+                              }
+                            }}
+                            style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '0.2rem' }}
+                            title="Delete Service"
+                          >
                             <MoreVertical size={15} />
                           </button>
                         </div>
@@ -710,6 +728,90 @@ function ServicesLibraryTab({ catalog = [], theme, handleCreateCatalogItem, hand
         </div>
 
       </div>
+
+      {/* View Service Detail Modal */}
+      {viewingService && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0,0,0,0.7)',
+          backdropFilter: 'blur(5px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 9999,
+          padding: '1rem'
+        }}>
+          <div style={{
+            backgroundColor: cardBg,
+            border: cardBorder,
+            borderRadius: '20px',
+            width: '100%',
+            maxWidth: '580px',
+            maxHeight: '85vh',
+            overflowY: 'auto',
+            padding: '1.75rem',
+            boxShadow: '0 20px 40px rgba(0,0,0,0.4)',
+            color: textMain
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem', paddingBottom: '0.75rem', borderBottom: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid #e2e8f0' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <img
+                  src={viewingService.iconUrl || 'https://cdn-icons-png.flaticon.com/512/1055/1055644.png'}
+                  alt={viewingService.name}
+                  style={{ width: '40px', height: '40px', borderRadius: '10px', objectFit: 'contain', backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc', padding: '4px' }}
+                />
+                <div>
+                  <h3 style={{ fontSize: '1.1rem', fontWeight: 800, margin: 0 }}>{viewingService.name}</h3>
+                  <span style={{ fontSize: '0.75rem', color: textMuted }}>{viewingService.slug}</span>
+                </div>
+              </div>
+              <button onClick={() => setViewingService(null)} style={{ background: 'none', border: 'none', color: textMuted, cursor: 'pointer', fontSize: '1.2rem', fontWeight: 700 }}>✕</button>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', fontSize: '0.88rem' }}>
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <span style={{ fontSize: '0.75rem', fontWeight: 700, padding: '0.2rem 0.6rem', borderRadius: '6px', backgroundColor: 'rgba(99,102,241,0.15)', color: '#818cf8' }}>
+                  {viewingService.category}
+                </span>
+                <span style={{ fontSize: '0.75rem', fontWeight: 800, padding: '0.2rem 0.6rem', borderRadius: '6px', backgroundColor: viewingService.status === 'Active' ? 'rgba(16,185,129,0.15)' : 'rgba(245,158,11,0.15)', color: viewingService.status === 'Active' ? '#10b981' : '#f59e0b' }}>
+                  {viewingService.status}
+                </span>
+              </div>
+
+              <div>
+                <strong style={{ color: textMuted, fontSize: '0.78rem', textTransform: 'uppercase', display: 'block', marginBottom: '0.25rem' }}>Pricing Range / Base Price</strong>
+                <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#10b981' }}>{viewingService.priceRange}</div>
+              </div>
+
+              <div>
+                <strong style={{ color: textMuted, fontSize: '0.78rem', textTransform: 'uppercase', display: 'block', marginBottom: '0.25rem' }}>Implementation Telemetry</strong>
+                <div style={{ color: textMain }}>Used in {viewingService.usedIn?.toLocaleString('en-IN') || '0'} active websites & directories across ManaCity.</div>
+              </div>
+
+              <div>
+                <strong style={{ color: textMuted, fontSize: '0.78rem', textTransform: 'uppercase', display: 'block', marginBottom: '0.25rem' }}>Tags & Metadata</strong>
+                <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+                  {viewingService.tags?.map((t, idx) => (
+                    <span key={idx} style={{ fontSize: '0.75rem', padding: '0.2rem 0.5rem', borderRadius: '4px', backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : '#e2e8f0', color: textMain }}>
+                      #{t}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1rem', paddingTop: '0.75rem', borderTop: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid #e2e8f0' }}>
+                <button onClick={() => setViewingService(null)} style={{ padding: '0.5rem 1.25rem', borderRadius: '8px', border: 'none', backgroundColor: '#6366f1', color: '#fff', fontWeight: 700, cursor: 'pointer' }}>
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );

@@ -290,58 +290,6 @@ function SuperAdminSidebar({
         })}
       </nav>
 
-      {/* Library Health Widget (as shown in design screenshot) */}
-      {isExpanded && (
-        <div style={{
-          margin: '0.5rem 0.65rem 1rem 0.65rem',
-          padding: '0.85rem',
-          borderRadius: '12px',
-          backgroundColor: isDark ? '#0f172a' : '#ffffff',
-          border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid #cbd5e1',
-          boxShadow: isDark ? 'none' : '0 2px 8px rgba(0,0,0,0.04)'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-            <span style={{ fontSize: '0.75rem', fontWeight: 800, color: isDark ? '#f8fafc' : '#0f172a' }}>Library Health</span>
-            <span style={{ fontSize: '0.7rem', fontWeight: 800, color: '#10b981', backgroundColor: 'rgba(16,185,129,0.15)', padding: '0.1rem 0.4rem', borderRadius: '4px' }}>Excellent</span>
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.65rem' }}>
-            <div style={{
-              width: '40px',
-              height: '40px',
-              borderRadius: '50%',
-              border: '3px solid #10b981',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontWeight: 800,
-              fontSize: '0.78rem',
-              color: isDark ? '#fff' : '#0f172a'
-            }}>
-              92%
-            </div>
-            <div style={{ fontSize: '0.72rem', color: isDark ? '#94a3b8' : '#64748b' }}>
-              Overall data quality & completeness rate.
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', fontSize: '0.72rem', color: isDark ? '#cbd5e1' : '#475569' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span>Missing Images</span>
-              <strong style={{ color: '#f59e0b' }}>23</strong>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span>Uncategorized Items</span>
-              <strong style={{ color: '#f59e0b' }}>8</strong>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span>Duplicate Items</span>
-              <strong style={{ color: '#ef4444' }}>5</strong>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Footer Pin Status */}
       {isExpanded && (
         <div style={{
