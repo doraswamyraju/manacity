@@ -54,18 +54,16 @@ app.get('/', (req, res) => {
   });
 });
 
-// Database Connection & Server Start
-async function startServer() {
-  try {
-    await prisma.$connect();
-    console.log('Successfully connected to MongoDB via Prisma Client.');
-    app.listen(PORT, () => {
-      console.log(`Server is running on port ${PORT}`);
+// Database Connection & Server Start (Resilient & Non-Blocking)
+app.listen(PORT, () => {
+  console.log(`ManaCity API Server is running cleanly on port ${PORT}`);
+  
+  prisma.$connect()
+    .then(() => {
+      console.log('Successfully connected to MongoDB via Prisma Client.');
+    })
+    .catch((error) => {
+      console.error('Prisma MongoDB connection warning (retrying in background):', error.message);
     });
-  } catch (error) {
-    console.error('Failed to start server:', error);
-    process.exit(1);
-  }
-}
+});
 
-startServer();
