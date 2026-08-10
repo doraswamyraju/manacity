@@ -203,7 +203,12 @@ export default function WebsiteBuilder({ onBack }) {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', gridColumn: '1 / -1' }}>
               <label style={{ fontSize: '0.85rem', fontWeight: 700, color: '#38bdf8' }}>Select Website Template (5 Pre-built Layouts)</label>
-              <select value={theme} onChange={(e) => setTheme(e.target.value)} style={{ ...inputStyle, fontWeight: 700, backgroundColor: '#0f172a' }}>
+              <select value={theme} onChange={(e) => {
+                const newTheme = e.target.value;
+                setTheme(newTheme);
+                const colors = { 'modern-corporate': '#6366f1', 'e-commerce': '#10b981', 'service-booking': '#38bdf8', 'restaurant-menu': '#f43f5e', 'clinic-healthcare': '#c084fc' };
+                if (colors[newTheme]) setPrimaryColor(colors[newTheme]);
+              }} style={{ ...inputStyle, fontWeight: 700, backgroundColor: '#0f172a' }}>
                 <option value="modern-corporate">1. Modern Corporate (Sleek Dark & Glass)</option>
                 <option value="e-commerce">2. E-Commerce Storefront (Products & Buy Buttons)</option>
                 <option value="service-booking">3. Service & Appointment Booking</option>
@@ -222,7 +227,10 @@ export default function WebsiteBuilder({ onBack }) {
                 ].map(tmpl => (
                   <div
                     key={tmpl.id}
-                    onClick={() => setTheme(tmpl.id)}
+                    onClick={() => {
+                      setTheme(tmpl.id);
+                      setPrimaryColor(tmpl.color);
+                    }}
                     style={{
                       border: theme === tmpl.id ? `2px solid ${tmpl.color}` : '1px solid rgba(255,255,255,0.1)',
                       backgroundColor: theme === tmpl.id ? `${tmpl.color}20` : '#0f172a',
