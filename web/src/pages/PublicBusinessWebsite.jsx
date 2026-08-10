@@ -7,23 +7,15 @@ import {
   MessageSquare,
   MapPin,
   Star,
-  Clock,
   ShieldCheck,
-  CheckCircle2,
-  Calendar,
+  ExternalLink,
+  Stethoscope,
   Utensils,
   ShoppingBag,
-  ExternalLink,
-  ChevronRight,
-  Zap,
-  Globe,
-  Stethoscope,
-  Sparkles,
-  ShoppingCard,
-  Send,
-  Award,
+  Calendar,
   HeartPulse
 } from 'lucide-react';
+import * as Sections from './WebsiteSections';
 
 export default function PublicBusinessWebsite() {
   const { subdomain, slug } = useParams();
@@ -31,9 +23,8 @@ export default function PublicBusinessWebsite() {
 
   const [loading, setLoading] = useState(true);
   const [businessData, setBusinessData] = useState(null);
-  const [quoteForm, setQuoteForm] = useState({ name: '', phone: '', message: '', date: '', service: '' });
-  const [submitted, setSubmitted] = useState(false);
-  const [activeCategory, setActiveCategory] = useState('All');
+  const [websiteConfig, setWebsiteConfig] = useState(null);
+  const [sections, setSections] = useState([]);
 
   useEffect(() => {
     fetchWebsiteData();
@@ -45,90 +36,107 @@ export default function PublicBusinessWebsite() {
       const res = await axios.get(`/api/website/public/${targetId}`);
       if (res.data && res.data.businessGroup) {
         setBusinessData(res.data);
+        const web = res.data.website || res.data.businessGroup.websiteConfig || {};
+        setWebsiteConfig(web);
+        
+        let secList = web.sections || res.data.sections || [];
+        if (secList.length === 0) {
+          secList = getDefaultSections();
+        } else {
+          secList = [...secList].sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
+        }
+        setSections(secList);
       } else {
         setBusinessData(getMockData());
+        setWebsiteConfig(getMockData().websiteConfig);
+        setSections(getDefaultSections());
       }
     } catch (e) {
       setBusinessData(getMockData());
+      setWebsiteConfig(getMockData().websiteConfig);
+      setSections(getDefaultSections());
     } finally {
       setLoading(false);
     }
   };
 
+  const getDefaultSections = () => [
+    { type: 'HERO', enabled: true, displayOrder: 1, settings: {} },
+    { type: 'ABOUT', enabled: true, displayOrder: 2, settings: {} },
+    { type: 'SERVICES', enabled: true, displayOrder: 3, settings: {} },
+    { type: 'PRODUCTS', enabled: true, displayOrder: 4, settings: {} },
+    { type: 'GALLERY', enabled: true, displayOrder: 5, settings: {} },
+    { type: 'REVIEWS', enabled: true, displayOrder: 6, settings: {} },
+    { type: 'CONTACT', enabled: true, displayOrder: 7, settings: {} },
+    { type: 'FAQ', enabled: true, displayOrder: 8, settings: {} },
+    { type: 'CTA', enabled: true, displayOrder: 9, settings: {} },
+    { type: 'FOOTER', enabled: true, displayOrder: 10, settings: {} }
+  ];
+
   const getMockData = () => {
     return {
       businessGroup: {
-        name: 'ABC Digital Marketing Solutions',
-        description: 'Leading digital marketing agency specializing in SEO, Google Ads, GBP optimization, and growth marketing across Tirupati and South India.',
+        name: 'Rajugari Ventures - A Digital Marketing Agency in Tirupati',
+        description: 'Imported Google Place listing for Rajugari Ventures - A Digital Marketing Agency in Tirupati',
         city: 'Tirupati',
-        address: 'Car Street, Near Temple, Tirupati',
+        address: 'Shop No.38, 1st Floor, Tuda Complex, near Anna Canteen, Bairagi patteda, Tirupati, Andhra Pradesh 517502, India',
         mobileNumber: '+91 98765 43210',
         whatsAppNumber: '+91 98765 43210',
-        email: 'info@abcdigital.in',
-        logoUrl: '/logo.png',
-        websiteConfig: {
-          themeTemplate: 'modern-corporate',
-          primaryColor: '#6366f1',
-          secondaryColor: '#a855f7',
-          metaTitle: 'ABC Digital Marketing Solutions - Tirupati',
-          metaDescription: 'Top rated SEO and Digital Marketing Agency in Tirupati.'
-        }
+        email: 'info@rajugariventures.in',
+        logoUrl: '/logo.png'
+      },
+      websiteConfig: {
+        theme: 'modern-corporate',
+        primaryColor: '#6366f1',
+        secondaryColor: '#a855f7',
+        font: 'Outfit'
       },
       services: [
-        { id: '1', name: 'SEO Optimization', price: '₹14,999/mo', duration: 'Monthly', description: 'Rank #1 on Google for local keywords with guaranteed organic traffic.' },
-        { id: '2', name: 'Google Ads & GBP Management', price: '₹9,999/mo', duration: 'Monthly', description: 'High ROI Google PPC ads and local map listing optimization.' },
-        { id: '3', name: 'Meta Ads & Branding', price: '₹12,499/mo', duration: 'Monthly', description: 'Targeted Instagram and Facebook ad campaigns for lead generation.' }
+        { id: '1', name: 'SEO Optimization & GBP Marketing', price: '₹14,999/mo', description: 'Local map ranking and organic traffic optimization.' },
+        { id: '2', name: 'Social Media Management', price: '₹9,999/mo', description: 'Instagram & Facebook lead generation campaigns.' }
       ],
-      products: [
-        { id: 'p1', name: 'Local SEO Audit Report', price: '₹2,499', description: 'Detailed 40-point technical SEO and Google Business Profile audit.', category: 'Audit' },
-        { id: 'p2', name: 'GBP QR Standee Kit', price: '₹1,499', description: 'Custom printed acrylic review QR standee with NFC tap support.', category: 'Hardware' }
-      ]
+      products: []
     };
-  };
-
-  const handleSubmitQuote = (e) => {
-    e.preventDefault();
-    setSubmitted(true);
-    setTimeout(() => setSubmitted(false), 4000);
   };
 
   if (loading) {
     return (
       <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#090d16', color: '#94a3b8' }}>
-        <h2>Loading Business Storefront Website...</h2>
+        <h2>Loading Business Website...</h2>
       </div>
     );
   }
 
-  const bg = businessData.businessGroup;
-  const services = businessData.services || [];
-  const products = businessData.products || [];
-  const template = bg.websiteConfig?.themeTemplate || 'modern-corporate';
-  const primaryColor = bg.websiteConfig?.primaryColor || (
-    template === 'e-commerce' ? '#10b981' :
-    template === 'service-booking' ? '#38bdf8' :
-    template === 'restaurant-menu' ? '#f43f5e' :
-    template === 'clinic-healthcare' ? '#c084fc' : '#6366f1'
-  );
+  const bg = businessData.businessGroup || {};
+  const theme = websiteConfig?.theme || 'modern-corporate';
+  const primaryColor = websiteConfig?.primaryColor || '#6366f1';
+  const secondaryColor = websiteConfig?.secondaryColor || '#a855f7';
+  const font = websiteConfig?.font || 'Outfit';
+
+  const themeVars = {
+    '--primary-color': primaryColor,
+    '--secondary-color': secondaryColor,
+    '--font-primary': font,
+    fontFamily: font
+  };
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#090d16', color: '#f8fafc', fontFamily: 'Inter, sans-serif' }}>
+    <div style={{ minHeight: '100vh', backgroundColor: '#090d16', color: '#f8fafc', fontFamily: `${font}, sans-serif`, ...themeVars }}>
       
-      {/* Clinic Emergency Banner */}
-      {template === 'clinic-healthcare' && (
+      {/* Top Notification Bar if Clinic or Restaurant */}
+      {theme === 'clinic-healthcare' && (
         <div style={{ backgroundColor: '#ef4444', color: '#fff', padding: '0.4rem 1rem', textAlign: 'center', fontSize: '0.82rem', fontWeight: 800, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem' }}>
           <HeartPulse size={16} /> 24/7 Emergency Helpline: Call <a href={`tel:${bg.mobileNumber}`} style={{ color: '#fff', textDecoration: 'underline' }}>{bg.mobileNumber}</a>
         </div>
       )}
 
-      {/* Restaurant Promo Bar */}
-      {template === 'restaurant-menu' && (
+      {theme === 'restaurant-menu' && (
         <div style={{ backgroundColor: '#f43f5e', color: '#fff', padding: '0.4rem 1rem', textAlign: 'center', fontSize: '0.82rem', fontWeight: 800, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem' }}>
           <Utensils size={16} /> Fresh & Hygienic Dining • Dine-in & Takeaway Orders Available
         </div>
       )}
 
-      {/* Top Banner Header */}
+      {/* Persistent Top Navigation Bar */}
       <header style={{
         padding: '1rem 2rem',
         backgroundColor: '#0f172a',
@@ -141,13 +149,13 @@ export default function PublicBusinessWebsite() {
         zIndex: 100
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          {template === 'clinic-healthcare' ? <Stethoscope size={28} color={primaryColor} /> :
-           template === 'restaurant-menu' ? <Utensils size={28} color={primaryColor} /> :
-           template === 'e-commerce' ? <ShoppingBag size={28} color={primaryColor} /> :
-           template === 'service-booking' ? <Calendar size={28} color={primaryColor} /> :
+          {theme === 'clinic-healthcare' ? <Stethoscope size={28} color={primaryColor} /> :
+           theme === 'restaurant-menu' ? <Utensils size={28} color={primaryColor} /> :
+           theme === 'e-commerce' ? <ShoppingBag size={28} color={primaryColor} /> :
+           theme === 'service-booking' ? <Calendar size={28} color={primaryColor} /> :
            <Building2 size={28} color={primaryColor} />}
           <div>
-            <h1 style={{ fontSize: '1.2rem', fontWeight: 800, margin: 0, color: '#fff' }}>{bg.name}</h1>
+            <h1 style={{ fontSize: '1.15rem', fontWeight: 800, margin: 0, color: '#fff' }}>{bg.name}</h1>
             <span style={{ fontSize: '0.75rem', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
               <MapPin size={12} color="#38bdf8" /> {bg.address || bg.city} • <ShieldCheck size={12} color="#34d399" /> Verified Storefront
             </span>
@@ -183,310 +191,38 @@ export default function PublicBusinessWebsite() {
             <ExternalLink size={12} color="#fbbf24" />
           </div>
 
-          <a href={`tel:${bg.mobileNumber}`} className="btn" style={{ backgroundColor: '#10b981', color: '#fff', padding: '0.45rem 1rem', fontSize: '0.85rem', fontWeight: 700, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.35rem', borderRadius: '6px' }}>
-            <Phone size={14} /> Call Now
-          </a>
-          <a href={`https://wa.me/${(bg.whatsAppNumber || '').replace(/[^0-9]/g, '')}`} target="_blank" rel="noreferrer" className="btn" style={{ backgroundColor: '#25d366', color: '#fff', padding: '0.45rem 1rem', fontSize: '0.85rem', fontWeight: 700, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.35rem', borderRadius: '6px' }}>
-            <MessageSquare size={14} /> WhatsApp
-          </a>
+          {bg.mobileNumber && (
+            <a href={`tel:${bg.mobileNumber}`} className="btn" style={{ backgroundColor: '#10b981', color: '#fff', padding: '0.45rem 1rem', fontSize: '0.85rem', fontWeight: 700, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.35rem', borderRadius: '6px' }}>
+              <Phone size={14} /> Call Now
+            </a>
+          )}
+          {bg.whatsAppNumber && (
+            <a href={`https://wa.me/${(bg.whatsAppNumber || '').replace(/[^0-9]/g, '')}`} target="_blank" rel="noreferrer" className="btn" style={{ backgroundColor: '#25d366', color: '#fff', padding: '0.45rem 1rem', fontSize: '0.85rem', fontWeight: 700, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.35rem', borderRadius: '6px' }}>
+              <MessageSquare size={14} /> WhatsApp
+            </a>
+          )}
         </div>
       </header>
 
-      {/* Hero Section per Template */}
-      <section style={{
-        padding: '4rem 2rem',
-        textAlign: 'center',
-        background: `radial-gradient(circle at top, ${primaryColor}25 0%, transparent 70%)`,
-        borderBottom: '1px solid rgba(255,255,255,0.06)'
-      }}>
-        <div style={{ maxWidth: '850px', margin: '0 auto' }}>
-          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
-            <span style={{
-              backgroundColor: `${primaryColor}20`,
-              color: primaryColor,
-              padding: '0.3rem 0.8rem',
-              borderRadius: '20px',
-              fontSize: '0.82rem',
-              fontWeight: 800,
-              textTransform: 'uppercase'
-            }}>
-              {template === 'e-commerce' ? 'Online Catalog Store' :
-               template === 'service-booking' ? 'Appointment Booking Portal' :
-               template === 'restaurant-menu' ? 'Dining & Takeaway Menu' :
-               template === 'clinic-healthcare' ? 'Certified Healthcare Center' :
-               'Official Business Website'}
-            </span>
-          </div>
-
-          <h2 style={{ fontSize: '2.5rem', fontWeight: 900, marginTop: '1rem', marginBottom: '0.85rem', color: '#fff', lineHeight: 1.2 }}>
-            {template === 'e-commerce' ? `Explore Products & Storefront at ${bg.name}` :
-             template === 'service-booking' ? `Book Expert Services & Consultations` :
-             template === 'restaurant-menu' ? `Taste Authentic Culinary Delights` :
-             template === 'clinic-healthcare' ? `Expert Medical Care & Consultations` :
-             `Welcome to ${bg.name}`}
-          </h2>
-          <p style={{ fontSize: '1.05rem', color: '#94a3b8', lineHeight: 1.6, marginBottom: '2rem' }}>
-            {bg.description || `Verified storefront for ${bg.name} operating in ${bg.city || 'Tirupati'}.`}
-          </p>
-
-          <a href="#action-form" className="btn" style={{ padding: '0.75rem 2rem', fontWeight: 800, backgroundColor: primaryColor, color: '#fff', textDecoration: 'none', borderRadius: '8px' }}>
-            {template === 'e-commerce' ? 'View Catalog & Order' :
-             template === 'service-booking' ? 'Book Appointment' :
-             template === 'restaurant-menu' ? 'Reserve Table / Order' :
-             template === 'clinic-healthcare' ? 'Schedule Patient Visit' :
-             'Get Instant Quote'}
-          </a>
-        </div>
-      </section>
-
-      {/* Template Specific View Content */}
-      <main style={{ maxWidth: '1100px', margin: '0 auto', padding: '3rem 1.5rem' }}>
-        
-        {/* 1. E-COMMERCE STOREFRONT TEMPLATE PRODUCTS GRID */}
-        {template === 'e-commerce' && (
-          <div style={{ marginBottom: '3rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-              <h3 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#fff', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <ShoppingBag size={22} color={primaryColor} /> Featured Products & Catalog
-              </h3>
-              <span style={{ fontSize: '0.85rem', color: '#94a3b8' }}>{products.length} Products Available</span>
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1.25rem' }}>
-              {products.map((prod) => (
-                <div key={prod.id} style={{
-                  backgroundColor: '#1e293b',
-                  borderRadius: '14px',
-                  border: '1px solid rgba(255,255,255,0.08)',
-                  padding: '1.25rem',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'space-between'
-                }}>
-                  <div>
-                    <span style={{ fontSize: '0.7rem', color: '#38bdf8', fontWeight: 800, textTransform: 'uppercase' }}>
-                      {prod.category || 'Product'}
-                    </span>
-                    <h4 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#fff', margin: '0.35rem 0' }}>{prod.name}</h4>
-                    <p style={{ fontSize: '0.85rem', color: '#94a3b8', lineHeight: 1.5, marginBottom: '1rem' }}>
-                      {prod.description}
-                    </p>
-                  </div>
-                  <div>
-                    <div style={{ fontSize: '1.2rem', fontWeight: 900, color: primaryColor, marginBottom: '0.75rem' }}>
-                      {prod.price || 'Contact for Price'}
-                    </div>
-                    <a href="#action-form" onClick={() => setQuoteForm(prev => ({ ...prev, service: `Order: ${prod.name}` }))} style={{
-                      display: 'block',
-                      textAlign: 'center',
-                      backgroundColor: `${primaryColor}20`,
-                      border: `1px solid ${primaryColor}`,
-                      color: primaryColor,
-                      padding: '0.5rem',
-                      borderRadius: '6px',
-                      fontWeight: 700,
-                      fontSize: '0.85rem',
-                      textDecoration: 'none'
-                    }}>
-                      Buy / Direct Inquiry
-                    </a>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* 2. RESTAURANT MENU TEMPLATE */}
-        {template === 'restaurant-menu' && (
-          <div style={{ marginBottom: '3rem' }}>
-            <h3 style={{ fontSize: '1.4rem', fontWeight: 800, marginBottom: '1.5rem', color: '#fff', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Utensils size={22} color={primaryColor} /> Chef's Special Dining Menu
-            </h3>
-
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.25rem' }}>
-              {services.concat(products).map((item, idx) => (
-                <div key={idx} style={{
-                  backgroundColor: '#1e293b',
-                  borderRadius: '14px',
-                  border: '1px solid rgba(255,255,255,0.08)',
-                  padding: '1.25rem',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center'
-                }}>
-                  <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <span style={{ display: 'inline-block', width: '10px', height: '10px', borderRadius: '50%', backgroundColor: idx % 2 === 0 ? '#22c55e' : '#ef4444' }} title={idx % 2 === 0 ? 'Vegetarian' : 'Non-Vegetarian'} />
-                      <h4 style={{ fontSize: '1.05rem', fontWeight: 800, color: '#fff', margin: 0 }}>{item.name}</h4>
-                    </div>
-                    <p style={{ fontSize: '0.8rem', color: '#94a3b8', marginTop: '0.25rem' }}>{item.description}</p>
-                  </div>
-                  <div style={{ fontSize: '1rem', fontWeight: 900, color: primaryColor, whiteSpace: 'nowrap' }}>
-                    {item.price || '₹199'}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* 3. CLINIC & HEALTHCARE TEMPLATE SPECIALTIES */}
-        {template === 'clinic-healthcare' && (
-          <div style={{ marginBottom: '3rem' }}>
-            <h3 style={{ fontSize: '1.4rem', fontWeight: 800, marginBottom: '1.5rem', color: '#fff', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Stethoscope size={22} color={primaryColor} /> Medical Treatments & Consultation Services
-            </h3>
-
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1.25rem' }}>
-              {services.map((svc) => (
-                <div key={svc.id} style={{
-                  backgroundColor: '#1e293b',
-                  borderRadius: '14px',
-                  border: '1px solid rgba(192, 132, 252, 0.2)',
-                  padding: '1.5rem'
-                }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                    <h4 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#fff', margin: 0 }}>{svc.name}</h4>
-                    <span style={{ color: primaryColor, fontWeight: 800, fontSize: '0.9rem' }}>{svc.price}</span>
-                  </div>
-                  <p style={{ fontSize: '0.85rem', color: '#94a3b8', lineHeight: 1.5, marginBottom: '1rem' }}>
-                    {svc.description}
-                  </p>
-                  <a href="#action-form" onClick={() => setQuoteForm(prev => ({ ...prev, service: svc.name }))} style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '0.35rem',
-                    color: primaryColor,
-                    fontWeight: 700,
-                    fontSize: '0.85rem',
-                    textDecoration: 'none'
-                  }}>
-                    Book Appointment <ChevronRight size={16} />
-                  </a>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* 4. DEFAULT & SERVICE BOOKING TEMPLATE SERVICES */}
-        {(template === 'modern-corporate' || template === 'service-booking') && (
-          <div style={{ marginBottom: '3rem' }}>
-            <h3 style={{ fontSize: '1.4rem', fontWeight: 800, marginBottom: '1.5rem', color: '#fff' }}>
-              Services & Offerings
-            </h3>
-
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1.25rem' }}>
-              {services.map((svc) => (
-                <div key={svc.id} style={{
-                  backgroundColor: '#1e293b',
-                  padding: '1.5rem',
-                  borderRadius: '14px',
-                  border: '1px solid rgba(255,255,255,0.08)',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'space-between'
-                }}>
-                  <div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                      <h4 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#fff', margin: 0 }}>{svc.name}</h4>
-                      {svc.price && <span style={{ color: primaryColor, fontWeight: 800, fontSize: '0.95rem' }}>{svc.price}</span>}
-                    </div>
-                    <p style={{ fontSize: '0.85rem', color: '#94a3b8', lineHeight: 1.5 }}>
-                      {svc.description}
-                    </p>
-                  </div>
-
-                  <a href="#action-form" onClick={() => setQuoteForm(prev => ({ ...prev, service: svc.name }))} style={{
-                    marginTop: '1rem',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.35rem',
-                    color: primaryColor,
-                    fontWeight: 700,
-                    fontSize: '0.85rem',
-                    textDecoration: 'none'
-                  }}>
-                    Inquire / Book <ChevronRight size={16} />
-                  </a>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Dynamic Action Form tailored per Template */}
-        <div id="action-form" style={{
-          backgroundColor: '#1e293b',
-          borderRadius: '16px',
-          padding: '2rem',
-          border: `1px solid ${primaryColor}40`,
-          maxWidth: '600px',
-          margin: '0 auto'
-        }}>
-          <h3 style={{ fontSize: '1.3rem', fontWeight: 800, color: '#fff', marginBottom: '0.5rem', textAlign: 'center' }}>
-            {template === 'clinic-healthcare' ? 'Book Doctor Appointment' :
-             template === 'restaurant-menu' ? 'Table Reservation / Food Inquiry' :
-             template === 'service-booking' ? 'Book Service Slot' :
-             template === 'e-commerce' ? 'Place Product Inquiry' :
-             'Contact & Get Quote'}
-          </h3>
-          <p style={{ fontSize: '0.85rem', color: '#94a3b8', textAlign: 'center', marginBottom: '1.5rem' }}>
-            Direct message to {bg.name}
-          </p>
-
-          {submitted ? (
-            <div style={{ backgroundColor: 'rgba(52, 211, 153, 0.15)', border: '1px solid #34d399', color: '#34d399', padding: '1rem', borderRadius: '8px', textAlign: 'center', fontWeight: 700 }}>
-              ✓ Request submitted successfully! The business team will contact you shortly.
-            </div>
-          ) : (
-            <form onSubmit={handleSubmitQuote} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              <input
-                type="text"
-                placeholder="Your Full Name"
-                required
-                value={quoteForm.name}
-                onChange={(e) => setQuoteForm({ ...quoteForm, name: e.target.value })}
-                style={{ padding: '0.75rem', borderRadius: '8px', backgroundColor: '#0f172a', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}
-              />
-              <input
-                type="tel"
-                placeholder="Your Mobile Number"
-                required
-                value={quoteForm.phone}
-                onChange={(e) => setQuoteForm({ ...quoteForm, phone: e.target.value })}
-                style={{ padding: '0.75rem', borderRadius: '8px', backgroundColor: '#0f172a', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}
-              />
-              
-              {(template === 'service-booking' || template === 'clinic-healthcare' || template === 'restaurant-menu') && (
-                <input
-                  type="date"
-                  value={quoteForm.date}
-                  onChange={(e) => setQuoteForm({ ...quoteForm, date: e.target.value })}
-                  style={{ padding: '0.75rem', borderRadius: '8px', backgroundColor: '#0f172a', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}
-                />
-              )}
-
-              <textarea
-                rows={3}
-                placeholder={quoteForm.service ? `Requirement for ${quoteForm.service}` : "Describe your request or query..."}
-                value={quoteForm.message}
-                onChange={(e) => setQuoteForm({ ...quoteForm, message: e.target.value })}
-                style={{ padding: '0.75rem', borderRadius: '8px', backgroundColor: '#0f172a', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}
-              />
-              <button type="submit" className="btn" style={{ padding: '0.75rem', fontWeight: 800, backgroundColor: primaryColor, color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>
-                Submit Request
-              </button>
-            </form>
-          )}
-        </div>
+      {/* Main Dynamic Engine Rendering - 100% IDENTICAL to WebsiteBuilder Preview */}
+      <main style={themeVars}>
+        {sections
+          .filter(sec => sec.enabled !== false)
+          .map(sec => {
+            const settings = sec.settings || {};
+            if (sec.type === 'HERO') return <Sections.HeroSection key={sec.type} businessGroup={bg} settings={settings} theme={theme} />;
+            if (sec.type === 'ABOUT') return <Sections.AboutSection key={sec.type} businessGroup={bg} settings={settings} theme={theme} />;
+            if (sec.type === 'SERVICES') return <Sections.ServicesSection key={sec.type} businessGroup={bg} settings={settings} theme={theme} />;
+            if (sec.type === 'PRODUCTS') return <Sections.ProductsSection key={sec.type} businessGroup={bg} settings={settings} theme={theme} />;
+            if (sec.type === 'GALLERY') return <Sections.GallerySection key={sec.type} businessGroup={bg} settings={settings} theme={theme} />;
+            if (sec.type === 'REVIEWS') return <Sections.ReviewsSection key={sec.type} businessGroup={bg} settings={settings} theme={theme} />;
+            if (sec.type === 'CONTACT') return <Sections.ContactSection key={sec.type} businessGroup={bg} settings={settings} theme={theme} />;
+            if (sec.type === 'FAQ') return <Sections.FaqSection key={sec.type} businessGroup={bg} settings={settings} theme={theme} />;
+            if (sec.type === 'CTA') return <Sections.CtaSection key={sec.type} businessGroup={bg} settings={settings} theme={theme} />;
+            if (sec.type === 'FOOTER') return <Sections.FooterSection key={sec.type} businessGroup={bg} settings={settings} theme={theme} />;
+            return null;
+          })}
       </main>
-
-      {/* Footer */}
-      <footer style={{ borderTop: '1px solid rgba(255,255,255,0.08)', padding: '2rem', textAlign: 'center', color: '#64748b', fontSize: '0.85rem' }}>
-        <p>© 2026 {bg.name}. Powered by <a href="/" style={{ color: '#38bdf8', textDecoration: 'none', fontWeight: 700 }}>ManaCity Platform</a></p>
-      </footer>
     </div>
   );
 }
