@@ -548,40 +548,11 @@ exports.getBusinessCatalog = async (req, res) => {
       });
     }
 
-    // Fetch Super Admin Master Library Items
-    let masterLibrary = await prisma.productServiceLibrary.findMany({
+    // Fetch Super Admin Master Library Items (Database Only - No Auto-Seeding)
+    const masterLibrary = await prisma.productServiceLibrary.findMany({
       where: { status: 'APPROVED' },
       orderBy: { createdAt: 'desc' }
     });
-
-    // Auto-seed default Super Admin master items if library is empty
-    if (masterLibrary.length === 0) {
-      const defaultMasterItems = [
-        { name: 'Local SEO Audit & GBP Optimization', category: 'Digital Marketing', type: 'SERVICE', defaultPrice: 2499, description: '40-point technical audit for Google Business Profile and local maps ranking.' },
-        { name: 'Google Ads & PPC Management', category: 'Digital Marketing', type: 'SERVICE', defaultPrice: 9999, description: 'High ROI targeted Google search and display ad campaign setup & management.' },
-        { name: 'Meta Ads & Branding Package', category: 'Digital Marketing', type: 'SERVICE', defaultPrice: 12499, description: 'Targeted Instagram and Facebook ad campaigns for lead generation.' },
-        { name: 'Custom Storefront Web Development', category: 'Web Development', type: 'SERVICE', defaultPrice: 14999, description: 'Fast, responsive custom website design with domain mapping & SEO integration.' },
-        { name: 'NFC Tap & Review QR Standee', category: 'Hardware/Print', type: 'PRODUCT', defaultPrice: 1499, description: 'Custom printed acrylic review QR standee with NFC tap support.' },
-        { name: 'Doctor Consultation & Checkup', category: 'Clinics & Health', type: 'SERVICE', defaultPrice: 499, description: 'In-person general physician medical consultation and health assessment.' },
-        { name: 'Chef Special Dining Menu Package', category: 'Restaurant & Dining', type: 'SERVICE', defaultPrice: 799, description: 'Curated 3-course dining package for two with complimentary drinks.' }
-      ];
-
-      for (const item of defaultMasterItems) {
-        const itemSlug = item.name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-        await prisma.productServiceLibrary.create({
-          data: {
-            ...item,
-            slug: itemSlug,
-            status: 'APPROVED'
-          }
-        });
-      }
-
-      masterLibrary = await prisma.productServiceLibrary.findMany({
-        where: { status: 'APPROVED' },
-        orderBy: { createdAt: 'desc' }
-      });
-    }
 
     // Map business owner's added services & products
     const myServices = businessGroup.services || [];
