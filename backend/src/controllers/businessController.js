@@ -548,11 +548,6 @@ exports.getBusinessCatalog = async (req, res) => {
       });
     }
 
-    // Purge all legacy demo items from ProductServiceLibrary and business profile
-    await prisma.productServiceLibrary.deleteMany({});
-    await prisma.businessService.deleteMany({ where: { businessGroupId: businessGroup.id } });
-    await prisma.businessProduct.deleteMany({ where: { businessGroupId: businessGroup.id } });
-
     // Fetch Super Admin Master Library Items (Database Only)
     const masterLibrary = await prisma.productServiceLibrary.findMany({
       where: { status: 'APPROVED' },

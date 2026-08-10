@@ -384,18 +384,93 @@ function ProductsLibraryTab({ catalog = [], theme, handleCreateCatalogItem, hand
 
       {/* View Product Modal */}
       {viewingProduct && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(5px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '1rem' }}>
-          <div style={{ backgroundColor: cardBg, border: cardBorder, borderRadius: '20px', width: '100%', maxWidth: '540px', padding: '1.75rem', color: textMain }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-              <h3 style={{ fontSize: '1.1rem', fontWeight: 800, margin: 0 }}>{viewingProduct.name}</h3>
-              <button onClick={() => setViewingProduct(null)} style={{ background: 'none', border: 'none', color: textMuted, cursor: 'pointer', fontSize: '1.2rem' }}>✕</button>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '1rem' }}>
+          <div style={{ backgroundColor: cardBg, border: cardBorder, borderRadius: '20px', width: '100%', maxWidth: '620px', maxHeight: '88vh', overflowY: 'auto', padding: '1.75rem', color: textMain, boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem', paddingBottom: '0.85rem', borderBottom: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid #e2e8f0' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
+                <img src={viewingProduct.iconUrl} alt={viewingProduct.name} style={{ width: '48px', height: '48px', borderRadius: '12px', objectFit: 'cover', border: inputBorder }} />
+                <div>
+                  <h3 style={{ fontSize: '1.2rem', fontWeight: 900, margin: 0 }}>{viewingProduct.name}</h3>
+                  <div style={{ fontSize: '0.75rem', color: '#10b981', fontWeight: 600, marginTop: '0.15rem' }}>
+                    🔗 manacity.in/library/products/{viewingProduct.slug}
+                  </div>
+                </div>
+              </div>
+              <button onClick={() => setViewingProduct(null)} style={{ background: 'none', border: 'none', color: textMuted, cursor: 'pointer', fontSize: '1.25rem', fontWeight: 700 }}>✕</button>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.88rem' }}>
-              <div><strong style={{ color: textMuted }}>SKU:</strong> {viewingProduct.sku}</div>
-              <div><strong style={{ color: textMuted }}>Category:</strong> {viewingProduct.category}</div>
-              <div><strong style={{ color: textMuted }}>Default Price:</strong> <span style={{ color: '#10b981', fontWeight: 800 }}>{viewingProduct.priceRange}</span></div>
-              <div><strong style={{ color: textMuted }}>Used In:</strong> {viewingProduct.usedIn} active stores</div>
-              <button onClick={() => setViewingProduct(null)} style={{ marginTop: '1rem', padding: '0.5rem 1rem', borderRadius: '8px', border: 'none', backgroundColor: '#10b981', color: '#fff', fontWeight: 700, cursor: 'pointer' }}>Close</button>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.15rem', fontSize: '0.88rem' }}>
+              {/* Badges */}
+              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                <span style={{ fontSize: '0.75rem', fontWeight: 800, padding: '0.25rem 0.7rem', borderRadius: '6px', backgroundColor: 'rgba(52,211,153,0.15)', color: '#34d399', border: '1px solid rgba(52,211,153,0.3)' }}>
+                  {viewingProduct.category}
+                </span>
+                <span style={{ fontSize: '0.75rem', fontWeight: 800, padding: '0.25rem 0.7rem', borderRadius: '6px', backgroundColor: 'rgba(16,185,129,0.15)', color: '#10b981', border: '1px solid rgba(16,185,129,0.3)' }}>
+                  {viewingProduct.status}
+                </span>
+                <span style={{ fontSize: '0.75rem', fontWeight: 700, padding: '0.25rem 0.7rem', borderRadius: '6px', backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : '#e2e8f0', color: textMuted }}>
+                  SKU: {viewingProduct.sku}
+                </span>
+              </div>
+
+              {/* Price */}
+              <div style={{ backgroundColor: isDark ? 'rgba(16,185,129,0.08)' : '#f0fdf4', padding: '0.85rem 1rem', borderRadius: '10px', border: '1px solid rgba(16,185,129,0.2)' }}>
+                <strong style={{ color: textMuted, fontSize: '0.72rem', textTransform: 'uppercase', display: 'block', marginBottom: '0.2rem' }}>Master Base Price</strong>
+                <div style={{ fontSize: '1.3rem', fontWeight: 900, color: '#10b981' }}>{viewingProduct.priceRange}</div>
+              </div>
+
+              {/* Description */}
+              <div>
+                <strong style={{ color: textMuted, fontSize: '0.75rem', textTransform: 'uppercase', display: 'block', marginBottom: '0.35rem' }}>Detailed Product Description</strong>
+                <div style={{ backgroundColor: inputBg, border: inputBorder, padding: '0.85rem 1rem', borderRadius: '10px', color: textMain, lineHeight: 1.6, fontSize: '0.88rem' }}>
+                  {viewingProduct.description || viewingProduct.rawItem?.description || 'Verified Super Admin catalog product available for business subscriber catalogs.'}
+                </div>
+              </div>
+
+              {/* Photos Gallery */}
+              {((viewingProduct.photos && viewingProduct.photos.length > 0) || (viewingProduct.rawItem?.photos && viewingProduct.rawItem.photos.length > 0)) && (
+                <div>
+                  <strong style={{ color: textMuted, fontSize: '0.75rem', textTransform: 'uppercase', display: 'block', marginBottom: '0.5rem' }}>Product Photos & Images ({viewingProduct.photos?.length || viewingProduct.rawItem?.photos?.length || 0})</strong>
+                  <div style={{ display: 'flex', gap: '0.65rem', flexWrap: 'wrap' }}>
+                    {(viewingProduct.photos || viewingProduct.rawItem?.photos || []).map((imgUrl, idx) => (
+                      imgUrl ? (
+                        <a key={idx} href={imgUrl} target="_blank" rel="noopener noreferrer">
+                          <img
+                            src={imgUrl}
+                            alt={`Photo ${idx + 1}`}
+                            style={{ width: '80px', height: '80px', borderRadius: '10px', objectFit: 'cover', border: inputBorder, backgroundColor: inputBg }}
+                            onError={e => { e.target.style.display = 'none'; }}
+                          />
+                        </a>
+                      ) : null
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Implementation Telemetry */}
+              <div>
+                <strong style={{ color: textMuted, fontSize: '0.75rem', textTransform: 'uppercase', display: 'block', marginBottom: '0.25rem' }}>Implementation Telemetry</strong>
+                <div style={{ color: textMain, fontSize: '0.85rem' }}>Used in <strong>{viewingProduct.usedIn?.toLocaleString('en-IN') || '0'}</strong> active business stores & listings across ManaCity.</div>
+              </div>
+
+              {/* Tags & Metadata */}
+              <div>
+                <strong style={{ color: textMuted, fontSize: '0.75rem', textTransform: 'uppercase', display: 'block', marginBottom: '0.35rem' }}>Tags & Metadata</strong>
+                <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+                  {viewingProduct.tags?.map((t, idx) => (
+                    <span key={idx} style={{ fontSize: '0.75rem', padding: '0.2rem 0.55rem', borderRadius: '4px', backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : '#e2e8f0', color: textMain, fontWeight: 600 }}>
+                      #{t}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1rem', paddingTop: '0.85rem', borderTop: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid #e2e8f0' }}>
+                <button onClick={() => setViewingProduct(null)} style={{ padding: '0.65rem 1.5rem', borderRadius: '8px', border: 'none', backgroundColor: '#10b981', color: '#fff', fontWeight: 800, cursor: 'pointer' }}>
+                  Close
+                </button>
+              </div>
             </div>
           </div>
         </div>

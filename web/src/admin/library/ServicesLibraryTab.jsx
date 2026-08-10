@@ -586,7 +586,7 @@ function ServicesLibraryTab({ catalog = [], theme, handleCreateCatalogItem, hand
                             style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '0.2rem' }}
                             title="Delete Service"
                           >
-                            <MoreVertical size={15} />
+                            <Trash2 size={15} />
                           </button>
                         </div>
                       </td>
@@ -830,8 +830,8 @@ function ServicesLibraryTab({ catalog = [], theme, handleCreateCatalogItem, hand
           left: 0,
           right: 0,
           bottom: 0,
-          backgroundColor: 'rgba(0,0,0,0.7)',
-          backdropFilter: 'blur(5px)',
+          backgroundColor: 'rgba(0,0,0,0.75)',
+          backdropFilter: 'blur(6px)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -843,61 +843,119 @@ function ServicesLibraryTab({ catalog = [], theme, handleCreateCatalogItem, hand
             border: cardBorder,
             borderRadius: '20px',
             width: '100%',
-            maxWidth: '580px',
-            maxHeight: '85vh',
+            maxWidth: '620px',
+            maxHeight: '88vh',
             overflowY: 'auto',
             padding: '1.75rem',
-            boxShadow: '0 20px 40px rgba(0,0,0,0.4)',
+            boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)',
             color: textMain
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem', paddingBottom: '0.75rem', borderBottom: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid #e2e8f0' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem', paddingBottom: '0.85rem', borderBottom: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid #e2e8f0' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
                 <img
                   src={viewingService.iconUrl || 'https://cdn-icons-png.flaticon.com/512/1055/1055644.png'}
                   alt={viewingService.name}
-                  style={{ width: '40px', height: '40px', borderRadius: '10px', objectFit: 'contain', backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc', padding: '4px' }}
+                  style={{ width: '48px', height: '48px', borderRadius: '12px', objectFit: 'contain', backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc', padding: '6px', border: inputBorder }}
                 />
                 <div>
-                  <h3 style={{ fontSize: '1.1rem', fontWeight: 800, margin: 0 }}>{viewingService.name}</h3>
-                  <span style={{ fontSize: '0.75rem', color: textMuted }}>{viewingService.slug}</span>
+                  <h3 style={{ fontSize: '1.2rem', fontWeight: 900, margin: 0 }}>{viewingService.name}</h3>
+                  <div style={{ fontSize: '0.75rem', color: '#818cf8', fontWeight: 600, marginTop: '0.15rem' }}>
+                    🔗 manacity.in/library/services/{viewingService.slug}
+                  </div>
                 </div>
               </div>
-              <button onClick={() => setViewingService(null)} style={{ background: 'none', border: 'none', color: textMuted, cursor: 'pointer', fontSize: '1.2rem', fontWeight: 700 }}>✕</button>
+              <button onClick={() => setViewingService(null)} style={{ background: 'none', border: 'none', color: textMuted, cursor: 'pointer', fontSize: '1.25rem', fontWeight: 700 }}>✕</button>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', fontSize: '0.88rem' }}>
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
-                <span style={{ fontSize: '0.75rem', fontWeight: 700, padding: '0.2rem 0.6rem', borderRadius: '6px', backgroundColor: 'rgba(99,102,241,0.15)', color: '#818cf8' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.15rem', fontSize: '0.88rem' }}>
+              {/* Badges */}
+              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                <span style={{ fontSize: '0.75rem', fontWeight: 800, padding: '0.25rem 0.7rem', borderRadius: '6px', backgroundColor: 'rgba(99,102,241,0.15)', color: '#818cf8', border: '1px solid rgba(99,102,241,0.3)' }}>
                   {viewingService.category}
                 </span>
-                <span style={{ fontSize: '0.75rem', fontWeight: 800, padding: '0.2rem 0.6rem', borderRadius: '6px', backgroundColor: viewingService.status === 'Active' ? 'rgba(16,185,129,0.15)' : 'rgba(245,158,11,0.15)', color: viewingService.status === 'Active' ? '#10b981' : '#f59e0b' }}>
+                <span style={{ fontSize: '0.75rem', fontWeight: 800, padding: '0.25rem 0.7rem', borderRadius: '6px', backgroundColor: viewingService.status === 'Active' ? 'rgba(16,185,129,0.15)' : 'rgba(245,158,11,0.15)', color: viewingService.status === 'Active' ? '#10b981' : '#f59e0b', border: viewingService.status === 'Active' ? '1px solid rgba(16,185,129,0.3)' : '1px solid rgba(245,158,11,0.3)' }}>
                   {viewingService.status}
+                </span>
+                <span style={{ fontSize: '0.75rem', fontWeight: 700, padding: '0.25rem 0.7rem', borderRadius: '6px', backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : '#e2e8f0', color: textMuted }}>
+                  Type: SERVICE
                 </span>
               </div>
 
-              <div>
-                <strong style={{ color: textMuted, fontSize: '0.78rem', textTransform: 'uppercase', display: 'block', marginBottom: '0.25rem' }}>Pricing Range / Base Price</strong>
-                <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#10b981' }}>{viewingService.priceRange}</div>
+              {/* Price */}
+              <div style={{ backgroundColor: isDark ? 'rgba(16,185,129,0.08)' : '#f0fdf4', padding: '0.85rem 1rem', borderRadius: '10px', border: '1px solid rgba(16,185,129,0.2)' }}>
+                <strong style={{ color: textMuted, fontSize: '0.72rem', textTransform: 'uppercase', display: 'block', marginBottom: '0.2rem' }}>Master Base Price</strong>
+                <div style={{ fontSize: '1.3rem', fontWeight: 900, color: '#10b981' }}>{viewingService.priceRange}</div>
               </div>
 
+              {/* Description */}
               <div>
-                <strong style={{ color: textMuted, fontSize: '0.78rem', textTransform: 'uppercase', display: 'block', marginBottom: '0.25rem' }}>Implementation Telemetry</strong>
-                <div style={{ color: textMain }}>Used in {viewingService.usedIn?.toLocaleString('en-IN') || '0'} active websites & directories across ManaCity.</div>
+                <strong style={{ color: textMuted, fontSize: '0.75rem', textTransform: 'uppercase', display: 'block', marginBottom: '0.35rem' }}>Detailed Service Description</strong>
+                <div style={{ backgroundColor: inputBg, border: inputBorder, padding: '0.85rem 1rem', borderRadius: '10px', color: textMain, lineHeight: 1.6, fontSize: '0.88rem' }}>
+                  {viewingService.description || viewingService.rawItem?.description || 'Verified Super Admin catalog service offering available for all ManaCity business subscribers.'}
+                </div>
               </div>
 
+              {/* Photos Gallery */}
+              {((viewingService.photos && viewingService.photos.length > 0) || (viewingService.rawItem?.photos && viewingService.rawItem.photos.length > 0)) && (
+                <div>
+                  <strong style={{ color: textMuted, fontSize: '0.75rem', textTransform: 'uppercase', display: 'block', marginBottom: '0.5rem' }}>Service Photos & Media ({viewingService.photos?.length || viewingService.rawItem?.photos?.length || 0})</strong>
+                  <div style={{ display: 'flex', gap: '0.65rem', flexWrap: 'wrap' }}>
+                    {(viewingService.photos || viewingService.rawItem?.photos || []).map((imgUrl, idx) => (
+                      imgUrl ? (
+                        <a key={idx} href={imgUrl} target="_blank" rel="noopener noreferrer">
+                          <img
+                            src={imgUrl}
+                            alt={`Photo ${idx + 1}`}
+                            style={{ width: '80px', height: '80px', borderRadius: '10px', objectFit: 'cover', border: inputBorder, backgroundColor: inputBg }}
+                            onError={e => { e.target.style.display = 'none'; }}
+                          />
+                        </a>
+                      ) : null
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Customer Logos / Trust Badges */}
+              {((viewingService.customerLogos && viewingService.customerLogos.length > 0) || (viewingService.rawItem?.customerLogos && viewingService.rawItem.customerLogos.length > 0)) && (
+                <div>
+                  <strong style={{ color: textMuted, fontSize: '0.75rem', textTransform: 'uppercase', display: 'block', marginBottom: '0.5rem' }}>Customer Trust Badges ({viewingService.customerLogos?.length || viewingService.rawItem?.customerLogos?.length || 0})</strong>
+                  <div style={{ display: 'flex', gap: '0.65rem', flexWrap: 'wrap' }}>
+                    {(viewingService.customerLogos || viewingService.rawItem?.customerLogos || []).map((logoUrl, idx) => (
+                      logoUrl ? (
+                        <img
+                          key={idx}
+                          src={logoUrl}
+                          alt={`Badge ${idx + 1}`}
+                          style={{ width: '60px', height: '40px', borderRadius: '6px', objectFit: 'contain', border: inputBorder, backgroundColor: '#fff', padding: '4px' }}
+                          onError={e => { e.target.style.display = 'none'; }}
+                        />
+                      ) : null
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Implementation Telemetry */}
               <div>
-                <strong style={{ color: textMuted, fontSize: '0.78rem', textTransform: 'uppercase', display: 'block', marginBottom: '0.25rem' }}>Tags & Metadata</strong>
+                <strong style={{ color: textMuted, fontSize: '0.75rem', textTransform: 'uppercase', display: 'block', marginBottom: '0.25rem' }}>Implementation Telemetry</strong>
+                <div style={{ color: textMain, fontSize: '0.85rem' }}>Used in <strong>{viewingService.usedIn?.toLocaleString('en-IN') || '0'}</strong> active business websites & directory listings across ManaCity.</div>
+              </div>
+
+              {/* Tags & Metadata */}
+              <div>
+                <strong style={{ color: textMuted, fontSize: '0.75rem', textTransform: 'uppercase', display: 'block', marginBottom: '0.35rem' }}>Tags & Metadata</strong>
                 <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
                   {viewingService.tags?.map((t, idx) => (
-                    <span key={idx} style={{ fontSize: '0.75rem', padding: '0.2rem 0.5rem', borderRadius: '4px', backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : '#e2e8f0', color: textMain }}>
+                    <span key={idx} style={{ fontSize: '0.75rem', padding: '0.2rem 0.55rem', borderRadius: '4px', backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : '#e2e8f0', color: textMain, fontWeight: 600 }}>
                       #{t}
                     </span>
                   ))}
                 </div>
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1rem', paddingTop: '0.75rem', borderTop: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid #e2e8f0' }}>
-                <button onClick={() => setViewingService(null)} style={{ padding: '0.5rem 1.25rem', borderRadius: '8px', border: 'none', backgroundColor: '#6366f1', color: '#fff', fontWeight: 700, cursor: 'pointer' }}>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1rem', paddingTop: '0.85rem', borderTop: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid #e2e8f0' }}>
+                <button onClick={() => setViewingService(null)} style={{ padding: '0.65rem 1.5rem', borderRadius: '8px', border: 'none', backgroundColor: '#6366f1', color: '#fff', fontWeight: 800, cursor: 'pointer' }}>
                   Close
                 </button>
               </div>
