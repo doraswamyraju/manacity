@@ -530,11 +530,11 @@ exports.getPerformanceMetrics = async (req, res) => {
   }
 };
 
-// 9. Get Business Owner Catalog (Services & Products)
+// 9. Get Business Owner Master Catalog & Added Items
 exports.getBusinessCatalog = async (req, res) => {
   try {
     const ownerId = req.user.id;
-    const businessGroup = await prisma.businessGroup.findFirst({
+    let businessGroup = await prisma.businessGroup.findFirst({
       where: { ownerId },
       include: {
         services: true,
@@ -543,33 +543,92 @@ exports.getBusinessCatalog = async (req, res) => {
     });
 
     if (!businessGroup) {
-      return res.json({ status: 'success', services: [], products: [], catalog: [] });
+      businessGroup = await prisma.businessGroup.create({
+        data: { name: `${req.user.name}'s Business`, ownerId }
+      });
     }
 
-    const services = (businessGroup.services || []).map(s => ({ ...s, type: 'SERVICE' }));
-    const products = (businessGroup.products || []).map(p => ({ ...p, type: 'PRODUCT' }));
-    const catalog = [...services, ...products];
+    // Fetch Super Admin Master Library Items
+    let masterLibrary = await prisma.productServiceLibrary.findMany({
+      where: { status: 'APPROVED' },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    // Auto-seed default Super Admin master items if library is empty
+    if (masterLibrary.length === 0) {
+      const defaultMasterItems = [
+        { name: 'Local SEO Audit & GBP Optimization', category: 'Digital Marketing', type: 'SERVICE', defaultPrice: 2499, description: '40-point technical audit for Google Business Profile and local maps ranking.' },
+        { name: 'Google Ads & PPC Management', category: 'Digital Marketing', type: 'SERVICE', defaultPrice: 9999, description: 'High ROI targeted Google search and display ad campaign setup & management.' },
+        { name: 'Meta Ads & Branding Package', category: 'Digital Marketing', type: 'SERVICE', defaultPrice: 12499, description: 'Targeted Instagram and Facebook ad campaigns for lead generation.' },
+        { name: 'Custom Storefront Web Development', category: 'Web Development', type: 'SERVICE', defaultPrice: 14999, description: 'Fast, responsive custom website design with domain mapping & SEO integration.' },
+        { name: 'NFC Tap & Review QR Standee', category: 'Hardware/Print', type: 'PRODUCT', defaultPrice: 1499, description: 'Custom printed acrylic review QR standee with NFC tap support.' },
+        { name: 'Doctor Consultation & Checkup', category: 'Clinics & Health', type: 'SERVICE', defaultPrice: 499, description: 'In-person general physician medical consultation and health assessment.' },
+        { name: 'Chef Special Dining Menu Package', category: 'Restaurant & Dining', type: 'SERVICE', defaultPrice: 799, description: 'Curated 3-course dining package for two with complimentary drinks.' }
+      ];
+
+      for (const item of defaultMasterItems) {
+        const itemSlug = item.name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+        await prisma.productServiceLibrary.create({
+          data: {
+            ...item,
+            slug: itemSlug,
+            status: 'APPROVED'
+          }
+        });
+      }
+
+      masterLibrary = await prisma.productServiceLibrary.findMany({
+        where: { status: 'APPROVED' },
+        orderBy: { createdAt: 'desc' }
+      });
+    }
+
+    // Map business owner's added services & products
+    const myServices = businessGroup.services || [];
+    const myProducts = businessGroup.products || [];
+
+    const myAddedItemsMap = {};
+    myServices.forEach(s => {
+      if (s.libraryItemId) myAddedItemsMap[s.libraryItemId] = s;
+    });
+    myProducts.forEach(p => {
+      if (p.libraryItemId) myAddedItemsMap[p.libraryItemId] = p;
+    });
+
+    const masterItemsWithStatus = masterLibrary.map(item => {
+      const added = myAddedItemsMap[item.id];
+      return {
+        ...item,
+        isAdded: !!added,
+        myBusinessItemId: added ? added.id : null,
+        myPrice: added ? (added.price !== null ? added.price : item.defaultPrice) : item.defaultPrice
+      };
+    });
+
+    const myCatalogItems = [
+      ...myServices.map(s => ({ ...s, type: 'SERVICE' })),
+      ...myProducts.map(p => ({ ...p, type: 'PRODUCT' }))
+    ];
 
     res.json({
       status: 'success',
-      services,
-      products,
-      catalog
+      masterLibrary: masterItemsWithStatus,
+      myCatalog: myCatalogItems
     });
   } catch (error) {
     console.error('Fetch business catalog error:', error);
-    res.status(500).json({ error: 'Failed to retrieve catalog.' });
+    res.status(500).json({ error: 'Failed to retrieve catalog library.' });
   }
 };
 
-// 10. Create Business Catalog Item (Product or Service)
-exports.createBusinessCatalogItem = async (req, res) => {
+// 10. Attach Master Library Item to Business Owner
+exports.attachLibraryItem = async (req, res) => {
   try {
     const ownerId = req.user.id;
-    const { name, type, description, price, photos } = req.body;
+    const { libraryItemId, customPrice } = req.body;
 
-    if (!name) {
-      return res.status(400).json({ error: 'Name is required.' });
+    if (!libraryItemId) {
+      return res.status(400).json({ error: 'Master library item ID is required.' });
     }
 
     let businessGroup = await prisma.businessGroup.findFirst({
@@ -577,89 +636,103 @@ exports.createBusinessCatalogItem = async (req, res) => {
     });
 
     if (!businessGroup) {
-      businessGroup = await prisma.businessGroup.create({
-        data: { name: `${req.user.name}'s Business`, ownerId }
-      });
+      return res.status(404).json({ error: 'Business profile not found.' });
     }
 
-    const itemPrice = price ? parseFloat(price) : null;
-    const itemPhotos = Array.isArray(photos) ? photos.filter(Boolean) : (photos ? [photos] : []);
+    const masterItem = await prisma.productServiceLibrary.findUnique({
+      where: { id: libraryItemId }
+    });
 
-    let item;
-    if (type === 'PRODUCT') {
-      item = await prisma.businessProduct.create({
-        data: {
-          businessGroupId: businessGroup.id,
-          name,
-          description: description || '',
-          price: itemPrice,
-          photos: itemPhotos
-        }
+    if (!masterItem) {
+      return res.status(404).json({ error: 'Selected master library item does not exist.' });
+    }
+
+    const priceToSet = customPrice !== undefined && customPrice !== '' ? parseFloat(customPrice) : masterItem.defaultPrice;
+
+    let attached;
+    if (masterItem.type === 'PRODUCT') {
+      const existing = await prisma.businessProduct.findFirst({
+        where: { businessGroupId: businessGroup.id, libraryItemId }
       });
-      item = { ...item, type: 'PRODUCT' };
+
+      if (existing) {
+        attached = await prisma.businessProduct.update({
+          where: { id: existing.id },
+          data: { price: priceToSet }
+        });
+      } else {
+        attached = await prisma.businessProduct.create({
+          data: {
+            businessGroupId: businessGroup.id,
+            libraryItemId: masterItem.id,
+            name: masterItem.name,
+            description: masterItem.description,
+            price: priceToSet,
+            photos: masterItem.photos || []
+          }
+        });
+      }
     } else {
-      item = await prisma.businessService.create({
-        data: {
-          businessGroupId: businessGroup.id,
-          name,
-          description: description || '',
-          price: itemPrice,
-          photos: itemPhotos
-        }
+      const existing = await prisma.businessService.findFirst({
+        where: { businessGroupId: businessGroup.id, libraryItemId }
       });
-      item = { ...item, type: 'SERVICE' };
+
+      if (existing) {
+        attached = await prisma.businessService.update({
+          where: { id: existing.id },
+          data: { price: priceToSet }
+        });
+      } else {
+        attached = await prisma.businessService.create({
+          data: {
+            businessGroupId: businessGroup.id,
+            libraryItemId: masterItem.id,
+            name: masterItem.name,
+            description: masterItem.description,
+            price: priceToSet,
+            photos: masterItem.photos || []
+          }
+        });
+      }
     }
 
-    res.json({ status: 'success', item });
+    res.json({ status: 'success', item: attached });
   } catch (error) {
-    console.error('Create catalog item error:', error);
-    res.status(500).json({ error: 'Failed to create item.' });
+    console.error('Attach master library item error:', error);
+    res.status(500).json({ error: 'Failed to add item to business profile.' });
   }
 };
 
-// 11. Update Business Catalog Item
-exports.updateBusinessCatalogItem = async (req, res) => {
+// 11. Update Custom Price on Business Item
+exports.updateBusinessItemPrice = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, type, description, price, photos } = req.body;
+    const { price, type } = req.body;
 
-    const itemPrice = price !== undefined ? (price ? parseFloat(price) : null) : undefined;
-    const itemPhotos = Array.isArray(photos) ? photos.filter(Boolean) : undefined;
+    const newPrice = price !== undefined && price !== '' ? parseFloat(price) : null;
 
-    let item;
+    let updated;
     if (type === 'PRODUCT') {
-      item = await prisma.businessProduct.update({
+      updated = await prisma.businessProduct.update({
         where: { id },
-        data: {
-          ...(name && { name }),
-          ...(description !== undefined && { description }),
-          ...(itemPrice !== undefined && { price: itemPrice }),
-          ...(itemPhotos && { photos: itemPhotos })
-        }
+        data: { price: newPrice }
       });
-      item = { ...item, type: 'PRODUCT' };
     } else {
-      item = await prisma.businessService.update({
+      updated = await prisma.businessService.update({
         where: { id },
-        data: {
-          ...(name && { name }),
-          ...(description !== undefined && { description }),
-          ...(itemPrice !== undefined && { price: itemPrice }),
-          ...(itemPhotos && { photos: itemPhotos })
-        }
+        data: { price: newPrice }
       });
-      item = { ...item, type: 'SERVICE' };
     }
 
-    res.json({ status: 'success', item });
+    res.json({ status: 'success', item: updated });
   } catch (error) {
-    console.error('Update catalog item error:', error);
-    res.status(500).json({ error: 'Failed to update item.' });
+    console.error('Update item price error:', error);
+    res.status(500).json({ error: 'Failed to update item price.' });
   }
 };
 
-// 12. Delete Business Catalog Item
-exports.deleteBusinessCatalogItem = async (req, res) => {
+// 12. Detach / Remove Library Item from Business Profile
+exports.detachLibraryItem = async (req, res) => {
   try {
     const { id } = req.params;
     const { type } = req.query;
@@ -670,9 +743,9 @@ exports.deleteBusinessCatalogItem = async (req, res) => {
       await prisma.businessService.delete({ where: { id } });
     }
 
-    res.json({ status: 'success', message: 'Item deleted successfully.' });
+    res.json({ status: 'success', message: 'Item removed from business profile.' });
   } catch (error) {
-    console.error('Delete catalog item error:', error);
-    res.status(500).json({ error: 'Failed to delete item.' });
+    console.error('Detach library item error:', error);
+    res.status(500).json({ error: 'Failed to remove item.' });
   }
 };
