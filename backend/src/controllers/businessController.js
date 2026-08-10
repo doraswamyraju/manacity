@@ -574,7 +574,10 @@ exports.getBusinessCatalog = async (req, res) => {
         ...item,
         isAdded: !!added,
         myBusinessItemId: added ? added.id : null,
-        myPrice: added ? (added.price !== null ? added.price : item.defaultPrice) : item.defaultPrice
+        myPrice: added ? (added.price !== null ? added.price : item.defaultPrice) : item.defaultPrice,
+        myDescription: added ? (added.description || item.description) : item.description,
+        myPhotos: added ? (added.photos && added.photos.length ? added.photos : item.photos) : item.photos,
+        myCustomerLogos: added ? (added.customerLogos && added.customerLogos.length ? added.customerLogos : item.customerLogos) : item.customerLogos
       };
     });
 
@@ -594,11 +597,11 @@ exports.getBusinessCatalog = async (req, res) => {
   }
 };
 
-// 10. Attach Master Library Item to Business Owner
+// 10. Attach Master Library Item to Business Owner with optional Customization
 exports.attachLibraryItem = async (req, res) => {
   try {
     const ownerId = req.user.id;
-    const { libraryItemId, customPrice } = req.body;
+    const { libraryItemId, customPrice, customDescription, customPhotos, customerLogos } = req.body;
 
     if (!libraryItemId) {
       return res.status(400).json({ error: 'Master library item ID is required.' });
@@ -621,6 +624,9 @@ exports.attachLibraryItem = async (req, res) => {
     }
 
     const priceToSet = customPrice !== undefined && customPrice !== '' ? parseFloat(customPrice) : masterItem.defaultPrice;
+    const descriptionToSet = customDescription || masterItem.description || '';
+    const photosToSet = (customPhotos && customPhotos.length) ? customPhotos.filter(Boolean) : (masterItem.photos || []);
+    const logosToSet = (customerLogos && customerLogos.length) ? customerLogos.filter(Boolean).slice(0, 5) : [];
 
     let attached;
     if (masterItem.type === 'PRODUCT') {
@@ -631,17 +637,23 @@ exports.attachLibraryItem = async (req, res) => {
       if (existing) {
         attached = await prisma.businessProduct.update({
           where: { id: existing.id },
-          data: { price: priceToSet }
+          data: {
+            price: priceToSet,
+            description: descriptionToSet,
+            photos: photosToSet,
+            customerLogos: logosToSet
+          }
         });
       } else {
         attached = await prisma.businessProduct.create({
           data: {
             businessGroupId: businessGroup.id,
             libraryItemId: masterItem.id,
-            name: masterItem.name,
-            description: masterItem.description,
+            name: masterItem.name, // Title locked to masterItem.name
+            description: descriptionToSet,
             price: priceToSet,
-            photos: masterItem.photos || []
+            photos: photosToSet,
+            customerLogos: logosToSet
           }
         });
       }
@@ -653,17 +665,23 @@ exports.attachLibraryItem = async (req, res) => {
       if (existing) {
         attached = await prisma.businessService.update({
           where: { id: existing.id },
-          data: { price: priceToSet }
+          data: {
+            price: priceToSet,
+            description: descriptionToSet,
+            photos: photosToSet,
+            customerLogos: logosToSet
+          }
         });
       } else {
         attached = await prisma.businessService.create({
           data: {
             businessGroupId: businessGroup.id,
             libraryItemId: masterItem.id,
-            name: masterItem.name,
-            description: masterItem.description,
+            name: masterItem.name, // Title locked to masterItem.name
+            description: descriptionToSet,
             price: priceToSet,
-            photos: masterItem.photos || []
+            photos: photosToSet,
+            customerLogos: logosToSet
           }
         });
       }
@@ -676,31 +694,39 @@ exports.attachLibraryItem = async (req, res) => {
   }
 };
 
-// 11. Update Custom Price on Business Item
+// 11. Update Customization on Business Item (Price, Description, Photos, Customer Logos up to 5 - Title locked)
 exports.updateBusinessItemPrice = async (req, res) => {
   try {
     const { id } = req.params;
-    const { price, type } = req.body;
+    const { price, description, photos, customerLogos, type } = req.body;
 
     const newPrice = price !== undefined && price !== '' ? parseFloat(price) : null;
+    const photosList = Array.isArray(photos) ? photos.filter(Boolean) : undefined;
+    const logosList = Array.isArray(customerLogos) ? customerLogos.filter(Boolean).slice(0, 5) : undefined;
+
+    const updateData = {};
+    if (newPrice !== undefined) updateData.price = newPrice;
+    if (description !== undefined) updateData.description = description;
+    if (photosList !== undefined) updateData.photos = photosList;
+    if (logosList !== undefined) updateData.customerLogos = logosList;
 
     let updated;
     if (type === 'PRODUCT') {
       updated = await prisma.businessProduct.update({
         where: { id },
-        data: { price: newPrice }
+        data: updateData
       });
     } else {
       updated = await prisma.businessService.update({
         where: { id },
-        data: { price: newPrice }
+        data: updateData
       });
     }
 
     res.json({ status: 'success', item: updated });
   } catch (error) {
-    console.error('Update item price error:', error);
-    res.status(500).json({ error: 'Failed to update item price.' });
+    console.error('Update item customization error:', error);
+    res.status(500).json({ error: 'Failed to update item customization.' });
   }
 };
 
@@ -720,5 +746,40 @@ exports.detachLibraryItem = async (req, res) => {
   } catch (error) {
     console.error('Detach library item error:', error);
     res.status(500).json({ error: 'Failed to remove item.' });
+  }
+};
+
+// 13. Business Owner Request New Master Library Item (Super Admin format)
+exports.requestMasterCatalogItem = async (req, res) => {
+  try {
+    const ownerId = req.user.id;
+    const { name, slug, category, type, description, defaultPrice, photos, customerLogos, tags } = req.body;
+
+    if (!name) {
+      return res.status(400).json({ error: 'Product or service title is required.' });
+    }
+
+    const itemSlug = (slug || name).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+
+    const newItem = await prisma.productServiceLibrary.create({
+      data: {
+        name,
+        slug: itemSlug,
+        category: category || 'General',
+        type: type === 'PRODUCT' ? 'PRODUCT' : 'SERVICE',
+        description: description || '',
+        defaultPrice: defaultPrice ? parseFloat(defaultPrice) : null,
+        photos: Array.isArray(photos) ? photos.filter(Boolean) : [],
+        customerLogos: Array.isArray(customerLogos) ? customerLogos.filter(Boolean).slice(0, 5) : [],
+        tags: Array.isArray(tags) ? tags.filter(Boolean) : [],
+        status: 'PENDING', // Sent to Super Admin for approval
+        requestedBy: ownerId
+      }
+    });
+
+    res.json({ status: 'success', item: newItem, message: 'Your product/service request has been submitted to Super Admin for approval.' });
+  } catch (error) {
+    console.error('Request master catalog item error:', error);
+    res.status(500).json({ error: 'Failed to submit item request.' });
   }
 };

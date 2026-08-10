@@ -20,5 +20,6 @@ router.get('/catalog', auth, businessController.getBusinessCatalog);
 router.post('/catalog/attach', auth, businessController.attachLibraryItem);
 router.put('/catalog/price/:id', auth, businessController.updateBusinessItemPrice);
 router.delete('/catalog/detach/:id', auth, businessController.detachLibraryItem);
+router.post('/catalog/request', auth, businessController.requestMasterCatalogItem);
 
 module.exports = router;
