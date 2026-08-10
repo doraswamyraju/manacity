@@ -548,22 +548,41 @@ exports.getBusinessCatalog = async (req, res) => {
       });
     }
 
-    // Fetch Super Admin Master Library Items (Database Only - No Auto-Seeding)
+    // Clean up any old auto-seeded items from ProductServiceLibrary
+    const autoSeededTitles = [
+      'Local SEO Audit & GBP Optimization',
+      'Google Ads & PPC Management',
+      'Meta Ads & Branding Package',
+      'Custom Storefront Web Development',
+      'NFC Tap & Review QR Standee',
+      'Doctor Consultation & Checkup',
+      'Chef Special Dining Menu Package'
+    ];
+
+    await prisma.productServiceLibrary.deleteMany({
+      where: {
+        name: { in: autoSeededTitles }
+      }
+    });
+
+    // Fetch Super Admin Master Library Items (Database Only)
     const masterLibrary = await prisma.productServiceLibrary.findMany({
       where: { status: 'APPROVED' },
       orderBy: { createdAt: 'desc' }
     });
 
-    // Map business owner's added services & products
-    const myServices = businessGroup.services || [];
-    const myProducts = businessGroup.products || [];
+    const validMasterItemIds = new Set(masterLibrary.map(item => item.id));
+
+    // Filter business owner's items to strictly include ONLY items attached to an approved Super Admin Master Library item
+    const myServices = (businessGroup.services || []).filter(s => s.libraryItemId && validMasterItemIds.has(s.libraryItemId));
+    const myProducts = (businessGroup.products || []).filter(p => p.libraryItemId && validMasterItemIds.has(p.libraryItemId));
 
     const myAddedItemsMap = {};
     myServices.forEach(s => {
-      if (s.libraryItemId) myAddedItemsMap[s.libraryItemId] = s;
+      myAddedItemsMap[s.libraryItemId] = s;
     });
     myProducts.forEach(p => {
-      if (p.libraryItemId) myAddedItemsMap[p.libraryItemId] = p;
+      myAddedItemsMap[p.libraryItemId] = p;
     });
 
     const masterItemsWithStatus = masterLibrary.map(item => {
