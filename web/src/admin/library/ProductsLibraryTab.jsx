@@ -428,12 +428,13 @@ function ProductsLibraryTab({ catalog = [], theme, handleCreateCatalogItem, hand
               </div>
 
               {/* Photos Gallery */}
-              {((viewingProduct.photos && viewingProduct.photos.length > 0) || (viewingProduct.rawItem?.photos && viewingProduct.rawItem.photos.length > 0)) && (
-                <div>
-                  <strong style={{ color: textMuted, fontSize: '0.75rem', textTransform: 'uppercase', display: 'block', marginBottom: '0.5rem' }}>Product Photos & Images ({viewingProduct.photos?.length || viewingProduct.rawItem?.photos?.length || 0})</strong>
-                  <div style={{ display: 'flex', gap: '0.65rem', flexWrap: 'wrap' }}>
-                    {(viewingProduct.photos || viewingProduct.rawItem?.photos || []).map((imgUrl, idx) => (
-                      imgUrl ? (
+              {(() => {
+                const productPhotos = (viewingProduct.photos || viewingProduct.rawItem?.photos || []).filter(p => p && typeof p === 'string' && p.trim() !== '');
+                return productPhotos.length > 0 ? (
+                  <div>
+                    <strong style={{ color: textMuted, fontSize: '0.75rem', textTransform: 'uppercase', display: 'block', marginBottom: '0.5rem' }}>Product Photos & Images ({productPhotos.length})</strong>
+                    <div style={{ display: 'flex', gap: '0.65rem', flexWrap: 'wrap' }}>
+                      {productPhotos.map((imgUrl, idx) => (
                         <a key={idx} href={imgUrl} target="_blank" rel="noopener noreferrer">
                           <img
                             src={imgUrl}
@@ -442,11 +443,23 @@ function ProductsLibraryTab({ catalog = [], theme, handleCreateCatalogItem, hand
                             onError={e => { e.target.style.display = 'none'; }}
                           />
                         </a>
-                      ) : null
-                    ))}
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                ) : (
+                  <div>
+                    <strong style={{ color: textMuted, fontSize: '0.75rem', textTransform: 'uppercase', display: 'block', marginBottom: '0.5rem' }}>Product Photos & Images</strong>
+                    <div style={{ display: 'flex', gap: '0.65rem', alignItems: 'center' }}>
+                      <img
+                        src={viewingProduct.iconUrl || 'https://images.unsplash.com/photo-1556742049-0a67daf4007a?w=400&auto=format&fit=crop'}
+                        alt={viewingProduct.name}
+                        style={{ width: '80px', height: '80px', borderRadius: '10px', objectFit: 'cover', border: inputBorder, backgroundColor: inputBg }}
+                      />
+                      <span style={{ fontSize: '0.8rem', color: textMuted }}>Default catalog product image preview</span>
+                    </div>
+                  </div>
+                );
+              })()}
 
               {/* Implementation Telemetry */}
               <div>

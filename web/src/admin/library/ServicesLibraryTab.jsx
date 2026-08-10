@@ -896,12 +896,13 @@ function ServicesLibraryTab({ catalog = [], theme, handleCreateCatalogItem, hand
               </div>
 
               {/* Photos Gallery */}
-              {((viewingService.photos && viewingService.photos.length > 0) || (viewingService.rawItem?.photos && viewingService.rawItem.photos.length > 0)) && (
-                <div>
-                  <strong style={{ color: textMuted, fontSize: '0.75rem', textTransform: 'uppercase', display: 'block', marginBottom: '0.5rem' }}>Service Photos & Media ({viewingService.photos?.length || viewingService.rawItem?.photos?.length || 0})</strong>
-                  <div style={{ display: 'flex', gap: '0.65rem', flexWrap: 'wrap' }}>
-                    {(viewingService.photos || viewingService.rawItem?.photos || []).map((imgUrl, idx) => (
-                      imgUrl ? (
+              {(() => {
+                const servicePhotos = (viewingService.photos || viewingService.rawItem?.photos || []).filter(p => p && typeof p === 'string' && p.trim() !== '');
+                return servicePhotos.length > 0 ? (
+                  <div>
+                    <strong style={{ color: textMuted, fontSize: '0.75rem', textTransform: 'uppercase', display: 'block', marginBottom: '0.5rem' }}>Service Photos & Media ({servicePhotos.length})</strong>
+                    <div style={{ display: 'flex', gap: '0.65rem', flexWrap: 'wrap' }}>
+                      {servicePhotos.map((imgUrl, idx) => (
                         <a key={idx} href={imgUrl} target="_blank" rel="noopener noreferrer">
                           <img
                             src={imgUrl}
@@ -910,11 +911,23 @@ function ServicesLibraryTab({ catalog = [], theme, handleCreateCatalogItem, hand
                             onError={e => { e.target.style.display = 'none'; }}
                           />
                         </a>
-                      ) : null
-                    ))}
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                ) : (
+                  <div>
+                    <strong style={{ color: textMuted, fontSize: '0.75rem', textTransform: 'uppercase', display: 'block', marginBottom: '0.5rem' }}>Service Photos & Media</strong>
+                    <div style={{ display: 'flex', gap: '0.65rem', alignItems: 'center' }}>
+                      <img
+                        src={viewingService.iconUrl || 'https://cdn-icons-png.flaticon.com/512/1055/1055644.png'}
+                        alt={viewingService.name}
+                        style={{ width: '80px', height: '80px', borderRadius: '10px', objectFit: 'contain', border: inputBorder, backgroundColor: inputBg, padding: '8px' }}
+                      />
+                      <span style={{ fontSize: '0.8rem', color: textMuted }}>Default catalog image preview</span>
+                    </div>
+                  </div>
+                );
+              })()}
 
               {/* Customer Logos / Trust Badges */}
               {((viewingService.customerLogos && viewingService.customerLogos.length > 0) || (viewingService.rawItem?.customerLogos && viewingService.rawItem.customerLogos.length > 0)) && (
