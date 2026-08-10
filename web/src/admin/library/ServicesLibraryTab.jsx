@@ -939,7 +939,7 @@ function ServicesLibraryTab({ catalog = [], theme, handleCreateCatalogItem, hand
 
               {/* SEO Slug Control */}
               <div>
-                <label style={{ fontSize: '0.78rem', fontWeight 700, color: textMuted, display: 'block', marginBottom: '0.35rem' }}>SEO Slug (URL Control)</label>
+                <label style={{ fontSize: '0.78rem', fontWeight: 700, color: textMuted, display: 'block', marginBottom: '0.35rem' }}>SEO Slug (URL Control)</label>
                 <div style={{ position: 'relative' }}>
                   <input
                     type="text"
