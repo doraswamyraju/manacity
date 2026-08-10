@@ -42,6 +42,21 @@ function ProductsLibraryTab({ catalog = [], theme, handleCreateCatalogItem, hand
   const [viewingProduct, setViewingProduct] = useState(null);
   const [editingItem, setEditingItem] = useState(null);
 
+  const categoriesList = [
+    'Digital Marketing',
+    'Web Development',
+    'Design & Branding',
+    'IT Services',
+    'Photography & Media',
+    'Video & Animation',
+    'Business Services',
+    'Hardware/Print',
+    'Software Add-on',
+    'Clinics & Health',
+    'Rice Mill',
+    'General'
+  ];
+
   const [formData, setFormData] = useState({
     name: '',
     category: 'Hardware/Print',
@@ -411,7 +426,7 @@ function ProductsLibraryTab({ catalog = [], theme, handleCreateCatalogItem, hand
                   onChange={e => {
                     const newName = e.target.value;
                     const autoSlug = newName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-                    setFormData({ ...formData, name: newName, slug: formData.slug ? formData.slug : autoSlug });
+                    setFormData({ ...formData, name: newName, slug: autoSlug });
                   }}
                   style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '8px', backgroundColor: inputBg, border: inputBorder, color: textMain, fontSize: '0.88rem', fontWeight: 600 }}
                 />
@@ -438,13 +453,15 @@ function ProductsLibraryTab({ catalog = [], theme, handleCreateCatalogItem, hand
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.85rem' }}>
                 <div>
                   <label style={{ fontSize: '0.78rem', fontWeight: 700, color: textMuted, display: 'block', marginBottom: '0.35rem' }}>Category</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Rice Mill & Grains"
+                  <select
                     value={formData.category}
                     onChange={e => setFormData({ ...formData, category: e.target.value })}
                     style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '8px', backgroundColor: inputBg, border: inputBorder, color: textMain, fontSize: '0.85rem' }}
-                  />
+                  >
+                    {categoriesList.map(cat => (
+                      <option key={cat} value={cat}>{cat}</option>
+                    ))}
+                  </select>
                 </div>
                 <div>
                   <label style={{ fontSize: '0.78rem', fontWeight: 700, color: textMuted, display: 'block', marginBottom: '0.35rem' }}>Price (₹)</label>

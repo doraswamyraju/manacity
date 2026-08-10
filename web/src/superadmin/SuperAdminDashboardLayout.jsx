@@ -90,7 +90,7 @@ function SuperAdminDashboardLayout({ user, onLogout }) {
   useEffect(() => {
     if (activeTab === 'users' && users.length === 0) fetchUsers();
     if (activeTab === 'businesses' && businesses.length === 0) fetchBusinesses();
-    if (activeTab === 'catalog' && catalog.length === 0) fetchCatalog();
+    if ((activeTab === 'catalog' || activeTab.startsWith('library')) && catalog.length === 0) fetchCatalog();
     if (activeTab === 'subscriptions' && subscriptions.length === 0) fetchSubscriptions();
   }, [activeTab]);
 
@@ -174,7 +174,7 @@ function SuperAdminDashboardLayout({ user, onLogout }) {
   const handleCreateCatalogItem = async (itemData) => {
     const response = await axios.post('/api/admin/catalog', itemData);
     if (response.data.status === 'success') {
-      setCatalog(prev => [response.data.item, ...prev]);
+      fetchCatalog();
     }
   };
 

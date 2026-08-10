@@ -222,6 +222,21 @@ function ServicesLibraryTab({ catalog = [], theme, handleCreateCatalogItem, hand
     }
   ];
 
+  const categoriesList = [
+    'Digital Marketing',
+    'Web Development',
+    'Design & Branding',
+    'IT Services',
+    'Photography & Media',
+    'Video & Animation',
+    'Business Services',
+    'Hardware/Print',
+    'Software Add-on',
+    'Clinics & Health',
+    'Rice Mill',
+    'General'
+  ];
+
   const serviceCatalogList = catalog.filter(c => c.type === 'SERVICE' || !c.type);
   const allServicesList = serviceCatalogList.map((c) => ({
     id: c.id,
@@ -236,6 +251,12 @@ function ServicesLibraryTab({ catalog = [], theme, handleCreateCatalogItem, hand
     iconUrl: c.photos?.[0] || 'https://cdn-icons-png.flaticon.com/512/1055/1055644.png'
   }));
 
+  // Actual Real Stats Calculations
+  const totalServicesCount = allServicesList.length;
+  const categoriesCount = new Set(allServicesList.map(s => s.category)).size || categoriesList.length;
+  const activeServicesCount = allServicesList.filter(s => s.status === 'Active').length;
+  const usedInCount = allServicesList.reduce((acc, s) => acc + (s.usedIn || 0), 0);
+  const pendingReviewCount = allServicesList.filter(s => s.status === 'Pending Review').length;
 
   // Filter Services
   const filteredServices = allServicesList.filter(item => {
@@ -286,7 +307,7 @@ function ServicesLibraryTab({ catalog = [], theme, handleCreateCatalogItem, hand
         </p>
       </div>
 
-      {/* 2. Top 6 KPI Cards */}
+      {/* 2. Top 5 Real KPI Cards (Avg Rating Removed) */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem' }}>
         
         {/* Total Services */}
@@ -296,10 +317,10 @@ function ServicesLibraryTab({ catalog = [], theme, handleCreateCatalogItem, hand
           </div>
           <div>
             <div style={{ fontSize: '0.72rem', fontWeight: 700, color: textMuted, textTransform: 'uppercase' }}>Total Services</div>
-            <div style={{ fontSize: '1.35rem', fontWeight: 900, color: textMain, display: 'flex', alignItems: 'center', gap: '0.4rem', marginTop: '0.15rem' }}>
-              2,468 <span style={{ fontSize: '0.7rem', color: '#10b981', fontWeight: 700 }}>↑ 12.5%</span>
+            <div style={{ fontSize: '1.35rem', fontWeight: 900, color: textMain, marginTop: '0.15rem' }}>
+              {totalServicesCount}
             </div>
-            <div style={{ fontSize: '0.68rem', color: textMuted }}>vs last month</div>
+            <div style={{ fontSize: '0.68rem', color: textMuted }}>Database Total</div>
           </div>
         </div>
 
@@ -311,9 +332,9 @@ function ServicesLibraryTab({ catalog = [], theme, handleCreateCatalogItem, hand
           <div>
             <div style={{ fontSize: '0.72rem', fontWeight: 700, color: textMuted, textTransform: 'uppercase' }}>Categories</div>
             <div style={{ fontSize: '1.35rem', fontWeight: 900, color: textMain, marginTop: '0.15rem' }}>
-              58
+              {categoriesCount}
             </div>
-            <div style={{ fontSize: '0.68rem', color: textMuted }}>No change</div>
+            <div style={{ fontSize: '0.68rem', color: textMuted }}>System Categories</div>
           </div>
         </div>
 
@@ -324,10 +345,10 @@ function ServicesLibraryTab({ catalog = [], theme, handleCreateCatalogItem, hand
           </div>
           <div>
             <div style={{ fontSize: '0.72rem', fontWeight: 700, color: textMuted, textTransform: 'uppercase' }}>Active Services</div>
-            <div style={{ fontSize: '1.35rem', fontWeight: 900, color: textMain, display: 'flex', alignItems: 'center', gap: '0.4rem', marginTop: '0.15rem' }}>
-              2,321 <span style={{ fontSize: '0.7rem', color: '#10b981', fontWeight: 700 }}>↑ 95.03%</span>
+            <div style={{ fontSize: '1.35rem', fontWeight: 900, color: textMain, marginTop: '0.15rem' }}>
+              {activeServicesCount}
             </div>
-            <div style={{ fontSize: '0.68rem', color: textMuted }}>of total services</div>
+            <div style={{ fontSize: '0.68rem', color: textMuted }}>Live & Approved</div>
           </div>
         </div>
 
@@ -338,10 +359,10 @@ function ServicesLibraryTab({ catalog = [], theme, handleCreateCatalogItem, hand
           </div>
           <div>
             <div style={{ fontSize: '0.72rem', fontWeight: 700, color: textMuted, textTransform: 'uppercase' }}>Used in Websites</div>
-            <div style={{ fontSize: '1.35rem', fontWeight: 900, color: textMain, display: 'flex', alignItems: 'center', gap: '0.4rem', marginTop: '0.15rem' }}>
-              18,742 <span style={{ fontSize: '0.7rem', color: '#10b981', fontWeight: 700 }}>↑ 15.3%</span>
+            <div style={{ fontSize: '1.35rem', fontWeight: 900, color: textMain, marginTop: '0.15rem' }}>
+              {usedInCount}
             </div>
-            <div style={{ fontSize: '0.68rem', color: textMuted }}>Total times used</div>
+            <div style={{ fontSize: '0.68rem', color: textMuted }}>Total Times Used</div>
           </div>
         </div>
 
@@ -352,24 +373,10 @@ function ServicesLibraryTab({ catalog = [], theme, handleCreateCatalogItem, hand
           </div>
           <div>
             <div style={{ fontSize: '0.72rem', fontWeight: 700, color: textMuted, textTransform: 'uppercase' }}>Pending Review</div>
-            <div style={{ fontSize: '1.35rem', fontWeight: 900, color: '#f59e0b', display: 'flex', alignItems: 'center', gap: '0.4rem', marginTop: '0.15rem' }}>
-              47 <span style={{ fontSize: '0.7rem', color: '#ef4444', fontWeight: 700 }}>↑ 8.5%</span>
+            <div style={{ fontSize: '1.35rem', fontWeight: 900, color: '#f59e0b', marginTop: '0.15rem' }}>
+              {pendingReviewCount}
             </div>
             <div style={{ fontSize: '0.68rem', color: textMuted }}>Require attention</div>
-          </div>
-        </div>
-
-        {/* Avg. Rating */}
-        <div style={{ backgroundColor: cardBg, border: cardBorder, borderRadius: '14px', padding: '1.15rem', display: 'flex', gap: '1rem', alignItems: 'center' }}>
-          <div style={{ backgroundColor: 'rgba(251,191,36,0.15)', padding: '0.7rem', borderRadius: '12px', color: '#fbbf24' }}>
-            <Star size={22} />
-          </div>
-          <div>
-            <div style={{ fontSize: '0.72rem', fontWeight: 700, color: textMuted, textTransform: 'uppercase' }}>Avg. Rating</div>
-            <div style={{ fontSize: '1.35rem', fontWeight: 900, color: textMain, marginTop: '0.15rem' }}>
-              4.7 <span style={{ fontSize: '0.8rem', color: textMuted }}>/ 5</span>
-            </div>
-            <div style={{ fontSize: '0.68rem', color: '#fbbf24', fontWeight: 700 }}>★★★★★ From businesses</div>
           </div>
         </div>
 
@@ -432,11 +439,9 @@ function ServicesLibraryTab({ catalog = [], theme, handleCreateCatalogItem, hand
                 style={{ padding: '0.45rem 0.75rem', borderRadius: '8px', backgroundColor: inputBg, border: inputBorder, color: textMain, fontSize: '0.82rem' }}
               >
                 <option value="ALL">All Categories</option>
-                <option value="Digital Marketing">Digital Marketing</option>
-                <option value="Web Development">Web Development</option>
-                <option value="Design & Branding">Design & Branding</option>
-                <option value="IT Services">IT Services</option>
-                <option value="Video & Animation">Video & Animation</option>
+                {categoriesList.map(cat => (
+                  <option key={cat} value={cat}>{cat}</option>
+                ))}
               </select>
 
               <select
@@ -926,7 +931,7 @@ function ServicesLibraryTab({ catalog = [], theme, handleCreateCatalogItem, hand
                   onChange={e => {
                     const newName = e.target.value;
                     const autoSlug = newName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-                    setFormData({ ...formData, name: newName, slug: formData.slug ? formData.slug : autoSlug });
+                    setFormData({ ...formData, name: newName, slug: autoSlug });
                   }}
                   style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '8px', backgroundColor: inputBg, border: inputBorder, color: textMain, fontSize: '0.88rem', fontWeight: 600 }}
                 />
@@ -934,7 +939,7 @@ function ServicesLibraryTab({ catalog = [], theme, handleCreateCatalogItem, hand
 
               {/* SEO Slug Control */}
               <div>
-                <label style={{ fontSize: '0.78rem', fontWeight: 700, color: textMuted, display: 'block', marginBottom: '0.35rem' }}>SEO Slug (URL Control)</label>
+                <label style={{ fontSize: '0.78rem', fontWeight 700, color: textMuted, display: 'block', marginBottom: '0.35rem' }}>SEO Slug (URL Control)</label>
                 <div style={{ position: 'relative' }}>
                   <input
                     type="text"
@@ -953,13 +958,15 @@ function ServicesLibraryTab({ catalog = [], theme, handleCreateCatalogItem, hand
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.85rem' }}>
                 <div>
                   <label style={{ fontSize: '0.78rem', fontWeight: 700, color: textMuted, display: 'block', marginBottom: '0.35rem' }}>Category</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Digital Marketing"
+                  <select
                     value={formData.category}
                     onChange={e => setFormData({ ...formData, category: e.target.value })}
                     style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '8px', backgroundColor: inputBg, border: inputBorder, color: textMain, fontSize: '0.85rem' }}
-                  />
+                  >
+                    {categoriesList.map(cat => (
+                      <option key={cat} value={cat}>{cat}</option>
+                    ))}
+                  </select>
                 </div>
                 <div>
                   <label style={{ fontSize: '0.78rem', fontWeight: 700, color: textMuted, display: 'block', marginBottom: '0.35rem' }}>Price (₹)</label>
