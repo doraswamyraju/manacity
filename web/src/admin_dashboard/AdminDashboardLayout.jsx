@@ -28,6 +28,7 @@ import WebsiteBuilder from '../pages/WebsiteBuilder';
 import ReviewManagement from '../pages/ReviewManagement';
 import Billing from '../pages/Billing';
 import LMSAllLeadsTab from '../admin/lms/LMSAllLeadsTab';
+import BusinessLibraryTab from '../admin/library/BusinessLibraryTab';
 
 function AdminDashboardLayout({ user, businessGroup, onLogout, setView }) {
   // Persist active tab in localStorage
@@ -405,6 +406,7 @@ function AdminDashboardLayout({ user, businessGroup, onLogout, setView }) {
           {/* OTHER MODULE TABS */}
           {activeTab === 'locations' && <Locations onBack={() => setActiveTab('overview')} onNavigateToOnboarding={() => window.location.href = '/onboarding'} />}
 
+          {activeTab === 'catalog-library' && <BusinessLibraryTab theme={theme} />}
           {activeTab === 'website-builder' && <WebsiteBuilder onBack={() => setActiveTab('overview')} />}
           {activeTab === 'reviews' && <ReviewManagement onBack={() => setActiveTab('overview')} />}
           {activeTab === 'billing' && <Billing onBack={() => setActiveTab('overview')} />}

@@ -14,7 +14,8 @@ import {
   FileText,
   FolderTree,
   QrCode,
-  Sliders
+  Sliders,
+  Package
 } from 'lucide-react';
 
 function AdminSidebar({
@@ -37,6 +38,7 @@ function AdminSidebar({
   const menuItems = [
     { id: 'overview', label: 'Business Overview', icon: LayoutDashboard, badge: null, color: '#34d399' },
     { id: 'locations', label: 'Business Locations', icon: MapPin, badge: null, color: '#38bdf8' },
+    { id: 'catalog-library', label: 'Products & Services', icon: Package, badge: null, color: '#f43f5e' },
     { id: 'website-builder', label: 'Website Builder', icon: Globe, badge: 'PRO', color: '#818cf8' },
 
     { id: 'reviews', label: 'Review Management', icon: Star, badge: null, color: '#fbbf24' },

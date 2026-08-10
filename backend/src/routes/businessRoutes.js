@@ -16,4 +16,9 @@ router.put('/:id', auth, businessController.updateLocation);
 router.delete('/:id', auth, businessController.deleteLocation);
 router.post('/media', auth, businessController.uploadMedia);
 
+router.get('/catalog', auth, businessController.getBusinessCatalog);
+router.post('/catalog/create', auth, businessController.createBusinessCatalogItem);
+router.put('/catalog/:id', auth, businessController.updateBusinessCatalogItem);
+router.delete('/catalog/:id', auth, businessController.deleteBusinessCatalogItem);
+
 module.exports = router;

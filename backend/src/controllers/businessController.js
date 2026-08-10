@@ -529,3 +529,150 @@ exports.getPerformanceMetrics = async (req, res) => {
     res.status(500).json({ error: 'Failed to retrieve business performance analytics.' });
   }
 };
+
+// 9. Get Business Owner Catalog (Services & Products)
+exports.getBusinessCatalog = async (req, res) => {
+  try {
+    const ownerId = req.user.id;
+    const businessGroup = await prisma.businessGroup.findFirst({
+      where: { ownerId },
+      include: {
+        services: true,
+        products: true
+      }
+    });
+
+    if (!businessGroup) {
+      return res.json({ status: 'success', services: [], products: [], catalog: [] });
+    }
+
+    const services = (businessGroup.services || []).map(s => ({ ...s, type: 'SERVICE' }));
+    const products = (businessGroup.products || []).map(p => ({ ...p, type: 'PRODUCT' }));
+    const catalog = [...services, ...products];
+
+    res.json({
+      status: 'success',
+      services,
+      products,
+      catalog
+    });
+  } catch (error) {
+    console.error('Fetch business catalog error:', error);
+    res.status(500).json({ error: 'Failed to retrieve catalog.' });
+  }
+};
+
+// 10. Create Business Catalog Item (Product or Service)
+exports.createBusinessCatalogItem = async (req, res) => {
+  try {
+    const ownerId = req.user.id;
+    const { name, type, description, price, photos } = req.body;
+
+    if (!name) {
+      return res.status(400).json({ error: 'Name is required.' });
+    }
+
+    let businessGroup = await prisma.businessGroup.findFirst({
+      where: { ownerId }
+    });
+
+    if (!businessGroup) {
+      businessGroup = await prisma.businessGroup.create({
+        data: { name: `${req.user.name}'s Business`, ownerId }
+      });
+    }
+
+    const itemPrice = price ? parseFloat(price) : null;
+    const itemPhotos = Array.isArray(photos) ? photos.filter(Boolean) : (photos ? [photos] : []);
+
+    let item;
+    if (type === 'PRODUCT') {
+      item = await prisma.businessProduct.create({
+        data: {
+          businessGroupId: businessGroup.id,
+          name,
+          description: description || '',
+          price: itemPrice,
+          photos: itemPhotos
+        }
+      });
+      item = { ...item, type: 'PRODUCT' };
+    } else {
+      item = await prisma.businessService.create({
+        data: {
+          businessGroupId: businessGroup.id,
+          name,
+          description: description || '',
+          price: itemPrice,
+          photos: itemPhotos
+        }
+      });
+      item = { ...item, type: 'SERVICE' };
+    }
+
+    res.json({ status: 'success', item });
+  } catch (error) {
+    console.error('Create catalog item error:', error);
+    res.status(500).json({ error: 'Failed to create item.' });
+  }
+};
+
+// 11. Update Business Catalog Item
+exports.updateBusinessCatalogItem = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, type, description, price, photos } = req.body;
+
+    const itemPrice = price !== undefined ? (price ? parseFloat(price) : null) : undefined;
+    const itemPhotos = Array.isArray(photos) ? photos.filter(Boolean) : undefined;
+
+    let item;
+    if (type === 'PRODUCT') {
+      item = await prisma.businessProduct.update({
+        where: { id },
+        data: {
+          ...(name && { name }),
+          ...(description !== undefined && { description }),
+          ...(itemPrice !== undefined && { price: itemPrice }),
+          ...(itemPhotos && { photos: itemPhotos })
+        }
+      });
+      item = { ...item, type: 'PRODUCT' };
+    } else {
+      item = await prisma.businessService.update({
+        where: { id },
+        data: {
+          ...(name && { name }),
+          ...(description !== undefined && { description }),
+          ...(itemPrice !== undefined && { price: itemPrice }),
+          ...(itemPhotos && { photos: itemPhotos })
+        }
+      });
+      item = { ...item, type: 'SERVICE' };
+    }
+
+    res.json({ status: 'success', item });
+  } catch (error) {
+    console.error('Update catalog item error:', error);
+    res.status(500).json({ error: 'Failed to update item.' });
+  }
+};
+
+// 12. Delete Business Catalog Item
+exports.deleteBusinessCatalogItem = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { type } = req.query;
+
+    if (type === 'PRODUCT') {
+      await prisma.businessProduct.delete({ where: { id } });
+    } else {
+      await prisma.businessService.delete({ where: { id } });
+    }
+
+    res.json({ status: 'success', message: 'Item deleted successfully.' });
+  } catch (error) {
+    console.error('Delete catalog item error:', error);
+    res.status(500).json({ error: 'Failed to delete item.' });
+  }
+};
