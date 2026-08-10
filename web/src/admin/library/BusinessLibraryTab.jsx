@@ -302,23 +302,22 @@ export default function BusinessLibraryTab({ theme }) {
           Loading master catalog items...
         </div>
       ) : activeTab === 'EXPLORE' ? (
-        /* EXPLORE MASTER LIBRARY */
-          {filteredMasterItems.length === 0 ? (
-            <div style={{
-              backgroundColor: isDark ? '#1e293b' : '#ffffff',
-              borderRadius: '14px',
-              padding: '3rem',
-              textAlign: 'center',
-              border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid #e2e8f0'
-            }}>
-              <Package size={40} color="#94a3b8" style={{ margin: '0 auto 0.75rem auto' }} />
-              <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: isDark ? '#fff' : '#0f172a', margin: 0 }}>No Master Library Items Available</h3>
-              <p style={{ fontSize: '0.85rem', color: '#94a3b8', margin: '0.35rem 0 0 0', maxWidth: '500px', margin: '0.5rem auto 0 auto' }}>
-                There are currently no approved products or services in the Super Admin Master Library matching your filter. Once Super Admin creates items in the Central Control Hub, they will appear here for you to add to your business.
-              </p>
-            </div>
-          ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.25rem' }}>
+        filteredMasterItems.length === 0 ? (
+          <div style={{
+            backgroundColor: isDark ? '#1e293b' : '#ffffff',
+            borderRadius: '14px',
+            padding: '3rem',
+            textAlign: 'center',
+            border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid #e2e8f0'
+          }}>
+            <Package size={40} color="#94a3b8" style={{ margin: '0 auto 0.75rem auto' }} />
+            <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: isDark ? '#fff' : '#0f172a', margin: 0 }}>No Master Library Items Available</h3>
+            <p style={{ fontSize: '0.85rem', color: '#94a3b8', maxWidth: '500px', margin: '0.5rem auto 0 auto' }}>
+              There are currently no approved products or services in the Super Admin Master Library matching your filter. Once Super Admin creates items in the Central Control Hub, they will appear here for you to add to your business.
+            </p>
+          </div>
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.25rem' }}>
             {filteredMasterItems.map(item => (
               <div key={item.id} style={{
                 backgroundColor: isDark ? '#1e293b' : '#ffffff',
