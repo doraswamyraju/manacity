@@ -34,7 +34,30 @@ exports.getWebsite = async (req, res) => {
     // Find website settings
     let website = await prisma.website.findUnique({
       where: { businessGroupId },
-      include: { sections: true }
+      include: {
+        sections: true,
+        businessGroup: {
+          include: {
+            locations: {
+              include: {
+                reviews: {
+                  orderBy: { createdAt: 'desc' }
+                }
+              }
+            },
+            services: {
+              include: {
+                libraryItem: true
+              }
+            },
+            products: {
+              include: {
+                libraryItem: true
+              }
+            }
+          }
+        }
+      }
     });
 
     // Auto-initialize website configuration if missing
@@ -299,8 +322,23 @@ exports.renderPublicWebsite = async (req, res) => {
         sections: true,
         businessGroup: {
           include: {
-            services: true,
-            products: true
+            locations: {
+              include: {
+                reviews: {
+                  orderBy: { createdAt: 'desc' }
+                }
+              }
+            },
+            services: {
+              include: {
+                libraryItem: true
+              }
+            },
+            products: {
+              include: {
+                libraryItem: true
+              }
+            }
           }
         }
       }

@@ -20,8 +20,36 @@ import {
   Award,
   Users,
   ChevronDown,
-  ArrowRight
+  ArrowRight,
+  ExternalLink,
+  ShoppingCard
 } from 'lucide-react';
+
+// Helper to compute actual rating and reviews array from businessGroup locations
+export function getRatingAndReviews(businessGroup) {
+  const locations = businessGroup?.locations || [];
+  let allReviews = [];
+
+  locations.forEach(loc => {
+    if (Array.isArray(loc.reviews) && loc.reviews.length > 0) {
+      allReviews.push(...loc.reviews);
+    }
+  });
+
+  const totalReviews = allReviews.length;
+  let avgRating = 4.9;
+
+  if (totalReviews > 0) {
+    const sum = allReviews.reduce((acc, r) => acc + (r.rating || 5), 0);
+    avgRating = parseFloat((sum / totalReviews).toFixed(1));
+  } else if (businessGroup?.googleRating || businessGroup?.rating) {
+    avgRating = parseFloat(businessGroup.googleRating || businessGroup.rating);
+  }
+
+  const reviewCount = totalReviews > 0 ? totalReviews : (businessGroup?.googleReviewCount || businessGroup?.reviewCount || 0);
+
+  return { reviews: allReviews, avgRating, reviewCount };
+}
 
 // --- 1. Header Navigation Component ---
 export function HeaderSection({ businessGroup, settings, theme }) {
@@ -30,6 +58,8 @@ export function HeaderSection({ businessGroup, settings, theme }) {
   const logo = businessGroup?.logoUrl;
   const phone = businessGroup?.mobileNumber;
   const whatsapp = businessGroup?.whatsAppNumber;
+
+  const { avgRating, reviewCount } = getRatingAndReviews(businessGroup);
 
   const navLinks = [
     { label: 'About', href: '#about' },
@@ -52,9 +82,9 @@ export function HeaderSection({ businessGroup, settings, theme }) {
       padding: '0.85rem 6%',
       transition: 'all 0.3s ease'
     }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.75rem' }}>
         
-        {/* Brand Logo / Title */}
+        {/* Brand Logo & Name */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           {logo ? (
             <img src={logo} alt={name} style={{ width: '38px', height: '38px', borderRadius: '8px', objectFit: 'cover', border: '1.5px solid var(--primary-color, #6366f1)' }} />
@@ -63,9 +93,18 @@ export function HeaderSection({ businessGroup, settings, theme }) {
               {name.charAt(0)}
             </div>
           )}
-          <span style={{ fontWeight: 800, fontSize: '1.15rem', color: '#fff', letterSpacing: '-0.02em' }}>
-            {name.length > 28 ? name.substring(0, 26) + '...' : name}
-          </span>
+          <div>
+            <span style={{ fontWeight: 800, fontSize: '1.15rem', color: '#fff', letterSpacing: '-0.02em', display: 'block' }}>
+              {name.length > 28 ? name.substring(0, 26) + '...' : name}
+            </span>
+            {reviewCount > 0 && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.72rem', color: '#fbbf24', marginTop: '-0.1rem' }}>
+                <Star size={11} fill="#fbbf24" color="#fbbf24" />
+                <strong style={{ color: '#fff' }}>{avgRating}</strong>
+                <span style={{ color: '#94a3b8' }}>({reviewCount} reviews)</span>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Desktop Nav Links */}
@@ -173,6 +212,8 @@ export function HeaderSection({ businessGroup, settings, theme }) {
 
 // --- 2. Hero Banner Component ---
 export function HeroSection({ businessGroup, settings, theme }) {
+  const { avgRating, reviewCount } = getRatingAndReviews(businessGroup);
+
   const headline = settings?.headline || (
     theme === 'e-commerce' ? `Online Product Storefront - ${businessGroup?.name || 'Business'}` :
     theme === 'service-booking' ? `Book Services & Consultations - ${businessGroup?.name || 'Business'}` :
@@ -206,27 +247,46 @@ export function HeroSection({ businessGroup, settings, theme }) {
     }}>
       <div style={{ maxWidth: '800px', zIndex: 2 }}>
         
-        {/* Industry Pill Badge */}
-        <div style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: '0.45rem',
-          padding: '0.4rem 1rem',
-          borderRadius: '30px',
-          backgroundColor: 'var(--primary-color, #6366f1)',
-          fontSize: '0.78rem',
-          fontWeight: 800,
-          textTransform: 'uppercase',
-          marginBottom: '1.25rem',
-          letterSpacing: '0.05em',
-          boxShadow: '0 4px 14px rgba(99, 102, 241, 0.35)'
-        }}>
-          {theme === 'clinic-healthcare' && <Stethoscope size={14} />}
-          {theme === 'restaurant-menu' && <Utensils size={14} />}
-          {theme === 'e-commerce' && <ShoppingBag size={14} />}
-          {theme === 'service-booking' && <Calendar size={14} />}
-          {theme === 'modern-corporate' && <Building2 size={14} />}
-          <span>{(theme || 'Commercial Business').replace('-', ' ')}</span>
+        {/* Industry Pill Badge & Dynamic Rating Badge */}
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '1.25rem' }}>
+          <div style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.45rem',
+            padding: '0.4rem 1rem',
+            borderRadius: '30px',
+            backgroundColor: 'var(--primary-color, #6366f1)',
+            fontSize: '0.78rem',
+            fontWeight: 800,
+            textTransform: 'uppercase',
+            letterSpacing: '0.05em',
+            boxShadow: '0 4px 14px rgba(99, 102, 241, 0.35)'
+          }}>
+            {theme === 'clinic-healthcare' && <Stethoscope size={14} />}
+            {theme === 'restaurant-menu' && <Utensils size={14} />}
+            {theme === 'e-commerce' && <ShoppingBag size={14} />}
+            {theme === 'service-booking' && <Calendar size={14} />}
+            {theme === 'modern-corporate' && <Building2 size={14} />}
+            <span>{(theme || 'Commercial Business').replace('-', ' ')}</span>
+          </div>
+
+          {reviewCount > 0 && (
+            <div style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.35rem',
+              padding: '0.4rem 0.9rem',
+              borderRadius: '30px',
+              backgroundColor: 'rgba(255, 255, 255, 0.1)',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              fontSize: '0.8rem',
+              fontWeight: 800,
+              color: '#fbbf24'
+            }}>
+              <Star size={14} fill="#fbbf24" color="#fbbf24" />
+              <span>{avgRating} Rating ({reviewCount} Reviews)</span>
+            </div>
+          )}
         </div>
 
         <h1 style={{ fontSize: '2.8rem', fontWeight: 900, marginBottom: '1rem', lineHeight: 1.18, letterSpacing: '-0.03em' }}>
@@ -357,11 +417,31 @@ export function AboutSection({ businessGroup, settings, theme }) {
   );
 }
 
-// --- 5. Services Component ---
+// --- 5. Services Component (Redesigned with Full Image & Details Support) ---
 export function ServicesSection({ businessGroup, settings, theme }) {
   const userServices = businessGroup?.services || [];
 
-  // Fallback sample services if business has no services added
+  // Resolves image for custom business service or super admin library item
+  const getServiceImage = (srv) => {
+    if (srv.photos && srv.photos.length > 0) return srv.photos[0];
+    if (srv.imageUrl) return srv.imageUrl;
+    if (srv.libraryItem) {
+      if (srv.libraryItem.imageUrl) return srv.libraryItem.imageUrl;
+      if (srv.libraryItem.photos && srv.libraryItem.photos.length > 0) return srv.libraryItem.photos[0];
+    }
+    return 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=600';
+  };
+
+  const getServicePrice = (srv) => {
+    if (srv.price) return typeof srv.price === 'number' ? `₹${srv.price.toLocaleString('en-IN')}` : srv.price;
+    if (srv.libraryItem?.defaultPrice) return `₹${srv.libraryItem.defaultPrice.toLocaleString('en-IN')}`;
+    return 'Custom Quote';
+  };
+
+  const getServiceDesc = (srv) => {
+    return srv.description || srv.libraryItem?.description || 'Quality professional service offering tailored to your exact specifications.';
+  };
+
   const list = userServices.length > 0 ? userServices : [
     { name: 'Core Commercial Consultation', price: 'Contact for Quote', description: 'Comprehensive business consultation and tailored implementation strategy.' },
     { name: 'Premium Service Package', price: 'Custom Pricing', description: 'End-to-end professional package designed for scaling operations.' },
@@ -377,76 +457,187 @@ export function ServicesSection({ businessGroup, settings, theme }) {
            theme === 'service-booking' ? 'Bookable Services & Packages' :
            'Our Professional Services'}
         </h2>
-        <p style={{ color: '#94a3b8', fontSize: '0.95rem' }}>High quality offerings crafted for maximum results</p>
+        <p style={{ color: '#94a3b8', fontSize: '0.95rem' }}>High quality offerings uploaded and verified for maximum value</p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
-        {list.map((srv, idx) => (
-          <div key={idx} style={{
-            backgroundColor: '#1e293b',
-            border: '1px solid rgba(255, 255, 255, 0.08)',
-            padding: '1.5rem',
-            borderRadius: '12px',
-            display: 'flex',
-            flexDirection: 'column',
-            justify: 'space-between'
-          }}>
-            <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
-                <h3 style={{ fontSize: '1.15rem', color: '#fff', margin: 0, fontWeight: 700 }}>{srv.name}</h3>
-                {srv.price && <span style={{ color: 'var(--primary-color, #38bdf8)', fontWeight: 800, fontSize: '0.9rem', backgroundColor: 'rgba(56, 189, 248, 0.1)', padding: '0.2rem 0.6rem', borderRadius: '20px' }}>{srv.price}</span>}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.75rem' }}>
+        {list.map((srv, idx) => {
+          const imgUrl = getServiceImage(srv);
+          const priceText = getServicePrice(srv);
+          const descText = getServiceDesc(srv);
+          const title = srv.name || srv.libraryItem?.name || 'Service Title';
+
+          return (
+            <div key={idx} style={{
+              backgroundColor: '#1e293b',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
+              borderRadius: '14px',
+              overflow: 'hidden',
+              display: 'flex',
+              flexDirection: 'column',
+              justify: 'space-between',
+              boxShadow: '0 4px 14px rgba(0, 0, 0, 0.25)'
+            }}>
+              <div>
+                {/* Service Card Image Banner */}
+                <div style={{ height: '180px', width: '100%', overflow: 'hidden', position: 'relative' }}>
+                  <img src={imgUrl} alt={title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <div style={{
+                    position: 'absolute',
+                    top: '0.75rem',
+                    right: '0.75rem',
+                    backgroundColor: 'rgba(15, 23, 42, 0.85)',
+                    backdropFilter: 'blur(8px)',
+                    color: 'var(--primary-color, #38bdf8)',
+                    fontWeight: 800,
+                    fontSize: '0.82rem',
+                    padding: '0.35rem 0.75rem',
+                    borderRadius: '20px',
+                    border: '1px solid rgba(255, 255, 255, 0.15)'
+                  }}>
+                    {priceText}
+                  </div>
+                </div>
+
+                <div style={{ padding: '1.35rem' }}>
+                  <h3 style={{ fontSize: '1.2rem', color: '#fff', margin: '0 0 0.5rem', fontWeight: 800 }}>{title}</h3>
+                  <p style={{ fontSize: '0.9rem', color: '#cbd5e1', lineHeight: 1.6, margin: '0 0 1rem' }}>
+                    {descText}
+                  </p>
+                </div>
               </div>
-              <p style={{ fontSize: '0.88rem', color: '#cbd5e1', lineHeight: 1.6, marginBottom: '1.25rem' }}>
-                {srv.description || 'Quality professional offering tailored to your exact requirements.'}
-              </p>
+              
+              <div style={{ padding: '0 1.35rem 1.35rem' }}>
+                <a href="#contact" style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justify: 'center',
+                  gap: '0.5rem',
+                  backgroundColor: 'var(--primary-color, #6366f1)',
+                  color: '#fff',
+                  textDecoration: 'none',
+                  fontWeight: 800,
+                  fontSize: '0.88rem',
+                  padding: '0.7rem 1rem',
+                  borderRadius: '8px',
+                  boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)'
+                }}>
+                  <span>Book / Enquire Now</span>
+                  <ArrowRight size={16} />
+                </a>
+              </div>
             </div>
-            
-            <a href="#contact" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', color: 'var(--primary-color, #38bdf8)', textDecoration: 'none', fontWeight: 700, fontSize: '0.85rem' }}>
-              <span>Book / Enquire</span>
-              <ArrowRight size={14} />
-            </a>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </section>
   );
 }
 
-// --- 6. Products Component ---
+// --- 6. Products Component (Redesigned with Image & Detailed Specs Support) ---
 export function ProductsSection({ businessGroup, settings, theme }) {
   const userProducts = businessGroup?.products || [];
 
-  // Fallback sample products if business has no products added
+  // Resolves image for custom business product or super admin library item
+  const getProductImage = (prod) => {
+    if (prod.photos && prod.photos.length > 0) return prod.photos[0];
+    if (prod.imageUrl) return prod.imageUrl;
+    if (prod.libraryItem) {
+      if (prod.libraryItem.imageUrl) return prod.libraryItem.imageUrl;
+      if (prod.libraryItem.photos && prod.libraryItem.photos.length > 0) return prod.libraryItem.photos[0];
+    }
+    return 'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?q=80&w=600';
+  };
+
+  const getProductPrice = (prod) => {
+    if (prod.price) return typeof prod.price === 'number' ? `₹${prod.price.toLocaleString('en-IN')}` : prod.price;
+    if (prod.libraryItem?.defaultPrice) return `₹${prod.libraryItem.defaultPrice.toLocaleString('en-IN')}`;
+    return 'Contact for Price';
+  };
+
+  const getProductDesc = (prod) => {
+    return prod.description || prod.libraryItem?.description || 'Verified product offering with high quality standards and official warranty.';
+  };
+
   const list = userProducts.length > 0 ? userProducts : [
-    { name: 'Featured Commercial Item A', price: '₹2,499', description: 'Top quality verified commercial grade product with warranty.' },
-    { name: 'Enterprise Bundle Kit B', price: '₹4,999', description: 'All-in-one product package built for durability and performance.' }
+    { name: 'Featured Commercial Item A', price: '₹2,499', description: 'Top quality verified commercial grade product with official warranty.' },
+    { name: 'Enterprise Bundle Kit B', price: '₹4,999', description: 'All-in-one product package built for high durability and efficiency.' }
   ];
 
   return (
     <section id="products" style={{ padding: '4rem 6%', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
       <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
         <h2 style={{ fontSize: '1.9rem', fontWeight: 800, color: '#fff', marginBottom: '0.5rem' }}>
-          {theme === 'e-commerce' ? 'Product Catalog' : 'Featured Products'}
+          {theme === 'e-commerce' ? 'Product Catalog' : 'Featured Products & Catalog'}
         </h2>
-        <p style={{ color: '#94a3b8', fontSize: '0.95rem' }}>Premium products delivered with speed and care</p>
+        <p style={{ color: '#94a3b8', fontSize: '0.95rem' }}>Premium products with uploaded specs, photos, and direct order options</p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1.5rem' }}>
-        {list.map((prod, idx) => (
-          <div key={idx} style={{
-            backgroundColor: '#1e293b',
-            border: '1px solid rgba(255, 255, 255, 0.08)',
-            padding: '1.5rem',
-            borderRadius: '12px'
-          }}>
-            <h3 style={{ fontSize: '1.15rem', color: 'var(--secondary-color, #a855f7)', marginBottom: '0.5rem', fontWeight: 700 }}>{prod.name}</h3>
-            <p style={{ fontSize: '0.88rem', color: '#cbd5e1', marginBottom: '1.25rem', lineHeight: 1.5 }}>{prod.description || 'Verified product offering.'}</p>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: '1.1rem', fontWeight: 800, color: '#fff' }}>{prod.price || 'Contact for price'}</span>
-              <a href="#contact" style={{ backgroundColor: 'var(--primary-color, #6366f1)', color: '#fff', padding: '0.4rem 0.9rem', borderRadius: '6px', textDecoration: 'none', fontWeight: 700, fontSize: '0.8rem' }}>Order Now</a>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.75rem' }}>
+        {list.map((prod, idx) => {
+          const imgUrl = getProductImage(prod);
+          const priceText = getProductPrice(prod);
+          const descText = getProductDesc(prod);
+          const title = prod.name || prod.libraryItem?.name || 'Product Item';
+
+          return (
+            <div key={idx} style={{
+              backgroundColor: '#1e293b',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
+              borderRadius: '14px',
+              overflow: 'hidden',
+              display: 'flex',
+              flexDirection: 'column',
+              justify: 'space-between',
+              boxShadow: '0 4px 14px rgba(0,0,0,0.25)'
+            }}>
+              <div>
+                {/* Product Image */}
+                <div style={{ height: '200px', width: '100%', overflow: 'hidden', position: 'relative', backgroundColor: '#0f172a' }}>
+                  <img src={imgUrl} alt={title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <div style={{
+                    position: 'absolute',
+                    top: '0.75rem',
+                    left: '0.75rem',
+                    backgroundColor: 'rgba(16, 185, 129, 0.9)',
+                    color: '#fff',
+                    fontWeight: 800,
+                    fontSize: '0.72rem',
+                    padding: '0.25rem 0.6rem',
+                    borderRadius: '4px',
+                    textTransform: 'uppercase'
+                  }}>
+                    In Stock
+                  </div>
+                </div>
+
+                <div style={{ padding: '1.35rem' }}>
+                  <h3 style={{ fontSize: '1.2rem', color: '#fff', margin: '0 0 0.4rem', fontWeight: 800 }}>{title}</h3>
+                  <p style={{ fontSize: '0.88rem', color: '#cbd5e1', lineHeight: 1.5, margin: '0 0 1.25rem' }}>{descText}</p>
+                </div>
+              </div>
+
+              <div style={{ padding: '0 1.35rem 1.35rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '1.25rem', fontWeight: 900, color: 'var(--primary-color, #38bdf8)' }}>{priceText}</span>
+                <a href="#contact" style={{
+                  backgroundColor: 'var(--secondary-color, #a855f7)',
+                  color: '#fff',
+                  padding: '0.55rem 1.1rem',
+                  borderRadius: '8px',
+                  textDecoration: 'none',
+                  fontWeight: 800,
+                  fontSize: '0.85rem',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.35rem'
+                }}>
+                  <ShoppingBag size={15} />
+                  <span>Order Now</span>
+                </a>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </section>
   );
@@ -482,44 +673,63 @@ export function GallerySection({ businessGroup, settings, theme }) {
   );
 }
 
-// --- 8. Customer Reviews Component ---
+// --- 8. Customer Reviews Component (Real Google & Internal Reviews Integration) ---
 export function ReviewsSection({ businessGroup, settings, theme }) {
-  const reviews = [
-    { author: 'Ramesh K.', rating: 5, comment: 'Outstanding service and extremely fast support. Highly recommended for commercial needs!' },
-    { author: 'Priya M.', rating: 5, comment: 'Very professional staff, quick communication, and top quality results in Tirupati.' },
-    { author: 'Srinivas R.', rating: 5, comment: 'Transparent pricing and great attention to detail. Will definitely work together again.' }
+  const { reviews: realReviews, avgRating, reviewCount } = getRatingAndReviews(businessGroup);
+
+  const fallbackReviews = [
+    { authorName: 'Ramesh K.', rating: 5, comment: 'Outstanding service and extremely fast support. Highly recommended for commercial needs!' },
+    { authorName: 'Priya M.', rating: 5, comment: 'Very professional staff, quick communication, and top quality results in Tirupati.' },
+    { authorName: 'Srinivas R.', rating: 5, comment: 'Transparent pricing and great attention to detail. Will definitely work together again.' }
   ];
+
+  const reviewsToDisplay = realReviews.length > 0 ? realReviews : fallbackReviews;
 
   return (
     <section id="reviews" style={{ padding: '4rem 6%', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
       <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
-        <h2 style={{ fontSize: '1.9rem', fontWeight: 800, color: '#fff', marginBottom: '0.5rem' }}>Customer Testimonials</h2>
-        <p style={{ color: '#94a3b8', fontSize: '0.95rem' }}>What our valued clients say about their experience with us</p>
+        <h2 style={{ fontSize: '1.9rem', fontWeight: 800, color: '#fff', marginBottom: '0.5rem' }}>Customer Reviews & Ratings</h2>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#1e293b', padding: '0.4rem 1rem', borderRadius: '30px', border: '1px solid rgba(255,255,255,0.1)', color: '#fbbf24', fontSize: '0.9rem', fontWeight: 800 }}>
+          <Star size={16} fill="#fbbf24" color="#fbbf24" />
+          <span>{avgRating} Average Rating</span>
+          <span style={{ color: '#94a3b8', fontWeight: 600 }}>({reviewCount || reviewsToDisplay.length} verified reviews)</span>
+        </div>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
-        {reviews.map((rev, idx) => (
-          <div key={idx} style={{
-            padding: '1.5rem',
-            borderRadius: '12px',
-            backgroundColor: '#1e293b',
-            border: '1px solid rgba(255, 255, 255, 0.08)',
-            display: 'flex',
-            flexDirection: 'column',
-            justify: 'space-between'
-          }}>
-            <div>
-              <div style={{ color: '#fbbf24', marginBottom: '0.75rem', fontSize: '1rem' }}>{'★'.repeat(rev.rating)}</div>
-              <p style={{ fontStyle: 'italic', color: '#cbd5e1', marginBottom: '1.25rem', fontSize: '0.92rem', lineHeight: 1.6 }}>"{rev.comment}"</p>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-              <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: 'var(--primary-color, #6366f1)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '0.85rem' }}>
-                {rev.author.charAt(0)}
+        {reviewsToDisplay.map((rev, idx) => {
+          const author = rev.authorName || rev.author || 'Verified Customer';
+          const rating = rev.rating || 5;
+          const comment = rev.comment || 'Great experience and high quality service.';
+          const photo = rev.reviewerPhoto;
+
+          return (
+            <div key={idx} style={{
+              padding: '1.5rem',
+              borderRadius: '12px',
+              backgroundColor: '#1e293b',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
+              display: 'flex',
+              flexDirection: 'column',
+              justify: 'space-between'
+            }}>
+              <div>
+                <div style={{ color: '#fbbf24', marginBottom: '0.75rem', fontSize: '1rem' }}>{'★'.repeat(rating)}</div>
+                <p style={{ fontStyle: 'italic', color: '#cbd5e1', marginBottom: '1.25rem', fontSize: '0.92rem', lineHeight: 1.6 }}>"{comment}"</p>
               </div>
-              <strong style={{ fontSize: '0.88rem', color: '#fff' }}>{rev.author}</strong>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                {photo ? (
+                  <img src={photo} alt={author} style={{ width: '34px', height: '34px', borderRadius: '50%', objectFit: 'cover' }} />
+                ) : (
+                  <div style={{ width: '34px', height: '34px', borderRadius: '50%', backgroundColor: 'var(--primary-color, #6366f1)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '0.85rem' }}>
+                    {author.charAt(0)}
+                  </div>
+                )}
+                <strong style={{ fontSize: '0.88rem', color: '#fff' }}>{author}</strong>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </section>
   );

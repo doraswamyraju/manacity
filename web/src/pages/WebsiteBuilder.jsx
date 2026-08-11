@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import * as Sections from './WebsiteSections';
+import { extractColorsFromLogo } from './OnboardingWizard';
 
 export default function WebsiteBuilder({ onBack }) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [publishing, setPublishing] = useState(false);
+  const [extractingColors, setExtractingColors] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
@@ -20,6 +22,7 @@ export default function WebsiteBuilder({ onBack }) {
   const [secondaryColor, setSecondaryColor] = useState('#9c27b0');
   const [font, setFont] = useState('Outfit');
   const [isPublished, setIsPublished] = useState(false);
+  const [logoUrl, setLogoUrl] = useState('');
 
   // SEO & Analytics
   const [metaTitle, setMetaTitle] = useState('');
@@ -34,10 +37,13 @@ export default function WebsiteBuilder({ onBack }) {
   const [sections, setSections] = useState([]);
 
   useEffect(() => {
-    // 1. Fetch onboarding state for content
+    // 1. Fetch onboarding state for content fallback
     axios.get('/api/business/onboarding-state')
       .then(res => {
-        setBusinessGroup(res.data.businessGroup);
+        if (res.data.businessGroup) {
+          setBusinessGroup(prev => prev || res.data.businessGroup);
+          setLogoUrl(res.data.businessGroup.logoUrl || '');
+        }
       })
       .catch(err => console.error('Failed to load business profile:', err));
 
@@ -46,6 +52,10 @@ export default function WebsiteBuilder({ onBack }) {
       .then(res => {
         const web = res.data.website;
         setWebsite(web);
+        if (web.businessGroup) {
+          setBusinessGroup(web.businessGroup);
+          if (web.businessGroup.logoUrl) setLogoUrl(web.businessGroup.logoUrl);
+        }
         setSubdomain(web.subdomain || '');
         setTheme(web.theme || 'default');
         setPrimaryColor(web.primaryColor || '#1976d2');
@@ -83,6 +93,45 @@ export default function WebsiteBuilder({ onBack }) {
       .catch(err => console.error('Failed to load website config:', err))
       .finally(() => setLoading(false));
   }, []);
+
+  const handleLogoExtractColors = async (targetLogoUrl) => {
+    const urlToUse = targetLogoUrl || logoUrl;
+    if (!urlToUse) {
+      setError('Please upload or enter a logo URL first to extract color palette.');
+      return;
+    }
+    setExtractingColors(true);
+    setError('');
+    try {
+      const palette = await extractColorsFromLogo(urlToUse);
+      setPrimaryColor(palette.primaryColor);
+      setSecondaryColor(palette.secondaryColor);
+      setSuccess(`Extracted logo color palette: Primary ${palette.primaryColor}, Secondary ${palette.secondaryColor}`);
+    } catch (e) {
+      setError('Failed to extract colors from logo.');
+    } finally {
+      setExtractingColors(false);
+    }
+  };
+
+  const handleLogoFileUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    try {
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        const base64Data = reader.result;
+        const response = await axios.post('/api/business/media', { base64Data });
+        const newUrl = response.data.url;
+        setLogoUrl(newUrl);
+        setBusinessGroup(prev => prev ? { ...prev, logoUrl: newUrl } : { logoUrl: newUrl });
+        await handleLogoExtractColors(newUrl);
+      };
+      reader.readAsDataURL(file);
+    } catch (err) {
+      setError('Logo upload failed.');
+    }
+  };
 
   const handleSaveSettings = async () => {
     setSaving(true);
@@ -277,6 +326,40 @@ export default function WebsiteBuilder({ onBack }) {
             </div>
 
           </div>
+
+          {/* Logo & Brand Color Palette Auto-Extractor Box */}
+          <div style={{ backgroundColor: 'rgba(99, 102, 241, 0.08)', border: '1px solid rgba(99, 102, 241, 0.25)', padding: '1rem', borderRadius: '8px', marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            <label style={{ fontSize: '0.85rem', fontWeight: 700, color: '#38bdf8' }}>Logo & Auto Color Palette</label>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+              {logoUrl ? (
+                <img src={logoUrl} alt="Business Logo" style={{ width: '48px', height: '48px', borderRadius: '8px', objectFit: 'cover', border: '1.5px solid var(--primary-color)' }} />
+              ) : (
+                <div style={{ width: '48px', height: '48px', borderRadius: '8px', backgroundColor: '#1e293b', border: '1px border-dashed #64748b', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', color: '#94a3b8' }}>No Logo</div>
+              )}
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                <input type="file" onChange={handleLogoFileUpload} accept="image/*" style={{ fontSize: '0.8rem', color: '#cbd5e1' }} />
+                <button
+                  type="button"
+                  onClick={() => handleLogoExtractColors()}
+                  disabled={extractingColors}
+                  style={{
+                    backgroundColor: '#6366f1',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: '6px',
+                    padding: '0.4rem 0.8rem',
+                    fontSize: '0.8rem',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    alignSelf: 'flex-start'
+                  }}
+                >
+                  {extractingColors ? 'Extracting Palette...' : '⚡ Extract Colors from Logo'}
+                </button>
+              </div>
+            </div>
+          </div>
+
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '1rem' }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
               <label style={{ fontSize: '0.85rem' }}>Primary Color</label>
