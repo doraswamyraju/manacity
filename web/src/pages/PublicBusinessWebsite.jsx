@@ -61,16 +61,18 @@ export default function PublicBusinessWebsite() {
   };
 
   const getDefaultSections = () => [
-    { type: 'HERO', enabled: true, displayOrder: 1, settings: {} },
-    { type: 'ABOUT', enabled: true, displayOrder: 2, settings: {} },
-    { type: 'SERVICES', enabled: true, displayOrder: 3, settings: {} },
-    { type: 'PRODUCTS', enabled: true, displayOrder: 4, settings: {} },
-    { type: 'GALLERY', enabled: true, displayOrder: 5, settings: {} },
-    { type: 'REVIEWS', enabled: true, displayOrder: 6, settings: {} },
-    { type: 'CONTACT', enabled: true, displayOrder: 7, settings: {} },
-    { type: 'FAQ', enabled: true, displayOrder: 8, settings: {} },
-    { type: 'CTA', enabled: true, displayOrder: 9, settings: {} },
-    { type: 'FOOTER', enabled: true, displayOrder: 10, settings: {} }
+    { type: 'HEADER', enabled: true, displayOrder: 1, settings: {} },
+    { type: 'HERO', enabled: true, displayOrder: 2, settings: {} },
+    { type: 'FEATURES', enabled: true, displayOrder: 3, settings: {} },
+    { type: 'ABOUT', enabled: true, displayOrder: 4, settings: {} },
+    { type: 'SERVICES', enabled: true, displayOrder: 5, settings: {} },
+    { type: 'PRODUCTS', enabled: true, displayOrder: 6, settings: {} },
+    { type: 'GALLERY', enabled: true, displayOrder: 7, settings: {} },
+    { type: 'REVIEWS', enabled: true, displayOrder: 8, settings: {} },
+    { type: 'CONTACT', enabled: true, displayOrder: 9, settings: {} },
+    { type: 'FAQ', enabled: true, displayOrder: 10, settings: {} },
+    { type: 'CTA', enabled: true, displayOrder: 11, settings: {} },
+    { type: 'FOOTER', enabled: true, displayOrder: 12, settings: {} }
   ];
 
   const getMockData = () => {
@@ -210,7 +212,9 @@ export default function PublicBusinessWebsite() {
           .filter(sec => sec.enabled !== false)
           .map(sec => {
             const settings = sec.settings || {};
+            if (sec.type === 'HEADER') return <Sections.HeaderSection key={sec.type} businessGroup={bg} settings={settings} theme={theme} />;
             if (sec.type === 'HERO') return <Sections.HeroSection key={sec.type} businessGroup={bg} settings={settings} theme={theme} />;
+            if (sec.type === 'FEATURES') return <Sections.FeaturesSection key={sec.type} businessGroup={bg} settings={settings} theme={theme} />;
             if (sec.type === 'ABOUT') return <Sections.AboutSection key={sec.type} businessGroup={bg} settings={settings} theme={theme} />;
             if (sec.type === 'SERVICES') return <Sections.ServicesSection key={sec.type} businessGroup={bg} settings={settings} theme={theme} />;
             if (sec.type === 'PRODUCTS') return <Sections.ProductsSection key={sec.type} businessGroup={bg} settings={settings} theme={theme} />;

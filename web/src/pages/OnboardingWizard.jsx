@@ -1,6 +1,51 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
+// Helper to extract dominant primary and secondary color palette from uploaded logo
+export function extractColorsFromLogo(imageSrc) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.crossOrigin = 'Anonymous';
+    img.onload = () => {
+      try {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = 50;
+        canvas.height = 50;
+        ctx.drawImage(img, 0, 0, 50, 50);
+        const imageData = ctx.getImageData(0, 0, 50, 50).data;
+        const colorCounts = {};
+
+        for (let i = 0; i < imageData.length; i += 4) {
+          const r = imageData[i];
+          const g = imageData[i + 1];
+          const b = imageData[i + 2];
+          const a = imageData[i + 3];
+
+          if (a < 125) continue;
+          if (r > 235 && g > 235 && b > 235) continue; // skip white
+          if (r < 25 && g < 25 && b < 25) continue; // skip black
+
+          const qr = Math.round(r / 32) * 32;
+          const qg = Math.round(g / 32) * 32;
+          const qb = Math.round(b / 32) * 32;
+          const hex = `#${((1 << 24) + (qr << 16) + (qg << 8) + qb).toString(16).slice(1)}`;
+          colorCounts[hex] = (colorCounts[hex] || 0) + 1;
+        }
+
+        const sortedColors = Object.keys(colorCounts).sort((a, b) => colorCounts[b] - colorCounts[a]);
+        const primary = sortedColors[0] || '#6366f1';
+        const secondary = sortedColors[1] || '#38bdf8';
+        resolve({ primaryColor: primary, secondaryColor: secondary });
+      } catch (e) {
+        resolve({ primaryColor: '#6366f1', secondaryColor: '#38bdf8' });
+      }
+    };
+    img.onerror = () => resolve({ primaryColor: '#6366f1', secondaryColor: '#38bdf8' });
+    img.src = imageSrc;
+  });
+}
+
 // --- Step 1: Business Information & Google Places Importer ---
 function StepBusinessInfo({ initialData, onNext, onAutoFill }) {
   const [name, setName] = useState(initialData.name || '');
@@ -9,6 +54,8 @@ function StepBusinessInfo({ initialData, onNext, onAutoFill }) {
   const [yearStarted, setYearStarted] = useState(initialData.yearStarted || '');
   const [logoUrl, setLogoUrl] = useState(initialData.logoUrl || '');
   const [coverImageUrl, setCoverImageUrl] = useState(initialData.coverImageUrl || '');
+  const [primaryColor, setPrimaryColor] = useState(initialData.primaryColor || '#6366f1');
+  const [secondaryColor, setSecondaryColor] = useState(initialData.secondaryColor || '#38bdf8');
   const [error, setError] = useState('');
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [uploadingCover, setUploadingCover] = useState(false);
@@ -18,7 +65,13 @@ function StepBusinessInfo({ initialData, onNext, onAutoFill }) {
     if (initialData.name) setName(initialData.name);
     if (initialData.category) setCategory(initialData.category);
     if (initialData.description) setDescription(initialData.description);
-    if (initialData.logoUrl) setLogoUrl(initialData.logoUrl);
+    if (initialData.logoUrl) {
+      setLogoUrl(initialData.logoUrl);
+      extractColorsFromLogo(initialData.logoUrl).then(palette => {
+        setPrimaryColor(palette.primaryColor);
+        setSecondaryColor(palette.secondaryColor);
+      });
+    }
     if (initialData.coverImageUrl) setCoverImageUrl(initialData.coverImageUrl);
   }, [initialData]);
 

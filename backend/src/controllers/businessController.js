@@ -270,6 +270,26 @@ exports.saveOnboardingStep = async (req, res) => {
           data: { category: data.category }
         });
       }
+      if (data.primaryColor || data.secondaryColor) {
+        let sub = (data.name || businessGroup.name || 'my-business')
+          .toLowerCase()
+          .replace(/\s+/g, '-')
+          .replace(/[^\w\-]+/g, '')
+          .replace(/\-\-+/g, '-');
+        await prisma.website.upsert({
+          where: { businessGroupId },
+          update: {
+            primaryColor: data.primaryColor || undefined,
+            secondaryColor: data.secondaryColor || undefined
+          },
+          create: {
+            businessGroupId,
+            subdomain: sub || `biz-${Date.now()}`,
+            primaryColor: data.primaryColor || '#6366f1',
+            secondaryColor: data.secondaryColor || '#38bdf8'
+          }
+        });
+      }
     } else if (step === 2) {
       // Contact Info
       updateData.mobileNumber = data.mobileNumber !== undefined ? data.mobileNumber : businessGroup.mobileNumber;

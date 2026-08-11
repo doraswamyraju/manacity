@@ -67,18 +67,20 @@ exports.getWebsite = async (req, res) => {
         include: { sections: true }
       });
 
-      // Define default section configs
+      // Default section configurations
       const defaultSections = [
-        { type: 'HERO', enabled: true, displayOrder: 1, settings: { headline: 'Welcome to our business', ctaText: 'Get Started', showCta: true } },
-        { type: 'ABOUT', enabled: true, displayOrder: 2, settings: { title: 'About Us', alignment: 'left' } },
-        { type: 'SERVICES', enabled: true, displayOrder: 3, settings: { columns: 3 } },
-        { type: 'PRODUCTS', enabled: true, displayOrder: 4, settings: { columns: 3 } },
-        { type: 'GALLERY', enabled: true, displayOrder: 5, settings: { gridType: 'masonry' } },
-        { type: 'REVIEWS', enabled: true, displayOrder: 6, settings: { count: 3 } },
-        { type: 'CONTACT', enabled: true, displayOrder: 7, settings: { showForm: true } },
-        { type: 'FAQ', enabled: true, displayOrder: 8, settings: { collapsible: true } },
-        { type: 'CTA', enabled: true, displayOrder: 9, settings: { buttonColor: '#1976d2' } },
-        { type: 'FOOTER', enabled: true, displayOrder: 10, settings: { copyright: `© ${new Date().getFullYear()} All rights reserved.` } }
+        { type: 'HEADER', enabled: true, displayOrder: 1, settings: { logoText: '', navLinks: true, ctaButton: true } },
+        { type: 'HERO', enabled: true, displayOrder: 2, settings: { headline: 'Welcome to our business', ctaText: 'Get Started', showCta: true } },
+        { type: 'FEATURES', enabled: true, displayOrder: 3, settings: { title: 'Why Choose Us' } },
+        { type: 'ABOUT', enabled: true, displayOrder: 4, settings: { title: 'About Us', alignment: 'left' } },
+        { type: 'SERVICES', enabled: true, displayOrder: 5, settings: { columns: 3 } },
+        { type: 'PRODUCTS', enabled: true, displayOrder: 6, settings: { columns: 3 } },
+        { type: 'GALLERY', enabled: true, displayOrder: 7, settings: { gridType: 'masonry' } },
+        { type: 'REVIEWS', enabled: true, displayOrder: 8, settings: { count: 3 } },
+        { type: 'CONTACT', enabled: true, displayOrder: 9, settings: { showForm: true } },
+        { type: 'FAQ', enabled: true, displayOrder: 10, settings: { collapsible: true } },
+        { type: 'CTA', enabled: true, displayOrder: 11, settings: { buttonColor: '#1976d2' } },
+        { type: 'FOOTER', enabled: true, displayOrder: 12, settings: { copyright: `© ${new Date().getFullYear()} All rights reserved.` } }
       ];
 
       await prisma.websiteSection.createMany({
@@ -92,6 +94,37 @@ exports.getWebsite = async (req, res) => {
       });
 
       // Refetch
+      website = await prisma.website.findUnique({
+        where: { businessGroupId },
+        include: { sections: true }
+      });
+    } else if (website && (!website.sections || website.sections.length === 0)) {
+      // Auto-populate default sections for existing websites that have empty sections array
+      const defaultSections = [
+        { type: 'HEADER', enabled: true, displayOrder: 1, settings: { logoText: '', navLinks: true, ctaButton: true } },
+        { type: 'HERO', enabled: true, displayOrder: 2, settings: { headline: 'Welcome to our business', ctaText: 'Get Started', showCta: true } },
+        { type: 'FEATURES', enabled: true, displayOrder: 3, settings: { title: 'Why Choose Us' } },
+        { type: 'ABOUT', enabled: true, displayOrder: 4, settings: { title: 'About Us', alignment: 'left' } },
+        { type: 'SERVICES', enabled: true, displayOrder: 5, settings: { columns: 3 } },
+        { type: 'PRODUCTS', enabled: true, displayOrder: 6, settings: { columns: 3 } },
+        { type: 'GALLERY', enabled: true, displayOrder: 7, settings: { gridType: 'masonry' } },
+        { type: 'REVIEWS', enabled: true, displayOrder: 8, settings: { count: 3 } },
+        { type: 'CONTACT', enabled: true, displayOrder: 9, settings: { showForm: true } },
+        { type: 'FAQ', enabled: true, displayOrder: 10, settings: { collapsible: true } },
+        { type: 'CTA', enabled: true, displayOrder: 11, settings: { buttonColor: '#1976d2' } },
+        { type: 'FOOTER', enabled: true, displayOrder: 12, settings: { copyright: `© ${new Date().getFullYear()} All rights reserved.` } }
+      ];
+
+      await prisma.websiteSection.createMany({
+        data: defaultSections.map(sec => ({
+          websiteId: website.id,
+          type: sec.type,
+          enabled: sec.enabled,
+          displayOrder: sec.displayOrder,
+          settings: sec.settings
+        }))
+      });
+
       website = await prisma.website.findUnique({
         where: { businessGroupId },
         include: { sections: true }

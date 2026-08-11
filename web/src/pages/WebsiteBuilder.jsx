@@ -60,8 +60,24 @@ export default function WebsiteBuilder({ onBack }) {
         setMetaPixelId(web.metaPixelId || '');
         setClarityId(web.clarityId || '');
 
-        // Sort sections by displayOrder
-        const sortedSec = (web.sections || []).sort((a, b) => a.displayOrder - b.displayOrder);
+        // Sort sections by displayOrder, or fallback to default 12-section layout if empty
+        let sortedSec = (web.sections || []).sort((a, b) => a.displayOrder - b.displayOrder);
+        if (sortedSec.length === 0) {
+          sortedSec = [
+            { type: 'HEADER', enabled: true, displayOrder: 1, settings: {} },
+            { type: 'HERO', enabled: true, displayOrder: 2, settings: {} },
+            { type: 'FEATURES', enabled: true, displayOrder: 3, settings: {} },
+            { type: 'ABOUT', enabled: true, displayOrder: 4, settings: {} },
+            { type: 'SERVICES', enabled: true, displayOrder: 5, settings: {} },
+            { type: 'PRODUCTS', enabled: true, displayOrder: 6, settings: {} },
+            { type: 'GALLERY', enabled: true, displayOrder: 7, settings: {} },
+            { type: 'REVIEWS', enabled: true, displayOrder: 8, settings: {} },
+            { type: 'CONTACT', enabled: true, displayOrder: 9, settings: {} },
+            { type: 'FAQ', enabled: true, displayOrder: 10, settings: {} },
+            { type: 'CTA', enabled: true, displayOrder: 11, settings: {} },
+            { type: 'FOOTER', enabled: true, displayOrder: 12, settings: {} }
+          ];
+        }
         setSections(sortedSec);
       })
       .catch(err => console.error('Failed to load website config:', err))
@@ -390,7 +406,9 @@ export default function WebsiteBuilder({ onBack }) {
             .filter(sec => sec.enabled)
             .map(sec => {
               // Dynamically map section types to imported components
+              if (sec.type === 'HEADER') return <Sections.HeaderSection key={sec.type} businessGroup={businessGroup} settings={sec.settings} theme={theme} />;
               if (sec.type === 'HERO') return <Sections.HeroSection key={sec.type} businessGroup={businessGroup} settings={sec.settings} theme={theme} />;
+              if (sec.type === 'FEATURES') return <Sections.FeaturesSection key={sec.type} businessGroup={businessGroup} settings={sec.settings} theme={theme} />;
               if (sec.type === 'ABOUT') return <Sections.AboutSection key={sec.type} businessGroup={businessGroup} settings={sec.settings} theme={theme} />;
               if (sec.type === 'SERVICES') return <Sections.ServicesSection key={sec.type} businessGroup={businessGroup} settings={sec.settings} theme={theme} />;
               if (sec.type === 'PRODUCTS') return <Sections.ProductsSection key={sec.type} businessGroup={businessGroup} settings={sec.settings} theme={theme} />;
