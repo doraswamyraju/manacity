@@ -22,7 +22,9 @@ import {
   ChevronDown,
   ArrowRight,
   ExternalLink,
-  ShoppingCard
+  ShoppingCart,
+  Info,
+  Sun
 } from 'lucide-react';
 
 // Helper to compute actual rating and reviews array from businessGroup locations
@@ -37,7 +39,7 @@ export function getRatingAndReviews(businessGroup) {
   });
 
   const totalReviews = allReviews.length;
-  let avgRating = 4.9;
+  let avgRating = 0;
 
   if (totalReviews > 0) {
     const sum = allReviews.reduce((acc, r) => acc + (r.rating || 5), 0);
@@ -51,9 +53,173 @@ export function getRatingAndReviews(businessGroup) {
   return { reviews: allReviews, avgRating, reviewCount };
 }
 
+// Modal Component for Detailed View of Products & Services
+export function ItemDetailModal({ item, type, businessGroup, onClose }) {
+  if (!item) return null;
+
+  const isLight = themeIsLight(item._theme);
+  const name = item.name || item.libraryItem?.name || 'Item Details';
+  
+  const getImg = () => {
+    if (item.photos && item.photos.length > 0) return item.photos[0];
+    if (item.imageUrl) return item.imageUrl;
+    if (item.libraryItem) {
+      if (item.libraryItem.imageUrl) return item.libraryItem.imageUrl;
+      if (item.libraryItem.photos && item.libraryItem.photos.length > 0) return item.libraryItem.photos[0];
+    }
+    return type === 'PRODUCT'
+      ? 'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?q=80&w=600'
+      : 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=600';
+  };
+
+  const getPrice = () => {
+    if (item.price) return typeof item.price === 'number' ? `₹${item.price.toLocaleString('en-IN')}` : item.price;
+    if (item.libraryItem?.defaultPrice) return `₹${item.libraryItem.defaultPrice.toLocaleString('en-IN')}`;
+    return 'Contact for Pricing';
+  };
+
+  const desc = item.description || item.libraryItem?.description || 'Detailed specifications and high quality business offering.';
+  const imgUrl = getImg();
+  const priceStr = getPrice();
+  const phone = businessGroup?.whatsAppNumber || businessGroup?.mobileNumber || '';
+
+  const waLink = `https://wa.me/${phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`Hi, I am interested in "${name}" (${priceStr}) listed on your website.`)}`;
+
+  return (
+    <div style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: 'rgba(0, 0, 0, 0.75)',
+      backdropFilter: 'blur(8px)',
+      zIndex: 1000,
+      display: 'flex',
+      alignItems: 'center',
+      justify: 'center',
+      padding: '1.5rem'
+    }} onClick={onClose}>
+      <div style={{
+        backgroundColor: isLight ? '#ffffff' : '#1e293b',
+        color: isLight ? '#0f172a' : '#ffffff',
+        border: `1px solid ${isLight ? '#e2e8f0' : 'rgba(255,255,255,0.1)'}`,
+        borderRadius: '16px',
+        maxWidth: '550px',
+        width: '100%',
+        maxHeight: '90vh',
+        overflowY: 'auto',
+        position: 'relative',
+        boxShadow: '0 20px 40px rgba(0,0,0,0.4)',
+        padding: '0'
+      }} onClick={(e) => e.stopPropagation()}>
+        
+        {/* Close Button */}
+        <button onClick={onClose} style={{
+          position: 'absolute',
+          top: '1rem',
+          right: '1rem',
+          zIndex: 10,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          color: '#fff',
+          border: 'none',
+          borderRadius: '50%',
+          width: '32px',
+          height: '32px',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          justify: 'center'
+        }}>
+          <X size={18} />
+        </button>
+
+        {/* Modal Header Image */}
+        <div style={{ height: '240px', width: '100%', overflow: 'hidden', position: 'relative', backgroundColor: '#0f172a' }}>
+          <img src={imgUrl} alt={name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          <div style={{
+            position: 'absolute',
+            bottom: '1rem',
+            left: '1rem',
+            backgroundColor: 'var(--primary-color, #6366f1)',
+            color: '#fff',
+            fontWeight: 800,
+            fontSize: '1rem',
+            padding: '0.4rem 1rem',
+            borderRadius: '20px',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.3)'
+          }}>
+            {priceStr}
+          </div>
+        </div>
+
+        {/* Modal Body Content */}
+        <div style={{ padding: '1.75rem' }}>
+          <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--primary-color, #38bdf8)', textTransform: 'uppercase', marginBottom: '0.35rem' }}>
+            {type === 'PRODUCT' ? 'Product Specification' : 'Service Details'}
+          </div>
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 800, margin: '0 0 1rem', lineHeight: 1.25 }}>{name}</h2>
+          
+          <p style={{ fontSize: '0.95rem', color: isLight ? '#475569' : '#cbd5e1', lineHeight: 1.6, marginBottom: '1.5rem' }}>
+            {desc}
+          </p>
+
+          <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', borderTop: `1px solid ${isLight ? '#f1f5f9' : 'rgba(255,255,255,0.08)'}`, paddingTop: '1.25rem' }}>
+            {phone && (
+              <a href={waLink} target="_blank" rel="noreferrer" style={{
+                flex: 1,
+                backgroundColor: '#25d366',
+                color: '#fff',
+                textDecoration: 'none',
+                padding: '0.75rem 1.2rem',
+                borderRadius: '8px',
+                fontWeight: 800,
+                fontSize: '0.9rem',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justify: 'center',
+                gap: '0.5rem',
+                boxShadow: '0 4px 12px rgba(37, 211, 102, 0.3)'
+              }}>
+                <MessageSquare size={18} />
+                <span>Enquire via WhatsApp</span>
+              </a>
+            )}
+
+            {businessGroup?.mobileNumber && (
+              <a href={`tel:${businessGroup.mobileNumber}`} style={{
+                backgroundColor: 'var(--primary-color, #6366f1)',
+                color: '#fff',
+                textDecoration: 'none',
+                padding: '0.75rem 1.2rem',
+                borderRadius: '8px',
+                fontWeight: 800,
+                fontSize: '0.9rem',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justify: 'center',
+                gap: '0.5rem'
+              }}>
+                <Phone size={18} />
+                <span>Call Now</span>
+              </a>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function themeIsLight(theme) {
+  return theme === 'light-minimal' || theme === 'light';
+}
+
 // --- 1. Header Navigation Component ---
 export function HeaderSection({ businessGroup, settings, theme }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const isLight = themeIsLight(theme);
+
   const name = businessGroup?.name || 'Business Name';
   const logo = businessGroup?.logoUrl;
   const phone = businessGroup?.mobileNumber;
@@ -76,11 +242,12 @@ export function HeaderSection({ businessGroup, settings, theme }) {
       position: 'sticky',
       top: 0,
       zIndex: 100,
-      backgroundColor: 'rgba(15, 23, 42, 0.95)',
+      backgroundColor: isLight ? 'rgba(255, 255, 255, 0.95)' : 'rgba(15, 23, 42, 0.95)',
       backdropFilter: 'blur(12px)',
-      borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+      borderBottom: `1px solid ${isLight ? '#e2e8f0' : 'rgba(255, 255, 255, 0.08)'}`,
       padding: '0.85rem 6%',
-      transition: 'all 0.3s ease'
+      transition: 'all 0.3s ease',
+      color: isLight ? '#0f172a' : '#ffffff'
     }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.75rem' }}>
         
@@ -94,14 +261,14 @@ export function HeaderSection({ businessGroup, settings, theme }) {
             </div>
           )}
           <div>
-            <span style={{ fontWeight: 800, fontSize: '1.15rem', color: '#fff', letterSpacing: '-0.02em', display: 'block' }}>
+            <span style={{ fontWeight: 800, fontSize: '1.15rem', color: isLight ? '#0f172a' : '#fff', letterSpacing: '-0.02em', display: 'block' }}>
               {name.length > 28 ? name.substring(0, 26) + '...' : name}
             </span>
             {reviewCount > 0 && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.72rem', color: '#fbbf24', marginTop: '-0.1rem' }}>
-                <Star size={11} fill="#fbbf24" color="#fbbf24" />
-                <strong style={{ color: '#fff' }}>{avgRating}</strong>
-                <span style={{ color: '#94a3b8' }}>({reviewCount} reviews)</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.72rem', color: '#f59e0b', marginTop: '-0.1rem' }}>
+                <Star size={11} fill="#f59e0b" color="#f59e0b" />
+                <strong style={{ color: isLight ? '#0f172a' : '#fff' }}>{avgRating}</strong>
+                <span style={{ color: isLight ? '#64748b' : '#94a3b8' }}>({reviewCount} reviews)</span>
               </div>
             )}
           </div>
@@ -114,14 +281,14 @@ export function HeaderSection({ businessGroup, settings, theme }) {
               key={i}
               href={link.href}
               style={{
-                color: '#cbd5e1',
+                color: isLight ? '#475569' : '#cbd5e1',
                 textDecoration: 'none',
                 fontSize: '0.85rem',
                 fontWeight: 600,
                 transition: 'color 0.2s ease'
               }}
-              onMouseEnter={(e) => e.target.style.color = 'var(--primary-color, #38bdf8)'}
-              onMouseLeave={(e) => e.target.style.color = '#cbd5e1'}
+              onMouseEnter={(e) => e.target.style.color = 'var(--primary-color, #6366f1)'}
+              onMouseLeave={(e) => e.target.style.color = isLight ? '#475569' : '#cbd5e1'}
             >
               {link.label}
             </a>
@@ -180,7 +347,7 @@ export function HeaderSection({ businessGroup, settings, theme }) {
               display: 'none',
               background: 'none',
               border: 'none',
-              color: '#fff',
+              color: isLight ? '#0f172a' : '#fff',
               cursor: 'pointer',
               padding: '0.25rem'
             }}
@@ -193,13 +360,13 @@ export function HeaderSection({ businessGroup, settings, theme }) {
 
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
-        <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid rgba(255,255,255,0.08)', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+        <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: `1px solid ${isLight ? '#e2e8f0' : 'rgba(255,255,255,0.08)'}`, display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           {navLinks.map((link, i) => (
             <a
               key={i}
               href={link.href}
               onClick={() => setMobileMenuOpen(false)}
-              style={{ color: '#e2e8f0', textDecoration: 'none', fontSize: '0.95rem', fontWeight: 600 }}
+              style={{ color: isLight ? '#0f172a' : '#e2e8f0', textDecoration: 'none', fontSize: '0.95rem', fontWeight: 600 }}
             >
               {link.label}
             </a>
@@ -212,6 +379,7 @@ export function HeaderSection({ businessGroup, settings, theme }) {
 
 // --- 2. Hero Banner Component ---
 export function HeroSection({ businessGroup, settings, theme }) {
+  const isLight = themeIsLight(theme);
   const { avgRating, reviewCount } = getRatingAndReviews(businessGroup);
 
   const headline = settings?.headline || (
@@ -233,15 +401,19 @@ export function HeroSection({ businessGroup, settings, theme }) {
 
   const coverUrl = businessGroup?.coverImageUrl || 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=1200';
 
+  const bgOverlay = isLight
+    ? `linear-gradient(135deg, rgba(255, 255, 255, 0.92) 0%, rgba(248, 250, 252, 0.88) 100%), url('${coverUrl}') center/cover no-repeat`
+    : `linear-gradient(135deg, rgba(15, 23, 42, 0.88) 0%, rgba(15, 23, 42, 0.78) 100%), url('${coverUrl}') center/cover no-repeat`;
+
   return (
     <section style={{
       position: 'relative',
       minHeight: '60vh',
       display: 'flex',
       alignItems: 'center',
-      justifyContent: 'center',
-      color: '#fff',
-      background: `linear-gradient(135deg, rgba(15, 23, 42, 0.88) 0%, rgba(15, 23, 42, 0.78) 100%), url('${coverUrl}') center/cover no-repeat`,
+      justify: 'center',
+      color: isLight ? '#0f172a' : '#fff',
+      background: bgOverlay,
       textAlign: 'center',
       padding: '4rem 6%'
     }}>
@@ -256,6 +428,7 @@ export function HeroSection({ businessGroup, settings, theme }) {
             padding: '0.4rem 1rem',
             borderRadius: '30px',
             backgroundColor: 'var(--primary-color, #6366f1)',
+            color: '#fff',
             fontSize: '0.78rem',
             fontWeight: 800,
             textTransform: 'uppercase',
@@ -267,6 +440,7 @@ export function HeroSection({ businessGroup, settings, theme }) {
             {theme === 'e-commerce' && <ShoppingBag size={14} />}
             {theme === 'service-booking' && <Calendar size={14} />}
             {theme === 'modern-corporate' && <Building2 size={14} />}
+            {theme === 'light-minimal' && <Sun size={14} />}
             <span>{(theme || 'Commercial Business').replace('-', ' ')}</span>
           </div>
 
@@ -277,22 +451,22 @@ export function HeroSection({ businessGroup, settings, theme }) {
               gap: '0.35rem',
               padding: '0.4rem 0.9rem',
               borderRadius: '30px',
-              backgroundColor: 'rgba(255, 255, 255, 0.1)',
-              border: '1px solid rgba(255, 255, 255, 0.2)',
+              backgroundColor: isLight ? 'rgba(0, 0, 0, 0.05)' : 'rgba(255, 255, 255, 0.1)',
+              border: `1px solid ${isLight ? '#cbd5e1' : 'rgba(255, 255, 255, 0.2)'}`,
               fontSize: '0.8rem',
               fontWeight: 800,
-              color: '#fbbf24'
+              color: '#f59e0b'
             }}>
-              <Star size={14} fill="#fbbf24" color="#fbbf24" />
+              <Star size={14} fill="#f59e0b" color="#f59e0b" />
               <span>{avgRating} Rating ({reviewCount} Reviews)</span>
             </div>
           )}
         </div>
 
-        <h1 style={{ fontSize: '2.8rem', fontWeight: 900, marginBottom: '1rem', lineHeight: 1.18, letterSpacing: '-0.03em' }}>
+        <h1 style={{ fontSize: '2.8rem', fontWeight: 900, marginBottom: '1rem', lineHeight: 1.18, letterSpacing: '-0.03em', color: isLight ? '#0f172a' : '#fff' }}>
           {headline}
         </h1>
-        <p style={{ fontSize: '1.1rem', marginBottom: '2rem', color: '#cbd5e1', lineHeight: 1.6, maxWidth: '700px', margin: '0 auto 2rem' }}>
+        <p style={{ fontSize: '1.1rem', marginBottom: '2rem', color: isLight ? '#475569' : '#cbd5e1', lineHeight: 1.6, maxWidth: '700px', margin: '0 auto 2rem' }}>
           {subheadline}
         </p>
 
@@ -320,14 +494,15 @@ export function HeroSection({ businessGroup, settings, theme }) {
           <a
             href="#services"
             style={{
-              backgroundColor: 'rgba(255, 255, 255, 0.08)',
-              color: '#fff',
-              border: '1px solid rgba(255, 255, 255, 0.2)',
+              backgroundColor: isLight ? '#ffffff' : 'rgba(255, 255, 255, 0.08)',
+              color: isLight ? '#0f172a' : '#fff',
+              border: `1px solid ${isLight ? '#cbd5e1' : 'rgba(255, 255, 255, 0.2)'}`,
               padding: '0.85rem 2rem',
               textDecoration: 'none',
               borderRadius: '8px',
               fontWeight: 700,
-              fontSize: '0.95rem'
+              fontSize: '0.95rem',
+              boxShadow: isLight ? '0 2px 8px rgba(0,0,0,0.06)' : 'none'
             }}
           >
             Explore Offerings
@@ -340,6 +515,7 @@ export function HeroSection({ businessGroup, settings, theme }) {
 
 // --- 3. Features / Why Choose Us Component ---
 export function FeaturesSection({ businessGroup, settings, theme }) {
+  const isLight = themeIsLight(theme);
   const title = settings?.title || 'Why Choose Us';
   
   const features = [
@@ -350,10 +526,10 @@ export function FeaturesSection({ businessGroup, settings, theme }) {
   ];
 
   return (
-    <section id="features" style={{ padding: '4rem 6%', backgroundColor: 'rgba(255, 255, 255, 0.015)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+    <section id="features" style={{ padding: '4rem 6%', backgroundColor: isLight ? '#f8fafc' : 'rgba(255, 255, 255, 0.015)', borderBottom: `1px solid ${isLight ? '#e2e8f0' : 'rgba(255,255,255,0.05)'}` }}>
       <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
-        <h2 style={{ fontSize: '1.8rem', fontWeight: 800, color: '#fff', marginBottom: '0.5rem' }}>{title}</h2>
-        <p style={{ color: '#94a3b8', fontSize: '0.95rem' }}>Built on trust, speed, and uncompromising standards</p>
+        <h2 style={{ fontSize: '1.8rem', fontWeight: 800, color: isLight ? '#0f172a' : '#fff', marginBottom: '0.5rem' }}>{title}</h2>
+        <p style={{ color: isLight ? '#64748b' : '#94a3b8', fontSize: '0.95rem' }}>Built on trust, speed, and uncompromising standards</p>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.5rem' }}>
@@ -361,16 +537,17 @@ export function FeaturesSection({ businessGroup, settings, theme }) {
           <div
             key={idx}
             style={{
-              backgroundColor: '#1e293b',
-              border: '1px solid rgba(255, 255, 255, 0.06)',
+              backgroundColor: isLight ? '#ffffff' : '#1e293b',
+              border: `1px solid ${isLight ? '#e2e8f0' : 'rgba(255, 255, 255, 0.06)'}`,
               padding: '1.5rem',
               borderRadius: '12px',
-              textAlign: 'left'
+              textAlign: 'left',
+              boxShadow: isLight ? '0 4px 15px rgba(0,0,0,0.05)' : 'none'
             }}
           >
             <div style={{ marginBottom: '1rem' }}>{feat.icon}</div>
-            <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#fff', marginBottom: '0.4rem' }}>{feat.title}</h3>
-            <p style={{ fontSize: '0.86rem', color: '#94a3b8', lineHeight: 1.5, margin: 0 }}>{feat.desc}</p>
+            <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: isLight ? '#0f172a' : '#fff', marginBottom: '0.4rem' }}>{feat.title}</h3>
+            <p style={{ fontSize: '0.86rem', color: isLight ? '#64748b' : '#94a3b8', lineHeight: 1.5, margin: 0 }}>{feat.desc}</p>
           </div>
         ))}
       </div>
@@ -380,35 +557,36 @@ export function FeaturesSection({ businessGroup, settings, theme }) {
 
 // --- 4. About Us Component ---
 export function AboutSection({ businessGroup, settings, theme }) {
+  const isLight = themeIsLight(theme);
   const title = settings?.title || 'About Us';
   const desc = businessGroup?.description || 'We are dedicated to offering the finest professional commercial services, serving clients with excellence, integrity, and innovation.';
   const logo = businessGroup?.logoUrl;
 
   return (
-    <section id="about" style={{ padding: '4rem 6%', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+    <section id="about" style={{ padding: '4rem 6%', backgroundColor: isLight ? '#ffffff' : 'transparent', borderBottom: `1px solid ${isLight ? '#e2e8f0' : 'rgba(255,255,255,0.05)'}` }}>
       <div style={{ display: 'grid', gridTemplateColumns: logo ? '140px 1fr' : '1fr', gap: '2.5rem', alignItems: 'center' }}>
         {logo && (
           <div style={{ display: 'flex', justifyContent: 'center' }}>
-            <img src={logo} alt="Logo" style={{ width: '130px', height: '130px', borderRadius: '16px', objectFit: 'cover', border: '3px solid var(--primary-color, #6366f1)', boxShadow: '0 8px 20px rgba(0,0,0,0.3)' }} />
+            <img src={logo} alt="Logo" style={{ width: '130px', height: '130px', borderRadius: '16px', objectFit: 'cover', border: '3px solid var(--primary-color, #6366f1)', boxShadow: '0 8px 20px rgba(0,0,0,0.15)' }} />
           </div>
         )}
         <div>
-          <span style={{ color: 'var(--primary-color, #38bdf8)', fontWeight: 800, fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Company Overview</span>
-          <h2 style={{ fontSize: '1.9rem', color: '#fff', marginTop: '0.25rem', marginBottom: '1rem', fontWeight: 800 }}>{title}</h2>
-          <p style={{ fontSize: '1rem', lineHeight: '1.7', color: '#cbd5e1', marginBottom: '1.5rem' }}>{desc}</p>
+          <span style={{ color: 'var(--primary-color, #6366f1)', fontWeight: 800, fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Company Overview</span>
+          <h2 style={{ fontSize: '1.9rem', color: isLight ? '#0f172a' : '#fff', marginTop: '0.25rem', marginBottom: '1rem', fontWeight: 800 }}>{title}</h2>
+          <p style={{ fontSize: '1rem', lineHeight: '1.7', color: isLight ? '#475569' : '#cbd5e1', marginBottom: '1.5rem' }}>{desc}</p>
           
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '1.25rem', backgroundColor: '#1e293b', padding: '1.25rem', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.06)' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '1.25rem', backgroundColor: isLight ? '#f8fafc' : '#1e293b', padding: '1.25rem', borderRadius: '12px', border: `1px solid ${isLight ? '#e2e8f0' : 'rgba(255,255,255,0.06)'}` }}>
             <div>
-              <div style={{ fontSize: '1.5rem', fontWeight: 900, color: 'var(--primary-color, #38bdf8)' }}>{businessGroup?.yearStarted || '2020'}</div>
-              <div style={{ fontSize: '0.78rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 700 }}>Established Year</div>
+              <div style={{ fontSize: '1.5rem', fontWeight: 900, color: 'var(--primary-color, #6366f1)' }}>{businessGroup?.yearStarted || '2020'}</div>
+              <div style={{ fontSize: '0.78rem', color: isLight ? '#64748b' : '#94a3b8', textTransform: 'uppercase', fontWeight: 700 }}>Established Year</div>
             </div>
             <div>
-              <div style={{ fontSize: '1.5rem', fontWeight: 900, color: 'var(--primary-color, #38bdf8)' }}>{businessGroup?.city || 'Tirupati'}</div>
-              <div style={{ fontSize: '0.78rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 700 }}>Primary Location</div>
+              <div style={{ fontSize: '1.5rem', fontWeight: 900, color: 'var(--primary-color, #6366f1)' }}>{businessGroup?.city || 'Tirupati'}</div>
+              <div style={{ fontSize: '0.78rem', color: isLight ? '#64748b' : '#94a3b8', textTransform: 'uppercase', fontWeight: 700 }}>Primary Location</div>
             </div>
             <div>
-              <div style={{ fontSize: '1.5rem', fontWeight: 900, color: 'var(--primary-color, #38bdf8)' }}>100%</div>
-              <div style={{ fontSize: '0.78rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 700 }}>Client Satisfaction</div>
+              <div style={{ fontSize: '1.5rem', fontWeight: 900, color: 'var(--primary-color, #6366f1)' }}>100%</div>
+              <div style={{ fontSize: '0.78rem', color: isLight ? '#64748b' : '#94a3b8', textTransform: 'uppercase', fontWeight: 700 }}>Client Satisfaction</div>
             </div>
           </div>
         </div>
@@ -417,11 +595,13 @@ export function AboutSection({ businessGroup, settings, theme }) {
   );
 }
 
-// --- 5. Services Component (Redesigned with Full Image & Details Support) ---
+// --- 5. Services Component (With Details Popup Modal) ---
 export function ServicesSection({ businessGroup, settings, theme }) {
+  const isLight = themeIsLight(theme);
+  const [selectedService, setSelectedService] = useState(null);
+
   const userServices = businessGroup?.services || [];
 
-  // Resolves image for custom business service or super admin library item
   const getServiceImage = (srv) => {
     if (srv.photos && srv.photos.length > 0) return srv.photos[0];
     if (srv.imageUrl) return srv.imageUrl;
@@ -449,15 +629,15 @@ export function ServicesSection({ businessGroup, settings, theme }) {
   ];
 
   return (
-    <section id="services" style={{ padding: '4rem 6%', backgroundColor: 'rgba(255, 255, 255, 0.01)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+    <section id="services" style={{ padding: '4rem 6%', backgroundColor: isLight ? '#f8fafc' : 'rgba(255, 255, 255, 0.01)', borderBottom: `1px solid ${isLight ? '#e2e8f0' : 'rgba(255,255,255,0.05)'}` }}>
       <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
-        <h2 style={{ fontSize: '1.9rem', fontWeight: 800, color: '#fff', marginBottom: '0.5rem' }}>
+        <h2 style={{ fontSize: '1.9rem', fontWeight: 800, color: isLight ? '#0f172a' : '#fff', marginBottom: '0.5rem' }}>
           {theme === 'restaurant-menu' ? 'Dining & Culinary Offerings' :
            theme === 'clinic-healthcare' ? 'Medical Treatments & Procedures' :
            theme === 'service-booking' ? 'Bookable Services & Packages' :
            'Our Professional Services'}
         </h2>
-        <p style={{ color: '#94a3b8', fontSize: '0.95rem' }}>High quality offerings uploaded and verified for maximum value</p>
+        <p style={{ color: isLight ? '#64748b' : '#94a3b8', fontSize: '0.95rem' }}>High quality offerings uploaded and verified for maximum value (Click for full details)</p>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.75rem' }}>
@@ -468,16 +648,20 @@ export function ServicesSection({ businessGroup, settings, theme }) {
           const title = srv.name || srv.libraryItem?.name || 'Service Title';
 
           return (
-            <div key={idx} style={{
-              backgroundColor: '#1e293b',
-              border: '1px solid rgba(255, 255, 255, 0.08)',
-              borderRadius: '14px',
-              overflow: 'hidden',
-              display: 'flex',
-              flexDirection: 'column',
-              justify: 'space-between',
-              boxShadow: '0 4px 14px rgba(0, 0, 0, 0.25)'
-            }}>
+            <div key={idx}
+              onClick={() => setSelectedService({ ...srv, _theme: theme })}
+              style={{
+                backgroundColor: isLight ? '#ffffff' : '#1e293b',
+                border: `1px solid ${isLight ? '#e2e8f0' : 'rgba(255, 255, 255, 0.08)'}`,
+                borderRadius: '14px',
+                overflow: 'hidden',
+                display: 'flex',
+                flexDirection: 'column',
+                justify: 'space-between',
+                boxShadow: isLight ? '0 4px 15px rgba(0,0,0,0.06)' : '0 4px 14px rgba(0, 0, 0, 0.25)',
+                cursor: 'pointer',
+                transition: 'transform 0.2s ease'
+              }}>
               <div>
                 {/* Service Card Image Banner */}
                 <div style={{ height: '180px', width: '100%', overflow: 'hidden', position: 'relative' }}>
@@ -486,59 +670,67 @@ export function ServicesSection({ businessGroup, settings, theme }) {
                     position: 'absolute',
                     top: '0.75rem',
                     right: '0.75rem',
-                    backgroundColor: 'rgba(15, 23, 42, 0.85)',
+                    backgroundColor: isLight ? 'rgba(255, 255, 255, 0.95)' : 'rgba(15, 23, 42, 0.85)',
                     backdropFilter: 'blur(8px)',
-                    color: 'var(--primary-color, #38bdf8)',
+                    color: 'var(--primary-color, #6366f1)',
                     fontWeight: 800,
                     fontSize: '0.82rem',
                     padding: '0.35rem 0.75rem',
                     borderRadius: '20px',
-                    border: '1px solid rgba(255, 255, 255, 0.15)'
+                    border: `1px solid ${isLight ? '#e2e8f0' : 'rgba(255, 255, 255, 0.15)'}`
                   }}>
                     {priceText}
                   </div>
                 </div>
 
                 <div style={{ padding: '1.35rem' }}>
-                  <h3 style={{ fontSize: '1.2rem', color: '#fff', margin: '0 0 0.5rem', fontWeight: 800 }}>{title}</h3>
-                  <p style={{ fontSize: '0.9rem', color: '#cbd5e1', lineHeight: 1.6, margin: '0 0 1rem' }}>
-                    {descText}
+                  <h3 style={{ fontSize: '1.2rem', color: isLight ? '#0f172a' : '#fff', margin: '0 0 0.5rem', fontWeight: 800 }}>{title}</h3>
+                  <p style={{ fontSize: '0.9rem', color: isLight ? '#475569' : '#cbd5e1', lineHeight: 1.6, margin: '0 0 1rem' }}>
+                    {descText.length > 120 ? descText.substring(0, 115) + '...' : descText}
                   </p>
                 </div>
               </div>
               
               <div style={{ padding: '0 1.35rem 1.35rem' }}>
-                <a href="#contact" style={{
+                <button type="button" style={{
+                  width: '100%',
                   display: 'flex',
                   alignItems: 'center',
                   justify: 'center',
                   gap: '0.5rem',
                   backgroundColor: 'var(--primary-color, #6366f1)',
                   color: '#fff',
-                  textDecoration: 'none',
+                  border: 'none',
                   fontWeight: 800,
                   fontSize: '0.88rem',
                   padding: '0.7rem 1rem',
                   borderRadius: '8px',
-                  boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)'
+                  cursor: 'pointer'
                 }}>
-                  <span>Book / Enquire Now</span>
+                  <span>View Details & Book</span>
                   <ArrowRight size={16} />
-                </a>
+                </button>
               </div>
             </div>
           );
         })}
       </div>
+
+      {/* Service Details Modal */}
+      {selectedService && (
+        <ItemDetailModal item={selectedService} type="SERVICE" businessGroup={businessGroup} onClose={() => setSelectedService(null)} />
+      )}
     </section>
   );
 }
 
-// --- 6. Products Component (Redesigned with Image & Detailed Specs Support) ---
+// --- 6. Products Component (With Details Popup Modal) ---
 export function ProductsSection({ businessGroup, settings, theme }) {
+  const isLight = themeIsLight(theme);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+
   const userProducts = businessGroup?.products || [];
 
-  // Resolves image for custom business product or super admin library item
   const getProductImage = (prod) => {
     if (prod.photos && prod.photos.length > 0) return prod.photos[0];
     if (prod.imageUrl) return prod.imageUrl;
@@ -565,12 +757,12 @@ export function ProductsSection({ businessGroup, settings, theme }) {
   ];
 
   return (
-    <section id="products" style={{ padding: '4rem 6%', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+    <section id="products" style={{ padding: '4rem 6%', backgroundColor: isLight ? '#ffffff' : 'transparent', borderBottom: `1px solid ${isLight ? '#e2e8f0' : 'rgba(255,255,255,0.05)'}` }}>
       <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
-        <h2 style={{ fontSize: '1.9rem', fontWeight: 800, color: '#fff', marginBottom: '0.5rem' }}>
+        <h2 style={{ fontSize: '1.9rem', fontWeight: 800, color: isLight ? '#0f172a' : '#fff', marginBottom: '0.5rem' }}>
           {theme === 'e-commerce' ? 'Product Catalog' : 'Featured Products & Catalog'}
         </h2>
-        <p style={{ color: '#94a3b8', fontSize: '0.95rem' }}>Premium products with uploaded specs, photos, and direct order options</p>
+        <p style={{ color: isLight ? '#64748b' : '#94a3b8', fontSize: '0.95rem' }}>Premium products with uploaded specs, photos, and direct order options (Click for full details)</p>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.75rem' }}>
@@ -581,25 +773,28 @@ export function ProductsSection({ businessGroup, settings, theme }) {
           const title = prod.name || prod.libraryItem?.name || 'Product Item';
 
           return (
-            <div key={idx} style={{
-              backgroundColor: '#1e293b',
-              border: '1px solid rgba(255, 255, 255, 0.08)',
-              borderRadius: '14px',
-              overflow: 'hidden',
-              display: 'flex',
-              flexDirection: 'column',
-              justify: 'space-between',
-              boxShadow: '0 4px 14px rgba(0,0,0,0.25)'
-            }}>
+            <div key={idx}
+              onClick={() => setSelectedProduct({ ...prod, _theme: theme })}
+              style={{
+                backgroundColor: isLight ? '#ffffff' : '#1e293b',
+                border: `1px solid ${isLight ? '#e2e8f0' : 'rgba(255, 255, 255, 0.08)'}`,
+                borderRadius: '14px',
+                overflow: 'hidden',
+                display: 'flex',
+                flexDirection: 'column',
+                justify: 'space-between',
+                boxShadow: isLight ? '0 4px 15px rgba(0,0,0,0.06)' : '0 4px 14px rgba(0,0,0,0.25)',
+                cursor: 'pointer'
+              }}>
               <div>
                 {/* Product Image */}
-                <div style={{ height: '200px', width: '100%', overflow: 'hidden', position: 'relative', backgroundColor: '#0f172a' }}>
+                <div style={{ height: '200px', width: '100%', overflow: 'hidden', position: 'relative', backgroundColor: isLight ? '#f1f5f9' : '#0f172a' }}>
                   <img src={imgUrl} alt={title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   <div style={{
                     position: 'absolute',
                     top: '0.75rem',
                     left: '0.75rem',
-                    backgroundColor: 'rgba(16, 185, 129, 0.9)',
+                    backgroundColor: '#10b981',
                     color: '#fff',
                     fontWeight: 800,
                     fontSize: '0.72rem',
@@ -612,39 +807,48 @@ export function ProductsSection({ businessGroup, settings, theme }) {
                 </div>
 
                 <div style={{ padding: '1.35rem' }}>
-                  <h3 style={{ fontSize: '1.2rem', color: '#fff', margin: '0 0 0.4rem', fontWeight: 800 }}>{title}</h3>
-                  <p style={{ fontSize: '0.88rem', color: '#cbd5e1', lineHeight: 1.5, margin: '0 0 1.25rem' }}>{descText}</p>
+                  <h3 style={{ fontSize: '1.2rem', color: isLight ? '#0f172a' : '#fff', margin: '0 0 0.4rem', fontWeight: 800 }}>{title}</h3>
+                  <p style={{ fontSize: '0.88rem', color: isLight ? '#475569' : '#cbd5e1', lineHeight: 1.5, margin: '0 0 1.25rem' }}>
+                    {descText.length > 100 ? descText.substring(0, 95) + '...' : descText}
+                  </p>
                 </div>
               </div>
 
               <div style={{ padding: '0 1.35rem 1.35rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '1.25rem', fontWeight: 900, color: 'var(--primary-color, #38bdf8)' }}>{priceText}</span>
-                <a href="#contact" style={{
+                <span style={{ fontSize: '1.25rem', fontWeight: 900, color: 'var(--primary-color, #6366f1)' }}>{priceText}</span>
+                <button type="button" style={{
                   backgroundColor: 'var(--secondary-color, #a855f7)',
                   color: '#fff',
                   padding: '0.55rem 1.1rem',
                   borderRadius: '8px',
-                  textDecoration: 'none',
+                  border: 'none',
                   fontWeight: 800,
                   fontSize: '0.85rem',
                   display: 'inline-flex',
                   alignItems: 'center',
-                  gap: '0.35rem'
+                  gap: '0.35rem',
+                  cursor: 'pointer'
                 }}>
-                  <ShoppingBag size={15} />
-                  <span>Order Now</span>
-                </a>
+                  <ShoppingCart size={15} />
+                  <span>View & Order</span>
+                </button>
               </div>
             </div>
           );
         })}
       </div>
+
+      {/* Product Details Modal */}
+      {selectedProduct && (
+        <ItemDetailModal item={selectedProduct} type="PRODUCT" businessGroup={businessGroup} onClose={() => setSelectedProduct(null)} />
+      )}
     </section>
   );
 }
 
 // --- 7. Gallery Component ---
 export function GallerySection({ businessGroup, settings, theme }) {
+  const isLight = themeIsLight(theme);
   const logo = businessGroup?.logoUrl;
   const cover = businessGroup?.coverImageUrl;
   const sampleImgs = [
@@ -656,15 +860,15 @@ export function GallerySection({ businessGroup, settings, theme }) {
   const displayImages = images.length > 0 ? images : sampleImgs;
 
   return (
-    <section id="gallery" style={{ padding: '4rem 6%', backgroundColor: 'rgba(255, 255, 255, 0.015)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+    <section id="gallery" style={{ padding: '4rem 6%', backgroundColor: isLight ? '#f8fafc' : 'rgba(255, 255, 255, 0.015)', borderBottom: `1px solid ${isLight ? '#e2e8f0' : 'rgba(255,255,255,0.05)'}` }}>
       <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
-        <h2 style={{ fontSize: '1.9rem', fontWeight: 800, color: '#fff', marginBottom: '0.5rem' }}>Photo Gallery</h2>
-        <p style={{ color: '#94a3b8', fontSize: '0.95rem' }}>A visual showcase of our facility, work, and operations</p>
+        <h2 style={{ fontSize: '1.9rem', fontWeight: 800, color: isLight ? '#0f172a' : '#fff', marginBottom: '0.5rem' }}>Photo Gallery</h2>
+        <p style={{ color: isLight ? '#64748b' : '#94a3b8', fontSize: '0.95rem' }}>A visual showcase of our facility, work, and operations</p>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.25rem' }}>
         {displayImages.map((img, idx) => (
-          <div key={idx} style={{ borderRadius: '12px', overflow: 'hidden', height: '200px', border: '1px solid rgba(255,255,255,0.08)' }}>
+          <div key={idx} style={{ borderRadius: '12px', overflow: 'hidden', height: '200px', border: `1px solid ${isLight ? '#e2e8f0' : 'rgba(255,255,255,0.08)'}`, boxShadow: isLight ? '0 4px 12px rgba(0,0,0,0.05)' : 'none' }}>
             <img src={img} alt={`Gallery item ${idx + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           </div>
         ))}
@@ -673,8 +877,9 @@ export function GallerySection({ businessGroup, settings, theme }) {
   );
 }
 
-// --- 8. Customer Reviews Component (Real Google & Internal Reviews Integration) ---
+// --- 8. Customer Reviews Component ---
 export function ReviewsSection({ businessGroup, settings, theme }) {
+  const isLight = themeIsLight(theme);
   const { reviews: realReviews, avgRating, reviewCount } = getRatingAndReviews(businessGroup);
 
   const fallbackReviews = [
@@ -686,14 +891,19 @@ export function ReviewsSection({ businessGroup, settings, theme }) {
   const reviewsToDisplay = realReviews.length > 0 ? realReviews : fallbackReviews;
 
   return (
-    <section id="reviews" style={{ padding: '4rem 6%', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+    <section id="reviews" style={{ padding: '4rem 6%', backgroundColor: isLight ? '#ffffff' : 'transparent', borderBottom: `1px solid ${isLight ? '#e2e8f0' : 'rgba(255,255,255,0.05)'}` }}>
       <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
-        <h2 style={{ fontSize: '1.9rem', fontWeight: 800, color: '#fff', marginBottom: '0.5rem' }}>Customer Reviews & Ratings</h2>
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#1e293b', padding: '0.4rem 1rem', borderRadius: '30px', border: '1px solid rgba(255,255,255,0.1)', color: '#fbbf24', fontSize: '0.9rem', fontWeight: 800 }}>
-          <Star size={16} fill="#fbbf24" color="#fbbf24" />
-          <span>{avgRating} Average Rating</span>
-          <span style={{ color: '#94a3b8', fontWeight: 600 }}>({reviewCount || reviewsToDisplay.length} verified reviews)</span>
-        </div>
+        <h2 style={{ fontSize: '1.9rem', fontWeight: 800, color: isLight ? '#0f172a' : '#fff', marginBottom: '0.5rem' }}>Customer Reviews & Ratings</h2>
+        
+        {reviewCount > 0 ? (
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', backgroundColor: isLight ? '#f1f5f9' : '#1e293b', padding: '0.4rem 1rem', borderRadius: '30px', border: `1px solid ${isLight ? '#cbd5e1' : 'rgba(255,255,255,0.1)'}`, color: '#f59e0b', fontSize: '0.9rem', fontWeight: 800 }}>
+            <Star size={16} fill="#f59e0b" color="#f59e0b" />
+            <span>{avgRating} Average Rating</span>
+            <span style={{ color: isLight ? '#64748b' : '#94a3b8', fontWeight: 600 }}>({reviewCount} verified reviews)</span>
+          </div>
+        ) : (
+          <p style={{ color: isLight ? '#64748b' : '#94a3b8', fontSize: '0.95rem' }}>Verified Customer Feedback & Ratings</p>
+        )}
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
@@ -707,15 +917,16 @@ export function ReviewsSection({ businessGroup, settings, theme }) {
             <div key={idx} style={{
               padding: '1.5rem',
               borderRadius: '12px',
-              backgroundColor: '#1e293b',
-              border: '1px solid rgba(255, 255, 255, 0.08)',
+              backgroundColor: isLight ? '#f8fafc' : '#1e293b',
+              border: `1px solid ${isLight ? '#e2e8f0' : 'rgba(255, 255, 255, 0.08)'}`,
               display: 'flex',
               flexDirection: 'column',
-              justify: 'space-between'
+              justify: 'space-between',
+              boxShadow: isLight ? '0 4px 15px rgba(0,0,0,0.04)' : 'none'
             }}>
               <div>
-                <div style={{ color: '#fbbf24', marginBottom: '0.75rem', fontSize: '1rem' }}>{'★'.repeat(rating)}</div>
-                <p style={{ fontStyle: 'italic', color: '#cbd5e1', marginBottom: '1.25rem', fontSize: '0.92rem', lineHeight: 1.6 }}>"{comment}"</p>
+                <div style={{ color: '#f59e0b', marginBottom: '0.75rem', fontSize: '1rem' }}>{'★'.repeat(rating)}</div>
+                <p style={{ fontStyle: 'italic', color: isLight ? '#475569' : '#cbd5e1', marginBottom: '1.25rem', fontSize: '0.92rem', lineHeight: 1.6 }}>"{comment}"</p>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
                 {photo ? (
@@ -725,7 +936,7 @@ export function ReviewsSection({ businessGroup, settings, theme }) {
                     {author.charAt(0)}
                   </div>
                 )}
-                <strong style={{ fontSize: '0.88rem', color: '#fff' }}>{author}</strong>
+                <strong style={{ fontSize: '0.88rem', color: isLight ? '#0f172a' : '#fff' }}>{author}</strong>
               </div>
             </div>
           );
@@ -737,6 +948,7 @@ export function ReviewsSection({ businessGroup, settings, theme }) {
 
 // --- 9. FAQ Accordion Component ---
 export function FaqSection({ businessGroup, settings, theme }) {
+  const isLight = themeIsLight(theme);
   const [openIdx, setOpenIdx] = useState(0);
 
   const faqs = [
@@ -747,10 +959,10 @@ export function FaqSection({ businessGroup, settings, theme }) {
   ];
 
   return (
-    <section id="faq" style={{ padding: '4rem 6%', backgroundColor: 'rgba(255, 255, 255, 0.015)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+    <section id="faq" style={{ padding: '4rem 6%', backgroundColor: isLight ? '#f8fafc' : 'rgba(255, 255, 255, 0.015)', borderBottom: `1px solid ${isLight ? '#e2e8f0' : 'rgba(255,255,255,0.05)'}` }}>
       <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
-        <h2 style={{ fontSize: '1.9rem', fontWeight: 800, color: '#fff', marginBottom: '0.5rem' }}>Frequently Asked Questions</h2>
-        <p style={{ color: '#94a3b8', fontSize: '0.95rem' }}>Clear answers to standard questions</p>
+        <h2 style={{ fontSize: '1.9rem', fontWeight: 800, color: isLight ? '#0f172a' : '#fff', marginBottom: '0.5rem' }}>Frequently Asked Questions</h2>
+        <p style={{ color: isLight ? '#64748b' : '#94a3b8', fontSize: '0.95rem' }}>Clear answers to standard questions</p>
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxWidth: '750px', margin: '0 auto' }}>
@@ -760,18 +972,19 @@ export function FaqSection({ businessGroup, settings, theme }) {
             onClick={() => setOpenIdx(openIdx === idx ? -1 : idx)}
             style={{
               padding: '1.2rem 1.5rem',
-              backgroundColor: '#1e293b',
+              backgroundColor: isLight ? '#ffffff' : '#1e293b',
               borderRadius: '10px',
-              border: '1px solid rgba(255, 255, 255, 0.08)',
-              cursor: 'pointer'
+              border: `1px solid ${isLight ? '#e2e8f0' : 'rgba(255, 255, 255, 0.08)'}`,
+              cursor: 'pointer',
+              boxShadow: isLight ? '0 2px 8px rgba(0,0,0,0.03)' : 'none'
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h4 style={{ fontSize: '1rem', color: '#fff', margin: 0, fontWeight: 700 }}>{faq.q}</h4>
-              <ChevronDown size={18} color="var(--primary-color, #38bdf8)" style={{ transform: openIdx === idx ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s ease' }} />
+              <h4 style={{ fontSize: '1rem', color: isLight ? '#0f172a' : '#fff', margin: 0, fontWeight: 700 }}>{faq.q}</h4>
+              <ChevronDown size={18} color="var(--primary-color, #6366f1)" style={{ transform: openIdx === idx ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s ease' }} />
             </div>
             {openIdx === idx && (
-              <p style={{ color: '#cbd5e1', fontSize: '0.88rem', marginTop: '0.85rem', marginBottom: 0, lineHeight: 1.6 }}>{faq.a}</p>
+              <p style={{ color: isLight ? '#475569' : '#cbd5e1', fontSize: '0.88rem', marginTop: '0.85rem', marginBottom: 0, lineHeight: 1.6 }}>{faq.a}</p>
             )}
           </div>
         ))}
@@ -782,25 +995,29 @@ export function FaqSection({ businessGroup, settings, theme }) {
 
 // --- 10. Call To Action Component ---
 export function CtaSection({ businessGroup, settings, theme }) {
+  const isLight = themeIsLight(theme);
+
   return (
     <section style={{
       padding: '4rem 6%',
-      background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(56, 189, 248, 0.15) 100%)',
-      borderBottom: '1px solid rgba(255,255,255,0.05)',
+      background: isLight
+        ? 'linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(56, 189, 248, 0.08) 100%)'
+        : 'linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(56, 189, 248, 0.15) 100%)',
+      borderBottom: `1px solid ${isLight ? '#e2e8f0' : 'rgba(255,255,255,0.05)'}`,
       textAlign: 'center'
     }}>
-      <h2 style={{ fontSize: '2rem', fontWeight: 900, color: '#fff', marginBottom: '0.75rem' }}>Ready to elevate your experience?</h2>
-      <p style={{ color: '#cbd5e1', marginBottom: '2rem', fontSize: '1rem', maxWidth: '600px', margin: '0 auto 2rem' }}>Get in touch with us today for instant quotes, service consultations, or direct assistance.</p>
+      <h2 style={{ fontSize: '2rem', fontWeight: 900, color: isLight ? '#0f172a' : '#fff', marginBottom: '0.75rem' }}>Ready to elevate your experience?</h2>
+      <p style={{ color: isLight ? '#475569' : '#cbd5e1', marginBottom: '2rem', fontSize: '1rem', maxWidth: '600px', margin: '0 auto 2rem' }}>Get in touch with us today for instant quotes, service consultations, or direct assistance.</p>
       
       <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', flexWrap: 'wrap' }}>
         {businessGroup?.whatsAppNumber && (
-          <a href={`https://wa.me/${(businessGroup.whatsAppNumber || '').replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer" style={{ backgroundColor: '#25d366', color: '#fff', textDecoration: 'none', padding: '0.75rem 1.8rem', borderRadius: '8px', fontWeight: 800, fontSize: '0.9rem', display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+          <a href={`https://wa.me/${(businessGroup.whatsAppNumber || '').replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer" style={{ backgroundColor: '#25d366', color: '#fff', textDecoration: 'none', padding: '0.75rem 1.8rem', borderRadius: '8px', fontWeight: 800, fontSize: '0.9rem', display: 'inline-flex', alignItems: 'center', gap: '0.4rem', boxShadow: '0 4px 14px rgba(37, 211, 102, 0.3)' }}>
             <MessageSquare size={16} />
             <span>Chat on WhatsApp</span>
           </a>
         )}
         {businessGroup?.mobileNumber && (
-          <a href={`tel:${businessGroup.mobileNumber}`} style={{ backgroundColor: 'var(--primary-color, #6366f1)', color: '#fff', textDecoration: 'none', padding: '0.75rem 1.8rem', borderRadius: '8px', fontWeight: 800, fontSize: '0.9rem', display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+          <a href={`tel:${businessGroup.mobileNumber}`} style={{ backgroundColor: 'var(--primary-color, #6366f1)', color: '#fff', textDecoration: 'none', padding: '0.75rem 1.8rem', borderRadius: '8px', fontWeight: 800, fontSize: '0.9rem', display: 'inline-flex', alignItems: 'center', gap: '0.4rem', boxShadow: '0 4px 14px rgba(99, 102, 241, 0.3)' }}>
             <Phone size={16} />
             <span>Call Us Now</span>
           </a>
@@ -812,6 +1029,7 @@ export function CtaSection({ businessGroup, settings, theme }) {
 
 // --- 11. Contact & Map Component ---
 export function ContactSection({ businessGroup, settings, theme }) {
+  const isLight = themeIsLight(theme);
   const [submitted, setSubmitted] = useState(false);
 
   const handleSubmit = (e) => {
@@ -819,34 +1037,46 @@ export function ContactSection({ businessGroup, settings, theme }) {
     setSubmitted(true);
   };
 
+  const formInputStyle = {
+    padding: '0.75rem 0.95rem',
+    backgroundColor: isLight ? '#ffffff' : '#0f172a',
+    border: `1px solid ${isLight ? '#cbd5e1' : 'rgba(255, 255, 255, 0.1)'}`,
+    borderRadius: '8px',
+    color: isLight ? '#0f172a' : '#fff',
+    fontSize: '0.9rem',
+    outline: 'none',
+    width: '100%',
+    boxSizing: 'border-box'
+  };
+
   return (
-    <section id="contact" style={{ padding: '4rem 6%', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+    <section id="contact" style={{ padding: '4rem 6%', backgroundColor: isLight ? '#ffffff' : 'transparent', borderBottom: `1px solid ${isLight ? '#e2e8f0' : 'rgba(255,255,255,0.05)'}` }}>
       <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
-        <h2 style={{ fontSize: '1.9rem', fontWeight: 800, color: '#fff', marginBottom: '0.5rem' }}>
+        <h2 style={{ fontSize: '1.9rem', fontWeight: 800, color: isLight ? '#0f172a' : '#fff', marginBottom: '0.5rem' }}>
           {theme === 'clinic-healthcare' ? 'Book Patient Appointment' :
            theme === 'restaurant-menu' ? 'Table Booking & Orders' :
            theme === 'service-booking' ? 'Schedule Consultation' :
            'Get In Touch With Us'}
         </h2>
-        <p style={{ color: '#94a3b8', fontSize: '0.95rem' }}>Send a direct message or visit our official office location</p>
+        <p style={{ color: isLight ? '#64748b' : '#94a3b8', fontSize: '0.95rem' }}>Send a direct message or visit our official office location</p>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2.5rem' }}>
         
         {/* Contact Form */}
-        <div style={{ backgroundColor: '#1e293b', padding: '2rem', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.08)' }}>
+        <div style={{ backgroundColor: isLight ? '#f8fafc' : '#1e293b', padding: '2rem', borderRadius: '12px', border: `1px solid ${isLight ? '#e2e8f0' : 'rgba(255,255,255,0.08)'}` }}>
           {submitted ? (
-            <div style={{ textAlign: 'center', padding: '2rem 0', color: '#4caf50' }}>
+            <div style={{ textAlign: 'center', padding: '2rem 0', color: '#10b981' }}>
               <CheckCircle2 size={48} style={{ marginBottom: '1rem' }} />
-              <h3 style={{ fontSize: '1.3rem', color: '#fff', marginBottom: '0.5rem' }}>Thank You!</h3>
-              <p style={{ color: '#cbd5e1', fontSize: '0.9rem' }}>Your request has been received. Our team will contact you shortly.</p>
+              <h3 style={{ fontSize: '1.3rem', color: isLight ? '#0f172a' : '#fff', marginBottom: '0.5rem' }}>Thank You!</h3>
+              <p style={{ color: isLight ? '#475569' : '#cbd5e1', fontSize: '0.9rem' }}>Your request has been received. Our team will contact you shortly.</p>
             </div>
           ) : (
             <form style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }} onSubmit={handleSubmit}>
               <input type="text" placeholder="Your Name" style={formInputStyle} required />
               <input type="tel" placeholder="Mobile Number" style={formInputStyle} required />
               <textarea placeholder="Message / Service Details" rows="4" style={formInputStyle} required />
-              <button type="submit" style={{ backgroundColor: 'var(--primary-color, #6366f1)', color: '#fff', padding: '0.85rem', borderRadius: '8px', cursor: 'pointer', border: 'none', fontWeight: 800, fontSize: '0.95rem' }}>
+              <button type="submit" style={{ backgroundColor: 'var(--primary-color, #6366f1)', color: '#fff', padding: '0.85rem', borderRadius: '8px', cursor: 'pointer', border: 'none', fontWeight: 800, fontSize: '0.95rem', boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)' }}>
                 Submit Request
               </button>
             </form>
@@ -856,34 +1086,34 @@ export function ContactSection({ businessGroup, settings, theme }) {
         {/* Contact Info Details */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', justifyContent: 'center' }}>
           <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
-            <div style={{ width: '40px', height: '40px', borderRadius: '8px', backgroundColor: 'rgba(56, 189, 248, 0.1)', color: 'var(--primary-color, #38bdf8)', display: 'flex', alignItems: 'center', justifyContent: 'center', shrink: 0 }}>
+            <div style={{ width: '40px', height: '40px', borderRadius: '8px', backgroundColor: 'rgba(99, 102, 241, 0.1)', color: 'var(--primary-color, #6366f1)', display: 'flex', alignItems: 'center', justifyContent: 'center', shrink: 0 }}>
               <MapPin size={20} />
             </div>
             <div>
-              <h4 style={{ color: '#fff', fontSize: '1rem', margin: 0, fontWeight: 700 }}>Address</h4>
-              <p style={{ color: '#cbd5e1', fontSize: '0.88rem', margin: '0.25rem 0 0', lineHeight: 1.5 }}>
+              <h4 style={{ color: isLight ? '#0f172a' : '#fff', fontSize: '1rem', margin: 0, fontWeight: 700 }}>Address</h4>
+              <p style={{ color: isLight ? '#475569' : '#cbd5e1', fontSize: '0.88rem', margin: '0.25rem 0 0', lineHeight: 1.5 }}>
                 {businessGroup?.address ? `${businessGroup.address}, ${businessGroup.city || ''}` : 'Tirupati, Andhra Pradesh'}
               </p>
             </div>
           </div>
 
           <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
-            <div style={{ width: '40px', height: '40px', borderRadius: '8px', backgroundColor: 'rgba(56, 189, 248, 0.1)', color: 'var(--primary-color, #38bdf8)', display: 'flex', alignItems: 'center', justifyContent: 'center', shrink: 0 }}>
+            <div style={{ width: '40px', height: '40px', borderRadius: '8px', backgroundColor: 'rgba(99, 102, 241, 0.1)', color: 'var(--primary-color, #6366f1)', display: 'flex', alignItems: 'center', justifyContent: 'center', shrink: 0 }}>
               <Phone size={20} />
             </div>
             <div>
-              <h4 style={{ color: '#fff', fontSize: '1rem', margin: 0, fontWeight: 700 }}>Phone / Mobile</h4>
-              <p style={{ color: '#cbd5e1', fontSize: '0.88rem', margin: '0.25rem 0 0' }}>{businessGroup?.mobileNumber || 'Contact Office'}</p>
+              <h4 style={{ color: isLight ? '#0f172a' : '#fff', fontSize: '1rem', margin: 0, fontWeight: 700 }}>Phone / Mobile</h4>
+              <p style={{ color: isLight ? '#475569' : '#cbd5e1', fontSize: '0.88rem', margin: '0.25rem 0 0' }}>{businessGroup?.mobileNumber || 'Contact Office'}</p>
             </div>
           </div>
 
           <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
-            <div style={{ width: '40px', height: '40px', borderRadius: '8px', backgroundColor: 'rgba(56, 189, 248, 0.1)', color: 'var(--primary-color, #38bdf8)', display: 'flex', alignItems: 'center', justifyContent: 'center', shrink: 0 }}>
+            <div style={{ width: '40px', height: '40px', borderRadius: '8px', backgroundColor: 'rgba(99, 102, 241, 0.1)', color: 'var(--primary-color, #6366f1)', display: 'flex', alignItems: 'center', justifyContent: 'center', shrink: 0 }}>
               <Clock size={20} />
             </div>
             <div>
-              <h4 style={{ color: '#fff', fontSize: '1rem', margin: 0, fontWeight: 700 }}>Working Hours</h4>
-              <p style={{ color: '#cbd5e1', fontSize: '0.88rem', margin: '0.25rem 0 0' }}>Monday - Saturday: 9:00 AM - 8:00 PM</p>
+              <h4 style={{ color: isLight ? '#0f172a' : '#fff', fontSize: '1rem', margin: 0, fontWeight: 700 }}>Working Hours</h4>
+              <p style={{ color: isLight ? '#475569' : '#cbd5e1', fontSize: '0.88rem', margin: '0.25rem 0 0' }}>Monday - Saturday: 9:00 AM - 8:00 PM</p>
             </div>
           </div>
         </div>
@@ -894,39 +1124,28 @@ export function ContactSection({ businessGroup, settings, theme }) {
 
 // --- 12. Footer Component ---
 export function FooterSection({ businessGroup, settings, theme }) {
+  const isLight = themeIsLight(theme);
   const name = businessGroup?.name || 'Business Name';
 
   return (
-    <footer style={{ padding: '3rem 6% 2rem', backgroundColor: '#0b1120', color: '#64748b', fontSize: '0.85rem', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+    <footer style={{ padding: '3rem 6% 2rem', backgroundColor: isLight ? '#f1f5f9' : '#0b1120', color: isLight ? '#64748b' : '#64748b', fontSize: '0.85rem', borderTop: `1px solid ${isLight ? '#e2e8f0' : 'rgba(255,255,255,0.06)'}` }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1.5rem', marginBottom: '1.5rem' }}>
         <div>
-          <h3 style={{ color: '#fff', fontSize: '1.1rem', fontWeight: 800, margin: '0 0 0.4rem' }}>{name}</h3>
-          <p style={{ color: '#64748b', margin: 0, fontSize: '0.82rem' }}>Commercial Business Website • Powered by ManaCity</p>
+          <h3 style={{ color: isLight ? '#0f172a' : '#fff', fontSize: '1.1rem', fontWeight: 800, margin: '0 0 0.4rem' }}>{name}</h3>
+          <p style={{ color: isLight ? '#64748b' : '#64748b', margin: 0, fontSize: '0.82rem' }}>Commercial Business Website • Powered by ManaCity</p>
         </div>
 
         <div style={{ display: 'flex', gap: '1.25rem' }}>
-          <a href="#about" style={{ color: '#94a3b8', textDecoration: 'none' }}>About</a>
-          <a href="#services" style={{ color: '#94a3b8', textDecoration: 'none' }}>Services</a>
-          <a href="#products" style={{ color: '#94a3b8', textDecoration: 'none' }}>Products</a>
-          <a href="#contact" style={{ color: '#94a3b8', textDecoration: 'none' }}>Contact</a>
+          <a href="#about" style={{ color: isLight ? '#475569' : '#94a3b8', textDecoration: 'none' }}>About</a>
+          <a href="#services" style={{ color: isLight ? '#475569' : '#94a3b8', textDecoration: 'none' }}>Services</a>
+          <a href="#products" style={{ color: isLight ? '#475569' : '#94a3b8', textDecoration: 'none' }}>Products</a>
+          <a href="#contact" style={{ color: isLight ? '#475569' : '#94a3b8', textDecoration: 'none' }}>Contact</a>
         </div>
       </div>
 
-      <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '1.25rem', textAlign: 'center', color: '#475569', fontSize: '0.8rem' }}>
+      <div style={{ borderTop: `1px solid ${isLight ? '#cbd5e1' : 'rgba(255,255,255,0.05)'}`, paddingTop: '1.25rem', textAlign: 'center', color: isLight ? '#94a3b8' : '#475569', fontSize: '0.8rem' }}>
         © {new Date().getFullYear()} {name}. All rights reserved.
       </div>
     </footer>
   );
 }
-
-const formInputStyle = {
-  padding: '0.75rem 0.95rem',
-  backgroundColor: '#0f172a',
-  border: '1px solid rgba(255, 255, 255, 0.1)',
-  borderRadius: '8px',
-  color: '#fff',
-  fontSize: '0.9rem',
-  outline: 'none',
-  width: '100%',
-  boxSizing: 'border-box'
-};

@@ -114,6 +114,7 @@ export default function PublicBusinessWebsite() {
   const primaryColor = websiteConfig?.primaryColor || '#6366f1';
   const secondaryColor = websiteConfig?.secondaryColor || '#a855f7';
   const font = websiteConfig?.font || 'Outfit';
+  const { avgRating, reviewCount } = Sections.getRatingAndReviews(bg);
 
   const themeVars = {
     '--primary-color': primaryColor,
@@ -122,8 +123,14 @@ export default function PublicBusinessWebsite() {
     fontFamily: font
   };
 
+  let activeSections = [...sections];
+  const hasHeader = activeSections.some(sec => sec.type === 'HEADER');
+  if (!hasHeader) {
+    activeSections.unshift({ type: 'HEADER', enabled: true, displayOrder: 0, settings: {} });
+  }
+
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#090d16', color: '#f8fafc', fontFamily: `${font}, sans-serif`, ...themeVars }}>
+    <div style={{ minHeight: '100vh', backgroundColor: theme === 'light-minimal' ? '#ffffff' : '#090d16', color: theme === 'light-minimal' ? '#0f172a' : '#f8fafc', fontFamily: `${font}, sans-serif`, ...themeVars }}>
       
       {/* Top Notification Bar if Clinic or Restaurant */}
       {theme === 'clinic-healthcare' && (
@@ -141,7 +148,7 @@ export default function PublicBusinessWebsite() {
       {/* Persistent Top Navigation Bar */}
       <header style={{
         padding: '1rem 2rem',
-        backgroundColor: '#0f172a',
+        backgroundColor: theme === 'light-minimal' ? '#ffffff' : '#0f172a',
         borderBottom: '1px solid rgba(255,255,255,0.08)',
         display: 'flex',
         alignItems: 'center',
@@ -157,7 +164,7 @@ export default function PublicBusinessWebsite() {
            theme === 'service-booking' ? <Calendar size={28} color={primaryColor} /> :
            <Building2 size={28} color={primaryColor} />}
           <div>
-            <h1 style={{ fontSize: '1.15rem', fontWeight: 800, margin: 0, color: '#fff' }}>{bg.name}</h1>
+            <h1 style={{ fontSize: '1.15rem', fontWeight: 800, margin: 0, color: theme === 'light-minimal' ? '#0f172a' : '#fff' }}>{bg.name}</h1>
             <span style={{ fontSize: '0.75rem', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
               <MapPin size={12} color="#38bdf8" /> {bg.address || bg.city} • <ShieldCheck size={12} color="#34d399" /> Verified Storefront
             </span>
@@ -186,9 +193,9 @@ export default function PublicBusinessWebsite() {
             title="Click to view live Google Reviews"
           >
             <Star size={15} fill="#fbbf24" color="#fbbf24" />
-            <span>{bg.googleRating || bg.rating || 4.9} ★</span>
+            <span>{avgRating} ★</span>
             <span style={{ color: '#cbd5e1', fontWeight: 600, fontSize: '0.75rem' }}>
-              ({bg.googleReviewCount || bg.reviewCount || 63} Reviews)
+              ({reviewCount} Reviews)
             </span>
             <ExternalLink size={12} color="#fbbf24" />
           </div>
@@ -208,7 +215,7 @@ export default function PublicBusinessWebsite() {
 
       {/* Main Dynamic Engine Rendering - 100% IDENTICAL to WebsiteBuilder Preview */}
       <main style={themeVars}>
-        {sections
+        {activeSections
           .filter(sec => sec.enabled !== false)
           .map(sec => {
             const settings = sec.settings || {};

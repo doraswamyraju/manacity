@@ -154,6 +154,38 @@ exports.getWebsite = async (req, res) => {
       });
     }
 
+    if (website && website.sections && website.sections.length > 0) {
+      const types = new Set(website.sections.map(s => s.type));
+      let needsRefetch = false;
+      if (!types.has('HEADER')) {
+        await prisma.websiteSection.create({
+          data: { websiteId: website.id, type: 'HEADER', enabled: true, displayOrder: 0, settings: {} }
+        });
+        needsRefetch = true;
+      }
+      if (!types.has('FEATURES')) {
+        await prisma.websiteSection.create({
+          data: { websiteId: website.id, type: 'FEATURES', enabled: true, displayOrder: 2.5, settings: {} }
+        });
+        needsRefetch = true;
+      }
+      if (needsRefetch) {
+        website = await prisma.website.findUnique({
+          where: { businessGroupId },
+          include: {
+            sections: true,
+            businessGroup: {
+              include: {
+                locations: { include: { reviews: { orderBy: { createdAt: 'desc' } } } },
+                services: { include: { libraryItem: true } },
+                products: { include: { libraryItem: true } }
+              }
+            }
+          }
+        });
+      }
+    }
+
     res.json({
       status: 'success',
       website

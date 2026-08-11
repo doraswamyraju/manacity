@@ -271,7 +271,7 @@ export default function WebsiteBuilder({ onBack }) {
               <select value={theme} onChange={(e) => {
                 const newTheme = e.target.value;
                 setTheme(newTheme);
-                const colors = { 'modern-corporate': '#6366f1', 'e-commerce': '#10b981', 'service-booking': '#38bdf8', 'restaurant-menu': '#f43f5e', 'clinic-healthcare': '#c084fc' };
+                const colors = { 'modern-corporate': '#6366f1', 'e-commerce': '#10b981', 'service-booking': '#38bdf8', 'restaurant-menu': '#f43f5e', 'clinic-healthcare': '#c084fc', 'light-minimal': '#0ea5e9' };
                 if (colors[newTheme]) setPrimaryColor(colors[newTheme]);
               }} style={{ ...inputStyle, fontWeight: 700, backgroundColor: '#0f172a' }}>
                 <option value="modern-corporate">1. Modern Corporate (Sleek Dark & Glass)</option>
@@ -279,16 +279,18 @@ export default function WebsiteBuilder({ onBack }) {
                 <option value="service-booking">3. Service & Appointment Booking</option>
                 <option value="restaurant-menu">4. Restaurant & Dining Menu Layout</option>
                 <option value="clinic-healthcare">5. Clinic & Healthcare Portal</option>
+                <option value="light-minimal">6. Elegant Light Mode (Clean White & Modern Minimalist)</option>
               </select>
 
               {/* Visual Template Cards */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '0.5rem', marginTop: '0.5rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem', marginTop: '0.5rem' }}>
                 {[
                   { id: 'modern-corporate', name: 'Corporate', color: '#6366f1' },
                   { id: 'e-commerce', name: 'Storefront', color: '#10b981' },
                   { id: 'service-booking', name: 'Services', color: '#38bdf8' },
                   { id: 'restaurant-menu', name: 'Dining', color: '#f43f5e' },
-                  { id: 'clinic-healthcare', name: 'Clinic', color: '#c084fc' }
+                  { id: 'clinic-healthcare', name: 'Clinic', color: '#c084fc' },
+                  { id: 'light-minimal', name: 'Light Mode', color: '#0ea5e9' }
                 ].map(tmpl => (
                   <div
                     key={tmpl.id}
@@ -458,12 +460,12 @@ export default function WebsiteBuilder({ onBack }) {
       {/* Live Preview Panel (Right) - Rendering SAME React engine components */}
       <div 
         style={{ 
-          backgroundColor: '#0f172a', 
+          backgroundColor: theme === 'light-minimal' ? '#ffffff' : '#0f172a', 
           border: '3px solid var(--border-color)', 
           borderRadius: 'var(--radius-sm)',
           maxHeight: '85vh', 
           overflowY: 'auto',
-          color: '#fff',
+          color: theme === 'light-minimal' ? '#0f172a' : '#fff',
           boxSizing: 'border-box'
         }}
       >
