@@ -298,7 +298,7 @@ exports.saveOnboardingStep = async (req, res) => {
       updateData.website = data.website !== undefined ? data.website : businessGroup.website;
       updateData.supportEmail = data.supportEmail !== undefined ? data.supportEmail : businessGroup.supportEmail;
     } else if (step === 3) {
-      // Address
+      // Address & Google Review Collection Link
       updateData.country = data.country !== undefined ? data.country : businessGroup.country;
       updateData.state = data.state !== undefined ? data.state : businessGroup.state;
       updateData.city = data.city !== undefined ? data.city : businessGroup.city;
@@ -306,6 +306,8 @@ exports.saveOnboardingStep = async (req, res) => {
       updateData.address = data.address !== undefined ? data.address : businessGroup.address;
       updateData.pinCode = data.pinCode !== undefined ? data.pinCode : businessGroup.pinCode;
       updateData.googleMapsLink = data.googleMapsLink !== undefined ? data.googleMapsLink : businessGroup.googleMapsLink;
+      updateData.googleReviewUrl = data.googleReviewUrl !== undefined ? data.googleReviewUrl : businessGroup.googleReviewUrl;
+      updateData.googlePlaceId = data.googlePlaceId !== undefined ? data.googlePlaceId : businessGroup.googlePlaceId;
     } else if (step === 4) {
       // Business Details: Working Days, Business Hours, Languages, Services, Products, Documents (GST, etc.)
       if (data.workingDays) {

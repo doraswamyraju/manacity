@@ -144,6 +144,10 @@ function StepBusinessInfo({ initialData, onNext, onAutoFill }) {
         setImportSuccess(true);
 
         if (onAutoFill) {
+          const autoReviewUrl = place.placeId
+            ? `https://search.google.com/local/writereview?placeid=${place.placeId}`
+            : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((place.name || name) + ' ' + (parsed.city || 'Tirupati'))}`;
+
           onAutoFill({
             name: place.name,
             category: place.category || 'Digital Marketing',
@@ -156,6 +160,7 @@ function StepBusinessInfo({ initialData, onNext, onAutoFill }) {
             mobileNumber: place.phone || '',
             whatsAppNumber: place.phone || '',
             website: place.website || '',
+            googleReviewUrl: autoReviewUrl,
             supportEmail: ''
           });
         }
@@ -491,6 +496,7 @@ function StepAddress({ initialData, onNext, onBack }) {
   const [address, setAddress] = useState(initialData.address || '');
   const [pinCode, setPinCode] = useState(initialData.pinCode || '517501');
   const [googleMapsLink, setGoogleMapsLink] = useState(initialData.googleMapsLink || '');
+  const [googleReviewUrl, setGoogleReviewUrl] = useState(initialData.googleReviewUrl || '');
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -499,6 +505,7 @@ function StepAddress({ initialData, onNext, onBack }) {
     if (initialData.city) setCity(initialData.city);
     if (initialData.address) setAddress(initialData.address);
     if (initialData.pinCode) setPinCode(initialData.pinCode);
+    if (initialData.googleReviewUrl) setGoogleReviewUrl(initialData.googleReviewUrl);
   }, [initialData]);
 
   const handleNext = () => {
@@ -507,12 +514,12 @@ function StepAddress({ initialData, onNext, onBack }) {
       return;
     }
     setError('');
-    onNext({ country, state, city, areaLocality, address, pinCode, googleMapsLink });
+    onNext({ country, state, city, areaLocality, address, pinCode, googleMapsLink, googleReviewUrl });
   };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', textAlign: 'left' }}>
-      <h3 style={{ fontSize: '1.4rem', fontWeight: 600, color: 'var(--accent-secondary)' }}>Step 3: Address Details</h3>
+      <h3 style={{ fontSize: '1.4rem', fontWeight: 600, color: 'var(--accent-secondary)' }}>Step 3: Address & Online Review Links</h3>
 
       {error && <div style={{ color: 'var(--accent-error)', fontSize: '0.9rem' }}>{error}</div>}
 
@@ -552,6 +559,21 @@ function StepAddress({ initialData, onNext, onBack }) {
           <label style={{ fontSize: '0.9rem', fontWeight: 500 }}>Google Maps Link (Optional)</label>
           <input type="text" value={googleMapsLink} onChange={(e) => setGoogleMapsLink(e.target.value)} placeholder="https://maps.app.goo.gl/..." style={inputStyle} />
         </div>
+      </div>
+
+      {/* Google Review Collection Link Field */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', backgroundColor: 'rgba(56, 189, 248, 0.08)', padding: '1rem', borderRadius: '8px', border: '1px solid rgba(56, 189, 248, 0.25)' }}>
+        <label style={{ fontSize: '0.88rem', fontWeight: 700, color: '#38bdf8' }}>⭐ Google Profile Link for Review Collection ONLY</label>
+        <input 
+          type="text" 
+          value={googleReviewUrl} 
+          onChange={(e) => setGoogleReviewUrl(e.target.value)} 
+          placeholder="https://search.google.com/local/writereview?placeid=... or https://g.page/r/.../review" 
+          style={inputStyle} 
+        />
+        <span style={{ fontSize: '0.78rem', color: '#94a3b8' }}>
+          💡 Used ONLY to direct customers to write official Google reviews for your business profile.
+        </span>
       </div>
 
       <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '1rem' }}>

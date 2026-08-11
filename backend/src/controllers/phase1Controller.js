@@ -238,6 +238,10 @@ exports.importGooglePlaces = async (req, res) => {
     const city = parsed.city.toLowerCase();
     const slug = fetchedData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 
+    const computedReviewUrl = placeId
+      ? `https://search.google.com/local/writereview?placeid=${placeId}`
+      : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fetchedData.name + ' ' + city)}`;
+
     // Create or update business group
     let businessGroup = null;
     if (ownerId) {
@@ -257,6 +261,8 @@ exports.importGooglePlaces = async (req, res) => {
             website: fetchedData.website || existingGroup.website,
             address: fetchedData.address || existingGroup.address,
             city: city,
+            googleReviewUrl: computedReviewUrl,
+            googlePlaceId: placeId || undefined,
             isSetupComplete: true,
             setupStep: 6
           }
@@ -272,6 +278,8 @@ exports.importGooglePlaces = async (req, res) => {
             website: fetchedData.website,
             address: fetchedData.address,
             city: city,
+            googleReviewUrl: computedReviewUrl,
+            googlePlaceId: placeId || undefined,
             isSetupComplete: true,
             setupStep: 6
           }

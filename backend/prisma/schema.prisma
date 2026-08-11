@@ -77,6 +77,8 @@ model BusinessGroup {
   address         String?
   pinCode         String?
   googleMapsLink  String?
+  googleReviewUrl String?
+  googlePlaceId   String?
 
   // Relations
   locations       Location[]
