@@ -1,6 +1,7 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const axios = require('axios');
+const { provisionLetsTrackTenant } = require('../services/letsTrackService');
 
 // Helper Functions
 const mapGoogleTypeToCategory = (types = []) => {
@@ -236,16 +237,17 @@ exports.importGooglePlaces = async (req, res) => {
 
     const parsed = parseAddressParts(fetchedData.address);
     const city = parsed.city.toLowerCase();
-    const slug = fetchedData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    const baseSlug = fetchedData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'my-business';
 
     const computedReviewUrl = placeId
       ? `https://search.google.com/local/writereview?placeid=${placeId}`
       : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fetchedData.name + ' ' + city)}`;
 
+    const descString = `Official Google Business profile for ${fetchedData.name}. Rating: ${fetchedData.rating || 4.8}/5.`;
+
     // Create or update business group
     let businessGroup = null;
     if (ownerId) {
-      // Check if user already has a business group
       const existingGroup = await prisma.businessGroup.findFirst({
         where: { ownerId }
       });
@@ -255,7 +257,7 @@ exports.importGooglePlaces = async (req, res) => {
           where: { id: existingGroup.id },
           data: {
             name: fetchedData.name,
-            description: `Imported Google Place listing for ${fetchedData.name}`,
+            description: descString,
             mobileNumber: fetchedData.phone || existingGroup.mobileNumber || '9876543210',
             whatsAppNumber: fetchedData.phone || existingGroup.whatsAppNumber || '9876543210',
             website: fetchedData.website || existingGroup.website,
@@ -272,7 +274,7 @@ exports.importGooglePlaces = async (req, res) => {
           data: {
             name: fetchedData.name,
             ownerId: ownerId,
-            description: `Imported Google Place listing for ${fetchedData.name}`,
+            description: descString,
             mobileNumber: fetchedData.phone || '9876543210',
             whatsAppNumber: fetchedData.phone || '9876543210',
             website: fetchedData.website,
@@ -287,9 +289,27 @@ exports.importGooglePlaces = async (req, res) => {
       }
     }
 
-    // Auto-create/update Website configuration
+    // Auto-create/update Website configuration with unique subdomain
     let websiteConfig = null;
     if (businessGroup) {
+      let uniqueSlug = baseSlug;
+      let counter = 0;
+      let isSubUnique = false;
+      while (!isSubUnique) {
+        const dup = await prisma.website.findFirst({
+          where: {
+            subdomain: uniqueSlug,
+            businessGroupId: { not: businessGroup.id }
+          }
+        });
+        if (!dup) {
+          isSubUnique = true;
+        } else {
+          counter++;
+          uniqueSlug = `${baseSlug}-${counter}`;
+        }
+      }
+
       const existingWebsite = await prisma.website.findUnique({
         where: { businessGroupId: businessGroup.id }
       });
@@ -298,7 +318,7 @@ exports.importGooglePlaces = async (req, res) => {
         websiteConfig = await prisma.website.update({
           where: { businessGroupId: businessGroup.id },
           data: {
-            subdomain: slug,
+            subdomain: uniqueSlug,
             metaTitle: `${fetchedData.name} - Official Website`,
             metaDescription: `Welcome to ${fetchedData.name} in ${city}. Explore our services and products.`
           }
@@ -307,7 +327,7 @@ exports.importGooglePlaces = async (req, res) => {
         websiteConfig = await prisma.website.create({
           data: {
             businessGroupId: businessGroup.id,
-            subdomain: slug,
+            subdomain: uniqueSlug,
             isPublished: true,
             theme: 'modern',
             primaryColor: '#1976d2',
@@ -318,7 +338,26 @@ exports.importGooglePlaces = async (req, res) => {
         });
       }
 
-      // Auto-create or update Directory Listing
+      // Auto-create or update Directory Listing with unique slug
+      let uniqueDirSlug = baseSlug;
+      let dirCounter = 0;
+      let isDirUnique = false;
+      while (!isDirUnique) {
+        const dupDir = await prisma.directoryListing.findFirst({
+          where: {
+            city: city,
+            slug: uniqueDirSlug,
+            businessGroupId: { not: businessGroup.id }
+          }
+        });
+        if (!dupDir) {
+          isDirUnique = true;
+        } else {
+          dirCounter++;
+          uniqueDirSlug = `${baseSlug}-${dirCounter}`;
+        }
+      }
+
       const existingListing = await prisma.directoryListing.findFirst({
         where: { businessGroupId: businessGroup.id }
       });
@@ -328,7 +367,7 @@ exports.importGooglePlaces = async (req, res) => {
           where: { id: existingListing.id },
           data: {
             city: city,
-            slug: slug,
+            slug: uniqueDirSlug,
             category: fetchedData.category,
             contactPhone: fetchedData.phone || existingListing.contactPhone,
             whatsAppNumber: fetchedData.phone || existingListing.whatsAppNumber,
@@ -341,7 +380,7 @@ exports.importGooglePlaces = async (req, res) => {
           data: {
             businessGroupId: businessGroup.id,
             city: city,
-            slug: slug,
+            slug: uniqueDirSlug,
             category: fetchedData.category,
             contactPhone: fetchedData.phone,
             whatsAppNumber: fetchedData.phone,
@@ -350,7 +389,6 @@ exports.importGooglePlaces = async (req, res) => {
           }
         });
       }
-
 
       // Auto-create or update Location record for Business Locations screen
       const existingLocation = await prisma.location.findFirst({
@@ -381,6 +419,30 @@ exports.importGooglePlaces = async (req, res) => {
             hours: { Monday: '09:00-18:00', Tuesday: '09:00-18:00', Wednesday: '09:00-18:00', Thursday: '09:00-18:00', Friday: '09:00-18:00', Saturday: '10:00-16:00', Sunday: 'Closed' }
           }
         });
+      }
+
+      // Auto-provision LetsTrack tenant upon Google Places Import
+      if (!businessGroup.letsTrackApiKey) {
+        try {
+          const ownerUser = ownerId ? await prisma.user.findUnique({ where: { id: ownerId } }) : null;
+          const ltRes = await provisionLetsTrackTenant({
+            businessName: businessGroup.name,
+            domain: `${uniqueSlug}.manacity.in`,
+            ownerName: ownerUser?.name || businessGroup.name,
+            ownerEmail: ownerUser?.email || businessGroup.email || 'business@manacity.in'
+          });
+          if (ltRes && ltRes.apiKey) {
+            businessGroup = await prisma.businessGroup.update({
+              where: { id: businessGroup.id },
+              data: {
+                letsTrackApiKey: ltRes.apiKey,
+                letsTrackTenantId: ltRes.tenantId
+              }
+            });
+          }
+        } catch (ltErr) {
+          console.error('LetsTrack Google Places import provisioning error:', ltErr);
+        }
       }
     }
 
