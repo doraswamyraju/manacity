@@ -39,7 +39,7 @@ export default function PublicBusinessWebsite() {
       if (!document.getElementById(scriptId)) {
         const script = document.createElement('script');
         script.id = scriptId;
-        script.src = import.meta.env.VITE_LETSTRACK_WIDGET_URL || 'http://localhost:5004/widget/widget.js';
+        script.src = import.meta.env.VITE_LETSTRACK_WIDGET_URL || 'https://livechat.vrhere.in/widget/widget.js';
         script.setAttribute('data-api-key', letsTrackApiKey);
         script.async = true;
         document.body.appendChild(script);

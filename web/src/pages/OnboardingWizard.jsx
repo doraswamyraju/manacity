@@ -204,7 +204,7 @@ function StepBusinessInfo({ initialData, onNext, onAutoFill }) {
       return;
     }
     setError('');
-    const data = { name, category, description, yearStarted, logoUrl, coverImageUrl };
+    const data = { name, category, description, yearStarted, logoUrl, coverImageUrl, primaryColor, secondaryColor };
     onNext(data);
   };
 

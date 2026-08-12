@@ -1,5 +1,6 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
+const { provisionLetsTrackTenant } = require('../services/letsTrackService');
 
 // 1. Get user's Business Groups and Locations
 exports.getLocations = async (req, res) => {
@@ -470,6 +471,34 @@ exports.completeOnboarding = async (req, res) => {
           category: 'General Business'
         }
       });
+    }
+
+    // Auto-provision LetsTrack tenant upon completing onboarding if missing
+    if (!updatedGroup.letsTrackApiKey) {
+      try {
+        const ownerUser = await prisma.user.findUnique({ where: { id: ownerId } });
+        const ltRes = await provisionLetsTrackTenant({
+          businessName: updatedGroup.name,
+          domain: `${updatedGroup.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.manacity.in`,
+          ownerName: ownerUser?.name || updatedGroup.name,
+          ownerEmail: ownerUser?.email || updatedGroup.email
+        });
+        if (ltRes && ltRes.apiKey) {
+          const finalGroup = await prisma.businessGroup.update({
+            where: { id: updatedGroup.id },
+            data: {
+              letsTrackApiKey: ltRes.apiKey,
+              letsTrackTenantId: ltRes.tenantId
+            }
+          });
+          return res.json({
+            status: 'success',
+            businessGroup: finalGroup
+          });
+        }
+      } catch (ltErr) {
+        console.error('LetsTrack onboarding provisioning error:', ltErr);
+      }
     }
 
     res.json({
