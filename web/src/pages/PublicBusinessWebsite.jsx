@@ -37,15 +37,22 @@ export default function PublicBusinessWebsite() {
     if (letsTrackApiKey) {
       window.LetsTrackConfig = { websiteId: letsTrackApiKey };
 
-      const scriptId = 'letstrack-widget-script';
-      if (!document.getElementById(scriptId)) {
-        const script = document.createElement('script');
-        script.id = scriptId;
-        script.src = import.meta.env.VITE_LETSTRACK_WIDGET_URL || 'https://livechat.vrhere.in/widget/widget.js';
-        script.setAttribute('data-api-key', letsTrackApiKey);
-        script.async = true;
-        document.body.appendChild(script);
+      // Remove existing script/root if switching business/re-rendering
+      const existingScript = document.getElementById('letstrack-widget-script');
+      if (existingScript) {
+        existingScript.remove();
       }
+      const existingRoot = document.getElementById('letstrack-widget-root');
+      if (existingRoot) {
+        existingRoot.remove();
+      }
+
+      const script = document.createElement('script');
+      script.id = 'letstrack-widget-script';
+      script.src = import.meta.env.VITE_LETSTRACK_WIDGET_URL || 'https://livechat.vrhere.in/widget/widget.js';
+      script.setAttribute('data-api-key', letsTrackApiKey);
+      script.async = true;
+      document.body.appendChild(script);
     }
   }, [businessData]);
 

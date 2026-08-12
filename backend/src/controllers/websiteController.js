@@ -367,13 +367,16 @@ exports.saveWebsiteSections = async (req, res) => {
 // 4. Public Site API Endpoint (used by Nginx dynamically or path renderer)
 exports.renderPublicWebsite = async (req, res) => {
   try {
-    const { subdomain } = req.params;
+    const cleanSub = subdomain ? subdomain.trim() : '';
+    const storePart = cleanSub.split('.')[0];
 
     let website = await prisma.website.findFirst({
       where: {
         OR: [
-          { subdomain: subdomain },
-          { customDomain: subdomain }
+          { subdomain: cleanSub },
+          { subdomain: cleanSub.replace(/\./g, '-') },
+          { subdomain: storePart },
+          { customDomain: cleanSub }
         ]
       },
       include: {

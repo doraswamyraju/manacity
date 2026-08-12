@@ -476,10 +476,13 @@ exports.completeOnboarding = async (req, res) => {
     // Auto-provision LetsTrack tenant upon completing onboarding if missing
     if (!updatedGroup.letsTrackApiKey) {
       try {
-        const ownerUser = await prisma.user.findUnique({ where: { id: ownerId } });
+        const storeSlug = updatedGroup.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'business';
+        const citySlug = (updatedGroup.city || 'tirupati').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+        const fullSubdomain = `${storeSlug}.${citySlug}`;
+
         const ltRes = await provisionLetsTrackTenant({
           businessName: updatedGroup.name,
-          domain: `manacity.in/site/${updatedGroup.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
+          domain: `${fullSubdomain}.manacity.in`,
           ownerName: ownerUser?.name || updatedGroup.name,
           ownerEmail: ownerUser?.email || updatedGroup.email
         });

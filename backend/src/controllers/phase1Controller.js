@@ -241,8 +241,10 @@ exports.importGooglePlaces = async (req, res) => {
     }
 
     const parsed = parseAddressParts(fetchedData.address);
-    const city = parsed.city.toLowerCase();
-    const baseSlug = fetchedData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'my-business';
+    const city = (parsed.city || 'Tirupati').toLowerCase();
+    const storeSlug = fetchedData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'my-business';
+    const citySlug = city.replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'tirupati';
+    const baseSlug = `${storeSlug}.${citySlug}`;
 
     const computedReviewUrl = resolvedPlaceId
       ? `https://search.google.com/local/writereview?placeid=${resolvedPlaceId}`

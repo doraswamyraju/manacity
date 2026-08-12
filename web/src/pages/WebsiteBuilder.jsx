@@ -478,7 +478,7 @@ export default function WebsiteBuilder({ onBack }) {
               rel="noreferrer"
               style={{ color: '#38bdf8', fontWeight: 700, textDecoration: 'underline' }}
             >
-              manacity.in/site/{subdomain || 'demo'}
+              {subdomain ? `${subdomain}.manacity.in` : 'manacity.in'}
             </a>
           </span>
           <span style={{ color: isPublished ? '#4caf50' : 'var(--accent-error)' }}>{isPublished ? '● Published' : '● Draft'}</span>
