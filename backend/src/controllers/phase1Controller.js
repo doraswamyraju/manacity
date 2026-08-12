@@ -262,43 +262,83 @@ exports.importGooglePlaces = async (req, res) => {
       });
 
       if (existingGroup) {
-        businessGroup = await prisma.businessGroup.update({
-          where: { id: existingGroup.id },
-          data: {
-            name: fetchedData.name,
-            description: descString,
-            mobileNumber: fetchedData.phone || existingGroup.mobileNumber || '',
-            whatsAppNumber: fetchedData.phone || existingGroup.whatsAppNumber || '',
-            website: fetchedData.website || existingGroup.website,
-            address: fetchedData.address || existingGroup.address,
-            city: safeCity || existingGroup.city,
-            googleReviewUrl: computedReviewUrl || existingGroup.googleReviewUrl,
-            googlePlaceId: resolvedPlaceId || existingGroup.googlePlaceId,
-            googleRating: fetchedData.rating || existingGroup.googleRating,
-            googleReviewCount: fetchedData.reviewCount || existingGroup.googleReviewCount,
-            isSetupComplete: true,
-            setupStep: 6
-          }
-        });
+        try {
+          businessGroup = await prisma.businessGroup.update({
+            where: { id: existingGroup.id },
+            data: {
+              name: fetchedData.name,
+              description: descString,
+              mobileNumber: fetchedData.phone || existingGroup.mobileNumber || '',
+              whatsAppNumber: fetchedData.phone || existingGroup.whatsAppNumber || '',
+              website: fetchedData.website || existingGroup.website,
+              address: fetchedData.address || existingGroup.address,
+              city: safeCity || existingGroup.city,
+              googleReviewUrl: computedReviewUrl || existingGroup.googleReviewUrl,
+              googlePlaceId: resolvedPlaceId || existingGroup.googlePlaceId,
+              googleRating: fetchedData.rating || existingGroup.googleRating,
+              googleReviewCount: fetchedData.reviewCount || existingGroup.googleReviewCount,
+              isSetupComplete: true,
+              setupStep: 6
+            }
+          });
+        } catch (updateErr) {
+          console.warn('Fallback update without googleRating fields:', updateErr.message);
+          businessGroup = await prisma.businessGroup.update({
+            where: { id: existingGroup.id },
+            data: {
+              name: fetchedData.name,
+              description: descString,
+              mobileNumber: fetchedData.phone || existingGroup.mobileNumber || '',
+              whatsAppNumber: fetchedData.phone || existingGroup.whatsAppNumber || '',
+              website: fetchedData.website || existingGroup.website,
+              address: fetchedData.address || existingGroup.address,
+              city: safeCity || existingGroup.city,
+              googleReviewUrl: computedReviewUrl || existingGroup.googleReviewUrl,
+              googlePlaceId: resolvedPlaceId || existingGroup.googlePlaceId,
+              isSetupComplete: true,
+              setupStep: 6
+            }
+          });
+        }
       } else {
-        businessGroup = await prisma.businessGroup.create({
-          data: {
-            name: fetchedData.name,
-            ownerId: ownerId,
-            description: descString,
-            mobileNumber: fetchedData.phone || '',
-            whatsAppNumber: fetchedData.phone || '',
-            website: fetchedData.website || null,
-            address: fetchedData.address || null,
-            city: safeCity,
-            googleReviewUrl: computedReviewUrl,
-            googlePlaceId: resolvedPlaceId || null,
-            googleRating: fetchedData.rating || null,
-            googleReviewCount: fetchedData.reviewCount || null,
-            isSetupComplete: true,
-            setupStep: 6
-          }
-        });
+        try {
+          businessGroup = await prisma.businessGroup.create({
+            data: {
+              name: fetchedData.name,
+              ownerId: ownerId,
+              description: descString,
+              mobileNumber: fetchedData.phone || '',
+              whatsAppNumber: fetchedData.phone || '',
+              website: fetchedData.website || null,
+              address: fetchedData.address || null,
+              city: safeCity,
+              googleReviewUrl: computedReviewUrl,
+              googlePlaceId: resolvedPlaceId || null,
+              googleRating: fetchedData.rating || null,
+              googleReviewCount: fetchedData.reviewCount || null,
+              isSetupComplete: true,
+              setupStep: 6
+            }
+          });
+        } catch (createErr) {
+          console.warn('Fallback create without googleRating fields:', createErr.message);
+          businessGroup = await prisma.businessGroup.create({
+            data: {
+              name: fetchedData.name,
+              ownerId: ownerId,
+              description: descString,
+              mobileNumber: fetchedData.phone || '',
+              whatsAppNumber: fetchedData.phone || '',
+              website: fetchedData.website || null,
+              address: fetchedData.address || null,
+              city: safeCity,
+              googleReviewUrl: computedReviewUrl,
+              googlePlaceId: resolvedPlaceId || null,
+              isSetupComplete: true,
+              setupStep: 6
+            }
+          });
+        }
       }
     }
 
