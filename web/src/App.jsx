@@ -128,10 +128,13 @@ function App() {
     );
   }
 
+  const hostname = typeof window !== 'undefined' ? window.location.hostname : '';
+  const isSubdomain = hostname.endsWith('.manacity.in') && hostname !== 'manacity.in' && hostname !== 'www.manacity.in';
+
   return (
     <Routes>
       {/* Public Aggregator Directory & Storefront Routes */}
-      <Route path="/" element={<Home onNavigateToLogin={() => navigate('/login')} onNavigateToRegister={() => navigate('/register')} user={user} />} />
+      <Route path="/" element={isSubdomain ? <PublicBusinessWebsite /> : <Home onNavigateToLogin={() => navigate('/login')} onNavigateToRegister={() => navigate('/register')} user={user} />} />
       <Route path="/:city" element={<Home onNavigateToLogin={() => navigate('/login')} onNavigateToRegister={() => navigate('/register')} user={user} />} />
       <Route path="/:city/:category" element={<Home onNavigateToLogin={() => navigate('/login')} onNavigateToRegister={() => navigate('/register')} user={user} />} />
       <Route path="/biz/:slug" element={<PublicBusinessWebsite />} />
