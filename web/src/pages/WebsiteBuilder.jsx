@@ -469,31 +469,18 @@ export default function WebsiteBuilder({ onBack }) {
           boxSizing: 'border-box'
         }}
       >
-        <div style={{ padding: '0.5rem 1rem', borderBottom: '1px solid var(--border-color)', textAlign: 'left', fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
-          <div style={{ display: 'flex', gap: '1.25rem', alignItems: 'center' }}>
-            <span>
-              Subdomain URL:{' '}
-              <a
-                href={subdomain ? `https://${subdomain}.manacity.in` : 'https://manacity.in'}
-                target="_blank"
-                rel="noreferrer"
-                style={{ color: '#38bdf8', fontWeight: 700, textDecoration: 'underline' }}
-              >
-                {subdomain ? `${subdomain}.manacity.in` : 'manacity.in'}
-              </a>
-            </span>
-            <span>
-              Direct Live Link:{' '}
-              <a
-                href={subdomain ? `https://manacity.in/site/${subdomain}` : 'https://manacity.in'}
-                target="_blank"
-                rel="noreferrer"
-                style={{ color: '#4ade80', fontWeight: 700, textDecoration: 'underline' }}
-              >
-                {subdomain ? `manacity.in/site/${subdomain}` : 'manacity.in'}
-              </a>
-            </span>
-          </div>
+        <div style={{ padding: '0.5rem 1rem', borderBottom: '1px solid var(--border-color)', textAlign: 'left', fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span>
+            Live Site URL:{' '}
+            <a
+              href={subdomain ? `https://${subdomain}.manacity.in` : 'https://manacity.in'}
+              target="_blank"
+              rel="noreferrer"
+              style={{ color: '#38bdf8', fontWeight: 700, textDecoration: 'underline' }}
+            >
+              {subdomain ? `${subdomain}.manacity.in` : 'manacity.in'}
+            </a>
+          </span>
           <span style={{ color: isPublished ? '#4caf50' : 'var(--accent-error)' }}>{isPublished ? '● Published' : '● Draft'}</span>
         </div>
 
