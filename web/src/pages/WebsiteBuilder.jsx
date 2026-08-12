@@ -160,7 +160,8 @@ export default function WebsiteBuilder({ onBack }) {
         searchConsoleId,
         metaPixelId,
         clarityId,
-        isPublished
+        isPublished,
+        logoUrl
       });
       setWebsite(response.data.website);
       setSuccess('Core settings saved successfully.');

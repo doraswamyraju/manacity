@@ -222,8 +222,16 @@ exports.saveWebsite = async (req, res) => {
       searchConsoleId,
       metaPixelId,
       clarityId,
-      isPublished
+      isPublished,
+      logoUrl
     } = req.body;
+
+    if (logoUrl !== undefined) {
+      await prisma.businessGroup.update({
+        where: { id: businessGroupId },
+        data: { logoUrl }
+      });
+    }
 
     // Check if subdomain is taken by another business
     if (subdomain) {
@@ -418,7 +426,6 @@ exports.renderPublicWebsite = async (req, res) => {
     }
 
     const cleanSub = rawSubdomain.trim().toLowerCase();
-    const storePart = cleanSub.split('.')[0];
 
     // Find website strictly matching subdomain or customDomain
     const website = await prisma.website.findFirst({
@@ -426,7 +433,6 @@ exports.renderPublicWebsite = async (req, res) => {
         OR: [
           { subdomain: cleanSub },
           { subdomain: cleanSub.replace(/\./g, '-') },
-          { subdomain: storePart },
           { customDomain: cleanSub }
         ]
       },
