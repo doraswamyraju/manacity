@@ -79,6 +79,8 @@ model BusinessGroup {
   googleMapsLink  String?
   googleReviewUrl String?
   googlePlaceId   String?
+  googleRating    Float?
+  googleReviewCount Int?
 
   // LetsTrack integration
   letsTrackApiKey   String?
