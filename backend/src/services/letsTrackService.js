@@ -1,4 +1,3 @@
-const LETSTRACK_API_URL = process.env.LETSTRACK_API_URL || 'http://localhost:5004';
 const PROVISION_SECRET = process.env.LETSTRACK_PROVISION_SECRET || 'letstrack_manacity_internal_secret_2026';
 
 /**
@@ -18,35 +17,44 @@ export async function provisionLetsTrackTenant({ businessName, domain, ownerName
 
   const normalizedDomain = domain ? (domain.startsWith('http') ? domain : `https://${domain}`) : 'https://manacity.in';
 
-  try {
-    const response = await fetch(`${LETSTRACK_API_URL}/api/internal/provision-tenant`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-provision-secret': PROVISION_SECRET
-      },
-      body: JSON.stringify({
-        tenantName: businessName,
-        domain: normalizedDomain,
-        adminName: ownerName || businessName,
-        email: ownerEmail
-      })
-    });
+  const urlsToTry = [
+    process.env.LETSTRACK_API_URL,
+    'http://127.0.0.1:5004',
+    'http://localhost:5004',
+    'https://livechat.vrhere.in'
+  ].filter(Boolean);
 
-    if (!response.ok) {
+  for (const baseUrl of urlsToTry) {
+    try {
+      const response = await fetch(`${baseUrl}/api/internal/provision-tenant`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-provision-secret': PROVISION_SECRET
+        },
+        body: JSON.stringify({
+          tenantName: businessName,
+          domain: normalizedDomain,
+          adminName: ownerName || businessName,
+          email: ownerEmail
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('[LetsTrack Provisioning] Successfully provisioned tenant via', baseUrl, 'Tenant ID:', data.tenant?.id);
+        return {
+          apiKey: data.tenant?.apiKey,
+          tenantId: data.tenant?.id
+        };
+      }
       const errorText = await response.text();
-      console.error('[LetsTrack Provisioning] Failed with status', response.status, errorText);
-      return null;
+      console.warn('[LetsTrack Provisioning] Attempt at', baseUrl, 'failed:', response.status, errorText);
+    } catch (err) {
+      console.warn('[LetsTrack Provisioning] Connection error trying', baseUrl, err.message);
     }
-
-    const data = await response.json();
-    console.log('[LetsTrack Provisioning] Successfully provisioned tenant:', data.tenant?.id);
-    return {
-      apiKey: data.tenant?.apiKey,
-      tenantId: data.tenant?.id
-    };
-  } catch (error) {
-    console.error('[LetsTrack Provisioning] Error provisioning tenant in LetsTrack:', error);
-    return null;
   }
+
+  console.error('[LetsTrack Provisioning] All fallback endpoints failed for owner:', ownerEmail);
+  return null;
 }
