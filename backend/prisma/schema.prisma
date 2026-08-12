@@ -197,12 +197,17 @@ model Location {
   country         String?
   phone           String?
   category        String?
+  googlePlaceId   String?
+  googleRating    Float?
+  googleReviewCount Int?
   hours           Json?         // Operating hours
   socialLinks     Json?         // Social links
   xp              Int           @default(0)
   level           Int           @default(1)
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
+
+  @@unique([businessGroupId, googlePlaceId])
 
   // Relations
   reviews           Review[]

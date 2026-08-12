@@ -443,36 +443,71 @@ exports.importGooglePlaces = async (req, res) => {
         });
       }
 
-      // Auto-create or update Location record for Business Locations screen
-      const existingLocation = await prisma.location.findFirst({
-        where: { businessGroupId: businessGroup.id }
-      });
+      // Auto-create or update Location record strictly by canonical googlePlaceId
+      let targetLocation = null;
+      if (resolvedPlaceId) {
+        targetLocation = await prisma.location.findFirst({
+          where: { businessGroupId: businessGroup.id, googlePlaceId: resolvedPlaceId }
+        });
+      }
 
-      if (existingLocation) {
+      if (!targetLocation) {
+        targetLocation = await prisma.location.findFirst({
+          where: { businessGroupId: businessGroup.id }
+        });
+      }
+
+      if (targetLocation && (targetLocation.googlePlaceId === resolvedPlaceId || !resolvedPlaceId)) {
         await prisma.location.update({
-          where: { id: existingLocation.id },
+          where: { id: targetLocation.id },
           data: {
             name: fetchedData.name,
-            address: fetchedData.address,
-            city: safeCity,
-            phone: fetchedData.phone || existingLocation.phone,
-            category: fetchedData.category,
-            googlePlaceId: resolvedPlaceId || existingLocation.googlePlaceId
+            address: fetchedData.address || targetLocation.address,
+            city: safeCity || targetLocation.city,
+            phone: fetchedData.phone || targetLocation.phone || '',
+            category: fetchedData.category || targetLocation.category,
+            googlePlaceId: resolvedPlaceId || targetLocation.googlePlaceId,
+            googleRating: fetchedData.rating || targetLocation.googleRating,
+            googleReviewCount: fetchedData.reviewCount || targetLocation.googleReviewCount
           }
         });
       } else {
-        await prisma.location.create({
-          data: {
-            businessGroupId: businessGroup.id,
-            name: fetchedData.name,
-            address: fetchedData.address,
-            city: safeCity,
-            country: 'India',
-            phone: fetchedData.phone || '',
-            category: fetchedData.category,
-            googlePlaceId: resolvedPlaceId || null
-          }
-        });
+        // Check subscription location limit before creating a new location
+        const locationCount = await prisma.location.count({ where: { businessGroupId: businessGroup.id } });
+        const subscription = await prisma.subscription.findFirst({ where: { businessGroupId: businessGroup.id } });
+        const locationLimit = subscription?.locationLimit || 1;
+
+        if (locationCount < locationLimit) {
+          await prisma.location.create({
+            data: {
+              businessGroupId: businessGroup.id,
+              name: fetchedData.name,
+              address: fetchedData.address || null,
+              city: safeCity,
+              country: 'India',
+              phone: fetchedData.phone || '',
+              category: fetchedData.category,
+              googlePlaceId: resolvedPlaceId || null,
+              googleRating: fetchedData.rating || null,
+              googleReviewCount: fetchedData.reviewCount || null
+            }
+          });
+        } else if (targetLocation) {
+          // If limit reached, update existing location
+          await prisma.location.update({
+            where: { id: targetLocation.id },
+            data: {
+              name: fetchedData.name,
+              address: fetchedData.address || targetLocation.address,
+              city: safeCity || targetLocation.city,
+              phone: fetchedData.phone || targetLocation.phone || '',
+              category: fetchedData.category || targetLocation.category,
+              googlePlaceId: resolvedPlaceId || targetLocation.googlePlaceId,
+              googleRating: fetchedData.rating || targetLocation.googleRating,
+              googleReviewCount: fetchedData.reviewCount || targetLocation.googleReviewCount
+            }
+          });
+        }
       }
 
       // Auto-provision LetsTrack tenant upon Google Places Import
