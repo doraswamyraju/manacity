@@ -256,9 +256,35 @@ exports.saveWebsite = async (req, res) => {
     if (clarityId !== undefined) updateData.clarityId = clarityId;
     if (isPublished !== undefined) updateData.isPublished = Boolean(isPublished);
 
-    const updatedWebsite = await prisma.website.update({
+    const defaultSub = (subdomain || `${businessGroup.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${(businessGroup.city || 'tirupati').toLowerCase().replace(/[^a-z0-9]+/g, '-')}`).replace(/(^-|-$)/g, '');
+
+    const updatedWebsite = await prisma.website.upsert({
       where: { businessGroupId },
-      data: updateData,
+      update: updateData,
+      create: {
+        businessGroupId,
+        subdomain: defaultSub,
+        theme: theme || 'modern-corporate',
+        primaryColor: primaryColor || '#6366f1',
+        secondaryColor: secondaryColor || '#38bdf8',
+        font: font || 'Outfit',
+        metaTitle: metaTitle || `${businessGroup.name} - Official Website`,
+        metaDescription: metaDescription || businessGroup.description || `Welcome to ${businessGroup.name}.`,
+        isPublished: isPublished !== undefined ? Boolean(isPublished) : true,
+        ...updateData,
+        sections: {
+          create: [
+            { type: 'HEADER', enabled: true, displayOrder: 0 },
+            { type: 'HERO', enabled: true, displayOrder: 1 },
+            { type: 'ABOUT', enabled: true, displayOrder: 2 },
+            { type: 'SERVICES', enabled: true, displayOrder: 3 },
+            { type: 'PRODUCTS', enabled: true, displayOrder: 4 },
+            { type: 'REVIEWS', enabled: true, displayOrder: 5 },
+            { type: 'CONTACT', enabled: true, displayOrder: 6 },
+            { type: 'FOOTER', enabled: true, displayOrder: 7 }
+          ]
+        }
+      },
       include: { sections: true }
     });
 

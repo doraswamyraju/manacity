@@ -181,8 +181,8 @@ exports.uploadMedia = async (req, res) => {
       fs.mkdirSync(uploadsDir, { recursive: true });
     }
 
-    if (req.files && req.files.media) {
-      const file = req.files.media;
+    if (req.files && (req.files.media || req.files.file || req.files.logo)) {
+      const file = req.files.media || req.files.file || req.files.logo;
       const ext = path.extname(file.name) || '.jpg';
       const filename = `media_${Date.now()}_${Math.random().toString(36).substring(2, 8)}${ext}`;
       const filePath = path.join(uploadsDir, filename);
@@ -190,17 +190,19 @@ exports.uploadMedia = async (req, res) => {
       return res.json({ status: 'success', url: `/uploads/${filename}` });
     }
 
-    if (req.body && req.body.base64Data) {
-      const matches = req.body.base64Data.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+    const rawData = req.body ? (req.body.base64Data || req.body.image || req.body.file || req.body.logoUrl) : null;
+    if (rawData && typeof rawData === 'string') {
+      const matches = rawData.match(/^data:([A-Za-z0-9\/+-]+);base64,(.+)$/);
       if (matches && matches.length === 3) {
-        const ext = matches[1].split('/')[1] || 'jpg';
+        let ext = (matches[1].split('/')[1] || 'jpg').replace(/[^a-z0-9]/gi, '');
+        if (!ext || ext.length > 5) ext = 'jpg';
         const buffer = Buffer.from(matches[2], 'base64');
         const filename = `media_${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${ext}`;
         const filePath = path.join(uploadsDir, filename);
         fs.writeFileSync(filePath, buffer);
         return res.json({ status: 'success', url: `/uploads/${filename}` });
       }
-      return res.json({ status: 'success', url: req.body.base64Data });
+      return res.json({ status: 'success', url: rawData });
     }
 
     return res.status(400).json({ error: 'No valid media file or base64 data provided.' });
