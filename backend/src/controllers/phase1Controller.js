@@ -241,14 +241,13 @@ exports.importGooglePlaces = async (req, res) => {
     }
 
     const parsed = parseAddressParts(fetchedData.address);
-    const city = (parsed.city || '').toLowerCase();
+    const safeCity = (parsed.city || 'general').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'general';
     const storeSlug = fetchedData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'my-business';
-    const citySlug = city.replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-    const baseSlug = citySlug ? `${storeSlug}-${citySlug}` : storeSlug;
+    const baseSlug = `${storeSlug}-${safeCity}`;
 
     const computedReviewUrl = resolvedPlaceId
       ? `https://search.google.com/local/writereview?placeid=${resolvedPlaceId}`
-      : (city ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fetchedData.name + ' ' + city)}` : null);
+      : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fetchedData.name + ' ' + safeCity)}`;
 
     fetchedData.placeId = resolvedPlaceId;
     fetchedData.googleReviewUrl = computedReviewUrl;
@@ -272,7 +271,7 @@ exports.importGooglePlaces = async (req, res) => {
             whatsAppNumber: fetchedData.phone || existingGroup.whatsAppNumber || '',
             website: fetchedData.website || existingGroup.website,
             address: fetchedData.address || existingGroup.address,
-            city: city || existingGroup.city,
+            city: safeCity || existingGroup.city,
             googleReviewUrl: computedReviewUrl || existingGroup.googleReviewUrl,
             googlePlaceId: resolvedPlaceId || existingGroup.googlePlaceId,
             googleRating: fetchedData.rating || existingGroup.googleRating,
@@ -291,7 +290,7 @@ exports.importGooglePlaces = async (req, res) => {
             whatsAppNumber: fetchedData.phone || '',
             website: fetchedData.website || null,
             address: fetchedData.address || null,
-            city: city || 'general',
+            city: safeCity,
             googleReviewUrl: computedReviewUrl,
             googlePlaceId: resolvedPlaceId || null,
             googleRating: fetchedData.rating || null,
@@ -334,7 +333,7 @@ exports.importGooglePlaces = async (req, res) => {
           data: {
             subdomain: uniqueSlug,
             metaTitle: `${fetchedData.name} - Official Website`,
-            metaDescription: `Welcome to ${fetchedData.name} in ${city}. Explore our services and products.`
+            metaDescription: `Welcome to ${fetchedData.name} in ${safeCity}. Explore our services and products.`
           }
         });
       } else {
@@ -347,7 +346,7 @@ exports.importGooglePlaces = async (req, res) => {
             primaryColor: '#1976d2',
             secondaryColor: '#9c27b0',
             metaTitle: `${fetchedData.name} - Official Website`,
-            metaDescription: `Welcome to ${fetchedData.name} in ${city}. Explore our services and products.`
+            metaDescription: `Welcome to ${fetchedData.name} in ${safeCity}. Explore our services and products.`
           }
         });
       }
@@ -359,7 +358,7 @@ exports.importGooglePlaces = async (req, res) => {
       while (!isDirUnique) {
         const dupDir = await prisma.directoryListing.findFirst({
           where: {
-            city: city,
+            city: safeCity,
             slug: uniqueDirSlug,
             businessGroupId: { not: businessGroup.id }
           }
@@ -380,7 +379,7 @@ exports.importGooglePlaces = async (req, res) => {
         await prisma.directoryListing.update({
           where: { id: existingListing.id },
           data: {
-            city: city,
+            city: safeCity,
             slug: uniqueDirSlug,
             category: fetchedData.category,
             contactPhone: fetchedData.phone || existingListing.contactPhone,
@@ -393,7 +392,7 @@ exports.importGooglePlaces = async (req, res) => {
         await prisma.directoryListing.create({
           data: {
             businessGroupId: businessGroup.id,
-            city: city,
+            city: safeCity,
             slug: uniqueDirSlug,
             category: fetchedData.category,
             contactPhone: fetchedData.phone,
@@ -415,9 +414,10 @@ exports.importGooglePlaces = async (req, res) => {
           data: {
             name: fetchedData.name,
             address: fetchedData.address,
-            city: city,
+            city: safeCity,
             phone: fetchedData.phone || existingLocation.phone,
-            category: fetchedData.category
+            category: fetchedData.category,
+            googlePlaceId: resolvedPlaceId || existingLocation.googlePlaceId
           }
         });
       } else {
@@ -426,11 +426,11 @@ exports.importGooglePlaces = async (req, res) => {
             businessGroupId: businessGroup.id,
             name: fetchedData.name,
             address: fetchedData.address,
-            city: city,
+            city: safeCity,
             country: 'India',
-            phone: fetchedData.phone || '9876543210',
+            phone: fetchedData.phone || '',
             category: fetchedData.category,
-            hours: { Monday: '09:00-18:00', Tuesday: '09:00-18:00', Wednesday: '09:00-18:00', Thursday: '09:00-18:00', Friday: '09:00-18:00', Saturday: '10:00-16:00', Sunday: 'Closed' }
+            googlePlaceId: resolvedPlaceId || null
           }
         });
       }
