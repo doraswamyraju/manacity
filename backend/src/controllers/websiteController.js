@@ -424,6 +424,32 @@ exports.renderPublicWebsite = async (req, res) => {
       return res.status(404).json({ error: 'Website is either unpublished or not found.' });
     }
 
+    // Auto-provision or link LetsTrack tenant if letsTrackApiKey is missing on existing business
+    if (website && website.businessGroup && !website.businessGroup.letsTrackApiKey) {
+      try {
+        const ownerUser = await prisma.user.findUnique({ where: { id: website.businessGroup.ownerId } });
+        const ltRes = await provisionLetsTrackTenant({
+          businessName: website.businessGroup.name,
+          domain: website.subdomain ? `manacity.in/site/${website.subdomain}` : 'manacity.in',
+          ownerName: ownerUser?.name || website.businessGroup.name,
+          ownerEmail: ownerUser?.email || website.businessGroup.email || 'business@manacity.in'
+        });
+        if (ltRes && ltRes.apiKey) {
+          await prisma.businessGroup.update({
+            where: { id: website.businessGroup.id },
+            data: {
+              letsTrackApiKey: ltRes.apiKey,
+              letsTrackTenantId: ltRes.tenantId
+            }
+          });
+          website.businessGroup.letsTrackApiKey = ltRes.apiKey;
+          website.businessGroup.letsTrackTenantId = ltRes.tenantId;
+        }
+      } catch (ltErr) {
+        console.error('Auto-provisioning LetsTrack key in public site error:', ltErr);
+      }
+    }
+
     res.json({
       status: 'success',
       businessGroup: website.businessGroup,
