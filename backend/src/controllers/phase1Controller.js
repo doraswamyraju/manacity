@@ -244,7 +244,7 @@ exports.importGooglePlaces = async (req, res) => {
     const city = (parsed.city || 'Tirupati').toLowerCase();
     const storeSlug = fetchedData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'my-business';
     const citySlug = city.replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'tirupati';
-    const baseSlug = `${storeSlug}.${citySlug}`;
+    const baseSlug = `${storeSlug}-${citySlug}`;
 
     const computedReviewUrl = resolvedPlaceId
       ? `https://search.google.com/local/writereview?placeid=${resolvedPlaceId}`
@@ -437,7 +437,7 @@ exports.importGooglePlaces = async (req, res) => {
           const ownerUser = ownerId ? await prisma.user.findUnique({ where: { id: ownerId } }) : null;
           const ltRes = await provisionLetsTrackTenant({
             businessName: businessGroup.name,
-            domain: `manacity.in/site/${uniqueSlug}`,
+            domain: `${uniqueSlug}.manacity.in`,
             ownerName: ownerUser?.name || businessGroup.name,
             ownerEmail: ownerUser?.email || businessGroup.email || 'business@manacity.in'
           });

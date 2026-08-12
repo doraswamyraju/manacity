@@ -478,7 +478,7 @@ exports.completeOnboarding = async (req, res) => {
       try {
         const storeSlug = updatedGroup.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'business';
         const citySlug = (updatedGroup.city || 'tirupati').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-        const fullSubdomain = `${storeSlug}.${citySlug}`;
+        const fullSubdomain = `${storeSlug}-${citySlug}`;
 
         const ltRes = await provisionLetsTrackTenant({
           businessName: updatedGroup.name,
