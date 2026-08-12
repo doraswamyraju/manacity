@@ -479,7 +479,7 @@ exports.completeOnboarding = async (req, res) => {
         const ownerUser = await prisma.user.findUnique({ where: { id: ownerId } });
         const ltRes = await provisionLetsTrackTenant({
           businessName: updatedGroup.name,
-          domain: `${updatedGroup.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.manacity.in`,
+          domain: `manacity.in/site/${updatedGroup.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
           ownerName: ownerUser?.name || updatedGroup.name,
           ownerEmail: ownerUser?.email || updatedGroup.email
         });

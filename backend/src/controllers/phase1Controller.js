@@ -435,7 +435,7 @@ exports.importGooglePlaces = async (req, res) => {
           const ownerUser = ownerId ? await prisma.user.findUnique({ where: { id: ownerId } }) : null;
           const ltRes = await provisionLetsTrackTenant({
             businessName: businessGroup.name,
-            domain: `${uniqueSlug}.manacity.in`,
+            domain: `manacity.in/site/${uniqueSlug}`,
             ownerName: ownerUser?.name || businessGroup.name,
             ownerEmail: ownerUser?.email || businessGroup.email || 'business@manacity.in'
           });

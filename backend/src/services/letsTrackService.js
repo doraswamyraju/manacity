@@ -16,6 +16,8 @@ export async function provisionLetsTrackTenant({ businessName, domain, ownerName
     return null;
   }
 
+  const normalizedDomain = domain ? (domain.startsWith('http') ? domain : `https://${domain}`) : 'https://manacity.in';
+
   try {
     const response = await fetch(`${LETSTRACK_API_URL}/api/internal/provision-tenant`, {
       method: 'POST',
@@ -25,7 +27,7 @@ export async function provisionLetsTrackTenant({ businessName, domain, ownerName
       },
       body: JSON.stringify({
         tenantName: businessName,
-        domain: domain || 'manacity-site.com',
+        domain: normalizedDomain,
         adminName: ownerName || businessName,
         email: ownerEmail
       })

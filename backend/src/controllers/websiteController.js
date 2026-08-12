@@ -271,7 +271,7 @@ exports.saveWebsite = async (req, res) => {
         const ownerUser = await prisma.user.findUnique({ where: { id: ownerId } });
         const ltRes = await provisionLetsTrackTenant({
           businessName: businessGroup.name,
-          domain: updatedWebsite.subdomain ? `${updatedWebsite.subdomain}.manacity.com` : 'manacity-site.com',
+          domain: updatedWebsite.subdomain ? `manacity.in/site/${updatedWebsite.subdomain}` : 'manacity.in',
           ownerName: ownerUser?.name || businessGroup.name,
           ownerEmail: ownerUser?.email || businessGroup.email
         });
