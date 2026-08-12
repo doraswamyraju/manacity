@@ -1,6 +1,7 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const { provisionLetsTrackTenant } = require('../services/letsTrackService');
+const { toPublicWebsiteDTO, toPublicBusinessDTO } = require('../services/dtoService');
 
 // Helper to slugify domain name
 const slugify = (text) => {
