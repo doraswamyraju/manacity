@@ -39,6 +39,7 @@ exports.getWebsite = async (req, res) => {
         sections: true,
         businessGroup: {
           include: {
+            directoryListing: true,
             locations: {
               include: {
                 reviews: {
@@ -379,6 +380,7 @@ exports.renderPublicWebsite = async (req, res) => {
         sections: true,
         businessGroup: {
           include: {
+            directoryListing: true,
             locations: {
               include: {
                 reviews: {

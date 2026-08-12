@@ -142,6 +142,8 @@ exports.importGooglePlaces = async (req, res) => {
       category: 'General Business'
     };
 
+    let resolvedPlaceId = placeId || null;
+
     // If specific Place ID is selected by user from predictions dropdown
     if (apiKey && placeId) {
       try {
@@ -151,7 +153,7 @@ exports.importGooglePlaces = async (req, res) => {
             headers: {
               'Content-Type': 'application/json',
               'X-Goog-Api-Key': apiKey,
-              'X-Goog-FieldMask': 'displayName,formattedAddress,rating,userRatingCount,types,nationalPhoneNumber,websiteUri'
+              'X-Goog-FieldMask': 'id,displayName,formattedAddress,rating,userRatingCount,types,nationalPhoneNumber,websiteUri'
             }
           }
         );
@@ -163,6 +165,7 @@ exports.importGooglePlaces = async (req, res) => {
           fetchedData.reviewCount = pd.userRatingCount || fetchedData.reviewCount;
           fetchedData.phone = cleanPhone(pd.nationalPhoneNumber) || fetchedData.phone;
           fetchedData.website = pd.websiteUri || fetchedData.website;
+          resolvedPlaceId = pd.id || placeId;
           if (pd.types && pd.types.length > 0) {
             fetchedData.category = mapGoogleTypeToCategory(pd.types);
           }
@@ -179,6 +182,7 @@ exports.importGooglePlaces = async (req, res) => {
             fetchedData.reviewCount = r.user_ratings_total || fetchedData.reviewCount;
             fetchedData.phone = cleanPhone(r.formatted_phone_number) || fetchedData.phone;
             fetchedData.website = r.website || fetchedData.website;
+            resolvedPlaceId = r.place_id || placeId;
             if (r.types && r.types.length > 0) {
               fetchedData.category = mapGoogleTypeToCategory(r.types);
             }
@@ -197,7 +201,7 @@ exports.importGooglePlaces = async (req, res) => {
             headers: {
               'Content-Type': 'application/json',
               'X-Goog-Api-Key': apiKey,
-              'X-Goog-FieldMask': 'places.displayName,places.formattedAddress,places.rating,places.userRatingCount,places.types,places.nationalPhoneNumber,places.websiteUri'
+              'X-Goog-FieldMask': 'places.id,places.displayName,places.formattedAddress,places.rating,places.userRatingCount,places.types,places.nationalPhoneNumber,places.websiteUri'
             }
           }
         );
@@ -210,6 +214,7 @@ exports.importGooglePlaces = async (req, res) => {
           fetchedData.reviewCount = topResult.userRatingCount || fetchedData.reviewCount;
           fetchedData.phone = cleanPhone(topResult.nationalPhoneNumber) || fetchedData.phone;
           fetchedData.website = topResult.websiteUri || fetchedData.website;
+          resolvedPlaceId = topResult.id || topResult.name?.split('/')?.pop() || null;
           if (topResult.types && topResult.types.length > 0) {
             fetchedData.category = mapGoogleTypeToCategory(topResult.types);
           }
@@ -224,6 +229,7 @@ exports.importGooglePlaces = async (req, res) => {
             fetchedData.address = topResult.formatted_address || fetchedData.address;
             fetchedData.rating = topResult.rating || fetchedData.rating;
             fetchedData.reviewCount = topResult.user_ratings_total || fetchedData.reviewCount;
+            resolvedPlaceId = topResult.place_id || null;
             if (topResult.types && topResult.types.length > 0) {
               fetchedData.category = mapGoogleTypeToCategory(topResult.types);
             }
@@ -234,14 +240,16 @@ exports.importGooglePlaces = async (req, res) => {
       }
     }
 
-
     const parsed = parseAddressParts(fetchedData.address);
     const city = parsed.city.toLowerCase();
     const baseSlug = fetchedData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'my-business';
 
-    const computedReviewUrl = placeId
-      ? `https://search.google.com/local/writereview?placeid=${placeId}`
+    const computedReviewUrl = resolvedPlaceId
+      ? `https://search.google.com/local/writereview?placeid=${resolvedPlaceId}`
       : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fetchedData.name + ' ' + city)}`;
+
+    fetchedData.placeId = resolvedPlaceId;
+    fetchedData.googleReviewUrl = computedReviewUrl;
 
     const descString = `Official Google Business profile for ${fetchedData.name}. Rating: ${fetchedData.rating || 4.8}/5.`;
 

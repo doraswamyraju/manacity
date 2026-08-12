@@ -35,6 +35,8 @@ export default function PublicBusinessWebsite() {
     const letsTrackApiKey = bg?.letsTrackApiKey || businessData?.letsTrackApiKey;
 
     if (letsTrackApiKey) {
+      window.LetsTrackConfig = { websiteId: letsTrackApiKey };
+
       const scriptId = 'letstrack-widget-script';
       if (!document.getElementById(scriptId)) {
         const script = document.createElement('script');
@@ -175,11 +177,15 @@ export default function PublicBusinessWebsite() {
         zIndex: 100
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          {theme === 'clinic-healthcare' ? <Stethoscope size={28} color={primaryColor} /> :
-           theme === 'restaurant-menu' ? <Utensils size={28} color={primaryColor} /> :
-           theme === 'e-commerce' ? <ShoppingBag size={28} color={primaryColor} /> :
-           theme === 'service-booking' ? <Calendar size={28} color={primaryColor} /> :
-           <Building2 size={28} color={primaryColor} />}
+          {bg.logoUrl ? (
+            <img src={bg.logoUrl} alt={bg.name} style={{ width: '38px', height: '38px', borderRadius: '8px', objectFit: 'cover', border: '1.5px solid var(--primary-color, #6366f1)' }} />
+          ) : (
+            theme === 'clinic-healthcare' ? <Stethoscope size={28} color={primaryColor} /> :
+            theme === 'restaurant-menu' ? <Utensils size={28} color={primaryColor} /> :
+            theme === 'e-commerce' ? <ShoppingBag size={28} color={primaryColor} /> :
+            theme === 'service-booking' ? <Calendar size={28} color={primaryColor} /> :
+            <Building2 size={28} color={primaryColor} />
+          )}
           <div>
             <h1 style={{ fontSize: '1.15rem', fontWeight: 800, margin: 0, color: theme === 'light-minimal' ? '#0f172a' : '#fff' }}>{bg.name}</h1>
             <span style={{ fontSize: '0.75rem', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
