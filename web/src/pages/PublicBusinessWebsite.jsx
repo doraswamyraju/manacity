@@ -19,7 +19,13 @@ import * as Sections from './WebsiteSections';
 
 export default function PublicBusinessWebsite() {
   const { subdomain, slug } = useParams();
-  const targetId = subdomain || slug || 'abc-digital';
+  const hostname = typeof window !== 'undefined' ? window.location.hostname : '';
+  
+  let targetId = subdomain || slug;
+  if (!targetId && hostname.endsWith('.manacity.in') && hostname !== 'manacity.in' && hostname !== 'www.manacity.in') {
+    targetId = hostname.replace('.manacity.in', '');
+  }
+  if (!targetId) targetId = 'abc-digital';
 
   const [loading, setLoading] = useState(true);
   const [businessData, setBusinessData] = useState(null);

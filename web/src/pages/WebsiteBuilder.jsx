@@ -473,7 +473,7 @@ export default function WebsiteBuilder({ onBack }) {
           <span>
             Live Site URL:{' '}
             <a
-              href={`/site/${subdomain}`}
+              href={subdomain ? `https://${subdomain}.manacity.in` : 'https://manacity.in'}
               target="_blank"
               rel="noreferrer"
               style={{ color: '#38bdf8', fontWeight: 700, textDecoration: 'underline' }}
