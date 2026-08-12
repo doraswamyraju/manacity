@@ -186,15 +186,24 @@ function StepBusinessInfo({ initialData, onNext, onAutoFill }) {
     else setUploadingCover(true);
 
     try {
-      const reader = new FileReader();
-      reader.onloadend = async () => {
-        const base64Data = reader.result;
-        const response = await axios.post('/api/business/media', { base64Data });
+      const previewUrl = URL.createObjectURL(file);
+      if (type === 'logo') setLogoUrl(previewUrl);
+      else setCoverImageUrl(previewUrl);
+
+      const base64Data = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = (err) => reject(err);
+        reader.readAsDataURL(file);
+      });
+
+      const response = await axios.post('/api/business/media', { base64Data });
+      if (response.data && response.data.url) {
         if (type === 'logo') setLogoUrl(response.data.url);
         else setCoverImageUrl(response.data.url);
-      };
-      reader.readAsDataURL(file);
+      }
     } catch (err) {
+      console.error('Upload error:', err);
       setError('File upload failed.');
     } finally {
       if (type === 'logo') setUploadingLogo(false);

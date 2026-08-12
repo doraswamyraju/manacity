@@ -118,17 +118,26 @@ export default function WebsiteBuilder({ onBack }) {
     const file = e.target.files[0];
     if (!file) return;
     try {
-      const reader = new FileReader();
-      reader.onloadend = async () => {
-        const base64Data = reader.result;
-        const response = await axios.post('/api/business/media', { base64Data });
+      const previewUrl = URL.createObjectURL(file);
+      setLogoUrl(previewUrl);
+      setBusinessGroup(prev => prev ? { ...prev, logoUrl: previewUrl } : { logoUrl: previewUrl });
+
+      const base64Data = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = (err) => reject(err);
+        reader.readAsDataURL(file);
+      });
+
+      const response = await axios.post('/api/business/media', { base64Data });
+      if (response.data && response.data.url) {
         const newUrl = response.data.url;
         setLogoUrl(newUrl);
         setBusinessGroup(prev => prev ? { ...prev, logoUrl: newUrl } : { logoUrl: newUrl });
         await handleLogoExtractColors(newUrl);
-      };
-      reader.readAsDataURL(file);
+      }
     } catch (err) {
+      console.error('Logo upload error:', err);
       setError('Logo upload failed.');
     }
   };
