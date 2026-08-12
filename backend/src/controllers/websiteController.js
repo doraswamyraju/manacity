@@ -403,7 +403,15 @@ exports.saveWebsiteSections = async (req, res) => {
 // 4. Public Site API Endpoint (used by Nginx dynamically or path renderer)
 exports.renderPublicWebsite = async (req, res) => {
   try {
-    const rawSubdomain = req.params.subdomain || req.params.identifier || req.query.subdomain || '';
+    let rawSubdomain = req.params.subdomain || req.params.identifier || req.query.subdomain || '';
+
+    if (!rawSubdomain && req.headers.host) {
+      const host = req.headers.host.split(':')[0].toLowerCase();
+      if (host.endsWith('.manacity.in') && host !== 'manacity.in' && host !== 'www.manacity.in') {
+        rawSubdomain = host.replace('.manacity.in', '');
+      }
+    }
+
     if (!rawSubdomain) {
       return res.status(404).json({ error: 'Website identifier required.' });
     }

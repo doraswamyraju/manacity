@@ -7,7 +7,7 @@
  * Serializes a BusinessGroup model for public exposure.
  * Strictly excludes: letsTrackApiKey, letsTrackTenantId, internal owner IDs, internal metadata.
  */
-export function toPublicBusinessDTO(businessGroup) {
+function toPublicBusinessDTO(businessGroup) {
   if (!businessGroup) return null;
 
   return {
@@ -77,10 +77,7 @@ export function toPublicBusinessDTO(businessGroup) {
   };
 }
 
-/**
- * Serializes a Website model for public exposure.
- */
-export function toPublicWebsiteDTO(website, businessGroup) {
+function toPublicWebsiteDTO(website, businessGroup) {
   if (!website) return null;
 
   return {
@@ -100,7 +97,7 @@ export function toPublicWebsiteDTO(website, businessGroup) {
       id: sec.id,
       type: sec.type,
       enabled: sec.enabled,
-      order: sec.order,
+      order: sec.displayOrder !== undefined ? sec.displayOrder : sec.order,
       title: sec.title,
       subtitle: sec.subtitle,
       settings: sec.settings
@@ -108,3 +105,8 @@ export function toPublicWebsiteDTO(website, businessGroup) {
     businessGroup: toPublicBusinessDTO(businessGroup || website.businessGroup)
   };
 }
+
+module.exports = {
+  toPublicBusinessDTO,
+  toPublicWebsiteDTO
+};
