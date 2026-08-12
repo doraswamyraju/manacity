@@ -463,7 +463,7 @@ exports.renderPublicWebsite = async (req, res) => {
     });
   } catch (error) {
     console.error('Render public site error:', error);
-    res.status(500).json({ error: 'Failed to query dynamic site specifications.' });
+    res.status(500).json({ error: 'Failed to query dynamic site specifications.', detail: error.message });
   }
 };
 
