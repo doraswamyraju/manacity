@@ -241,21 +241,21 @@ exports.importGooglePlaces = async (req, res) => {
     }
 
     const parsed = parseAddressParts(fetchedData.address);
-    const city = (parsed.city || 'Tirupati').toLowerCase();
+    const city = (parsed.city || '').toLowerCase();
     const storeSlug = fetchedData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'my-business';
-    const citySlug = city.replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'tirupati';
-    const baseSlug = `${storeSlug}-${citySlug}`;
+    const citySlug = city.replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    const baseSlug = citySlug ? `${storeSlug}-${citySlug}` : storeSlug;
 
     const computedReviewUrl = resolvedPlaceId
       ? `https://search.google.com/local/writereview?placeid=${resolvedPlaceId}`
-      : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fetchedData.name + ' ' + city)}`;
+      : (city ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fetchedData.name + ' ' + city)}` : null);
 
     fetchedData.placeId = resolvedPlaceId;
     fetchedData.googleReviewUrl = computedReviewUrl;
 
-    const descString = `Official Google Business profile for ${fetchedData.name}. Rating: ${fetchedData.rating || 4.8}/5.`;
+    const descString = fetchedData.description || `Official Google Business profile for ${fetchedData.name}.`;
 
-    // Create or update business group
+    // Create or update business group using resolved tenant boundary
     let businessGroup = null;
     if (ownerId) {
       const existingGroup = await prisma.businessGroup.findFirst({
@@ -268,13 +268,15 @@ exports.importGooglePlaces = async (req, res) => {
           data: {
             name: fetchedData.name,
             description: descString,
-            mobileNumber: fetchedData.phone || existingGroup.mobileNumber || '9876543210',
-            whatsAppNumber: fetchedData.phone || existingGroup.whatsAppNumber || '9876543210',
+            mobileNumber: fetchedData.phone || existingGroup.mobileNumber || '',
+            whatsAppNumber: fetchedData.phone || existingGroup.whatsAppNumber || '',
             website: fetchedData.website || existingGroup.website,
             address: fetchedData.address || existingGroup.address,
-            city: city,
-            googleReviewUrl: computedReviewUrl,
-            googlePlaceId: placeId || undefined,
+            city: city || existingGroup.city,
+            googleReviewUrl: computedReviewUrl || existingGroup.googleReviewUrl,
+            googlePlaceId: resolvedPlaceId || existingGroup.googlePlaceId,
+            googleRating: fetchedData.rating || existingGroup.googleRating,
+            googleReviewCount: fetchedData.reviewCount || existingGroup.googleReviewCount,
             isSetupComplete: true,
             setupStep: 6
           }
@@ -285,13 +287,15 @@ exports.importGooglePlaces = async (req, res) => {
             name: fetchedData.name,
             ownerId: ownerId,
             description: descString,
-            mobileNumber: fetchedData.phone || '9876543210',
-            whatsAppNumber: fetchedData.phone || '9876543210',
-            website: fetchedData.website,
-            address: fetchedData.address,
-            city: city,
+            mobileNumber: fetchedData.phone || '',
+            whatsAppNumber: fetchedData.phone || '',
+            website: fetchedData.website || null,
+            address: fetchedData.address || null,
+            city: city || 'general',
             googleReviewUrl: computedReviewUrl,
-            googlePlaceId: placeId || undefined,
+            googlePlaceId: resolvedPlaceId || null,
+            googleRating: fetchedData.rating || null,
+            googleReviewCount: fetchedData.reviewCount || null,
             isSetupComplete: true,
             setupStep: 6
           }

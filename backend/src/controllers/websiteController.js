@@ -175,12 +175,13 @@ exports.getWebsite = async (req, res) => {
         website = await prisma.website.findUnique({
           where: { businessGroupId },
           include: {
-            sections: true,
+            sections: { orderBy: { displayOrder: 'asc' } },
             businessGroup: {
               include: {
-                locations: { include: { reviews: { orderBy: { createdAt: 'desc' } } } },
-                services: { include: { libraryItem: true } },
-                products: { include: { libraryItem: true } }
+                directoryListing: true,
+                locations: { include: { reviews: true } },
+                services: true,
+                products: true
               }
             }
           }
@@ -193,15 +194,18 @@ exports.getWebsite = async (req, res) => {
       website
     });
   } catch (error) {
-    console.error('Get website config error:', error);
-    res.status(500).json({ error: 'Failed to retrieve website configuration.' });
+    console.error('Fetch website configuration error:', error);
+    res.status(500).json({ error: 'Failed to retrieve website settings.' });
   }
 };
 
 // 2. Save Website Core Configuration (settings, styles, SEO, and Analytics)
 exports.saveWebsite = async (req, res) => {
   try {
-    const ownerId = req.user.id;
+    const businessGroup = await resolveBusinessGroupForRequest(req, res);
+    if (!businessGroup) return;
+
+    const businessGroupId = businessGroup.id;
     const { 
       theme, 
       primaryColor, 
@@ -220,21 +224,12 @@ exports.saveWebsite = async (req, res) => {
       isPublished
     } = req.body;
 
-    const businessGroup = await prisma.businessGroup.findFirst({
-      where: { ownerId }
-    });
-
-    if (!businessGroup) {
-      return res.status(404).json({ error: 'Business profile not found.' });
-    }
-
-    const businessGroupId = businessGroup.id;
-
-    // Check if subdomain is taken
+    // Check if subdomain is taken by another business
     if (subdomain) {
+      const cleanSub = subdomain.trim().toLowerCase();
       const existingSub = await prisma.website.findFirst({
         where: {
-          subdomain,
+          subdomain: cleanSub,
           businessGroupId: { not: businessGroupId }
         }
       });
@@ -243,35 +238,37 @@ exports.saveWebsite = async (req, res) => {
       }
     }
 
+    // Construct clean partial update data
+    const updateData = {};
+    if (theme !== undefined) updateData.theme = theme;
+    if (primaryColor !== undefined) updateData.primaryColor = primaryColor;
+    if (secondaryColor !== undefined) updateData.secondaryColor = secondaryColor;
+    if (font !== undefined) updateData.font = font;
+    if (subdomain !== undefined) updateData.subdomain = subdomain.trim().toLowerCase();
+    if (customDomain !== undefined) updateData.customDomain = customDomain ? customDomain.trim().toLowerCase() : null;
+    if (metaTitle !== undefined) updateData.metaTitle = metaTitle;
+    if (metaDescription !== undefined) updateData.metaDescription = metaDescription;
+    if (keywords !== undefined) updateData.keywords = keywords;
+    if (ogImage !== undefined) updateData.ogImage = ogImage;
+    if (googleAnalyticsId !== undefined) updateData.googleAnalyticsId = googleAnalyticsId;
+    if (searchConsoleId !== undefined) updateData.searchConsoleId = searchConsoleId;
+    if (metaPixelId !== undefined) updateData.metaPixelId = metaPixelId;
+    if (clarityId !== undefined) updateData.clarityId = clarityId;
+    if (isPublished !== undefined) updateData.isPublished = Boolean(isPublished);
+
     const updatedWebsite = await prisma.website.update({
       where: { businessGroupId },
-      data: {
-        theme,
-        primaryColor,
-        secondaryColor,
-        font,
-        subdomain: subdomain || undefined,
-        customDomain: customDomain !== undefined ? customDomain : null,
-        metaTitle,
-        metaDescription,
-        keywords,
-        ogImage,
-        googleAnalyticsId,
-        searchConsoleId,
-        metaPixelId,
-        clarityId,
-        isPublished: isPublished !== undefined ? isPublished : undefined
-      },
+      data: updateData,
       include: { sections: true }
     });
 
-    // Auto-provision LetsTrack tenant if not provisioned yet
+    // Auto-provision LetsTrack tenant upon saving website if missing
     if (!businessGroup.letsTrackApiKey) {
       try {
-        const ownerUser = await prisma.user.findUnique({ where: { id: ownerId } });
+        const ownerUser = await prisma.user.findUnique({ where: { id: businessGroup.ownerId } });
         const ltRes = await provisionLetsTrackTenant({
           businessName: businessGroup.name,
-          domain: updatedWebsite.subdomain ? `manacity.in/site/${updatedWebsite.subdomain}` : 'manacity.in',
+          domain: updatedWebsite.subdomain ? `${updatedWebsite.subdomain}.manacity.in` : 'manacity.in',
           ownerName: ownerUser?.name || businessGroup.name,
           ownerEmail: ownerUser?.email || businessGroup.email
         });
@@ -302,52 +299,65 @@ exports.saveWebsite = async (req, res) => {
 // 3. Save Website Section configurations (toggles, layouts, display orders)
 exports.saveWebsiteSections = async (req, res) => {
   try {
-    const ownerId = req.user.id;
+    const businessGroup = await resolveBusinessGroupForRequest(req, res);
+    if (!businessGroup) return;
+
     const { sections } = req.body; // array of sections
 
     if (!sections || !Array.isArray(sections)) {
       return res.status(400).json({ error: 'Sections array is required.' });
     }
 
-    const businessGroup = await prisma.businessGroup.findFirst({
-      where: { ownerId }
-    });
-
-    if (!businessGroup) {
-      return res.status(404).json({ error: 'Business profile not found.' });
-    }
-
     const website = await prisma.website.findUnique({
-      where: { businessGroupId: businessGroup.id }
+      where: { businessGroupId: businessGroup.id },
+      include: { sections: true }
     });
 
     if (!website) {
       return res.status(404).json({ error: 'Website profile not found.' });
     }
 
-    // Save each section using upsert
-    for (const sec of sections) {
-      await prisma.websiteSection.upsert({
-        where: {
-          websiteId_type: {
+    const validSubmittedTypes = new Set(sections.map(s => s.type).filter(Boolean));
+
+    // Execute atomic transaction for section re-ordering and cleanup
+    await prisma.$transaction(async (tx) => {
+      // 1. Upsert submitted sections
+      for (let i = 0; i < sections.length; i++) {
+        const sec = sections[i];
+        if (!sec.type) continue;
+
+        await tx.websiteSection.upsert({
+          where: {
+            websiteId_type: {
+              websiteId: website.id,
+              type: sec.type
+            }
+          },
+          update: {
+            enabled: sec.enabled !== undefined ? Boolean(sec.enabled) : true,
+            displayOrder: sec.displayOrder !== undefined ? Number(sec.displayOrder) : i,
+            settings: sec.settings || {}
+          },
+          create: {
             websiteId: website.id,
-            type: sec.type
+            type: sec.type,
+            enabled: sec.enabled !== undefined ? Boolean(sec.enabled) : true,
+            displayOrder: sec.displayOrder !== undefined ? Number(sec.displayOrder) : i,
+            settings: sec.settings || {}
           }
-        },
-        update: {
-          enabled: sec.enabled !== undefined ? sec.enabled : true,
-          displayOrder: sec.displayOrder !== undefined ? Number(sec.displayOrder) : 0,
-          settings: sec.settings || {}
-        },
-        create: {
-          websiteId: website.id,
-          type: sec.type,
-          enabled: sec.enabled !== undefined ? sec.enabled : true,
-          displayOrder: sec.displayOrder !== undefined ? Number(sec.displayOrder) : 0,
-          settings: sec.settings || {}
+        });
+      }
+
+      // 2. Disable obsolete sections no longer in the submitted payload
+      for (const existingSec of website.sections) {
+        if (!validSubmittedTypes.has(existingSec.type)) {
+          await tx.websiteSection.update({
+            where: { id: existingSec.id },
+            data: { enabled: false }
+          });
         }
-      });
-    }
+      }
+    });
 
     const updatedWebsite = await prisma.website.findUnique({
       where: { id: website.id },
@@ -367,10 +377,16 @@ exports.saveWebsiteSections = async (req, res) => {
 // 4. Public Site API Endpoint (used by Nginx dynamically or path renderer)
 exports.renderPublicWebsite = async (req, res) => {
   try {
-    const cleanSub = subdomain ? subdomain.trim() : '';
+    const rawSubdomain = req.params.subdomain || req.params.identifier || req.query.subdomain || '';
+    if (!rawSubdomain) {
+      return res.status(404).json({ error: 'Website identifier required.' });
+    }
+
+    const cleanSub = rawSubdomain.trim().toLowerCase();
     const storePart = cleanSub.split('.')[0];
 
-    let website = await prisma.website.findFirst({
+    // Find website strictly matching subdomain or customDomain
+    const website = await prisma.website.findFirst({
       where: {
         OR: [
           { subdomain: cleanSub },
@@ -380,92 +396,42 @@ exports.renderPublicWebsite = async (req, res) => {
         ]
       },
       include: {
-        sections: true,
+        sections: { orderBy: { displayOrder: 'asc' } },
         businessGroup: {
           include: {
             directoryListing: true,
             locations: {
               include: {
-                reviews: {
-                  orderBy: { createdAt: 'desc' }
-                }
+                reviews: { orderBy: { createdAt: 'desc' } }
               }
             },
-            services: {
-              include: {
-                libraryItem: true
-              }
-            },
-            products: {
-              include: {
-                libraryItem: true
-              }
-            }
+            services: { include: { libraryItem: true } },
+            products: { include: { libraryItem: true } }
           }
         }
       }
     });
 
-    if (!website) {
-      // Find primary business group
-      const bg = await prisma.businessGroup.findFirst({
-        take: 1,
-        include: {
-          services: true,
-          products: true
-        }
-      });
-
-      if (bg) {
-        return res.status(200).json({
-          status: 'success',
-          businessGroup: bg,
-          services: bg.services || [],
-          products: bg.products || []
-        });
-      }
+    // Enforce 404 if website is not found or is not published
+    if (!website || !website.isPublished) {
       return res.status(404).json({ error: 'Website is either unpublished or not found.' });
     }
 
-    // Auto-provision or link LetsTrack tenant if letsTrackApiKey is missing on existing business
-    if (website && website.businessGroup && !website.businessGroup.letsTrackApiKey) {
-      try {
-        const ownerUser = await prisma.user.findUnique({ where: { id: website.businessGroup.ownerId } });
-        const ltRes = await provisionLetsTrackTenant({
-          businessName: website.businessGroup.name,
-          domain: website.subdomain ? `${website.subdomain}.manacity.in` : 'manacity.in',
-          ownerName: ownerUser?.name || website.businessGroup.name,
-          ownerEmail: ownerUser?.email || website.businessGroup.email || 'business@manacity.in'
-        });
-        if (ltRes && ltRes.apiKey) {
-          await prisma.businessGroup.update({
-            where: { id: website.businessGroup.id },
-            data: {
-              letsTrackApiKey: ltRes.apiKey,
-              letsTrackTenantId: ltRes.tenantId
-            }
-          });
-          website.businessGroup.letsTrackApiKey = ltRes.apiKey;
-          website.businessGroup.letsTrackTenantId = ltRes.tenantId;
-        }
-      } catch (ltErr) {
-        console.error('Auto-provisioning LetsTrack key in public site error:', ltErr);
-      }
-    }
+    // Return clean DTO stripping private secrets like letsTrackApiKey
+    const publicDTO = toPublicWebsiteDTO(website, website.businessGroup);
 
     res.json({
       status: 'success',
-      businessGroup: website.businessGroup,
-      website,
-      services: website.businessGroup?.services || [],
-      products: website.businessGroup?.products || []
+      website: publicDTO,
+      businessGroup: publicDTO.businessGroup,
+      services: publicDTO.businessGroup?.services || [],
+      products: publicDTO.businessGroup?.products || []
     });
   } catch (error) {
     console.error('Render public site error:', error);
     res.status(500).json({ error: 'Failed to query dynamic site specifications.' });
   }
 };
-
 
 // 5. Dynamic Sitemap Generation
 exports.getSitemap = async (req, res) => {

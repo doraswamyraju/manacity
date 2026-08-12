@@ -1,6 +1,9 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
+const fs = require('fs');
+const path = require('path');
 const { provisionLetsTrackTenant } = require('../services/letsTrackService');
+const { resolveBusinessGroupForRequest } = require('../services/tenantService');
 
 // 1. Get user's Business Groups and Locations
 exports.getLocations = async (req, res) => {
@@ -170,26 +173,40 @@ exports.deleteLocation = async (req, res) => {
   }
 };
 
-// 5. Asset Upload Endpoint (Base64 / Data URI & Storage Fallback)
+// 5. Asset Upload Endpoint (Saves to disk storage & returns file URLs)
 exports.uploadMedia = async (req, res) => {
   try {
+    const uploadsDir = path.join(process.cwd(), 'uploads');
+    if (!fs.existsSync(uploadsDir)) {
+      fs.mkdirSync(uploadsDir, { recursive: true });
+    }
+
     if (req.files && req.files.media) {
       const file = req.files.media;
-      const base64 = file.data.toString('base64');
-      const mime = file.mimetype || 'image/jpeg';
-      const dataUri = `data:${mime};base64,${base64}`;
-      return res.json({ status: 'success', url: dataUri });
+      const ext = path.extname(file.name) || '.jpg';
+      const filename = `media_${Date.now()}_${Math.random().toString(36).substring(2, 8)}${ext}`;
+      const filePath = path.join(uploadsDir, filename);
+      await file.mv(filePath);
+      return res.json({ status: 'success', url: `/uploads/${filename}` });
     }
+
     if (req.body && req.body.base64Data) {
+      const matches = req.body.base64Data.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+      if (matches && matches.length === 3) {
+        const ext = matches[1].split('/')[1] || 'jpg';
+        const buffer = Buffer.from(matches[2], 'base64');
+        const filename = `media_${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${ext}`;
+        const filePath = path.join(uploadsDir, filename);
+        fs.writeFileSync(filePath, buffer);
+        return res.json({ status: 'success', url: `/uploads/${filename}` });
+      }
       return res.json({ status: 'success', url: req.body.base64Data });
     }
-    // Static placeholder fallback if no file attached
-    res.json({
-      status: 'success',
-      url: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=600'
-    });
+
+    return res.status(400).json({ error: 'No valid media file or base64 data provided.' });
   } catch (err) {
-    res.json({ status: 'success', url: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=600' });
+    console.error('Upload media error:', err);
+    res.status(500).json({ error: 'Failed to process media file.' });
   }
 };
 

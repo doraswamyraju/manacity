@@ -19,10 +19,13 @@ const adminRoutes = require('./routes/adminRoutes');
 const reviewSystemRoutes = require('./routes/reviewSystemRoutes');
 const phase1Routes = require('./routes/phase1Routes');
 
+const path = require('path');
+
 // Middleware
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
 
 const systemSettingsController = require('./controllers/systemSettingsController');

@@ -267,7 +267,7 @@ export default function WebsiteBuilder({ onBack }) {
           <h3 style={editorHeaderStyle}>Theme & Colors</h3>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', gridColumn: '1 / -1' }}>
-              <label style={{ fontSize: '0.85rem', fontWeight: 700, color: '#38bdf8' }}>Select Website Template (5 Pre-built Layouts)</label>
+              <label style={{ fontSize: '0.85rem', fontWeight: 700, color: '#38bdf8' }}>Select Website Template (6 Pre-built Layouts)</label>
               <select value={theme} onChange={(e) => {
                 const newTheme = e.target.value;
                 setTheme(newTheme);
