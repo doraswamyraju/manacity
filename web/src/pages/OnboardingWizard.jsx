@@ -138,25 +138,29 @@ function StepBusinessInfo({ initialData, onNext, onAutoFill }) {
         const place = res.data.data.importedPlace;
         const parsed = place.parsedAddress || {};
 
+        const descText = place.rating 
+          ? `Official Google Business profile for ${place.name || name}. Rating: ${place.rating}/5.`
+          : `Official Google Business profile for ${place.name || name}.`;
+
         setName(place.name || name);
         if (place.category) setCategory(place.category);
-        setDescription(`Official Google Business profile for ${place.name || name}. Rating: ${place.rating || '4.8'}/5.`);
+        setDescription(descText);
         setImportSuccess(true);
 
         if (onAutoFill) {
-          const autoReviewUrl = place.placeId
+          const autoReviewUrl = place.googleReviewUrl || (place.placeId
             ? `https://search.google.com/local/writereview?placeid=${place.placeId}`
-            : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((place.name || name) + ' ' + (parsed.city || 'Tirupati'))}`;
+            : (parsed.city ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((place.name || name) + ' ' + parsed.city)}` : ''));
 
           onAutoFill({
             name: place.name,
-            category: place.category || 'Digital Marketing',
-            description: `Official Google Business profile for ${place.name}. Rating: ${place.rating || '4.8'}/5.`,
+            category: place.category || 'General Business',
+            description: descText,
             address: parsed.street || place.address || '',
-            city: parsed.city || 'Tirupati',
-            state: parsed.state || 'Andhra Pradesh',
+            city: parsed.city || '',
+            state: parsed.state || '',
             country: parsed.country || 'India',
-            pinCode: parsed.pinCode || '517501',
+            pinCode: parsed.pinCode || '',
             mobileNumber: place.phone || '',
             whatsAppNumber: place.phone || '',
             website: place.website || '',
