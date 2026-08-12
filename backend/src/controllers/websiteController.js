@@ -431,8 +431,8 @@ exports.renderPublicWebsite = async (req, res) => {
                 reviews: { orderBy: { createdAt: 'desc' } }
               }
             },
-            services: { include: { libraryItem: true } },
-            products: { include: { libraryItem: true } }
+            services: true,
+            products: true
           }
         }
       }
