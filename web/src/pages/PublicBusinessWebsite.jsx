@@ -30,6 +30,23 @@ export default function PublicBusinessWebsite() {
     fetchWebsiteData();
   }, [targetId]);
 
+  useEffect(() => {
+    const bg = businessData?.businessGroup;
+    const letsTrackApiKey = bg?.letsTrackApiKey || businessData?.letsTrackApiKey;
+
+    if (letsTrackApiKey) {
+      const scriptId = 'letstrack-widget-script';
+      if (!document.getElementById(scriptId)) {
+        const script = document.createElement('script');
+        script.id = scriptId;
+        script.src = import.meta.env.VITE_LETSTRACK_WIDGET_URL || 'http://localhost:5004/widget/widget.js';
+        script.setAttribute('data-api-key', letsTrackApiKey);
+        script.async = true;
+        document.body.appendChild(script);
+      }
+    }
+  }, [businessData]);
+
   const fetchWebsiteData = async () => {
     setLoading(true);
     try {

@@ -80,6 +80,10 @@ model BusinessGroup {
   googleReviewUrl String?
   googlePlaceId   String?
 
+  // LetsTrack integration
+  letsTrackApiKey   String?
+  letsTrackTenantId String?
+
   // Relations
   locations       Location[]
   subscriptions   Subscription[]
