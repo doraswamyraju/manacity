@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 /**
@@ -10,7 +10,7 @@ const prisma = new PrismaClient();
  * @param {string} [requestedBusinessGroupId] Optional explicit businessGroupId from body/params
  * @returns {Promise<Object|null>} Resolved BusinessGroup model or sends 403/404 response and returns null
  */
-export async function resolveBusinessGroupForRequest(req, res, requestedBusinessGroupId = null) {
+async function resolveBusinessGroupForRequest(req, res, requestedBusinessGroupId = null) {
   if (!req.user || !req.user.id) {
     res.status(401).json({ error: 'Unauthorized: User authentication required.' });
     return null;
@@ -64,3 +64,7 @@ export async function resolveBusinessGroupForRequest(req, res, requestedBusiness
 
   return userBg;
 }
+
+module.exports = {
+  resolveBusinessGroupForRequest
+};

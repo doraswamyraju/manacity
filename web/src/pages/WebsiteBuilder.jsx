@@ -186,7 +186,7 @@ export default function WebsiteBuilder({ onBack }) {
       setSections(sortedSec);
       setSuccess('Section orders and layouts updated successfully.');
     } catch (err) {
-      setError('Failed to update page layout.');
+      setError(err.response?.data?.error || 'Failed to update page layout.');
     } finally {
       setSaving(false);
     }
