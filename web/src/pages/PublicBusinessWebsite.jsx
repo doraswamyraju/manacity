@@ -28,6 +28,7 @@ export default function PublicBusinessWebsite() {
   if (!targetId) targetId = 'abc-digital';
 
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [businessData, setBusinessData] = useState(null);
   const [websiteConfig, setWebsiteConfig] = useState(null);
   const [sections, setSections] = useState([]);
@@ -64,6 +65,7 @@ export default function PublicBusinessWebsite() {
 
   const fetchWebsiteData = async () => {
     setLoading(true);
+    setError(null);
     try {
       const res = await axios.get(`/api/website/public/${targetId}`);
       if (res.data && res.data.businessGroup) {
@@ -79,14 +81,11 @@ export default function PublicBusinessWebsite() {
         }
         setSections(secList);
       } else {
-        setBusinessData(getMockData());
-        setWebsiteConfig(getMockData().websiteConfig);
-        setSections(getDefaultSections());
+        setError('Website not found');
       }
     } catch (e) {
-      setBusinessData(getMockData());
-      setWebsiteConfig(getMockData().websiteConfig);
-      setSections(getDefaultSections());
+      console.error(e);
+      setError(e.response?.data?.error || 'Website not found');
     } finally {
       setLoading(false);
     }
@@ -137,6 +136,25 @@ export default function PublicBusinessWebsite() {
     return (
       <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#090d16', color: '#94a3b8' }}>
         <h2>Loading Business Website...</h2>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', backgroundColor: '#090d16', color: '#f8fafc', fontFamily: 'Outfit, sans-serif', padding: '2rem', textAlign: 'center' }}>
+        <div style={{ maxWidth: '500px', backgroundColor: '#0f172a', padding: '3rem', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.08)', boxShadow: '0 10px 30px rgba(0,0,0,0.5)' }}>
+          <Building2 size={64} color="#6366f1" style={{ marginBottom: '1.5rem', marginLeft: 'auto', marginRight: 'auto' }} />
+          <h1 style={{ fontSize: '2rem', fontWeight: 800, marginBottom: '1rem', background: 'linear-gradient(to right, #6366f1, #a855f7)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+            Site Not Found
+          </h1>
+          <p style={{ color: '#94a3b8', fontSize: '1.05rem', lineHeight: '1.6', marginBottom: '2rem' }}>
+            The website you are looking for does not exist, has been unpublished, or is currently unavailable.
+          </p>
+          <a href="https://manacity.in" style={{ display: 'inline-block', backgroundColor: '#6366f1', color: '#fff', padding: '0.8rem 2rem', borderRadius: '8px', fontSize: '1rem', fontWeight: 700, textDecoration: 'none', transition: 'background 0.2s' }}>
+            Go to ManaCity
+          </a>
+        </div>
       </div>
     );
   }

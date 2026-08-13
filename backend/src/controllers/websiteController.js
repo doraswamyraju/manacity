@@ -237,6 +237,9 @@ exports.saveWebsite = async (req, res) => {
     // Check if subdomain is taken by another business
     if (subdomain) {
       const cleanSub = subdomain.trim().toLowerCase();
+      if (cleanSub.length > 63) {
+        return res.status(400).json({ error: 'Subdomain cannot exceed 63 characters.' });
+      }
       const existingSub = await prisma.website.findFirst({
         where: {
           subdomain: cleanSub,
@@ -266,7 +269,44 @@ exports.saveWebsite = async (req, res) => {
     if (clarityId !== undefined) updateData.clarityId = clarityId;
     if (isPublished !== undefined) updateData.isPublished = Boolean(isPublished);
 
-    const defaultSub = (subdomain || `${businessGroup.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${(businessGroup.city || 'tirupati').toLowerCase().replace(/[^a-z0-9]+/g, '-')}`).replace(/(^-|-$)/g, '');
+    let defaultSub = subdomain ? subdomain.trim().toLowerCase() : '';
+    if (!defaultSub) {
+      const citySlug = (businessGroup.city || 'tirupati').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+      const storeSlug = businessGroup.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+      if (citySlug) {
+        if (storeSlug === citySlug || storeSlug.endsWith(`-${citySlug}`) || storeSlug.includes(citySlug)) {
+          defaultSub = storeSlug;
+        } else {
+          defaultSub = `${storeSlug}-${citySlug}`;
+        }
+      } else {
+        defaultSub = storeSlug;
+      }
+      if (defaultSub.length > 63) {
+        defaultSub = defaultSub.substring(0, 63).replace(/-+$/, '');
+      }
+
+      // Check uniqueness for defaultSub
+      let uniqueSlug = defaultSub;
+      let counter = 0;
+      let isSubUnique = false;
+      while (!isSubUnique) {
+        const dup = await prisma.website.findFirst({
+          where: {
+            subdomain: uniqueSlug,
+            businessGroupId: { not: businessGroupId }
+          }
+        });
+        if (!dup) {
+          isSubUnique = true;
+        } else {
+          counter++;
+          const suffix = `-${counter}`;
+          uniqueSlug = defaultSub.substring(0, 63 - suffix.length).replace(/-+$/, '') + suffix;
+        }
+      }
+      defaultSub = uniqueSlug;
+    }
 
     const updatedWebsite = await prisma.website.upsert({
       where: { businessGroupId },

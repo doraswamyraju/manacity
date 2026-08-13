@@ -243,7 +243,20 @@ exports.importGooglePlaces = async (req, res) => {
     const parsed = parseAddressParts(fetchedData.address);
     const safeCity = (parsed.city || 'general').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'general';
     const storeSlug = fetchedData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'my-business';
-    const baseSlug = `${storeSlug}-${safeCity}`;
+    
+    let baseSlug = storeSlug;
+    if (safeCity && safeCity !== 'general') {
+      if (storeSlug === safeCity || storeSlug.endsWith(`-${safeCity}`) || storeSlug.includes(`-${safeCity}-`) || storeSlug.includes(safeCity)) {
+        baseSlug = storeSlug;
+      } else {
+        baseSlug = `${storeSlug}-${safeCity}`;
+      }
+    } else if (safeCity === 'general' && !storeSlug.includes('general')) {
+      baseSlug = `${storeSlug}-${safeCity}`;
+    }
+    if (baseSlug.length > 63) {
+      baseSlug = baseSlug.substring(0, 63).replace(/-+$/, '');
+    }
 
     const computedReviewUrl = resolvedPlaceId
       ? `https://search.google.com/local/writereview?placeid=${resolvedPlaceId}`
@@ -359,7 +372,8 @@ exports.importGooglePlaces = async (req, res) => {
           isSubUnique = true;
         } else {
           counter++;
-          uniqueSlug = `${baseSlug}-${counter}`;
+          const suffix = `-${counter}`;
+          uniqueSlug = baseSlug.substring(0, 63 - suffix.length).replace(/-+$/, '') + suffix;
         }
       }
 
@@ -407,7 +421,8 @@ exports.importGooglePlaces = async (req, res) => {
           isDirUnique = true;
         } else {
           dirCounter++;
-          uniqueDirSlug = `${baseSlug}-${dirCounter}`;
+          const suffix = `-${dirCounter}`;
+          uniqueDirSlug = baseSlug.substring(0, 63 - suffix.length).replace(/-+$/, '') + suffix;
         }
       }
 
