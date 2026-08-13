@@ -444,6 +444,14 @@ export default function Home({
     }
   };
 
+  const handleFreeBusinessListingClick = () => {
+    if (!user) {
+      window.location.href = '/register?role=BUSINESS_OWNER&intent=onboarding';
+    } else {
+      window.location.href = '/onboarding';
+    }
+  };
+
   return (
     <div style={{ width: '100%', minHeight: '100vh', backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)', display: 'flex', flexDirection: 'column', paddingBottom: '70px' }}>
       
@@ -506,7 +514,7 @@ export default function Home({
 
           <a href="#hiring" style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}>We Are Hiring</a>
           <a href="#advertise" style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}>Advertise</a>
-          <button onClick={onNavigateToRegister} style={{ background: 'rgba(255,152,0,0.15)', color: '#ff9800', border: '1px solid rgba(255,152,0,0.4)', padding: '0.35rem 0.75rem', borderRadius: '6px', fontWeight: 700, cursor: 'pointer' }}>
+          <button onClick={handleFreeBusinessListingClick} style={{ background: 'rgba(255,152,0,0.15)', color: '#ff9800', border: '1px solid rgba(255,152,0,0.4)', padding: '0.35rem 0.75rem', borderRadius: '6px', fontWeight: 700, cursor: 'pointer' }}>
             Free Business Listing
           </button>
           {user ? (
@@ -583,10 +591,10 @@ export default function Home({
 
       {/* Floating Side Action Badges (Desktop Only) */}
       <div className="desktop-only" style={{ position: 'fixed', right: 0, top: '40%', zIndex: 99, display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-        <button onClick={onNavigateToRegister} style={{ writingMode: 'vertical-rl', backgroundColor: '#3b82f6', color: '#fff', padding: '0.85rem 0.4rem', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px', border: 'none', fontWeight: 800, fontSize: '0.78rem', cursor: 'pointer' }}>
+        <button onClick={handleFreeBusinessListingClick} style={{ writingMode: 'vertical-rl', backgroundColor: '#3b82f6', color: '#fff', padding: '0.85rem 0.4rem', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px', border: 'none', fontWeight: 800, fontSize: '0.78rem', cursor: 'pointer' }}>
           Free Listing
         </button>
-        <button onClick={onNavigateToRegister} style={{ writingMode: 'vertical-rl', backgroundColor: '#f97316', color: '#fff', padding: '0.85rem 0.4rem', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px', border: 'none', fontWeight: 800, fontSize: '0.78rem', cursor: 'pointer' }}>
+        <button onClick={handleFreeBusinessListingClick} style={{ writingMode: 'vertical-rl', backgroundColor: '#f97316', color: '#fff', padding: '0.85rem 0.4rem', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px', border: 'none', fontWeight: 800, fontSize: '0.78rem', cursor: 'pointer' }}>
           Advertise
         </button>
       </div>

@@ -4,6 +4,9 @@ import { Compass, Heart, Star, Bell, Search, Tag, User, MapPin, Sparkles } from 
 import CustomerSidebar from './CustomerSidebar';
 import CustomerTopbar from './CustomerTopbar';
 import UserReferralDashboard from '../pages/referral/UserReferralDashboard';
+import MyEnquiriesTab from './MyEnquiriesTab';
+import SavedPlacesTab from './SavedPlacesTab';
+import MyReviewsTab from './MyReviewsTab';
 
 function CustomerDashboardLayout({ user, onLogout }) {
   // Persist active tab in localStorage
@@ -71,7 +74,7 @@ function CustomerDashboardLayout({ user, onLogout }) {
         {/* 3. SPA Content View */}
         <main style={{ flex: 1, padding: '2rem', maxWidth: '1200px', width: '100%', margin: '0 auto' }}>
           
-          {/* OVERVIEW TAB */}
+          {/* OVERVIEW / HUB TAB */}
           {activeTab === 'overview' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
               
@@ -99,7 +102,7 @@ function CustomerDashboardLayout({ user, onLogout }) {
                     Welcome back, <span className="gradient-text">{user?.name}</span>
                   </h2>
                   <p style={{ color: isDark ? '#cbd5e1' : '#64748b', fontSize: '0.9rem', margin: '0.35rem 0 0 0' }}>
-                    Explore local city businesses, post reviews, save your favorite spots & claim exclusive city offers.
+                    Track your business quote enquiries, manage bookmarked places, and post ratings.
                   </p>
                 </div>
               </div>
@@ -107,7 +110,7 @@ function CustomerDashboardLayout({ user, onLogout }) {
               {/* Quick Action Grid */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: '1.25rem' }}>
                 <div
-                  onClick={() => setActiveTab('explore-all')}
+                  onClick={() => setActiveTab('my-enquiries')}
                   style={{
                     display: 'flex',
                     alignItems: 'center',
@@ -123,8 +126,8 @@ function CustomerDashboardLayout({ user, onLogout }) {
                     <Search size={26} />
                   </div>
                   <div>
-                    <strong style={{ fontSize: '1.1rem', color: isDark ? '#fff' : '#0f172a', fontWeight: 800, display: 'block' }}>Explore Places</strong>
-                    <span style={{ fontSize: '0.82rem', color: isDark ? '#94a3b8' : '#64748b' }}>Discover top businesses</span>
+                    <strong style={{ fontSize: '1.1rem', color: isDark ? '#fff' : '#0f172a', fontWeight: 800, display: 'block' }}>My Enquiries</strong>
+                    <span style={{ fontSize: '0.82rem', color: isDark ? '#94a3b8' : '#64748b' }}>Quotes & 24H SLA tracker</span>
                   </div>
                 </div>
 
@@ -176,64 +179,14 @@ function CustomerDashboardLayout({ user, onLogout }) {
             </div>
           )}
 
-          {/* FAVORITES / REVIEWS PLACEHOLDER MODULES */}
-          {activeTab === 'favorites' && (
-            <div style={{
-              backgroundColor: isDark ? '#1e293b' : '#ffffff',
-              border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid #e2e8f0',
-              borderRadius: '16px',
-              padding: '2rem',
-              textAlign: 'center'
-            }}>
-              <Heart size={36} color="#ec4899" style={{ margin: '0 auto 0.75rem auto', display: 'block' }} />
-              <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: isDark ? '#fff' : '#0f172a', marginBottom: '0.5rem' }}>Saved Places & Favorites</h3>
-              <p style={{ color: isDark ? '#94a3b8' : '#64748b', fontSize: '0.9rem' }}>You have not bookmarked any local business listings yet. Click Explore to find places in your city.</p>
-            </div>
-          )}
+          {/* DEDICATED CUSTOMER MODULES */}
+          {activeTab === 'my-enquiries' && <MyEnquiriesTab theme={theme} />}
 
-          {activeTab === 'my-reviews' && (
-            <div style={{
-              backgroundColor: isDark ? '#1e293b' : '#ffffff',
-              border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid #e2e8f0',
-              borderRadius: '16px',
-              padding: '2rem',
-              textAlign: 'center'
-            }}>
-              <Star size={36} color="#fbbf24" style={{ margin: '0 auto 0.75rem auto', display: 'block' }} />
-              <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: isDark ? '#fff' : '#0f172a', marginBottom: '0.5rem' }}>My Posted Reviews</h3>
-              <p style={{ color: isDark ? '#94a3b8' : '#64748b', fontSize: '0.9rem' }}>Review history log of all local business feedback submitted via ManaCity QR codes & listings.</p>
-            </div>
-          )}
+          {activeTab === 'favorites' && <SavedPlacesTab theme={theme} />}
+
+          {activeTab === 'my-reviews' && <MyReviewsTab theme={theme} />}
 
           {activeTab === 'referrals' && <UserReferralDashboard theme={theme} />}
-
-          {(activeTab === 'explore' || activeTab === 'explore-all' || activeTab === 'explore-offers') && (
-            <div style={{
-              backgroundColor: isDark ? '#1e293b' : '#ffffff',
-              border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid #e2e8f0',
-              borderRadius: '16px',
-              padding: '2rem',
-              textAlign: 'center'
-            }}>
-              <Compass size={36} color="#38bdf8" style={{ margin: '0 auto 0.75rem auto', display: 'block' }} />
-              <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: isDark ? '#fff' : '#0f172a', marginBottom: '0.5rem' }}>Explore Local Businesses</h3>
-              <p style={{ color: isDark ? '#94a3b8' : '#64748b', fontSize: '0.9rem' }}>Browse local hotels, clinics, rice mills, retail stores, and exclusive city discount vouchers.</p>
-            </div>
-          )}
-
-          {activeTab === 'notifications' && (
-            <div style={{
-              backgroundColor: isDark ? '#1e293b' : '#ffffff',
-              border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid #e2e8f0',
-              borderRadius: '16px',
-              padding: '2rem',
-              textAlign: 'center'
-            }}>
-              <Bell size={36} color="#818cf8" style={{ margin: '0 auto 0.75rem auto', display: 'block' }} />
-              <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: isDark ? '#fff' : '#0f172a', marginBottom: '0.5rem' }}>Customer Notifications</h3>
-              <p style={{ color: isDark ? '#94a3b8' : '#64748b', fontSize: '0.9rem' }}>No new notifications.</p>
-            </div>
-          )}
 
           {activeTab === 'profile' && (
             <div style={{
@@ -246,6 +199,7 @@ function CustomerDashboardLayout({ user, onLogout }) {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.9rem' }}>
                 <div><strong style={{ color: isDark ? '#cbd5e1' : '#475569' }}>Name:</strong> {user?.name}</div>
                 <div><strong style={{ color: isDark ? '#cbd5e1' : '#475569' }}>Email:</strong> {user?.email}</div>
+                <div><strong style={{ color: isDark ? '#cbd5e1' : '#475569' }}>Mobile Number:</strong> {user?.phone || 'Not set'}</div>
                 <div><strong style={{ color: isDark ? '#cbd5e1' : '#475569' }}>Account Role:</strong> CUSTOMER</div>
               </div>
             </div>

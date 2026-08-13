@@ -14,7 +14,7 @@ import {
   Tag,
   Search,
   Bell,
-  Share2
+  Clock
 } from 'lucide-react';
 
 function CustomerSidebar({
@@ -35,21 +35,11 @@ function CustomerSidebar({
 
   const menuItems = [
     { id: 'overview', label: 'Customer Hub', icon: Compass, badge: null, color: '#f472b6' },
-    { id: 'referrals', label: 'Refer & Earn', icon: Share2, badge: 'EARN', color: '#34d399' },
-    {
-      id: 'explore',
-      label: 'Explore Local City',
-      icon: Search,
-      color: '#38bdf8',
-      subItems: [
-        { id: 'explore-all', label: 'Top Business Listings', icon: Compass },
-        { id: 'explore-offers', label: 'Local Discounts & Offers', icon: Tag }
-      ]
-    },
+    { id: 'my-enquiries', label: 'My Enquiries & Quotes', icon: Clock, badge: '24H SLA', color: '#38bdf8' },
     { id: 'favorites', label: 'Saved Businesses', icon: Heart, badge: null, color: '#ec4899' },
     { id: 'my-reviews', label: 'My Posted Reviews', icon: Star, badge: null, color: '#fbbf24' },
-    { id: 'notifications', label: 'Alerts & Messages', icon: Bell, badge: null, color: '#818cf8' },
-    { id: 'profile', label: 'My Account Profile', icon: User, badge: null, color: '#34d399' }
+    { id: 'referrals', label: 'Refer & Earn', icon: Share2, badge: 'EARN', color: '#34d399' },
+    { id: 'profile', label: 'My Account Profile', icon: User, badge: null, color: '#a855f7' }
   ];
 
   const handleParentClick = (item) => {
