@@ -864,14 +864,28 @@ export default function Home({
 
                   <h3
                     onClick={() => {
-                      const siteUrl = item.websiteUrl || `/site/${item.slug || 'kumar-shirts'}`;
-                      window.open(siteUrl, '_blank');
+                      const manacityUrl = item.subdomain
+                        ? `https://${item.subdomain}.manacity.in`
+                        : `/site/${item.slug || 'kumar-shirts'}`;
+                      window.open(manacityUrl, '_blank');
                     }}
                     style={{ fontSize: '1.15rem', fontWeight: 800, marginBottom: '0.35rem', color: '#f8fafc', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
                     title="Click to open business website"
                   >
                     {item.businessName}
-                    <ExternalLink size={14} color="#38bdf8" />
+                    <span
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const extUrl = item.websiteUrl || (item.subdomain
+                          ? `https://${item.subdomain}.manacity.in`
+                          : `/site/${item.slug || 'kumar-shirts'}`);
+                        window.open(extUrl, '_blank');
+                      }}
+                      style={{ display: 'inline-flex', alignItems: 'center', cursor: 'pointer' }}
+                      title="Open external website"
+                    >
+                      <ExternalLink size={14} color="#38bdf8" />
+                    </span>
                   </h3>
 
 
