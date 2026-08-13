@@ -38,11 +38,10 @@ export default function PublicBusinessWebsite() {
   }, [targetId]);
 
   useEffect(() => {
-    const bg = businessData?.businessGroup;
-    const letsTrackApiKey = bg?.letsTrackApiKey || businessData?.letsTrackApiKey;
+    const letsTrackWidgetId = websiteConfig?.letsTrackWidgetId;
 
-    if (letsTrackApiKey) {
-      window.LetsTrackConfig = { websiteId: letsTrackApiKey };
+    if (letsTrackWidgetId) {
+      window.LetsTrackConfig = { websiteId: letsTrackWidgetId };
 
       // Remove existing script/root if switching business/re-rendering
       const existingScript = document.getElementById('letstrack-widget-script');
@@ -57,11 +56,11 @@ export default function PublicBusinessWebsite() {
       const script = document.createElement('script');
       script.id = 'letstrack-widget-script';
       script.src = import.meta.env.VITE_LETSTRACK_WIDGET_URL || 'https://livechat.vrhere.in/widget/widget.js';
-      script.setAttribute('data-api-key', letsTrackApiKey);
+      script.setAttribute('data-api-key', letsTrackWidgetId);
       script.async = true;
       document.body.appendChild(script);
     }
-  }, [businessData]);
+  }, [websiteConfig]);
 
   const fetchWebsiteData = async () => {
     setLoading(true);

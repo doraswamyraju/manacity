@@ -104,7 +104,8 @@ function toPublicWebsiteDTO(website, businessGroup) {
       subtitle: sec.subtitle,
       settings: sec.settings
     })) : [],
-    businessGroup: toPublicBusinessDTO(businessGroup || website.businessGroup)
+    businessGroup: toPublicBusinessDTO(businessGroup || website.businessGroup),
+    letsTrackWidgetId: (businessGroup || website.businessGroup)?.letsTrackApiKey || null
   };
 }
 
