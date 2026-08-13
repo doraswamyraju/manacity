@@ -55,7 +55,7 @@ export default function PublicBusinessWebsite() {
 
       const script = document.createElement('script');
       script.id = 'letstrack-widget-script';
-      script.src = import.meta.env.VITE_LETSTRACK_WIDGET_URL || 'https://livechat.vrhere.in/widget/widget.js';
+      script.src = import.meta.env.VITE_LETSTRACK_WIDGET_URL || 'https://livechat.vrhere.in/widget.js';
       script.setAttribute('data-api-key', letsTrackWidgetId);
       script.async = true;
       document.body.appendChild(script);
