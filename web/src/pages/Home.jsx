@@ -82,8 +82,60 @@ export default function Home({
   const [unonboardedTargetBusiness, setUnonboardedTargetBusiness] = useState(null);
   const [claimModalInfo, setClaimModalInfo] = useState(null);
 
+  const [suggestions, setSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [searchingSuggestions, setSearchingSuggestions] = useState(false);
+
   const [leadForm, setLeadForm] = useState({ name: '', phone: '', email: '', message: '' });
   const [leadSubmitted, setLeadSubmitted] = useState(false);
+
+  useEffect(() => {
+    if (!query || query.trim().length < 2) {
+      setSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      setSearchingSuggestions(true);
+      try {
+        // 1. Internal DB search
+        const dbRes = await axios.get(`/api/phase1/directory/${selectedCity}/all?query=${encodeURIComponent(query)}&category=${encodeURIComponent(selectedCategory)}`);
+        const dbItems = (dbRes.data?.listings || []).slice(0, 4).map(item => ({
+          ...item,
+          isVerifiedManaCity: true
+        }));
+
+        // 2. Google Places Autocomplete search
+        let googleItems = [];
+        try {
+          const gRes = await axios.get(`/api/phase1/google-places/autocomplete?input=${encodeURIComponent(query)}`);
+          if (gRes.data?.predictions) {
+            googleItems = gRes.data.predictions.slice(0, 4).map(p => ({
+              id: p.placeId,
+              businessName: p.name || p.description,
+              address: p.description,
+              category: 'Google Business Result',
+              isVerifiedManaCity: false,
+              place_id: p.placeId
+            }));
+          }
+        } catch (e) {
+          console.warn('Google places autocomplete fallback:', e);
+        }
+
+        const combined = [...dbItems, ...googleItems];
+        setSuggestions(combined);
+        setShowSuggestions(combined.length > 0);
+      } catch (err) {
+        console.error('Fetch suggestions error:', err);
+      } finally {
+        setSearchingSuggestions(false);
+      }
+    }, 250);
+
+    return () => clearTimeout(timer);
+  }, [query, selectedCity, selectedCategory]);
 
   const cities = [
     { id: 'tirupati', name: 'Tirupati' },
@@ -469,16 +521,76 @@ export default function Home({
             </select>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#0f172a', padding: '0.65rem 1rem', borderRadius: '8px', flex: '3 1 260px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#0f172a', padding: '0.65rem 1rem', borderRadius: '8px', flex: '3 1 260px', position: 'relative' }}>
             <Search size={18} color="#94a3b8" />
             <input
               type="text"
               placeholder="Search for Spa, Salons, Rice Mills, SEO..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
+              onFocus={() => { if (suggestions.length > 0) setShowSuggestions(true); }}
               style={{ background: 'transparent', border: 'none', color: '#fff', width: '100%', outline: 'none', fontSize: '0.92rem' }}
             />
             <Mic size={18} color="#6366f1" style={{ cursor: 'pointer' }} />
+
+            {/* Live Autocomplete Suggestions Overlay Dropdown */}
+            {showSuggestions && (
+              <div style={{
+                position: 'absolute',
+                top: '100%',
+                left: 0,
+                right: 0,
+                marginTop: '8px',
+                backgroundColor: '#1e293b',
+                border: '1px solid #334155',
+                borderRadius: '8px',
+                boxShadow: '0 10px 25px rgba(0,0,0,0.6)',
+                zIndex: 1000,
+                maxHeight: '280px',
+                overflowY: 'auto'
+              }}>
+                {suggestions.map((item, idx) => (
+                  <div
+                    key={idx}
+                    onClick={() => {
+                      setShowSuggestions(false);
+                      if (item.isVerifiedManaCity) {
+                        const url = item.subdomain
+                          ? `https://${item.subdomain}.manacity.in`
+                          : `/site/${item.slug || 'kumar-shirts'}`;
+                        window.open(url, '_blank');
+                      } else {
+                        setUnonboardedTargetBusiness(item);
+                      }
+                    }}
+                    style={{
+                      padding: '10px 14px',
+                      borderBottom: '1px solid rgba(255,255,255,0.05)',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#0f172a'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                  >
+                    <div>
+                      <div style={{ fontSize: '13px', fontWeight: '700', color: '#fff' }}>{item.businessName}</div>
+                      <div style={{ fontSize: '11px', color: '#94a3b8' }}>{item.address || item.category}</div>
+                    </div>
+                    {item.isVerifiedManaCity ? (
+                      <span style={{ fontSize: '10px', fontWeight: '700', color: '#38bdf8', backgroundColor: 'rgba(56,189,248,0.15)', padding: '2px 6px', borderRadius: '4px' }}>
+                        Verified Page
+                      </span>
+                    ) : (
+                      <span style={{ fontSize: '10px', fontWeight: '700', color: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.15)', padding: '2px 6px', borderRadius: '4px' }}>
+                        Enquire
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           <button type="submit" className="btn btn-primary" style={{ padding: '0.65rem 1.75rem', borderRadius: '8px', fontWeight: 800, background: '#38bdf8', color: '#0f172a', width: '100%', maxWidth: '120px' }}>
