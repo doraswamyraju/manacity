@@ -156,10 +156,12 @@ exports.deleteLocation = async (req, res) => {
 
     await prisma.location.delete({ where: { id } });
 
-    // Also delete DirectoryListing if no locations remain for this business
+    // Also delete DirectoryListing, Website, and BusinessGroup if no locations remain for this business
     const remainingLocs = await prisma.location.count({ where: { businessGroupId: bgId } });
     if (remainingLocs === 0) {
       await prisma.directoryListing.deleteMany({ where: { businessGroupId: bgId } });
+      await prisma.website.deleteMany({ where: { businessGroupId: bgId } });
+      await prisma.businessGroup.delete({ where: { id: bgId } });
     }
 
     res.json({

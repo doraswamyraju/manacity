@@ -240,6 +240,18 @@ exports.importGooglePlaces = async (req, res) => {
       }
     }
 
+    if (resolvedPlaceId && ownerId) {
+      const alreadyClaimed = await prisma.businessGroup.findFirst({
+        where: {
+          googlePlaceId: resolvedPlaceId,
+          ownerId: { not: ownerId }
+        }
+      });
+      if (alreadyClaimed) {
+        return res.status(400).json({ error: 'This business has already been claimed and registered by another user on ManaCity.' });
+      }
+    }
+
     const parsed = parseAddressParts(fetchedData.address);
     const safeCity = (parsed.city || 'general').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'general';
     const storeSlug = fetchedData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'my-business';
