@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { GoogleLogin } from '@react-oauth/google';
-import { Building2, UserCheck, ShieldCheck, Sparkles, Check } from 'lucide-react';
+import { Building2, UserCheck, User, ShieldCheck, Sparkles, Check } from 'lucide-react';
 
 function Register({ onAuthSuccess, onNavigateToLogin }) {
   const [role, setRole] = useState('BUSINESS_OWNER'); // BUSINESS_OWNER or CUSTOMER
