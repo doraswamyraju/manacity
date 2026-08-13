@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import ClaimBusinessModal from '../components/ClaimBusinessModal';
 import UnonboardedEnquiryModal from '../components/UnonboardedEnquiryModal';
@@ -60,6 +60,22 @@ export default function Home({
   const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(false);
   const [themeMode, setThemeMode] = useState('dark');
+
+  const heroSearchRef = useRef(null);
+  const [isHeroSearchVisible, setIsHeroSearchVisible] = useState(true);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsHeroSearchVisible(entry.isIntersecting);
+      },
+      { threshold: 0.1 }
+    );
+    if (heroSearchRef.current) {
+      observer.observe(heroSearchRef.current);
+    }
+    return () => observer.disconnect();
+  }, []);
 
   const toggleTheme = () => {
     const nextTheme = themeMode === 'dark' ? 'light' : 'dark';
@@ -560,8 +576,8 @@ export default function Home({
           Search across <span style={{ color: '#38bdf8' }}>'10,000+' Verified Businesses</span>
         </h1>
 
-        {/* Integrated Search Bar */}
-        <form onSubmit={handleSearchSubmit} style={{
+        {/* Integrated Search Bar (City selector removed from hero, accessible via header locality) */}
+        <form ref={heroSearchRef} onSubmit={handleSearchSubmit} style={{
           display: 'flex',
           flexWrap: 'wrap',
           gap: '0.5rem',
@@ -572,18 +588,7 @@ export default function Home({
           border: '1px solid rgba(255, 255, 255, 0.1)',
           marginBottom: '1.5rem'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#0f172a', padding: '0.65rem 1rem', borderRadius: '8px', flex: '1 1 180px' }}>
-            <MapPin size={18} color="#38bdf8" />
-            <select
-              value={selectedCity}
-              onChange={(e) => setSelectedCity(e.target.value)}
-              style={{ background: 'transparent', border: 'none', color: '#fff', width: '100%', outline: 'none', fontWeight: 700, textTransform: 'capitalize' }}
-            >
-              {cities.map(c => <option key={c.id} value={c.id} style={{ backgroundColor: '#0f172a' }}>{c.name}</option>)}
-            </select>
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#0f172a', padding: '0.65rem 1rem', borderRadius: '8px', flex: '3 1 260px', position: 'relative' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#0f172a', padding: '0.65rem 1rem', borderRadius: '8px', flex: '1 1 300px', position: 'relative' }}>
             <Search size={18} color="#94a3b8" />
             <input
               type="text"
@@ -1427,6 +1432,45 @@ export default function Home({
           {user ? 'Account' : 'Sign In'}
         </button>
       </nav>
+
+      {/* Gemini-Style Creative Floating Search Bar (Appears when scrolled away from Hero) */}
+      {!isHeroSearchVisible && (
+        <div
+          onClick={() => setShowMobileSearchModal(true)}
+          style={{
+            position: 'fixed',
+            bottom: '24px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 999,
+            width: '92%',
+            maxWidth: '560px',
+            background: 'linear-gradient(135deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.95))',
+            backdropFilter: 'blur(20px)',
+            border: '1.5px solid rgba(56, 189, 248, 0.4)',
+            borderRadius: '35px',
+            padding: '10px 18px',
+            display: 'flex',
+            alignItems: 'center',
+            justify: 'space-between',
+            boxShadow: '0 12px 35px rgba(0, 0, 0, 0.6), 0 0 25px rgba(56, 189, 248, 0.25)',
+            cursor: 'pointer'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1, overflow: 'hidden' }}>
+            <Sparkles size={20} color="#38bdf8" style={{ flexShrink: 0 }} />
+            <span style={{ fontSize: '0.9rem', color: '#94a3b8', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              {query ? query : `Search anything in ${selectedCity}...`}
+            </span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
+            <Mic size={18} color="#6366f1" />
+            <div style={{ backgroundColor: '#38bdf8', color: '#0f172a', borderRadius: '50%', width: '34px', height: '34px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800 }}>
+              <Search size={16} />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Phone Collection Modal for Auth Guard */}
       <PhoneCollectionModal
