@@ -14,7 +14,8 @@ import {
   Tag,
   Search,
   Bell,
-  Clock
+  Clock,
+  Share2
 } from 'lucide-react';
 
 function CustomerSidebar({

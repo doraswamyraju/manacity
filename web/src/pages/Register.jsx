@@ -4,7 +4,10 @@ import { GoogleLogin } from '@react-oauth/google';
 import { Building2, UserCheck, User, ShieldCheck, Sparkles, Check } from 'lucide-react';
 
 function Register({ onAuthSuccess, onNavigateToLogin }) {
-  const [role, setRole] = useState('BUSINESS_OWNER'); // BUSINESS_OWNER or CUSTOMER
+  const [role, setRole] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('role') || 'CUSTOMER'; // Defaults to CUSTOMER unless specified
+  });
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
