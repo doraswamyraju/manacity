@@ -324,14 +324,14 @@ exports.saveWebsite = async (req, res) => {
         ...updateData,
         sections: {
           create: [
-            { type: 'HEADER', enabled: true, displayOrder: 0 },
-            { type: 'HERO', enabled: true, displayOrder: 1 },
-            { type: 'ABOUT', enabled: true, displayOrder: 2 },
-            { type: 'SERVICES', enabled: true, displayOrder: 3 },
-            { type: 'PRODUCTS', enabled: true, displayOrder: 4 },
-            { type: 'REVIEWS', enabled: true, displayOrder: 5 },
-            { type: 'CONTACT', enabled: true, displayOrder: 6 },
-            { type: 'FOOTER', enabled: true, displayOrder: 7 }
+            { type: 'HEADER', enabled: true, displayOrder: 0, settings: {} },
+            { type: 'HERO', enabled: true, displayOrder: 1, settings: {} },
+            { type: 'ABOUT', enabled: true, displayOrder: 2, settings: {} },
+            { type: 'SERVICES', enabled: true, displayOrder: 3, settings: {} },
+            { type: 'PRODUCTS', enabled: true, displayOrder: 4, settings: {} },
+            { type: 'REVIEWS', enabled: true, displayOrder: 5, settings: {} },
+            { type: 'CONTACT', enabled: true, displayOrder: 6, settings: {} },
+            { type: 'FOOTER', enabled: true, displayOrder: 7, settings: {} }
           ]
         }
       },
