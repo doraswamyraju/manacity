@@ -7,6 +7,7 @@ function Register({ onAuthSuccess, onNavigateToLogin }) {
   const [role, setRole] = useState('BUSINESS_OWNER'); // BUSINESS_OWNER or CUSTOMER
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [allowPlacesAccess, setAllowPlacesAccess] = useState(true);
   const [loading, setLoading] = useState(false);
@@ -14,8 +15,8 @@ function Register({ onAuthSuccess, onNavigateToLogin }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!name || !email || !password) {
-      setError('Please fill in all required fields.');
+    if (!name || !email || !password || !phone) {
+      setError('Please fill in all required fields including your mobile number.');
       return;
     }
 
@@ -26,6 +27,7 @@ function Register({ onAuthSuccess, onNavigateToLogin }) {
       const response = await axios.post('/api/auth/register', {
         name,
         email,
+        phone,
         password,
         role,
         allowPlacesAccess: role === 'BUSINESS_OWNER' ? allowPlacesAccess : false
@@ -191,6 +193,26 @@ function Register({ onAuthSuccess, onNavigateToLogin }) {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="name@company.com"
+              required
+              style={{
+                padding: '0.65rem 0.85rem',
+                backgroundColor: '#0f172a',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                borderRadius: '8px',
+                color: '#fff',
+                fontSize: '0.9rem',
+                outline: 'none'
+              }}
+            />
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', textAlign: 'left' }}>
+            <label style={{ fontSize: '0.82rem', fontWeight: 600, color: '#cbd5e1' }}>10-Digit Mobile Number *</label>
+            <input 
+              type="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="+91 98765 43210"
               required
               style={{
                 padding: '0.65rem 0.85rem',

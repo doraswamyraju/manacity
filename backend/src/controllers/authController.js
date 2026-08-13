@@ -15,7 +15,7 @@ const generateToken = (userId) => {
 // 1. Email/Password Registration
 exports.register = async (req, res) => {
   try {
-    const { email, password, name } = req.body;
+    const { email, password, name, phone } = req.body;
 
     if (!email || !password || !name) {
       return res.status(400).json({ error: 'All fields (email, password, name) are required.' });
@@ -39,6 +39,7 @@ exports.register = async (req, res) => {
         email,
         passwordHash,
         name,
+        phone: phone || null,
         role: requestedRole
       }
     });
@@ -311,5 +312,36 @@ exports.deleteAccount = async (req, res) => {
   } catch (error) {
     console.error('Account deletion error:', error);
     res.status(500).json({ error: 'Failed to process account deletion.' });
+  }
+};
+
+// 6. Update User Phone Number
+exports.updatePhone = async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    const { phone } = req.body;
+
+    if (!userId || !phone) {
+      return res.status(400).json({ error: 'Phone number is required.' });
+    }
+
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: { phone }
+    });
+
+    return res.json({
+      status: 'success',
+      user: {
+        id: updatedUser.id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        phone: updatedUser.phone,
+        role: updatedUser.role
+      }
+    });
+  } catch (error) {
+    console.error('Update phone error:', error);
+    return res.status(500).json({ error: 'Failed to update phone number.' });
   }
 };

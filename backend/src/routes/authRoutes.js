@@ -8,6 +8,7 @@ router.post('/register', authController.register);
 router.post('/login', authController.login);
 router.post('/google', authController.googleAuth);
 router.get('/me', auth, authController.getMe);
+router.post('/update-phone', auth, authController.updatePhone);
 router.post('/delete-account', authController.deleteAccount);
 
 module.exports = router;

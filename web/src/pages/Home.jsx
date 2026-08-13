@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import ClaimBusinessModal from '../components/ClaimBusinessModal';
 import UnonboardedEnquiryModal from '../components/UnonboardedEnquiryModal';
+import PhoneCollectionModal from '../components/PhoneCollectionModal';
 import {
   Search,
   MapPin,
@@ -82,12 +83,55 @@ export default function Home({
   const [unonboardedTargetBusiness, setUnonboardedTargetBusiness] = useState(null);
   const [claimModalInfo, setClaimModalInfo] = useState(null);
 
+  const [showPhoneModal, setShowPhoneModal] = useState(false);
+  const [pendingEnquiryAction, setPendingEnquiryAction] = useState(null);
+
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [searchingSuggestions, setSearchingSuggestions] = useState(false);
 
   const [leadForm, setLeadForm] = useState({ name: '', phone: '', email: '', message: '' });
   const [leadSubmitted, setLeadSubmitted] = useState(false);
+
+  // Automatic Browser Geolocation Detection on Load
+  useEffect(() => {
+    if ('geolocation' in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          if (latitude >= 13.4 && latitude <= 13.8 && longitude >= 79.2 && longitude <= 79.6) {
+            setSelectedCity('tirupati');
+          } else if (latitude >= 17.2 && latitude <= 17.6 && longitude >= 78.2 && longitude <= 78.6) {
+            setSelectedCity('hyderabad');
+          } else if (latitude >= 16.4 && latitude <= 16.7 && longitude >= 80.5 && longitude <= 80.8) {
+            setSelectedCity('vijayawada');
+          } else if (latitude >= 17.6 && latitude <= 17.9 && longitude >= 83.1 && longitude <= 83.4) {
+            setSelectedCity('visakhapatnam');
+          } else if (latitude >= 12.9 && latitude <= 13.3 && longitude >= 80.1 && longitude <= 80.3) {
+            setSelectedCity('chennai');
+          } else if (latitude >= 12.8 && latitude <= 13.1 && longitude >= 77.4 && longitude <= 77.8) {
+            setSelectedCity('bangalore');
+          }
+        },
+        (err) => console.log('Geolocation info:', err.message),
+        { timeout: 8000 }
+      );
+    }
+  }, []);
+
+  // Guard all enquiry actions with Mandatory Login + Phone check
+  const handleEnquiryAuthGuard = (actionCallback) => {
+    if (!user) {
+      onNavigateToLogin();
+      return;
+    }
+    if (!user.phone) {
+      setPendingEnquiryAction(() => actionCallback);
+      setShowPhoneModal(true);
+      return;
+    }
+    actionCallback();
+  };
 
   useEffect(() => {
     if (!query || query.trim().length < 2) {
@@ -314,25 +358,29 @@ export default function Home({
     fetchListings();
   };
 
-  const handleCallClick = async (listing) => {
-    try {
-      await axios.post('/api/phase1/lead', {
-        businessGroupId: listing.id,
-        channel: 'CALL'
-      });
-    } catch (e) {}
-    window.location.href = `tel:${listing.phone}`;
+  const handleCallClick = (listing) => {
+    handleEnquiryAuthGuard(async () => {
+      try {
+        await axios.post('/api/phase1/lead', {
+          businessGroupId: listing.id,
+          channel: 'CALL'
+        });
+      } catch (e) {}
+      window.location.href = `tel:${listing.phone}`;
+    });
   };
 
-  const handleWhatsAppClick = async (listing) => {
-    try {
-      await axios.post('/api/phase1/lead', {
-        businessGroupId: listing.id,
-        channel: 'WHATSAPP'
-      });
-    } catch (e) {}
-    const text = encodeURIComponent(`Hi ${listing.businessName}, I found your business on ManaCity.in and would like to get a quote.`);
-    window.open(`https://wa.me/${listing.whatsApp.replace(/[^0-9]/g, '')}?text=${text}`, '_blank');
+  const handleWhatsAppClick = (listing) => {
+    handleEnquiryAuthGuard(async () => {
+      try {
+        await axios.post('/api/phase1/lead', {
+          businessGroupId: listing.id,
+          channel: 'WHATSAPP'
+        });
+      } catch (e) {}
+      const text = encodeURIComponent(`Hi ${listing.businessName}, I found your business on ManaCity.in and would like to get a quote.`);
+      window.open(`https://wa.me/${listing.whatsApp.replace(/[^0-9]/g, '')}?text=${text}`, '_blank');
+    });
   };
 
   const handleLeadSubmit = async (e) => {
@@ -375,11 +423,25 @@ export default function Home({
         zIndex: 100
       }}>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <img src="/logo.png" alt="ManaCity Logo" style={{ height: '32px' }} />
-          <span className="desktop-only" style={{ fontSize: '0.78rem', padding: '0.25rem 0.65rem', borderRadius: '12px', background: 'linear-gradient(90deg, #6366f1, #a855f7)', color: '#fff', fontWeight: 800 }}>
-            ManaCity Directory
-          </span>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <img src="/logo.png" alt="ManaCity Logo" style={{ height: '32px' }} />
+            <span className="desktop-only" style={{ fontSize: '0.78rem', padding: '0.25rem 0.65rem', borderRadius: '12px', background: 'linear-gradient(90deg, #6366f1, #a855f7)', color: '#fff', fontWeight: 800 }}>
+              ManaCity Directory
+            </span>
+          </div>
+          {/* City selector placed directly under logo */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', color: '#38bdf8', fontSize: '0.78rem', fontWeight: 700 }}>
+            <MapPin size={13} color="#38bdf8" />
+            <span>Locality:</span>
+            <select
+              value={selectedCity}
+              onChange={(e) => setSelectedCity(e.target.value)}
+              style={{ background: 'transparent', border: 'none', color: '#38bdf8', outline: 'none', fontWeight: 800, textTransform: 'capitalize', cursor: 'pointer' }}
+            >
+              {cities.map(c => <option key={c.id} value={c.id} style={{ backgroundColor: '#0f172a', color: '#fff' }}>{c.name}</option>)}
+            </select>
+          </div>
         </div>
 
         {/* Desktop Header Links */}
@@ -1365,6 +1427,113 @@ export default function Home({
           {user ? 'Account' : 'Sign In'}
         </button>
       </nav>
+
+      {/* Phone Collection Modal for Auth Guard */}
+      <PhoneCollectionModal
+        isOpen={showPhoneModal}
+        onClose={() => setShowPhoneModal(false)}
+        token={localStorage.getItem('token')}
+        onSuccess={(updatedUser) => {
+          localStorage.setItem('user', JSON.stringify(updatedUser));
+          if (pendingEnquiryAction) {
+            pendingEnquiryAction();
+            setPendingEnquiryAction(null);
+          }
+        }}
+      />
+
+      {/* Floating Bottom Navigation Search Drawer Overlay */}
+      {showMobileSearchModal && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(15,23,42,0.92)', backdropFilter: 'blur(16px)', zIndex: 9999, padding: '1.5rem', display: 'flex', flexDirection: 'column' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+            <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: '#fff', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Search size={22} color="#38bdf8" /> Search Businesses
+            </h3>
+            <button onClick={() => setShowMobileSearchModal(false)} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }}>
+              <X size={24} />
+            </button>
+          </div>
+
+          <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '8px', padding: '0.5rem 0.75rem', color: '#38bdf8', fontSize: '0.85rem', fontWeight: 700 }}>
+              <MapPin size={16} />
+              <select
+                value={selectedCity}
+                onChange={(e) => setSelectedCity(e.target.value)}
+                style={{ background: 'transparent', border: 'none', color: '#38bdf8', outline: 'none', fontWeight: 800, textTransform: 'capitalize' }}
+              >
+                {cities.map(c => <option key={c.id} value={c.id} style={{ backgroundColor: '#0f172a', color: '#fff' }}>{c.name}</option>)}
+              </select>
+            </div>
+          </div>
+
+          <div style={{ position: 'relative', marginBottom: '1rem' }}>
+            <input
+              type="text"
+              autoFocus
+              placeholder="Search for Spa, Salons, Rice Mills, SEO..."
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              style={{ width: '100%', padding: '0.85rem 1rem', borderRadius: '10px', backgroundColor: '#1e293b', border: '1px solid #38bdf8', color: '#fff', fontSize: '1rem', outline: 'none' }}
+            />
+          </div>
+
+          <div style={{ overflowY: 'auto', flex: 1 }}>
+            {suggestions.length > 0 ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                {suggestions.map((item, idx) => (
+                  <div
+                    key={idx}
+                    style={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '10px', padding: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                  >
+                    <div>
+                      <div style={{ fontSize: '14px', fontWeight: '700', color: '#fff' }}>{item.businessName}</div>
+                      <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '2px' }}>{item.address || item.category}</div>
+                    </div>
+                    {item.isVerifiedManaCity ? (
+                      <div style={{ display: 'flex', gap: '6px' }}>
+                        <button
+                          onClick={() => {
+                            setShowMobileSearchModal(false);
+                            const url = item.subdomain ? `https://${item.subdomain}.manacity.in` : `/site/${item.slug || 'kumar-shirts'}`;
+                            window.open(url, '_blank');
+                          }}
+                          style={{ backgroundColor: 'rgba(56,189,248,0.2)', color: '#38bdf8', border: '1px solid #38bdf8', padding: '4px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: 700, cursor: 'pointer' }}
+                        >
+                          Visit
+                        </button>
+                        <button
+                          onClick={() => {
+                            setShowMobileSearchModal(false);
+                            handleEnquiryAuthGuard(() => setSelectedLeadModal(item));
+                          }}
+                          style={{ backgroundColor: '#10b981', color: '#fff', border: 'none', padding: '4px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: 700, cursor: 'pointer' }}
+                        >
+                          Enquire
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => {
+                          setShowMobileSearchModal(false);
+                          handleEnquiryAuthGuard(() => setUnonboardedTargetBusiness(item));
+                        }}
+                        style={{ backgroundColor: '#f59e0b', color: '#0f172a', border: 'none', padding: '5px 12px', borderRadius: '6px', fontSize: '11px', fontWeight: 800, cursor: 'pointer' }}
+                      >
+                        Enquire
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div style={{ textAlign: 'center', padding: '2rem 1rem', color: '#94a3b8', fontSize: '0.9rem' }}>
+                Type a business name or service category to search across {selectedCity}.
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Claim Business Modal */}
       <ClaimBusinessModal

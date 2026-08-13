@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { X, Send, Clock, CheckCircle2, ShieldCheck, Building2 } from 'lucide-react';
 
@@ -13,6 +13,18 @@ export default function UnonboardedEnquiryModal({ isOpen, onClose, targetBusines
   const [submittedLead, setSubmittedLead] = useState(null);
   const [alternatives, setAlternatives] = useState([]);
   const [error, setError] = useState(null);
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('user');
+      if (stored) {
+        const u = JSON.parse(stored);
+        if (u.name) setCustomerName(u.name);
+        if (u.phone) setCustomerPhone(u.phone);
+        if (u.email) setCustomerEmail(u.email);
+      }
+    } catch (e) {}
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
