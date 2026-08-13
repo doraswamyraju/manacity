@@ -277,8 +277,9 @@ exports.saveOnboardingStep = async (req, res) => {
 
     const businessGroupId = businessGroup.id;
     let updateData = { setupStep: Number(step) };
+    const stepSaved = Number(step) - 1;
 
-    if (step === 1) {
+    if (stepSaved === 1) {
       // Business Info
       updateData.name = data.name || businessGroup.name;
       updateData.description = data.description !== undefined ? data.description : businessGroup.description;
@@ -312,14 +313,14 @@ exports.saveOnboardingStep = async (req, res) => {
           }
         });
       }
-    } else if (step === 2) {
+    } else if (stepSaved === 2) {
       // Contact Info
       updateData.mobileNumber = data.mobileNumber !== undefined ? data.mobileNumber : businessGroup.mobileNumber;
       updateData.whatsAppNumber = data.whatsAppNumber !== undefined ? data.whatsAppNumber : businessGroup.whatsAppNumber;
       updateData.email = data.email !== undefined ? data.email : businessGroup.email;
       updateData.website = data.website !== undefined ? data.website : businessGroup.website;
       updateData.supportEmail = data.supportEmail !== undefined ? data.supportEmail : businessGroup.supportEmail;
-    } else if (step === 3) {
+    } else if (stepSaved === 3) {
       // Address & Google Review Collection Link
       updateData.country = data.country !== undefined ? data.country : businessGroup.country;
       updateData.state = data.state !== undefined ? data.state : businessGroup.state;
@@ -330,7 +331,7 @@ exports.saveOnboardingStep = async (req, res) => {
       updateData.googleMapsLink = data.googleMapsLink !== undefined ? data.googleMapsLink : businessGroup.googleMapsLink;
       updateData.googleReviewUrl = data.googleReviewUrl !== undefined ? data.googleReviewUrl : businessGroup.googleReviewUrl;
       updateData.googlePlaceId = data.googlePlaceId !== undefined ? data.googlePlaceId : businessGroup.googlePlaceId;
-    } else if (step === 4) {
+    } else if (stepSaved === 4) {
       // Business Details: Working Days, Business Hours, Languages, Services, Products, Documents (GST, etc.)
       if (data.workingDays) {
         updateData.workingDays = data.workingDays;
@@ -398,7 +399,7 @@ exports.saveOnboardingStep = async (req, res) => {
           });
         }
       }
-    } else if (step === 5) {
+    } else if (stepSaved === 5) {
       // Social Links
       updateData.socialFacebook = data.socialFacebook !== undefined ? data.socialFacebook : businessGroup.socialFacebook;
       updateData.socialInstagram = data.socialInstagram !== undefined ? data.socialInstagram : businessGroup.socialInstagram;
