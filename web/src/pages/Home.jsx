@@ -579,11 +579,40 @@ export default function Home({
                       <div style={{ fontSize: '11px', color: '#94a3b8' }}>{item.address || item.category}</div>
                     </div>
                     {item.isVerifiedManaCity ? (
-                      <span style={{ fontSize: '10px', fontWeight: '700', color: '#38bdf8', backgroundColor: 'rgba(56,189,248,0.15)', padding: '2px 6px', borderRadius: '4px' }}>
-                        Verified Page
-                      </span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setShowSuggestions(false);
+                            const url = item.subdomain
+                              ? `https://${item.subdomain}.manacity.in`
+                              : `/site/${item.slug || 'kumar-shirts'}`;
+                            window.open(url, '_blank');
+                          }}
+                          style={{ fontSize: '10px', fontWeight: '700', color: '#38bdf8', backgroundColor: 'rgba(56,189,248,0.15)', padding: '3px 8px', borderRadius: '4px', cursor: 'pointer' }}
+                        >
+                          Verified Page
+                        </span>
+                        <span
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setShowSuggestions(false);
+                            setSelectedLeadModal(item);
+                          }}
+                          style={{ fontSize: '10px', fontWeight: '700', color: '#10b981', backgroundColor: 'rgba(16,185,129,0.15)', padding: '3px 8px', borderRadius: '4px', cursor: 'pointer' }}
+                        >
+                          Enquire
+                        </span>
+                      </div>
                     ) : (
-                      <span style={{ fontSize: '10px', fontWeight: '700', color: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.15)', padding: '2px 6px', borderRadius: '4px' }}>
+                      <span
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowSuggestions(false);
+                          setUnonboardedTargetBusiness(item);
+                        }}
+                        style={{ fontSize: '10px', fontWeight: '700', color: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.15)', padding: '3px 8px', borderRadius: '4px', cursor: 'pointer' }}
+                      >
                         Enquire
                       </span>
                     )}

@@ -277,30 +277,22 @@ export default function WebsiteBuilder({ onBack }) {
           <h3 style={editorHeaderStyle}>Theme & Colors</h3>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', gridColumn: '1 / -1' }}>
-              <label style={{ fontSize: '0.85rem', fontWeight: 700, color: '#38bdf8' }}>Select Website Template (6 Pre-built Layouts)</label>
+              <label style={{ fontSize: '0.85rem', fontWeight: 700, color: '#38bdf8' }}>Select Website Template</label>
               <select value={theme} onChange={(e) => {
                 const newTheme = e.target.value;
                 setTheme(newTheme);
-                const colors = { 'modern-corporate': '#6366f1', 'e-commerce': '#10b981', 'service-booking': '#38bdf8', 'restaurant-menu': '#f43f5e', 'clinic-healthcare': '#c084fc', 'light-minimal': '#0ea5e9' };
+                const colors = { 'modern-corporate': '#6366f1', 'light-minimal': '#0ea5e9' };
                 if (colors[newTheme]) setPrimaryColor(colors[newTheme]);
               }} style={{ ...inputStyle, fontWeight: 700, backgroundColor: '#0f172a' }}>
-                <option value="modern-corporate">1. Modern Corporate (Sleek Dark & Glass)</option>
-                <option value="e-commerce">2. E-Commerce Storefront (Products & Buy Buttons)</option>
-                <option value="service-booking">3. Service & Appointment Booking</option>
-                <option value="restaurant-menu">4. Restaurant & Dining Menu Layout</option>
-                <option value="clinic-healthcare">5. Clinic & Healthcare Portal</option>
-                <option value="light-minimal">6. Elegant Light Mode (Clean White & Modern Minimalist)</option>
+                <option value="modern-corporate">1. Dark Mode Template (Sleek Dark & Glass)</option>
+                <option value="light-minimal">2. Light Mode Template (Clean White & Vibrant)</option>
               </select>
 
               {/* Visual Template Cards */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem', marginTop: '0.5rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.75rem', marginTop: '0.5rem' }}>
                 {[
-                  { id: 'modern-corporate', name: 'Corporate', color: '#6366f1' },
-                  { id: 'e-commerce', name: 'Storefront', color: '#10b981' },
-                  { id: 'service-booking', name: 'Services', color: '#38bdf8' },
-                  { id: 'restaurant-menu', name: 'Dining', color: '#f43f5e' },
-                  { id: 'clinic-healthcare', name: 'Clinic', color: '#c084fc' },
-                  { id: 'light-minimal', name: 'Light Mode', color: '#0ea5e9' }
+                  { id: 'modern-corporate', name: 'Dark Mode Template', color: '#6366f1' },
+                  { id: 'light-minimal', name: 'Light Mode Template', color: '#0ea5e9' }
                 ].map(tmpl => (
                   <div
                     key={tmpl.id}
@@ -312,10 +304,10 @@ export default function WebsiteBuilder({ onBack }) {
                       border: theme === tmpl.id ? `2px solid ${tmpl.color}` : '1px solid rgba(255,255,255,0.1)',
                       backgroundColor: theme === tmpl.id ? `${tmpl.color}20` : '#0f172a',
                       borderRadius: '8px',
-                      padding: '0.5rem 0.25rem',
+                      padding: '0.65rem 0.5rem',
                       textAlign: 'center',
                       cursor: 'pointer',
-                      fontSize: '0.75rem',
+                      fontSize: '0.8rem',
                       fontWeight: 700,
                       color: theme === tmpl.id ? '#fff' : '#94a3b8'
                     }}

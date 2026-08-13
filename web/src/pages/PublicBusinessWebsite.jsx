@@ -158,7 +158,11 @@ export default function PublicBusinessWebsite() {
     );
   }
 
-  const bg = businessData.businessGroup || {};
+  const bg = {
+    ...(businessData.businessGroup || {}),
+    services: businessData.services || businessData.businessGroup?.services || [],
+    products: businessData.products || businessData.businessGroup?.products || []
+  };
   const theme = websiteConfig?.theme || 'modern-corporate';
   const primaryColor = websiteConfig?.primaryColor || '#6366f1';
   const secondaryColor = websiteConfig?.secondaryColor || '#a855f7';
