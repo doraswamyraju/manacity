@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import ClaimBusinessModal from '../components/ClaimBusinessModal';
+import UnonboardedEnquiryModal from '../components/UnonboardedEnquiryModal';
 import {
   Search,
   MapPin,
@@ -76,6 +78,9 @@ export default function Home({
   const [selectedLeadModal, setSelectedLeadModal] = useState(null);
   const [showMobileSearchModal, setShowMobileSearchModal] = useState(false);
   const [showCategoriesModal, setShowCategoriesModal] = useState(false);
+
+  const [unonboardedTargetBusiness, setUnonboardedTargetBusiness] = useState(null);
+  const [claimModalInfo, setClaimModalInfo] = useState(null);
 
   const [leadForm, setLeadForm] = useState({ name: '', phone: '', email: '', message: '' });
   const [leadSubmitted, setLeadSubmitted] = useState(false);
@@ -1219,6 +1224,20 @@ export default function Home({
           {user ? 'Account' : 'Sign In'}
         </button>
       </nav>
+
+      {/* Claim Business Modal */}
+      <ClaimBusinessModal
+        isOpen={!!claimModalInfo}
+        onClose={() => setClaimModalInfo(null)}
+        businessInfo={claimModalInfo}
+      />
+
+      {/* Unonboarded Business Enquiry Modal */}
+      <UnonboardedEnquiryModal
+        isOpen={!!unonboardedTargetBusiness}
+        onClose={() => setUnonboardedTargetBusiness(null)}
+        targetBusiness={unonboardedTargetBusiness}
+      />
 
       {/* Footer */}
       <footer style={{ marginTop: 'auto', padding: '2rem 1.5rem', textAlign: 'center', borderTop: '1px solid rgba(255, 255, 255, 0.08)', color: '#64748b', fontSize: '0.85rem' }}>

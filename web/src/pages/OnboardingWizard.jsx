@@ -128,6 +128,19 @@ function StepBusinessInfo({ initialData, onNext, onAutoFill }) {
     setError('');
     setImportSuccess(false);
     try {
+      if (selectedPlaceId) {
+        const checkRes = await axios.get(`/api/claims/check-exists?googlePlaceId=${selectedPlaceId}`);
+        if (checkRes.data?.exists) {
+          setImporting(false);
+          if (props.onExistingBusinessClaim) {
+            props.onExistingBusinessClaim(checkRes.data.businessInfo);
+          } else {
+            setError(`${checkRes.data.message} You can claim ownership of this business profile using proof of business document.`);
+          }
+          return;
+        }
+      }
+
       // Send Google Places Search & Import request with optional placeId
       const res = await axios.post('/api/phase1/google-places/import', {
         businessName: placesQuery,

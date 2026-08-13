@@ -720,5 +720,39 @@ model ReferralProgramConfig {
   updatedAt           DateTime @updatedAt
 }
 
+model BusinessClaimRequest {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  googlePlaceId   String
+  businessName    String
+  applicantUserId String?  @db.ObjectId
+  applicantName   String
+  applicantPhone  String
+  applicantEmail  String?
+  roleInBusiness  String?
+  documentType    String   // GST, MSME, REGISTRATION_CERTIFICATE, OTHER
+  documentUrl     String
+  documentNumber  String?
+  status          String   @default("PENDING") // PENDING, APPROVED, REJECTED
+  rejectionReason String?
+  businessGroupId String?  @db.ObjectId
+  locationId      String?  @db.ObjectId
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
 
-
+model UnonboardedLead {
+  id               String    @id @default(auto()) @map("_id") @db.ObjectId
+  googlePlaceId    String
+  businessName     String
+  businessPhone    String?
+  businessAddress  String?
+  customerName     String
+  customerPhone    String
+  customerEmail    String?
+  serviceRequested String?
+  message          String?
+  status           String    @default("PENDING") // PENDING, NOTIFIED, CLAIMED, TIMED_OUT
+  notifiedAt       DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+}
