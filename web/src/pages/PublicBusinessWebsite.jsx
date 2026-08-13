@@ -195,77 +195,7 @@ export default function PublicBusinessWebsite() {
         </div>
       )}
 
-      {/* Persistent Top Navigation Bar */}
-      <header style={{
-        padding: '1rem 2rem',
-        backgroundColor: theme === 'light-minimal' ? '#ffffff' : '#0f172a',
-        borderBottom: '1px solid rgba(255,255,255,0.08)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        position: 'sticky',
-        top: 0,
-        zIndex: 100
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          {bg.logoUrl ? (
-            <img src={bg.logoUrl} alt={bg.name} style={{ width: '38px', height: '38px', borderRadius: '8px', objectFit: 'cover', border: '1.5px solid var(--primary-color, #6366f1)' }} />
-          ) : (
-            theme === 'clinic-healthcare' ? <Stethoscope size={28} color={primaryColor} /> :
-            theme === 'restaurant-menu' ? <Utensils size={28} color={primaryColor} /> :
-            theme === 'e-commerce' ? <ShoppingBag size={28} color={primaryColor} /> :
-            theme === 'service-booking' ? <Calendar size={28} color={primaryColor} /> :
-            <Building2 size={28} color={primaryColor} />
-          )}
-          <div>
-            <h1 style={{ fontSize: '1.15rem', fontWeight: 800, margin: 0, color: theme === 'light-minimal' ? '#0f172a' : '#fff' }}>{bg.name}</h1>
-            <span style={{ fontSize: '0.75rem', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-              <MapPin size={12} color="#38bdf8" /> {bg.address || bg.city} • <ShieldCheck size={12} color="#34d399" /> Verified Storefront
-            </span>
-          </div>
-        </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <div 
-            onClick={() => {
-              const reviewsUrl = bg.googleReviewsUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(bg.name + ' ' + (bg.city || 'Tirupati'))}`;
-              window.open(reviewsUrl, '_blank');
-            }}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.4rem',
-              backgroundColor: 'rgba(251, 191, 36, 0.15)',
-              border: '1px solid rgba(251, 191, 36, 0.4)',
-              color: '#fbbf24',
-              padding: '0.4rem 0.85rem',
-              borderRadius: '20px',
-              fontSize: '0.82rem',
-              fontWeight: 800,
-              cursor: 'pointer'
-            }}
-            title="Click to view live Google Reviews"
-          >
-            <Star size={15} fill="#fbbf24" color="#fbbf24" />
-            <span>{avgRating} ★</span>
-            <span style={{ color: '#cbd5e1', fontWeight: 600, fontSize: '0.75rem' }}>
-              ({reviewCount} Reviews)
-            </span>
-            <ExternalLink size={12} color="#fbbf24" />
-          </div>
-
-          {bg.mobileNumber && (
-            <a href={`tel:${bg.mobileNumber}`} className="btn" style={{ backgroundColor: '#10b981', color: '#fff', padding: '0.45rem 1rem', fontSize: '0.85rem', fontWeight: 700, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.35rem', borderRadius: '6px' }}>
-              <Phone size={14} /> Call Now
-            </a>
-          )}
-          {bg.whatsAppNumber && (
-            <a href={`https://wa.me/${(bg.whatsAppNumber || '').replace(/[^0-9]/g, '')}`} target="_blank" rel="noreferrer" className="btn" style={{ backgroundColor: '#25d366', color: '#fff', padding: '0.45rem 1rem', fontSize: '0.85rem', fontWeight: 700, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.35rem', borderRadius: '6px' }}>
-              <MessageSquare size={14} /> WhatsApp
-            </a>
-          )}
-        </div>
-      </header>
 
       {/* Main Dynamic Engine Rendering - 100% IDENTICAL to WebsiteBuilder Preview */}
       <main style={themeVars}>

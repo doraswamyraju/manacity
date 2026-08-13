@@ -610,6 +610,7 @@ export function ServicesSection({ businessGroup, settings, theme }) {
   const [selectedService, setSelectedService] = useState(null);
 
   const userServices = businessGroup?.services || [];
+  if (userServices.length === 0) return null;
 
   const getServiceImage = (srv) => {
     if (srv.photos && srv.photos.length > 0) return srv.photos[0];
@@ -739,6 +740,7 @@ export function ProductsSection({ businessGroup, settings, theme }) {
   const [selectedProduct, setSelectedProduct] = useState(null);
 
   const userProducts = businessGroup?.products || [];
+  if (userProducts.length === 0) return null;
 
   const getProductImage = (prod) => {
     if (prod.photos && prod.photos.length > 0) return prod.photos[0];

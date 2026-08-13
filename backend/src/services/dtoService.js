@@ -65,14 +65,16 @@ function toPublicBusinessDTO(businessGroup) {
       name: s.name,
       description: s.description,
       price: s.price,
-      imageUrl: s.imageUrl
+      imageUrl: s.imageUrl,
+      photos: s.photos
     })) : [],
     products: Array.isArray(businessGroup.products) ? businessGroup.products.map(p => ({
       id: p.id,
       name: p.name,
       description: p.description,
       price: p.price,
-      imageUrl: p.imageUrl
+      imageUrl: p.imageUrl,
+      photos: p.photos
     })) : []
   };
 }
