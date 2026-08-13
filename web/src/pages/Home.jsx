@@ -149,6 +149,18 @@ export default function Home({
     actionCallback();
   };
 
+  // Close search suggestions & drawer on Escape key press
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        setShowSuggestions(false);
+        setShowMobileSearchModal(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   useEffect(() => {
     if (!query || query.trim().length < 2) {
       setSuggestions([]);
@@ -184,7 +196,17 @@ export default function Home({
           console.warn('Google places autocomplete fallback:', e);
         }
 
-        const combined = [...dbItems, ...googleItems];
+        // Deduplicate: Filter out Google Places if business name or place_id matches an existing verified DB listing
+        const filteredGoogleItems = googleItems.filter(g => {
+          const gNameLower = (g.businessName || '').toLowerCase().trim();
+          return !dbItems.some(db => {
+            const dbNameLower = (db.businessName || '').toLowerCase().trim();
+            const gPlaceMatch = db.googlePlaceId && db.googlePlaceId === g.place_id;
+            return gPlaceMatch || dbNameLower.includes(gNameLower) || gNameLower.includes(dbNameLower);
+          });
+        });
+
+        const combined = [...dbItems, ...filteredGoogleItems];
         setSuggestions(combined);
         setShowSuggestions(combined.length > 0);
       } catch (err) {
@@ -1225,33 +1247,6 @@ export default function Home({
         </div>
       )}
 
-      {/* Floating Mobile Search Button */}
-      <div style={{
-        position: 'fixed',
-        bottom: '80px',
-        right: '20px',
-        zIndex: 99
-      }}>
-        <button
-          onClick={() => setShowMobileSearchModal(true)}
-          style={{
-            backgroundColor: '#38bdf8',
-            color: '#0f172a',
-            border: 'none',
-            borderRadius: '30px',
-            padding: '0.75rem 1.25rem',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            fontWeight: 800,
-            fontSize: '0.9rem',
-            boxShadow: '0 8px 25px rgba(56, 189, 248, 0.5)',
-            cursor: 'pointer'
-          }}
-        >
-          <Search size={18} /> Quick Search
-        </button>
-      </div>
 
       {/* Mobile Search Modal Overlay */}
       {showMobileSearchModal && (
