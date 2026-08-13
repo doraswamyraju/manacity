@@ -226,7 +226,8 @@ exports.getOnboardingState = async (req, res) => {
         services: true,
         products: true,
         paymentMethods: true,
-        languages: true
+        languages: true,
+        locations: true
       }
     });
 
@@ -239,9 +240,26 @@ exports.getOnboardingState = async (req, res) => {
           services: true,
           products: true,
           paymentMethods: true,
-          languages: true
+          languages: true,
+          locations: true
         }
       });
+    }
+
+    if (businessGroup) {
+      const loc = businessGroup.locations?.[0];
+      if (loc) {
+        const hours = loc.hours || {};
+        businessGroup.workingDays = hours.workingDays || [];
+        businessGroup.businessHours = hours.businessHours || { open: '09:00', close: '18:00' };
+
+        const social = loc.socialLinks || {};
+        businessGroup.socialFacebook = social.facebook || '';
+        businessGroup.socialInstagram = social.instagram || '';
+        businessGroup.socialYouTube = social.youtube || '';
+        businessGroup.socialLinkedIn = social.linkedin || '';
+        businessGroup.socialTwitter = social.twitter || '';
+      }
     }
 
     res.json({
@@ -406,12 +424,22 @@ exports.saveOnboardingStep = async (req, res) => {
         }
       }
     } else if (stepSaved === 5) {
-      // Social Links
-      updateData.socialFacebook = data.socialFacebook !== undefined ? data.socialFacebook : businessGroup.socialFacebook;
-      updateData.socialInstagram = data.socialInstagram !== undefined ? data.socialInstagram : businessGroup.socialInstagram;
-      updateData.socialYouTube = data.socialYouTube !== undefined ? data.socialYouTube : businessGroup.socialYouTube;
-      updateData.socialLinkedIn = data.socialLinkedIn !== undefined ? data.socialLinkedIn : businessGroup.socialLinkedIn;
-      updateData.socialTwitter = data.socialTwitter !== undefined ? data.socialTwitter : businessGroup.socialTwitter;
+      // Save Social Links to the Location socialLinks field
+      const existingLoc = await prisma.location.findFirst({ where: { businessGroupId } });
+      if (existingLoc) {
+        await prisma.location.update({
+          where: { id: existingLoc.id },
+          data: {
+            socialLinks: {
+              facebook: data.socialFacebook || '',
+              instagram: data.socialInstagram || '',
+              youtube: data.socialYouTube || '',
+              linkedin: data.socialLinkedIn || '',
+              twitter: data.socialTwitter || ''
+            }
+          }
+        });
+      }
     }
 
     // Save update
