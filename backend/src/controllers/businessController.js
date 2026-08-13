@@ -332,12 +332,18 @@ exports.saveOnboardingStep = async (req, res) => {
       updateData.googleReviewUrl = data.googleReviewUrl !== undefined ? data.googleReviewUrl : businessGroup.googleReviewUrl;
       updateData.googlePlaceId = data.googlePlaceId !== undefined ? data.googlePlaceId : businessGroup.googlePlaceId;
     } else if (stepSaved === 4) {
-      // Business Details: Working Days, Business Hours, Languages, Services, Products, Documents (GST, etc.)
-      if (data.workingDays) {
-        updateData.workingDays = data.workingDays;
-      }
-      if (data.businessHours) {
-        updateData.businessHours = data.businessHours;
+      // Save Working Days and Business Hours to the Location hours field
+      const existingLoc = await prisma.location.findFirst({ where: { businessGroupId } });
+      if (existingLoc) {
+        await prisma.location.update({
+          where: { id: existingLoc.id },
+          data: {
+            hours: {
+              workingDays: data.workingDays || [],
+              businessHours: data.businessHours || { open: '09:00', close: '18:00' }
+            }
+          }
+        });
       }
 
       // Sync normalized languages
