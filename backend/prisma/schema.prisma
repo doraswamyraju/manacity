@@ -40,6 +40,10 @@ model User {
   
   // Relations
   businessGroups BusinessGroup[]
+  referralCodes  ReferralCode[]
+  commissions    ReferralCommission[]
+  payoutProfile  ReferrerPayoutProfile?
+  payouts        ReferralPayout[]
 }
 
 model BusinessGroup {
@@ -111,6 +115,12 @@ model BusinessService {
   price           Float?
   photos          String[]
   customerLogos   String[]
+  
+  // Referral commission fields
+  isReferralEnabled Boolean             @default(true)
+  commissionType    String              @default("GLOBAL") // GLOBAL, PERCENTAGE, FLAT
+  commissionValue   Float?
+  
   createdAt       DateTime              @default(now())
   updatedAt       DateTime              @updatedAt
 }
@@ -126,6 +136,12 @@ model BusinessProduct {
   price           Float?
   photos          String[]
   customerLogos   String[]
+
+  // Referral commission fields
+  isReferralEnabled Boolean             @default(true)
+  commissionType    String              @default("GLOBAL") // GLOBAL, PERCENTAGE, FLAT
+  commissionValue   Float?
+
   createdAt       DateTime              @default(now())
   updatedAt       DateTime              @updatedAt
 }
@@ -507,6 +523,11 @@ model ProductServiceLibrary {
   requestedBy     String?           // Business owner email/name if requested
   rejectionReason String?
   
+  // Referral commission fields
+  isReferralEnabled Boolean         @default(true)
+  commissionType    String          @default("GLOBAL") // GLOBAL, PERCENTAGE, FLAT
+  commissionValue   Float?
+  
   services        BusinessService[]
   products        BusinessProduct[]
 
@@ -569,5 +590,135 @@ model SystemSetting {
   value     Json
   updatedAt DateTime @updatedAt
 }
+
+// --------------------------------------------------
+// Referral & Commission Program Models
+// --------------------------------------------------
+
+enum ReferralStatus {
+  CLICKED
+  LEAD_CREATED
+  CONVERTED
+  CANCELLED
+  REFUNDED
+}
+
+enum CommissionStatus {
+  PENDING_VERIFICATION
+  APPROVED
+  REJECTED
+  PAYOUT_REQUESTED
+  PAID
+}
+
+enum PayoutMethod {
+  UPI
+  BANK_TRANSFER
+}
+
+model ReferralCode {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String   @db.ObjectId
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  code        String   @unique
+  totalClicks Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  referrals   Referral[]
+}
+
+model Referral {
+  id              String           @id @default(auto()) @map("_id") @db.ObjectId
+  referralCodeId  String           @db.ObjectId
+  referralCode    ReferralCode     @relation(fields: [referralCodeId], references: [id], onDelete: Cascade)
+  referrerUserId  String           @db.ObjectId
+  
+  referredEmail   String?
+  referredPhone   String?
+  ipAddress       String?
+  userAgent       String?
+  
+  status          ReferralStatus   @default(CLICKED)
+  
+  itemType        String?          // "PRODUCT", "SERVICE", "SUBSCRIPTION"
+  itemId          String?          @db.ObjectId
+  itemName        String?
+  orderId         String?
+  saleAmount      Float?
+  
+  commissions     ReferralCommission[]
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+}
+
+model ReferralCommission {
+  id             String           @id @default(auto()) @map("_id") @db.ObjectId
+  referralId     String           @db.ObjectId
+  referral       Referral         @relation(fields: [referralId], references: [id], onDelete: Cascade)
+  userId         String           @db.ObjectId
+  user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  saleAmount     Float
+  commissionRate Float
+  earnedAmount   Float
+  currency       String           @default("INR")
+  
+  status         CommissionStatus @default(PENDING_VERIFICATION)
+  payoutId       String?          @db.ObjectId
+  payout         ReferralPayout?  @relation(fields: [payoutId], references: [id])
+  
+  eligibleAt     DateTime
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+}
+
+model ReferrerPayoutProfile {
+  id             String       @id @default(auto()) @map("_id") @db.ObjectId
+  userId         String       @unique @db.ObjectId
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  payoutMethod   PayoutMethod @default(UPI)
+  upiId          String?
+  accountHolder  String?
+  accountNumber  String?
+  ifscCode       String?
+  panNumber      String?
+  
+  isVerified     Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+}
+
+model ReferralPayout {
+  id              String               @id @default(auto()) @map("_id") @db.ObjectId
+  userId          String               @db.ObjectId
+  user            User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  totalAmount     Float
+  currency        String               @default("INR")
+  
+  status          CommissionStatus     @default(PAYOUT_REQUESTED)
+  paymentRef      String?
+  proofReceiptUrl String?
+  processedBy     String?              @db.ObjectId
+  processedAt     DateTime?
+  adminNotes      String?
+  
+  commissions     ReferralCommission[]
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+}
+
+model ReferralProgramConfig {
+  id                  String   @id @default(auto()) @map("_id") @db.ObjectId
+  isEnabled           Boolean  @default(true)
+  commissionType      String   @default("PERCENTAGE") // PERCENTAGE or FLAT
+  commissionValue     Float    @default(10.0)
+  minimumPayoutAmount Float    @default(500.0)
+  holdingPeriodDays   Int      @default(14)
+  cookieValidityDays  Int      @default(30)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
+
 
 

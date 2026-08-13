@@ -29,6 +29,7 @@ import ReviewManagement from '../pages/ReviewManagement';
 import Billing from '../pages/Billing';
 import LMSAllLeadsTab from '../admin/lms/LMSAllLeadsTab';
 import BusinessLibraryTab from '../admin/library/BusinessLibraryTab';
+import UserReferralDashboard from '../pages/referral/UserReferralDashboard';
 
 function AdminDashboardLayout({ user, businessGroup, onLogout, setView }) {
   // Persist active tab in localStorage
@@ -408,6 +409,7 @@ function AdminDashboardLayout({ user, businessGroup, onLogout, setView }) {
 
           {activeTab === 'catalog-library' && <BusinessLibraryTab theme={theme} />}
           {activeTab === 'website-builder' && <WebsiteBuilder onBack={() => setActiveTab('overview')} />}
+          {activeTab === 'referrals' && <UserReferralDashboard theme={theme} />}
           {activeTab === 'reviews' && <ReviewManagement onBack={() => setActiveTab('overview')} />}
           {activeTab === 'billing' && <Billing onBack={() => setActiveTab('overview')} />}
           

@@ -13,7 +13,8 @@ import {
   Zap,
   Tag,
   Search,
-  Bell
+  Bell,
+  Share2
 } from 'lucide-react';
 
 function CustomerSidebar({
@@ -34,6 +35,7 @@ function CustomerSidebar({
 
   const menuItems = [
     { id: 'overview', label: 'Customer Hub', icon: Compass, badge: null, color: '#f472b6' },
+    { id: 'referrals', label: 'Refer & Earn', icon: Share2, badge: 'EARN', color: '#34d399' },
     {
       id: 'explore',
       label: 'Explore Local City',

@@ -3,6 +3,7 @@ import { Compass, Heart, Star, Bell, Search, Tag, User, MapPin, Sparkles } from 
 
 import CustomerSidebar from './CustomerSidebar';
 import CustomerTopbar from './CustomerTopbar';
+import UserReferralDashboard from '../pages/referral/UserReferralDashboard';
 
 function CustomerDashboardLayout({ user, onLogout }) {
   // Persist active tab in localStorage
@@ -203,6 +204,8 @@ function CustomerDashboardLayout({ user, onLogout }) {
               <p style={{ color: isDark ? '#94a3b8' : '#64748b', fontSize: '0.9rem' }}>Review history log of all local business feedback submitted via ManaCity QR codes & listings.</p>
             </div>
           )}
+
+          {activeTab === 'referrals' && <UserReferralDashboard theme={theme} />}
 
           {(activeTab === 'explore' || activeTab === 'explore-all' || activeTab === 'explore-offers') && (
             <div style={{

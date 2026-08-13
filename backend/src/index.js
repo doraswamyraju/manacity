@@ -18,6 +18,7 @@ const crmRoutes = require('./routes/crmRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const reviewSystemRoutes = require('./routes/reviewSystemRoutes');
 const phase1Routes = require('./routes/phase1Routes');
+const referralRoutes = require('./routes/referralRoutes');
 
 const path = require('path');
 
@@ -43,6 +44,7 @@ app.use('/api/lead', crmRoutes);
 
 app.use('/api/admin', adminRoutes);
 app.use('/api/phase1', phase1Routes);
+app.use('/api/referrals', referralRoutes);
 
 // Public System Settings
 app.get('/api/public/url-settings', systemSettingsController.getUrlSettings);

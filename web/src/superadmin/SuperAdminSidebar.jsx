@@ -22,7 +22,8 @@ import {
   Search,
   Star,
   Sparkles,
-  ShieldCheck
+  ShieldCheck,
+  Share2
 } from 'lucide-react';
 
 function SuperAdminSidebar({
@@ -67,6 +68,7 @@ function SuperAdminSidebar({
     { id: 'users', label: 'User Directory', icon: Users, badge: metrics?.totalUsers, color: '#38bdf8' },
 
     { id: 'businesses', label: 'Business Directory', icon: Building2, badge: metrics?.totalBusinessGroups || metrics?.totalLocations, color: '#34d399' },
+    { id: 'referrals-admin', label: 'Referral Program', icon: Share2, badge: 'PRO', color: '#34d399' },
     {
       id: 'library',
       label: 'Library Management',

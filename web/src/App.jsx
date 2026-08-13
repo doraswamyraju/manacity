@@ -38,6 +38,16 @@ function App() {
       .catch(() => {});
   };
 
+  // Capture ?ref= query param globally for referral tracking & attribution
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const refCode = searchParams.get('ref');
+    if (refCode) {
+      localStorage.setItem('referral_code', refCode);
+      axios.post('/api/referrals/click', { refCode }).catch(() => {});
+    }
+  }, [location.search]);
+
   // Auto-authenticate with stored token
   useEffect(() => {
     const isPublicRoute = 
