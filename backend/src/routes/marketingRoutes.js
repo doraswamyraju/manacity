@@ -30,17 +30,28 @@ router.post('/meta/connect', auth, async (req, res) => {
         pageData.pageName = topPage.name;
         pageData.facebookUrl = `https://facebook.com/${topPage.id}`;
 
-        // Attempt to fetch linked Instagram account
+        // Fetch linked Instagram Business Account
         try {
-          const igRes = await axios.get(`https://graph.facebook.com/v18.0/${topPage.id}?fields=instagram_business_account,username,link&access_token=${accessToken}`);
+          const igRes = await axios.get(`https://graph.facebook.com/v18.0/${topPage.id}?fields=instagram_business_account{id,username,name}&access_token=${accessToken}`);
           if (igRes.data && igRes.data.instagram_business_account) {
-            pageData.instagramUrl = `https://instagram.com/${igRes.data.instagram_business_account.id}`;
-            pageData.instagramHandle = `@${igRes.data.username || topPage.name.toLowerCase().replace(/\s+/g, '')}`;
+            const igAcc = igRes.data.instagram_business_account;
+            pageData.instagramUrl = `https://instagram.com/${igAcc.username || igAcc.id}`;
+            pageData.instagramHandle = `@${igAcc.username || igAcc.name}`;
           }
-        } catch (igErr) {}
+        } catch (igErr) {
+          console.warn('Instagram Graph API warning:', igErr.response?.data || igErr.message);
+        }
+      } else {
+        // Fetch user's direct profile if no business page exists
+        const meRes = await axios.get(`https://graph.facebook.com/v18.0/me?fields=id,name,link&access_token=${accessToken}`);
+        if (meRes.data) {
+          pageData.pageId = meRes.data.id;
+          pageData.pageName = meRes.data.name;
+          pageData.facebookUrl = meRes.data.link || `https://facebook.com/${meRes.data.id}`;
+        }
       }
     } catch (graphErr) {
-      console.warn('Meta Graph API call warning:', graphErr.response?.data || graphErr.message);
+      console.error('Meta Graph API exchange error:', graphErr.response?.data || graphErr.message);
     }
 
     // Save connected Meta credentials to user's BusinessGroup

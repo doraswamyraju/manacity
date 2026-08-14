@@ -54,17 +54,9 @@ export default function MetaConnectCard({ initialData, onMetaConnected }) {
                 }
               }
             })
-            .catch(() => {
-              // Set user's connected page details
-              const pageName = initialData?.name ? `${initialData.name} Official Facebook Page` : 'Connected Facebook Page';
-              setConnectedPage(pageName);
-              if (onMetaConnected) {
-                onMetaConnected({
-                  metaPageName: pageName,
-                  socialFacebook: `https://facebook.com/${(initialData?.name || 'mybusiness').toLowerCase().replace(/\s+/g, '')}`,
-                  socialInstagram: `https://instagram.com/${(initialData?.name || 'mybusiness').toLowerCase().replace(/\s+/g, '')}`
-                });
-              }
+            .catch((err) => {
+              console.error('Meta connection error:', err);
+              setError('Failed to fetch Facebook Page details. Please try again.');
             })
             .finally(() => setConnecting(false));
         } else if (!popup || popup.closed) {
