@@ -13,25 +13,40 @@ router.post('/meta/connect', auth, async (req, res) => {
       return res.status(400).json({ error: 'Access token is required' });
     }
 
-    // 1. Fetch user's managed Facebook Pages with exact public canonical link and username
-    const fbRes = await axios.get(`https://graph.facebook.com/v18.0/me/accounts?fields=id,name,link,username,access_token,instagram_business_account{id,username,name}&access_token=${accessToken}`);
+    // 1. Fetch user's managed Facebook Pages
+    const fbRes = await axios.get(`https://graph.facebook.com/v18.0/me/accounts?fields=id,name,link,access_token&access_token=${accessToken}`);
     
     if (!fbRes.data || !fbRes.data.data || fbRes.data.data.length === 0) {
       return res.status(400).json({ error: 'No Facebook Business Pages found for this account. Please create or link a Facebook Page to your Meta account.' });
     }
 
-    const pages = fbRes.data.data.map(page => {
-      const ig = page.instagram_business_account;
+    const pages = await Promise.all(fbRes.data.data.map(async (page) => {
+      let instagramId = null;
+      let instagramHandle = null;
+      let instagramUrl = null;
+
+      try {
+        const igRes = await axios.get(`https://graph.facebook.com/v18.0/${page.id}?fields=instagram_business_account{id,username,name}&access_token=${page.access_token || accessToken}`);
+        if (igRes.data && igRes.data.instagram_business_account) {
+          const ig = igRes.data.instagram_business_account;
+          instagramId = ig.id;
+          instagramHandle = ig.username ? `@${ig.username}` : (ig.name ? `@${ig.name}` : null);
+          instagramUrl = ig.username ? `https://instagram.com/${ig.username}` : null;
+        }
+      } catch (igErr) {
+        console.warn(`Instagram discovery warning for page ${page.id}:`, igErr.response?.data?.error?.message || igErr.message);
+      }
+
       return {
         pageId: page.id,
         pageName: page.name,
-        facebookUrl: page.link || (page.username ? `https://facebook.com/${page.username}` : `https://facebook.com/${page.id}`),
+        facebookUrl: page.link || `https://facebook.com/${page.id}`,
         pageAccessToken: page.access_token,
-        instagramId: ig?.id || null,
-        instagramHandle: ig?.username ? `@${ig.username}` : (ig?.name ? `@${ig.name}` : null),
-        instagramUrl: ig?.username ? `https://instagram.com/${ig.username}` : null
+        instagramId,
+        instagramHandle,
+        instagramUrl
       };
-    });
+    }));
 
     // If specific pageId was selected by user
     const selectedPageId = req.body.selectedPageId;
