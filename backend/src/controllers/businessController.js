@@ -676,16 +676,20 @@ exports.getBusinessCatalog = async (req, res) => {
 
     const validMasterItemIds = new Set(masterLibrary.map(item => item.id));
 
-    // Filter business owner's items to strictly include ONLY items attached to an approved Super Admin Master Library item
-    const myServices = (businessGroup.services || []).filter(s => s.libraryItemId && validMasterItemIds.has(s.libraryItemId));
-    const myProducts = (businessGroup.products || []).filter(p => p.libraryItemId && validMasterItemIds.has(p.libraryItemId));
+    // Include all services & products added to this business group
+    const myServices = businessGroup.services || [];
+    const myProducts = businessGroup.products || [];
 
     const myAddedItemsMap = {};
     myServices.forEach(s => {
-      myAddedItemsMap[s.libraryItemId] = s;
+      if (s.libraryItemId && validMasterItemIds.has(s.libraryItemId)) {
+        myAddedItemsMap[s.libraryItemId] = s;
+      }
     });
     myProducts.forEach(p => {
-      myAddedItemsMap[p.libraryItemId] = p;
+      if (p.libraryItemId && validMasterItemIds.has(p.libraryItemId)) {
+        myAddedItemsMap[p.libraryItemId] = p;
+      }
     });
 
     const masterItemsWithStatus = masterLibrary.map(item => {

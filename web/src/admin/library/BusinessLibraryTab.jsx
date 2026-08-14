@@ -546,7 +546,27 @@ export default function BusinessLibraryTab({ theme }) {
                       <Settings size={14} /> {item.isAdded ? 'Customize' : 'Add & Customize'}
                     </button>
 
-                    {!item.isAdded && (
+                    {item.isAdded ? (
+                      <button
+                        onClick={() => handleDetachItem(item.myBusinessItemId, item.type)}
+                        disabled={actionLoadingId === item.myBusinessItemId}
+                        style={{
+                          backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                          border: '1px solid rgba(239, 68, 68, 0.3)',
+                          borderRadius: '8px',
+                          padding: '0.5rem 0.65rem',
+                          color: '#ef4444',
+                          fontWeight: 700,
+                          fontSize: '0.8rem',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.3rem'
+                        }}
+                      >
+                        <Trash2 size={14} /> Remove
+                      </button>
+                    ) : (
                       <button
                         onClick={() => handleQuickAdd(item)}
                         disabled={actionLoadingId === item.id}
