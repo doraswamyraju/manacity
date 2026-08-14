@@ -30,8 +30,28 @@ import MetaAdsManager from './MetaAdsManager';
 import AdCampaignsView from './AdCampaignsView';
 import MarketingAnalytics from './MarketingAnalytics';
 
-export default function MarketingTabContainer({ businessGroup }) {
-  const [activeTab, setActiveTab] = useState('INSTAGRAM'); // INSTAGRAM, FACEBOOK, GOOGLE, LIBRARY, META_ADS
+export default function MarketingTabContainer({ businessGroup, activeTabOverride }) {
+  const mapOverrideToTab = (override) => {
+    if (!override) return 'INSTAGRAM';
+    if (override === 'marketing-facebook') return 'FACEBOOK';
+    if (override === 'marketing-google') return 'GOOGLE';
+    if (override === 'marketing-library') return 'LIBRARY';
+    if (override === 'marketing-meta-ads') return 'META_ADS';
+    return 'INSTAGRAM';
+  };
+
+  const [activeTab, setActiveTab] = useState(() => mapOverrideToTab(activeTabOverride));
+
+  useEffect(() => {
+    if (activeTabOverride) {
+      setActiveTab(mapOverrideToTab(activeTabOverride));
+    }
+  }, [activeTabOverride]);
+
+  // Category Top-Bar Sub-Tab States
+  const [igSubTab, setIgSubTab] = useState('overview'); // overview, posts, scheduler, ads
+  const [fbSubTab, setFbSubTab] = useState('page-stats'); // page-stats, feed, messenger
+  const [googleSubTab, setGoogleSubTab] = useState('gbp-insights'); // gbp-insights, qr-booster, keywords
 
   // Instagram Tab State
   const [loadingIg, setLoadingIg] = useState(false);
@@ -175,60 +195,89 @@ export default function MarketingTabContainer({ businessGroup }) {
             </div>
           </div>
 
-          {/* Real Account Statistics Cards */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.25rem' }}>
-            <div style={{ backgroundColor: '#0f172a', padding: '1.25rem', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.06)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', color: '#94a3b8', fontSize: '0.82rem', marginBottom: '0.5rem' }}>
-                <span>Followers Count</span>
-                <Users size={18} color="#e1306c" />
-              </div>
-              <strong style={{ fontSize: '1.7rem', fontWeight: 900, color: '#fff' }}>
-                {igData?.stats?.followersCount?.toLocaleString() || 1420}
-              </strong>
-              <div style={{ fontSize: '0.75rem', color: '#10b981', fontWeight: 700, marginTop: '0.25rem' }}>
-                +12% vs last month
-              </div>
-            </div>
-
-            <div style={{ backgroundColor: '#0f172a', padding: '1.25rem', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.06)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', color: '#94a3b8', fontSize: '0.82rem', marginBottom: '0.5rem' }}>
-                <span>Total Media Posts</span>
-                <ImageIcon size={18} color="#818cf8" />
-              </div>
-              <strong style={{ fontSize: '1.7rem', fontWeight: 900, color: '#fff' }}>
-                {igData?.stats?.mediaCount || 38}
-              </strong>
-              <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.25rem' }}>
-                Published media
-              </div>
-            </div>
-
-            <div style={{ backgroundColor: '#0f172a', padding: '1.25rem', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.06)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', color: '#94a3b8', fontSize: '0.82rem', marginBottom: '0.5rem' }}>
-                <span>Profile Reach</span>
-                <Eye size={18} color="#38bdf8" />
-              </div>
-              <strong style={{ fontSize: '1.7rem', fontWeight: 900, color: '#fff' }}>
-                {igData?.stats?.reach?.toLocaleString() || '8,950'}
-              </strong>
-              <div style={{ fontSize: '0.75rem', color: '#38bdf8', fontWeight: 700, marginTop: '0.25rem' }}>
-                Organic impressions
-              </div>
-            </div>
-
-            <div style={{ backgroundColor: '#0f172a', padding: '1.25rem', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.06)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', color: '#94a3b8', fontSize: '0.82rem', marginBottom: '0.5rem' }}>
-                <span>Engagement Rate</span>
-                <TrendingUp size={18} color="#f59e0b" />
-              </div>
-              <strong style={{ fontSize: '1.7rem', fontWeight: 900, color: '#fff' }}>
-                {igData?.stats?.engagementRate || '5.2%'}
-              </strong>
-              <div style={{ fontSize: '0.75rem', color: '#10b981', fontWeight: 700, marginTop: '0.25rem' }}>
-                High audience interaction
-              </div>
-            </div>
+          {/* Sub-Category Inner Top Navigation Bar */}
+          <div style={{ display: 'flex', gap: '0.5rem', backgroundColor: '#0f172a', padding: '0.4rem 0.6rem', borderRadius: '10px', width: 'fit-content', border: '1px solid rgba(255,255,255,0.06)' }}>
+            {[
+              { id: 'overview', label: '📊 Statistics & Insights' },
+              { id: 'posts', label: '📸 Posts & Media' },
+              { id: 'scheduler', label: '📅 Schedule Post' },
+              { id: 'ads', label: '🚀 Instagram Ads' }
+            ].map(sub => (
+              <button
+                key={sub.id}
+                onClick={() => setIgSubTab(sub.id)}
+                style={{
+                  padding: '0.4rem 0.85rem',
+                  borderRadius: '6px',
+                  border: 'none',
+                  backgroundColor: igSubTab === sub.id ? '#e1306c' : 'transparent',
+                  color: igSubTab === sub.id ? '#fff' : '#94a3b8',
+                  fontSize: '0.8rem',
+                  fontWeight: 700,
+                  cursor: 'pointer'
+                }}
+              >
+                {sub.label}
+              </button>
+            ))}
           </div>
+
+          {/* Real Account Statistics Cards */}
+          {(igSubTab === 'overview' || igSubTab === 'posts') && (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.25rem' }}>
+              <div style={{ backgroundColor: '#0f172a', padding: '1.25rem', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#94a3b8', fontSize: '0.82rem', marginBottom: '0.5rem' }}>
+                  <span>Followers Count</span>
+                  <Users size={18} color="#e1306c" />
+                </div>
+                <strong style={{ fontSize: '1.7rem', fontWeight: 900, color: '#fff' }}>
+                  {igData?.stats?.followersCount?.toLocaleString() || 1420}
+                </strong>
+                <div style={{ fontSize: '0.75rem', color: '#10b981', fontWeight: 700, marginTop: '0.25rem' }}>
+                  +12% vs last month
+                </div>
+              </div>
+
+              <div style={{ backgroundColor: '#0f172a', padding: '1.25rem', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#94a3b8', fontSize: '0.82rem', marginBottom: '0.5rem' }}>
+                  <span>Total Media Posts</span>
+                  <ImageIcon size={18} color="#818cf8" />
+                </div>
+                <strong style={{ fontSize: '1.7rem', fontWeight: 900, color: '#fff' }}>
+                  {igData?.stats?.mediaCount || 38}
+                </strong>
+                <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.25rem' }}>
+                  Published media
+                </div>
+              </div>
+
+              <div style={{ backgroundColor: '#0f172a', padding: '1.25rem', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#94a3b8', fontSize: '0.82rem', marginBottom: '0.5rem' }}>
+                  <span>Profile Reach</span>
+                  <Eye size={18} color="#38bdf8" />
+                </div>
+                <strong style={{ fontSize: '1.7rem', fontWeight: 900, color: '#fff' }}>
+                  {igData?.stats?.reach?.toLocaleString() || '8,950'}
+                </strong>
+                <div style={{ fontSize: '0.75rem', color: '#38bdf8', fontWeight: 700, marginTop: '0.25rem' }}>
+                  Organic impressions
+                </div>
+              </div>
+
+              <div style={{ backgroundColor: '#0f172a', padding: '1.25rem', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#94a3b8', fontSize: '0.82rem', marginBottom: '0.5rem' }}>
+                  <span>Engagement Rate</span>
+                  <TrendingUp size={18} color="#f59e0b" />
+                </div>
+                <strong style={{ fontSize: '1.7rem', fontWeight: 900, color: '#fff' }}>
+                  {igData?.stats?.engagementRate || '5.2%'}
+                </strong>
+                <div style={{ fontSize: '0.75rem', color: '#10b981', fontWeight: 700, marginTop: '0.25rem' }}>
+                  High audience interaction
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Content Creation & Scheduled Post Form */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr', gap: '1.5rem' }}>

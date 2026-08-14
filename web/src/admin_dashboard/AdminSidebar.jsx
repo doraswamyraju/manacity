@@ -43,7 +43,20 @@ function AdminSidebar({
     { id: 'locations', label: 'Business Locations', icon: MapPin, badge: null, color: '#38bdf8' },
     { id: 'catalog-library', label: 'Products & Services', icon: Package, badge: null, color: '#f43f5e' },
     { id: 'website-builder', label: 'Website Builder', icon: Globe, badge: 'PRO', color: '#818cf8' },
-    { id: 'marketing', label: 'Marketing Hub', icon: Megaphone, badge: 'META', color: '#1877f2' },
+    {
+      id: 'marketing',
+      label: 'Marketing Hub',
+      icon: Megaphone,
+      badge: 'META',
+      color: '#1877f2',
+      subItems: [
+        { id: 'marketing-instagram', label: 'Instagram Hub', icon: Instagram },
+        { id: 'marketing-facebook', label: 'Facebook & DMs', icon: Facebook },
+        { id: 'marketing-google', label: 'Google SEO & Maps', icon: Search },
+        { id: 'marketing-library', label: 'Asset Library', icon: ImageIcon },
+        { id: 'marketing-meta-ads', label: 'Meta Ads Manager', icon: Megaphone }
+      ]
+    },
     { id: 'referrals', label: 'Refer & Earn', icon: Share2, badge: 'EARN', color: '#34d399' },
 
     { id: 'reviews', label: 'Review Management', icon: Star, badge: null, color: '#fbbf24' },
