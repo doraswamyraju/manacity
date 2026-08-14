@@ -305,13 +305,17 @@ async function getFacebookAnalytics(businessGroup) {
   }));
 
   let syncStatus = 'LIVE';
-  let lastError = null;
-  if (pageError || pageInsightsError) {
-    syncStatus = pageError ? 'ERROR' : 'PARTIAL';
-    lastError = pageError || pageInsightsError;
+  let lastError = pageError || pageInsightsError || null;
+  if (pageError && pageInsightsError) {
+    syncStatus = 'ERROR';
+  } else if (pageError || pageInsightsError) {
+    syncStatus = 'PARTIAL';
   }
 
   const maskId = (id) => (id ? `${id.substring(0, 4)}...${id.substring(id.length - 4)}` : 'Not set');
+
+  const fbErrDetails = pageResult.status === 'rejected' ? pageResult.reason.response?.data?.error :
+    (pageInsightsResult.status === 'rejected' ? pageInsightsResult.reason.response?.data?.error : null);
 
   return {
     connected: true,
@@ -342,7 +346,10 @@ async function getFacebookAnalytics(businessGroup) {
       pageIdMasked: maskId(pageId),
       syncStatus,
       lastUpdated,
-      lastError
+      lastError,
+      errorCode: fbErrDetails?.code || null,
+      errorType: fbErrDetails?.type || null,
+      fbtraceId: fbErrDetails?.fbtrace_id || null
     },
     lastUpdated
   };
