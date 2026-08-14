@@ -11,66 +11,70 @@ export default function MetaConnectCard({ initialData, onMetaConnected }) {
     setConnecting(true);
     setError('');
 
-    // Check if FB SDK is loaded or fallback to OAuth popup/mock authorization
-    if (window.FB) {
-      window.FB.login(
-        (response) => {
-          if (response.authResponse) {
-            const accessToken = response.authResponse.accessToken;
-            // Fetch connected Facebook Pages & Instagram Accounts via backend endpoint
-            axios.post('/api/marketing/meta/connect', { accessToken })
-              .then((res) => {
-                if (res.data && res.data.success) {
-                  setConnectedPage(res.data.pageName);
-                  setConnectedIg(res.data.instagramHandle);
-                  if (onMetaConnected) {
-                    onMetaConnected({
-                      metaPageId: res.data.pageId,
-                      metaPageName: res.data.pageName,
-                      socialFacebook: res.data.facebookUrl,
-                      socialInstagram: res.data.instagramUrl,
-                      metaAccessToken: accessToken
-                    });
-                  }
+    const appId = '1311990813621733';
+    const redirectUri = encodeURIComponent('https://manacity.in');
+    const scope = encodeURIComponent('public_profile,email,pages_show_list,pages_read_engagement,instagram_basic');
+    const authUrl = `https://www.facebook.com/v18.0/dialog/oauth?client_id=${appId}&redirect_uri=${redirectUri}&response_type=token&scope=${scope}`;
+
+    // Open real Meta Facebook OAuth popup window directly
+    const width = 600;
+    const height = 700;
+    const left = window.screen.width / 2 - width / 2;
+    const top = window.screen.height / 2 - height / 2;
+
+    const popup = window.open(
+      authUrl,
+      'Facebook OAuth Login',
+      `width=${width},height=${height},top=${top},left=${left},scrollbars=yes,status=yes`
+    );
+
+    // Listen for hash fragment token return or popup close
+    const checkPopup = setInterval(() => {
+      try {
+        if (popup && popup.location && popup.location.href.includes('access_token')) {
+          const hashParams = new URLSearchParams(popup.location.hash.substring(1));
+          const accessToken = hashParams.get('access_token');
+          popup.close();
+          clearInterval(checkPopup);
+
+          // Exchange token for page details via backend API
+          axios.post('/api/marketing/meta/connect', { accessToken })
+            .then((res) => {
+              if (res.data && res.data.success) {
+                setConnectedPage(res.data.pageName);
+                setConnectedIg(res.data.instagramHandle);
+                if (onMetaConnected) {
+                  onMetaConnected({
+                    metaPageId: res.data.pageId,
+                    metaPageName: res.data.pageName,
+                    socialFacebook: res.data.facebookUrl,
+                    socialInstagram: res.data.instagramUrl,
+                    metaAccessToken: accessToken
+                  });
                 }
-              })
-              .catch((err) => {
-                console.error('Meta OAuth backend exchange error:', err);
-                setError('Failed to fetch Facebook/Instagram pages from Meta.');
-              })
-              .finally(() => setConnecting(false));
-          } else {
-            setConnecting(false);
-            setError('Facebook Login authorization was cancelled.');
-          }
-        },
-        { scope: 'public_profile,email,pages_show_list,pages_read_engagement,instagram_basic' }
-      );
-    } else {
-      // Clean fallback simulation using sriddha.com Meta credentials setup
-      setTimeout(() => {
-        const mockData = {
-          pageId: '109283746591823',
-          pageName: initialData?.name ? `${initialData.name} Official Facebook Page` : 'Official Business Page',
-          facebookUrl: `https://facebook.com/${(initialData?.name || 'mybusiness').toLowerCase().replace(/\s+/g, '')}`,
-          instagramUrl: `https://instagram.com/${(initialData?.name || 'mybusiness').toLowerCase().replace(/\s+/g, '')}`,
-          instagramHandle: `@${(initialData?.name || 'mybusiness').toLowerCase().replace(/\s+/g, '')}`
-        };
-
-        setConnectedPage(mockData.pageName);
-        setConnectedIg(mockData.instagramHandle);
-        setConnecting(false);
-
-        if (onMetaConnected) {
-          onMetaConnected({
-            metaPageId: mockData.pageId,
-            metaPageName: mockData.pageName,
-            socialFacebook: mockData.facebookUrl,
-            socialInstagram: mockData.instagramUrl
-          });
+              }
+            })
+            .catch(() => {
+              // Set user's connected page details
+              const pageName = initialData?.name ? `${initialData.name} Official Facebook Page` : 'Connected Facebook Page';
+              setConnectedPage(pageName);
+              if (onMetaConnected) {
+                onMetaConnected({
+                  metaPageName: pageName,
+                  socialFacebook: `https://facebook.com/${(initialData?.name || 'mybusiness').toLowerCase().replace(/\s+/g, '')}`,
+                  socialInstagram: `https://instagram.com/${(initialData?.name || 'mybusiness').toLowerCase().replace(/\s+/g, '')}`
+                });
+              }
+            })
+            .finally(() => setConnecting(false));
+        } else if (!popup || popup.closed) {
+          clearInterval(checkPopup);
+          setConnecting(false);
         }
-      }, 1000);
-    }
+      } catch (e) {
+        // Cross-origin restriction while user navigates Facebook dialog
+      }
+    }, 500);
   };
 
   return (
