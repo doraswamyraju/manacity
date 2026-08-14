@@ -5,7 +5,31 @@ export default function MetaConnectCard({ initialData, onMetaConnected }) {
   const [connecting, setConnecting] = useState(false);
   const [connectedPage, setConnectedPage] = useState(initialData?.metaPageName || null);
   const [connectedIg, setConnectedIg] = useState(initialData?.socialInstagram || null);
+  const [availablePages, setAvailablePages] = useState([]);
+  const [showPageModal, setShowPageModal] = useState(false);
+  const [metaToken, setMetaToken] = useState('');
   const [error, setError] = useState('');
+
+  const handleSelectPage = async (page) => {
+    try {
+      await axios.post('/api/marketing/meta/connect', { accessToken: metaToken, selectedPageId: page.pageId });
+      setConnectedPage(page.pageName);
+      setConnectedIg(page.instagramHandle);
+      setShowPageModal(false);
+
+      if (onMetaConnected) {
+        onMetaConnected({
+          metaPageId: page.pageId,
+          metaPageName: page.pageName,
+          socialFacebook: page.facebookUrl,
+          socialInstagram: page.instagramUrl,
+          metaAccessToken: metaToken
+        });
+      }
+    } catch (e) {
+      setError('Failed to select page.');
+    }
+  };
 
   const handleFacebookLogin = () => {
     setConnecting(true);
@@ -41,22 +65,30 @@ export default function MetaConnectCard({ initialData, onMetaConnected }) {
           axios.post('/api/marketing/meta/connect', { accessToken })
             .then((res) => {
               if (res.data && res.data.success) {
-                setConnectedPage(res.data.pageName);
-                setConnectedIg(res.data.instagramHandle);
-                if (onMetaConnected) {
-                  onMetaConnected({
-                    metaPageId: res.data.pageId,
-                    metaPageName: res.data.pageName,
-                    socialFacebook: res.data.facebookUrl,
-                    socialInstagram: res.data.instagramUrl,
-                    metaAccessToken: accessToken
-                  });
+                if (res.data.pages && res.data.pages.length > 1) {
+                  setAvailablePages(res.data.pages);
+                  setShowPageModal(true);
+                  setMetaToken(accessToken);
+                } else if (res.data.selectedPage) {
+                  const sel = res.data.selectedPage;
+                  setConnectedPage(sel.pageName);
+                  setConnectedIg(sel.instagramHandle);
+                  if (onMetaConnected) {
+                    onMetaConnected({
+                      metaPageId: sel.pageId,
+                      metaPageName: sel.pageName,
+                      socialFacebook: sel.facebookUrl,
+                      socialInstagram: sel.instagramUrl,
+                      metaAccessToken: accessToken
+                    });
+                  }
                 }
               }
             })
             .catch((err) => {
               console.error('Meta connection error:', err);
-              setError('Failed to fetch Facebook Page details. Please try again.');
+              const errMsg = err.response?.data?.error || 'Failed to fetch Facebook Business Page details.';
+              setError(errMsg);
             })
             .finally(() => setConnecting(false));
         } else if (!popup || popup.closed) {
@@ -121,13 +153,76 @@ export default function MetaConnectCard({ initialData, onMetaConnected }) {
       </div>
 
       {connectedPage && (
-        <div style={{ marginTop: '1rem', paddingTop: '0.75rem', borderTop: '1px solid rgba(24, 119, 242, 0.2)', fontSize: '0.82rem', color: '#10b981', display: 'flex', gap: '1.5rem' }}>
+        <div style={{ marginTop: '1rem', paddingTop: '0.75rem', borderTop: '1px solid rgba(24, 119, 242, 0.2)', fontSize: '0.82rem', color: '#10b981', display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
           <span>✓ Connected Facebook Page: <strong>{connectedPage}</strong></span>
           {connectedIg && <span>✓ Linked Instagram: <strong>{connectedIg}</strong></span>}
         </div>
       )}
 
       {error && <span style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '0.5rem', display: 'block' }}>{error}</span>}
+
+      {/* Managed Page Selection Modal */}
+      {showPageModal && availablePages.length > 0 && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          backgroundColor: 'rgba(0,0,0,0.8)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          zIndex: 999999, padding: '1rem'
+        }}>
+          <div style={{
+            backgroundColor: '#0f172a', border: '1px solid #1877f2', borderRadius: '16px',
+            padding: '1.75rem', maxWidth: '500px', width: '100%', boxShadow: '0 25px 50px rgba(0,0,0,0.9)'
+          }}>
+            <h3 style={{ fontSize: '1.2rem', color: '#fff', margin: '0 0 0.5rem 0' }}>
+              Select Facebook Page to Connect
+            </h3>
+            <p style={{ fontSize: '0.82rem', color: '#94a3b8', marginBottom: '1.25rem' }}>
+              We found multiple Facebook Pages associated with your account. Select the page for your business:
+            </p>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', maxHeight: '300px', overflowY: 'auto' }}>
+              {availablePages.map(page => (
+                <div
+                  key={page.pageId}
+                  onClick={() => handleSelectPage(page)}
+                  style={{
+                    padding: '0.85rem 1rem',
+                    backgroundColor: '#1e293b',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    borderRadius: '10px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center'
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.borderColor = '#1877f2'}
+                  onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'}
+                >
+                  <div>
+                    <strong style={{ color: '#fff', display: 'block', fontSize: '0.95rem' }}>{page.pageName}</strong>
+                    <span style={{ fontSize: '0.78rem', color: '#60a5fa' }}>{page.facebookUrl}</span>
+                    {page.instagramHandle && (
+                      <span style={{ fontSize: '0.75rem', color: '#34d399', display: 'block', marginTop: '0.15rem' }}>
+                        Linked Instagram: {page.instagramHandle}
+                      </span>
+                    )}
+                  </div>
+                  <button type="button" style={{ padding: '0.4rem 0.8rem', borderRadius: '6px', border: 'none', backgroundColor: '#1877f2', color: '#fff', fontSize: '0.78rem', fontWeight: 700 }}>
+                    Select
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            <button
+              onClick={() => setShowPageModal(false)}
+              style={{ width: '100%', marginTop: '1.25rem', padding: '0.6rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', backgroundColor: 'transparent', color: '#94a3b8', cursor: 'pointer' }}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
