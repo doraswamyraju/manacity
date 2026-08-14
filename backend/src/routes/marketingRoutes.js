@@ -116,144 +116,32 @@ router.post('/meta-ads/create', auth, async (req, res) => {
   }
 });
 
-// 4. Instagram Analytics & Media Posts (Meta Graph API v24.0)
+const metaSyncService = require('../services/metaSyncService');
+
+// 4. Instagram Analytics & Media Posts (Capability-Aware Meta Graph API v24.0)
 router.get('/instagram/stats', auth, async (req, res) => {
   try {
     const ownerId = req.user.id;
     const bg = await prisma.businessGroup.findFirst({ where: { ownerId } });
 
-    if (!bg || !bg.metaAccessToken) {
-      return res.status(200).json({
-        connected: false,
-        message: 'Meta account not connected. Please connect your Facebook Page / Instagram in Profile Settings.',
-        stats: null,
-        recentPosts: []
-      });
-    }
-
-    const token = bg.metaAccessToken;
-    let igId = bg.metaInstagramId;
-
-    // 1. Discover Instagram Business Account ID if missing
-    if (!igId && bg.metaPageId) {
-      try {
-        const pageRes = await axios.get(`https://graph.facebook.com/v24.0/${bg.metaPageId}?fields=instagram_business_account{id,username,name}&access_token=${token}`);
-        if (pageRes.data?.instagram_business_account) {
-          igId = pageRes.data.instagram_business_account.id;
-        }
-      } catch (err) {
-        console.warn('Meta Graph API instagram_business_account error:', err.response?.data || err.message);
-      }
-    }
-
-    // 2. Fetch real Graph API v24.0 Insights & Recent Media
-    if (igId) {
-      try {
-        const [igRes, insightsRes] = await Promise.all([
-          axios.get(`https://graph.facebook.com/v24.0/${igId}?fields=followers_count,media_count,username,name,profile_picture_url,media{id,caption,media_url,like_count,comments_count,timestamp,permalink}&access_token=${token}`),
-          axios.get(`https://graph.facebook.com/v24.0/${igId}/insights?metric=reach,impressions&period=day&access_token=${token}`).catch(() => null)
-        ]);
-
-        const data = igRes.data;
-
-        // Parse real Graph API reach & views metrics strictly from API payload
-        let realReach = 0;
-        let realViews = 0;
-
-        if (insightsRes?.data?.data) {
-          const reachMetric = insightsRes.data.data.find(m => m.name === 'reach');
-          const viewsMetric = insightsRes.data.data.find(m => m.name === 'impressions');
-          if (reachMetric?.values?.length) realReach = reachMetric.values.reduce((sum, v) => sum + (v.value || 0), 0);
-          if (viewsMetric?.values?.length) realViews = viewsMetric.values.reduce((sum, v) => sum + (v.value || 0), 0);
-        }
-
-        const posts = (data.media?.data || []).map(p => ({
-          id: p.id,
-          caption: p.caption || '',
-          mediaUrl: p.media_url || '',
-          likeCount: p.like_count || 0,
-          commentsCount: p.comments_count || 0,
-          timestamp: p.timestamp,
-          permalink: p.permalink
-        }));
-
-        return res.status(200).json({
-          connected: true,
-          handle: data.username ? `@${data.username}` : (bg.socialInstagram || ''),
-          stats: {
-            followersCount: data.followers_count || 0,
-            mediaCount: data.media_count !== undefined ? data.media_count : posts.length,
-            reach: realReach,
-            views: realViews,
-            engagementRate: '0%'
-          },
-          recentPosts: posts
-        });
-      } catch (graphErr) {
-        console.error('Real Instagram Graph API Error:', graphErr.response?.data || graphErr.message);
-        return res.status(200).json({
-          connected: true,
-          handle: bg.socialInstagram || '',
-          stats: { followersCount: 0, mediaCount: 0, reach: 0, views: 0, engagementRate: '0%' },
-          recentPosts: []
-        });
-      }
-    }
-
-    // 3. Fallback for Facebook Page without linked IG
-    return res.status(200).json({
-      connected: true,
-      hasInstagram: false,
-      handle: bg.socialInstagram || '@instagram',
-      message: 'Facebook Page connected! Link an Instagram Business account to view live Instagram insights.',
-      stats: { followersCount: 0, mediaCount: 0, reach: 0, engagementRate: '0%' },
-      recentPosts: []
-    });
+    const analytics = await metaSyncService.getInstagramAnalytics(bg);
+    return res.status(200).json(analytics);
   } catch (error) {
-    console.error('Instagram stats controller error:', error);
-    return res.status(500).json({ error: 'Failed to fetch Instagram analytics' });
+    console.error('[MarketingRoutes] Instagram stats error:', error);
+    return res.status(500).json({ error: 'Failed to fetch Instagram analytics from Meta Graph API' });
   }
 });
 
-// 5. Facebook Page Live Stats (Meta Graph API v24.0)
+// 5. Facebook Page Analytics (Capability-Aware Meta Graph API v24.0)
 router.get('/facebook/stats', auth, async (req, res) => {
   try {
     const ownerId = req.user.id;
     const bg = await prisma.businessGroup.findFirst({ where: { ownerId } });
 
-    if (!bg || !bg.metaAccessToken || !bg.metaPageId) {
-      return res.status(200).json({
-        connected: false,
-        message: 'Meta Facebook Business Page not connected. Connect in Profile Settings.'
-      });
-    }
-
-    const token = bg.metaAccessToken;
-    try {
-      const fbRes = await axios.get(`https://graph.facebook.com/v24.0/${bg.metaPageId}?fields=id,name,fan_count,followers_count,link,talking_about_count&access_token=${token}`);
-      const data = fbRes.data;
-
-      return res.status(200).json({
-        connected: true,
-        pageName: data.name || bg.metaPageName,
-        facebookUrl: data.link || bg.socialFacebook,
-        stats: {
-          fanCount: data.fan_count || data.followers_count || 0,
-          followersCount: data.followers_count || data.fan_count || 0,
-          monthlyReach: (data.fan_count || 50) * 5,
-          conversationsSynced: 94
-        }
-      });
-    } catch (fbErr) {
-      console.error('Facebook Graph API error:', fbErr.response?.data || fbErr.message);
-      return res.status(200).json({
-        connected: true,
-        pageName: bg.metaPageName || 'Facebook Page',
-        stats: { fanCount: 0, followersCount: 0, monthlyReach: 0, conversationsSynced: 0 }
-      });
-    }
+    const analytics = await metaSyncService.getFacebookAnalytics(bg);
+    return res.status(200).json(analytics);
   } catch (error) {
-    console.error('Facebook stats controller error:', error);
+    console.error('[MarketingRoutes] Facebook stats error:', error);
     return res.status(500).json({ error: 'Failed to fetch Facebook Page analytics' });
   }
 });

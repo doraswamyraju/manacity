@@ -291,57 +291,69 @@ export default function MarketingTabContainer({ businessGroup, activeTabOverride
           {/* Real Account Statistics Cards */}
           {(igSubTab === 'overview' || igSubTab === 'posts') && (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.25rem' }}>
+              
+              {/* Followers */}
               <div style={{ backgroundColor: '#0f172a', padding: '1.25rem', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.06)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', color: '#94a3b8', fontSize: '0.82rem', marginBottom: '0.5rem' }}>
                   <span>Followers Count</span>
                   <Users size={18} color="#e1306c" />
                 </div>
                 <strong style={{ fontSize: '1.7rem', fontWeight: 900, color: '#fff' }}>
-                  {igData?.stats?.followersCount !== undefined ? igData.stats.followersCount.toLocaleString() : 0}
+                  {igData?.metrics?.followers?.available ? igData.metrics.followers.value.toLocaleString() : (igData?.stats?.followersCount ?? 'Not available')}
                 </strong>
                 <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.25rem' }}>
-                  Instagram followers
+                  {igData?.metrics?.followers?.source ? `Source: ${igData.metrics.followers.source}` : 'Instagram followers'}
                 </div>
               </div>
 
+              {/* Views / Impressions */}
               <div style={{ backgroundColor: '#0f172a', padding: '1.25rem', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.06)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', color: '#94a3b8', fontSize: '0.82rem', marginBottom: '0.5rem' }}>
                   <span>Total Views / Impressions</span>
                   <Eye size={18} color="#818cf8" />
                 </div>
                 <strong style={{ fontSize: '1.7rem', fontWeight: 900, color: '#fff' }}>
-                  {igData?.stats?.views !== undefined ? igData.stats.views.toLocaleString() : 0}
+                  {igData?.metrics?.views?.available && igData.metrics.views.value !== null 
+                    ? igData.metrics.views.value.toLocaleString() 
+                    : (igData?.stats?.views ?? 'Not available')}
                 </strong>
                 <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.25rem' }}>
-                  Content impressions
+                  {igData?.metrics?.views?.reason || 'Account daily impressions'}
                 </div>
               </div>
 
+              {/* Account Reach */}
               <div style={{ backgroundColor: '#0f172a', padding: '1.25rem', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.06)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', color: '#94a3b8', fontSize: '0.82rem', marginBottom: '0.5rem' }}>
                   <span>Account Reach</span>
                   <TrendingUp size={18} color="#38bdf8" />
                 </div>
                 <strong style={{ fontSize: '1.7rem', fontWeight: 900, color: '#fff' }}>
-                  {igData?.stats?.reach !== undefined ? igData.stats.reach.toLocaleString() : 0}
+                  {igData?.metrics?.reach?.available && igData.metrics.reach.value !== null 
+                    ? igData.metrics.reach.value.toLocaleString() 
+                    : (igData?.stats?.reach ?? 'Not available')}
                 </strong>
                 <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.25rem' }}>
-                  Unique accounts reached
+                  {igData?.metrics?.reach?.reason || 'Unique accounts reached'}
                 </div>
               </div>
 
+              {/* Profile Views */}
               <div style={{ backgroundColor: '#0f172a', padding: '1.25rem', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.06)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', color: '#94a3b8', fontSize: '0.82rem', marginBottom: '0.5rem' }}>
-                  <span>Interactions / Engagement</span>
-                  <Heart size={18} color="#f59e0b" />
+                  <span>Profile Visits</span>
+                  <Globe size={18} color="#f59e0b" />
                 </div>
                 <strong style={{ fontSize: '1.7rem', fontWeight: 900, color: '#fff' }}>
-                  {igData?.stats?.engagementRate || '0%'}
+                  {igData?.metrics?.profileViews?.available && igData.metrics.profileViews.value !== null 
+                    ? igData.metrics.profileViews.value.toLocaleString() 
+                    : 'Not available'}
                 </strong>
                 <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.25rem' }}>
-                  Engagement rate
+                  {igData?.metrics?.profileViews?.reason || 'Profile visits'}
                 </div>
               </div>
+
             </div>
           )}
 
