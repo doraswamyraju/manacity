@@ -275,7 +275,7 @@ export default function MarketingTabContainer({ businessGroup, activeTabOverride
               </div>
               <div>
                 <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#fff', margin: 0 }}>
-                  Instagram Business Hub {igData?.handle && <span style={{ color: '#e1306c', fontSize: '0.95rem' }}>({igData.handle})</span>}
+                  Instagram Business Hub {igData?.account?.username && <span style={{ color: '#e1306c', fontSize: '0.95rem' }}>({igData.account.username})</span>}
                 </h3>
                 <p style={{ fontSize: '0.85rem', color: '#94a3b8', margin: '0.2rem 0 0 0' }}>
                   Manage posts, view live Graph API insights & auto-sync DMs directly to LetsTrack live chat.
@@ -337,8 +337,8 @@ export default function MarketingTabContainer({ businessGroup, activeTabOverride
               <div><strong>Page ID (Masked):</strong> {igData?.diagnostics?.pageIdMasked || 'N/A'}</div>
               <div><strong>Instagram Account ID (Masked):</strong> {igData?.diagnostics?.instagramIdMasked || 'N/A'}</div>
               <div><strong>Sync Status:</strong> <span style={{ color: igData?.syncStatus === 'LIVE' ? '#34d399' : '#fbbf24' }}>{igData?.syncStatus || 'N/A'}</span></div>
-              <div><strong>Last Successful Sync:</strong> {igData?.lastUpdated ? new Date(igData.lastUpdated).toLocaleTimeString() : 'N/A'}</div>
-              <div><strong>Last API Error:</strong> <span style={{ color: '#f87171' }}>{igData?.diagnostics?.lastError || 'None'}</span></div>
+              <div><strong>Last Sync:</strong> {igData?.lastUpdated ? new Date(igData.lastUpdated).toLocaleTimeString() : 'N/A'}</div>
+              <div><strong>Error Details:</strong> <span style={{ color: '#f87171' }}>{igData?.diagnostics?.lastError ? `${igData.diagnostics.lastError} (Code: ${igData.diagnostics.errorCode || 'N/A'}, Type: ${igData.diagnostics.errorType || 'N/A'}, Trace: ${igData.diagnostics.fbtraceId || 'N/A'})` : 'None'}</span></div>
             </div>
           </details>
 
@@ -492,7 +492,7 @@ export default function MarketingTabContainer({ businessGroup, activeTabOverride
               </h4>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                {(igData?.recentPosts || []).map(post => (
+                {[...(igData?.content?.posts || []), ...(igData?.content?.reels || [])].map(post => (
                   <div key={post.id} style={{ display: 'flex', gap: '1rem', backgroundColor: '#1e293b', borderRadius: '12px', padding: '0.85rem', border: '1px solid rgba(255,255,255,0.05)' }}>
                     <img src={post.mediaUrl} alt="IG Post" style={{ width: '80px', height: '80px', borderRadius: '8px', objectFit: 'cover' }} />
                     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
@@ -502,12 +502,12 @@ export default function MarketingTabContainer({ businessGroup, activeTabOverride
 
                       <div style={{ display: 'flex', gap: '1.25rem', color: '#94a3b8', fontSize: '0.78rem', fontWeight: 700, marginTop: '0.5rem' }}>
                         <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', color: '#f43f5e' }}>
-                          <Heart size={14} /> {post.likeCount} Likes
+                          <Heart size={14} /> {post.metrics?.likes?.value !== undefined && post.metrics?.likes?.value !== null ? post.metrics.likes.value : 0} Likes
                         </span>
                         <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', color: '#38bdf8' }}>
-                          <MessageCircle size={14} /> {post.commentsCount} Comments
+                          <MessageCircle size={14} /> {post.metrics?.comments?.value !== undefined && post.metrics?.comments?.value !== null ? post.metrics.comments.value : 0} Comments
                         </span>
-                        <span>{new Date(post.timestamp).toLocaleDateString('en-IN')}</span>
+                        <span>{post.timestamp ? new Date(post.timestamp).toLocaleDateString('en-IN') : ''}</span>
                       </div>
                     </div>
                   </div>
@@ -590,8 +590,8 @@ export default function MarketingTabContainer({ businessGroup, activeTabOverride
               <div><strong>Graph API Version:</strong> {fbData?.diagnostics?.apiVersion || 'v24.0'}</div>
               <div><strong>Page ID (Masked):</strong> {fbData?.diagnostics?.pageIdMasked || 'N/A'}</div>
               <div><strong>Sync Status:</strong> <span style={{ color: fbData?.syncStatus === 'LIVE' ? '#34d399' : '#fbbf24' }}>{fbData?.syncStatus || 'N/A'}</span></div>
-              <div><strong>Last Successful Sync:</strong> {fbData?.lastUpdated ? new Date(fbData.lastUpdated).toLocaleTimeString() : 'N/A'}</div>
-              <div><strong>Last API Error:</strong> <span style={{ color: '#f87171' }}>{fbData?.diagnostics?.lastError || 'None'}</span></div>
+              <div><strong>Last Sync:</strong> {fbData?.lastUpdated ? new Date(fbData.lastUpdated).toLocaleTimeString() : 'N/A'}</div>
+              <div><strong>Error Details:</strong> <span style={{ color: '#f87171' }}>{fbData?.diagnostics?.lastError ? `${fbData.diagnostics.lastError} (Code: ${fbData.diagnostics.errorCode || 'N/A'}, Type: ${fbData.diagnostics.errorType || 'N/A'}, Trace: ${fbData.diagnostics.fbtraceId || 'N/A'})` : 'None'}</span></div>
             </div>
           </details>
 

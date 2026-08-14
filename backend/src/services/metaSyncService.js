@@ -85,12 +85,43 @@ async function getInstagramAnalytics(businessGroup) {
     };
   }
 
-  // Use Promise.allSettled so one failed call doesn't destroy remaining data
-  const [profileResult, mediaResult, insightsResult] = await Promise.allSettled([
-    axios.get(`https://graph.facebook.com/${GRAPH_API_VERSION}/${igId}?fields=id,username,name,profile_picture_url,followers_count,follows_count,media_count,website&access_token=${token}`),
-    axios.get(`https://graph.facebook.com/${GRAPH_API_VERSION}/${igId}/media?fields=id,caption,media_type,media_url,thumbnail_url,permalink,timestamp,like_count,comments_count&limit=25&access_token=${token}`),
-    axios.get(`https://graph.facebook.com/${GRAPH_API_VERSION}/${igId}/insights?metric=reach,impressions,profile_views,accounts_engaged&period=day&access_token=${token}`)
+  // Query Instagram Insights metrics individually so unsupported metrics don't break remaining metrics
+  const [reachRes, impressionsRes, profileViewsRes, accountRes] = await Promise.allSettled([
+    axios.get(`https://graph.facebook.com/${GRAPH_API_VERSION}/${igId}/insights?metric=reach&period=day&access_token=${token}`),
+    axios.get(`https://graph.facebook.com/${GRAPH_API_VERSION}/${igId}/insights?metric=impressions&period=day&access_token=${token}`),
+    axios.get(`https://graph.facebook.com/${GRAPH_API_VERSION}/${igId}/insights?metric=profile_views&period=day&access_token=${token}`),
+    axios.get(`https://graph.facebook.com/${GRAPH_API_VERSION}/${igId}/insights?metric=accounts_engaged&period=day&access_token=${token}`)
   ]);
+
+  let reachVal = null;
+  let reachError = null;
+  if (reachRes.status === 'fulfilled') {
+    const vals = reachRes.value.data?.data?.[0]?.values || [];
+    reachVal = vals.reduce((acc, v) => acc + (v.value || 0), 0);
+  } else {
+    reachError = reachRes.reason.response?.data?.error?.message || 'Reach metric unavailable or permission restricted';
+    logMetaError(`GET /${igId}/insights?metric=reach`, reachRes.reason);
+  }
+
+  let impressionsVal = null;
+  let impressionsError = null;
+  if (impressionsRes.status === 'fulfilled') {
+    const vals = impressionsRes.value.data?.data?.[0]?.values || [];
+    impressionsVal = vals.reduce((acc, v) => acc + (v.value || 0), 0);
+  } else {
+    impressionsError = impressionsRes.reason.response?.data?.error?.message || 'Impressions metric unavailable';
+    logMetaError(`GET /${igId}/insights?metric=impressions`, impressionsRes.reason);
+  }
+
+  let profileViewsVal = null;
+  let profileViewsError = null;
+  if (profileViewsRes.status === 'fulfilled') {
+    const vals = profileViewsRes.value.data?.data?.[0]?.values || [];
+    profileViewsVal = vals.reduce((acc, v) => acc + (v.value || 0), 0);
+  } else {
+    profileViewsError = profileViewsRes.reason.response?.data?.error?.message || 'Profile views metric unavailable';
+    logMetaError(`GET /${igId}/insights?metric=profile_views`, profileViewsRes.reason);
+  }
 
   // Profile data
   let profile = null;
@@ -110,25 +141,6 @@ async function getInstagramAnalytics(businessGroup) {
   } else {
     logMetaError(`GET /${igId}/media`, mediaResult.reason);
     mediaError = mediaResult.reason.response?.data?.error?.message || 'Failed to retrieve media from Meta';
-  }
-
-  // Insights data
-  let reachVal = null;
-  let impressionsVal = null;
-  let profileViewsVal = null;
-  let insightsError = null;
-
-  if (insightsResult.status === 'fulfilled') {
-    const dataList = insightsResult.value.data?.data || [];
-    dataList.forEach(item => {
-      const total = (item.values || []).reduce((acc, v) => acc + (v.value || 0), 0);
-      if (item.name === 'reach') reachVal = total;
-      if (item.name === 'impressions') impressionsVal = total;
-      if (item.name === 'profile_views') profileViewsVal = total;
-    });
-  } else {
-    logMetaError(`GET /${igId}/insights`, insightsResult.reason);
-    insightsError = insightsResult.reason.response?.data?.error?.message || 'Requires instagram_manage_insights scope or Business account';
   }
 
   // Process & Normalize Content Analytics
@@ -161,19 +173,18 @@ async function getInstagramAnalytics(businessGroup) {
 
   // Calculate overall syncStatus and collect diagnostic info
   let syncStatus = 'LIVE';
-  let lastError = null;
+  let lastError = profileError || reachError || impressionsError || profileViewsError || mediaError || null;
 
-  if (profileError || insightsError || mediaError) {
-    if (profileError && insightsError && mediaError) {
-      syncStatus = 'ERROR';
-      lastError = profileError || insightsError || mediaError;
-    } else {
-      syncStatus = 'PARTIAL';
-      lastError = insightsError || profileError || mediaError;
-    }
+  if (profileError && reachError && impressionsError && mediaError) {
+    syncStatus = 'ERROR';
+  } else if (profileError || reachError || impressionsError || profileViewsError || mediaError) {
+    syncStatus = 'PARTIAL';
   }
 
   const maskId = (id) => (id ? `${id.substring(0, 4)}...${id.substring(id.length - 4)}` : 'Not set');
+
+  const metaErrDetails = profileResult.status === 'rejected' ? profileResult.reason.response?.data?.error :
+    (reachRes.status === 'rejected' ? reachRes.reason.response?.data?.error : null);
 
   const normalizedData = {
     connected: true,
@@ -188,16 +199,16 @@ async function getInstagramAnalytics(businessGroup) {
       instagramUrl: `https://instagram.com/${profile.username}`
     } : null,
     metrics: {
-      followers: buildMetric('followers', profile?.followers_count, profile !== null, 'meta', profileError),
-      following: buildMetric('following', profile?.follows_count, profile !== null, 'meta', profileError),
-      mediaCount: buildMetric('mediaCount', profile?.media_count, profile !== null, 'meta', profileError),
-      reach: buildMetric('reach', reachVal, reachVal !== null, 'meta', insightsError),
-      views: buildMetric('views', impressionsVal, impressionsVal !== null, 'meta', insightsError),
-      profileViews: buildMetric('profileViews', profileViewsVal, profileViewsVal !== null, 'meta', insightsError)
+      followers: buildMetric('followers', profile?.followers_count, profile?.followers_count !== undefined && profile?.followers_count !== null, 'meta', profileError),
+      following: buildMetric('following', profile?.follows_count, profile?.follows_count !== undefined && profile?.follows_count !== null, 'meta', profileError),
+      mediaCount: buildMetric('mediaCount', profile?.media_count, profile?.media_count !== undefined && profile?.media_count !== null, 'meta', profileError),
+      reach: buildMetric('reach', reachVal, reachVal !== null, 'meta', reachError),
+      views: buildMetric('views', impressionsVal, impressionsVal !== null, 'meta', impressionsError),
+      profileViews: buildMetric('profileViews', profileViewsVal, profileViewsVal !== null, 'meta', profileViewsError)
     },
     stats: {
       followersCount: profile?.followers_count !== undefined && profile?.followers_count !== null ? profile.followers_count : null,
-      mediaCount: profile?.media_count !== undefined && profile?.media_count !== null ? profile.media_count : rawMedia.length,
+      mediaCount: profile?.media_count !== undefined && profile?.media_count !== null ? profile.media_count : null,
       reach: reachVal,
       views: impressionsVal,
       profileViews: profileViewsVal
@@ -215,7 +226,10 @@ async function getInstagramAnalytics(businessGroup) {
       instagramIdMasked: maskId(igId),
       syncStatus,
       lastUpdated,
-      lastError
+      lastError,
+      errorCode: metaErrDetails?.code || null,
+      errorType: metaErrDetails?.type || null,
+      fbtraceId: metaErrDetails?.fbtrace_id || null
     },
     lastUpdated
   };
