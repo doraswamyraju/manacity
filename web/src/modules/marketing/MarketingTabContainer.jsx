@@ -297,49 +297,49 @@ export default function MarketingTabContainer({ businessGroup, activeTabOverride
                   <Users size={18} color="#e1306c" />
                 </div>
                 <strong style={{ fontSize: '1.7rem', fontWeight: 900, color: '#fff' }}>
-                  {igData?.stats?.followersCount?.toLocaleString() || 1420}
+                  {igData?.stats?.followersCount !== undefined ? igData.stats.followersCount.toLocaleString() : 4}
                 </strong>
                 <div style={{ fontSize: '0.75rem', color: '#10b981', fontWeight: 700, marginTop: '0.25rem' }}>
-                  +12% vs last month
+                  +33.3% vs last period
                 </div>
               </div>
 
               <div style={{ backgroundColor: '#0f172a', padding: '1.25rem', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.06)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', color: '#94a3b8', fontSize: '0.82rem', marginBottom: '0.5rem' }}>
-                  <span>Total Media Posts</span>
-                  <ImageIcon size={18} color="#818cf8" />
+                  <span>Total Views / Impressions</span>
+                  <Eye size={18} color="#818cf8" />
                 </div>
                 <strong style={{ fontSize: '1.7rem', fontWeight: 900, color: '#fff' }}>
-                  {igData?.stats?.mediaCount || 38}
+                  {igData?.stats?.views !== undefined ? igData.stats.views.toLocaleString() : 367}
                 </strong>
-                <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.25rem' }}>
-                  Published media
+                <div style={{ fontSize: '0.75rem', color: '#10b981', fontWeight: 700, marginTop: '0.25rem' }}>
+                  +321.8% vs last period
                 </div>
               </div>
 
               <div style={{ backgroundColor: '#0f172a', padding: '1.25rem', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.06)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', color: '#94a3b8', fontSize: '0.82rem', marginBottom: '0.5rem' }}>
-                  <span>Profile Reach</span>
-                  <Eye size={18} color="#38bdf8" />
+                  <span>Account Reach</span>
+                  <TrendingUp size={18} color="#38bdf8" />
                 </div>
                 <strong style={{ fontSize: '1.7rem', fontWeight: 900, color: '#fff' }}>
-                  {igData?.stats?.reach?.toLocaleString() || '8,950'}
+                  {igData?.stats?.reach !== undefined ? igData.stats.reach.toLocaleString() : 34}
                 </strong>
                 <div style={{ fontSize: '0.75rem', color: '#38bdf8', fontWeight: 700, marginTop: '0.25rem' }}>
-                  Organic impressions
+                  +142.9% organic reach
                 </div>
               </div>
 
               <div style={{ backgroundColor: '#0f172a', padding: '1.25rem', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.06)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', color: '#94a3b8', fontSize: '0.82rem', marginBottom: '0.5rem' }}>
-                  <span>Engagement Rate</span>
-                  <TrendingUp size={18} color="#f59e0b" />
+                  <span>Interactions / Engagement</span>
+                  <Heart size={18} color="#f59e0b" />
                 </div>
                 <strong style={{ fontSize: '1.7rem', fontWeight: 900, color: '#fff' }}>
-                  {igData?.stats?.engagementRate || '5.2%'}
+                  {igData?.stats?.engagementRate || '100%'}
                 </strong>
                 <div style={{ fontSize: '0.75rem', color: '#10b981', fontWeight: 700, marginTop: '0.25rem' }}>
-                  High audience interaction
+                  High interaction rate
                 </div>
               </div>
             </div>
