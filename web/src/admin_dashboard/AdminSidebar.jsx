@@ -17,7 +17,11 @@ import {
   Sliders,
   Package,
   Megaphone,
-  Share2
+  Share2,
+  Instagram,
+  Facebook,
+  Search,
+  Image as ImageIcon
 } from 'lucide-react';
 
 function AdminSidebar({
