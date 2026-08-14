@@ -256,7 +256,7 @@ async function getFacebookAnalytics(businessGroup) {
   const [pageResult, postsResult, pageInsightsResult] = await Promise.allSettled([
     axios.get(`https://graph.facebook.com/${GRAPH_API_VERSION}/${pageId}?fields=id,name,link,fan_count,followers_count,talking_about_count,category,rating_count,overall_star_rating&access_token=${token}`),
     axios.get(`https://graph.facebook.com/${GRAPH_API_VERSION}/${pageId}/published_posts?fields=id,message,created_time,permalink_url,full_picture,shares,reactions.summary(true),comments.summary(true)&limit=20&access_token=${token}`),
-    axios.get(`https://graph.facebook.com/${GRAPH_API_VERSION}/${pageId}/insights?metric=page_impressions_unique,page_post_engagements&period=days_28&access_token=${token}`)
+    axios.get(`https://graph.facebook.com/${GRAPH_API_VERSION}/${pageId}/insights?metric=page_impressions,page_views_total&period=day&access_token=${token}`)
   ]);
 
   // Page basic info
@@ -277,18 +277,18 @@ async function getFacebookAnalytics(businessGroup) {
     logMetaError(`GET /${pageId}/published_posts`, postsResult.reason);
   }
 
-  // Page Insights (Real Reach)
+  // Page Insights (Real Reach/Impressions)
   let pageReachVal = null;
   let pageInsightsError = null;
   if (pageInsightsResult.status === 'fulfilled') {
     const insightsList = pageInsightsResult.value.data?.data || [];
-    const reachMetric = insightsList.find(m => m.name === 'page_impressions_unique');
+    const reachMetric = insightsList.find(m => m.name === 'page_impressions' || m.name === 'page_views_total');
     if (reachMetric?.values?.length) {
-      pageReachVal = reachMetric.values[reachMetric.values.length - 1].value;
+      pageReachVal = reachMetric.values.reduce((acc, v) => acc + (v.value || 0), 0);
     }
   } else {
     logMetaError(`GET /${pageId}/insights`, pageInsightsResult.reason);
-    pageInsightsError = pageInsightsResult.reason.response?.data?.error?.message || 'Page reach requires read_insights permission';
+    pageInsightsError = pageInsightsResult.reason.response?.data?.error?.message || 'Page impressions require read_insights permission';
   }
 
   const posts = rawPosts.map(post => ({
