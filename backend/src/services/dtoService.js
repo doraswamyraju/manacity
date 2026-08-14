@@ -63,18 +63,28 @@ function toPublicBusinessDTO(businessGroup) {
     services: Array.isArray(businessGroup.services) ? businessGroup.services.map(s => ({
       id: s.id,
       name: s.name,
-      description: s.description,
-      price: s.price,
+      description: s.description || s.libraryItem?.description || null,
+      price: s.price !== null && s.price !== undefined ? s.price : (s.libraryItem?.defaultPrice !== null ? s.libraryItem?.defaultPrice : null),
       imageUrl: s.imageUrl,
-      photos: s.photos
+      photos: s.photos && s.photos.length > 0 ? s.photos : (s.libraryItem?.photos || []),
+      libraryItem: s.libraryItem ? {
+        defaultPrice: s.libraryItem.defaultPrice,
+        description: s.libraryItem.description,
+        photos: s.libraryItem.photos
+      } : null
     })) : [],
     products: Array.isArray(businessGroup.products) ? businessGroup.products.map(p => ({
       id: p.id,
       name: p.name,
-      description: p.description,
-      price: p.price,
+      description: p.description || p.libraryItem?.description || null,
+      price: p.price !== null && p.price !== undefined ? p.price : (p.libraryItem?.defaultPrice !== null ? p.libraryItem?.defaultPrice : null),
       imageUrl: p.imageUrl,
-      photos: p.photos
+      photos: p.photos && p.photos.length > 0 ? p.photos : (p.libraryItem?.photos || []),
+      libraryItem: p.libraryItem ? {
+        defaultPrice: p.libraryItem.defaultPrice,
+        description: p.libraryItem.description,
+        photos: p.libraryItem.photos
+      } : null
     })) : []
   };
 }
