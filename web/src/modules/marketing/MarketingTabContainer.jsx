@@ -283,8 +283,31 @@ export default function MarketingTabContainer({ businessGroup, activeTabOverride
               </div>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: 'rgba(16, 185, 129, 0.15)', border: '1px solid rgba(16, 185, 129, 0.3)', padding: '0.5rem 1rem', borderRadius: '20px', color: '#34d399', fontSize: '0.82rem', fontWeight: 800 }}>
-              <MessageSquare size={16} /> LetsTrack DM Sync: Active
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <button
+                onClick={fetchInstagramStats}
+                disabled={loadingIg}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.4rem',
+                  backgroundColor: 'rgba(255,255,255,0.08)',
+                  border: '1px solid rgba(255,255,255,0.15)',
+                  borderRadius: '10px',
+                  padding: '0.5rem 0.85rem',
+                  color: '#fff',
+                  fontSize: '0.82rem',
+                  fontWeight: 700,
+                  cursor: 'pointer'
+                }}
+              >
+                <RefreshCw size={14} className={loadingIg ? 'animate-spin' : ''} />
+                {loadingIg ? 'Syncing...' : 'Refresh Meta Stats'}
+              </button>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: 'rgba(16, 185, 129, 0.15)', border: '1px solid rgba(16, 185, 129, 0.3)', padding: '0.5rem 1rem', borderRadius: '20px', color: '#34d399', fontSize: '0.82rem', fontWeight: 800 }}>
+                <MessageSquare size={16} /> LetsTrack DM Sync: Active
+              </div>
             </div>
           </div>
 
@@ -299,28 +322,28 @@ export default function MarketingTabContainer({ businessGroup, activeTabOverride
                   <Users size={18} color="#e1306c" />
                 </div>
                 <strong style={{ fontSize: '1.7rem', fontWeight: 900, color: '#fff' }}>
-                  {igData?.metrics?.followers?.value !== undefined && igData?.metrics?.followers?.value !== null
-                    ? igData.metrics.followers.value.toLocaleString()
-                    : (igData?.stats?.followersCount !== undefined ? igData.stats.followersCount.toLocaleString() : '0')}
+                  {igData?.metrics?.followers?.available && igData.metrics.followers.value !== null 
+                    ? igData.metrics.followers.value.toLocaleString() 
+                    : 'N/A'}
                 </strong>
                 <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.25rem' }}>
-                  Instagram followers
+                  {igData?.metrics?.followers?.reason || 'Instagram followers'}
                 </div>
               </div>
 
-              {/* Views / Impressions */}
+              {/* Impressions */}
               <div style={{ backgroundColor: '#0f172a', padding: '1.25rem', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.06)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', color: '#94a3b8', fontSize: '0.82rem', marginBottom: '0.5rem' }}>
-                  <span>Total Views / Impressions</span>
+                  <span>Account Impressions</span>
                   <Eye size={18} color="#818cf8" />
                 </div>
                 <strong style={{ fontSize: '1.7rem', fontWeight: 900, color: '#fff' }}>
-                  {igData?.metrics?.views?.value !== undefined && igData?.metrics?.views?.value !== null
-                    ? igData.metrics.views.value.toLocaleString()
-                    : (igData?.stats?.views !== undefined ? igData.stats.views.toLocaleString() : '0')}
+                  {igData?.metrics?.views?.available && igData.metrics.views.value !== null 
+                    ? igData.metrics.views.value.toLocaleString() 
+                    : 'N/A'}
                 </strong>
                 <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.25rem' }}>
-                  Account daily impressions
+                  {igData?.metrics?.views?.reason || 'Account daily impressions'}
                 </div>
               </div>
 
@@ -331,28 +354,28 @@ export default function MarketingTabContainer({ businessGroup, activeTabOverride
                   <TrendingUp size={18} color="#38bdf8" />
                 </div>
                 <strong style={{ fontSize: '1.7rem', fontWeight: 900, color: '#fff' }}>
-                  {igData?.metrics?.reach?.value !== undefined && igData?.metrics?.reach?.value !== null
-                    ? igData.metrics.reach.value.toLocaleString()
-                    : (igData?.stats?.reach !== undefined ? igData.stats.reach.toLocaleString() : '0')}
+                  {igData?.metrics?.reach?.available && igData.metrics.reach.value !== null 
+                    ? igData.metrics.reach.value.toLocaleString() 
+                    : 'N/A'}
                 </strong>
                 <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.25rem' }}>
-                  Unique accounts reached
+                  {igData?.metrics?.reach?.reason || 'Unique accounts reached'}
                 </div>
               </div>
 
-              {/* Profile Views */}
+              {/* Profile Visits */}
               <div style={{ backgroundColor: '#0f172a', padding: '1.25rem', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.06)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', color: '#94a3b8', fontSize: '0.82rem', marginBottom: '0.5rem' }}>
                   <span>Profile Visits</span>
                   <Globe size={18} color="#f59e0b" />
                 </div>
                 <strong style={{ fontSize: '1.7rem', fontWeight: 900, color: '#fff' }}>
-                  {igData?.metrics?.profileViews?.value !== undefined && igData?.metrics?.profileViews?.value !== null
-                    ? igData.metrics.profileViews.value.toLocaleString()
-                    : (igData?.stats?.profileViews !== undefined ? igData.stats.profileViews.toLocaleString() : '0')}
+                  {igData?.metrics?.profileViews?.available && igData.metrics.profileViews.value !== null 
+                    ? igData.metrics.profileViews.value.toLocaleString() 
+                    : 'N/A'}
                 </strong>
                 <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.25rem' }}>
-                  Profile visits
+                  {igData?.metrics?.profileViews?.reason || 'Profile visits'}
                 </div>
               </div>
 
@@ -474,13 +497,40 @@ export default function MarketingTabContainer({ businessGroup, activeTabOverride
               <Facebook size={36} color="#1877f2" />
               <div>
                 <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#fff', margin: 0 }}>
-                  Facebook Business Page & Messenger {fbData?.pageName && <span style={{ color: '#1877f2', fontSize: '0.95rem' }}>({fbData.pageName})</span>}
+                  Facebook Business Page & Messenger {fbData?.page?.name && <span style={{ color: '#1877f2', fontSize: '0.95rem' }}>({fbData.page.name})</span>}
                 </h3>
-                <p style={{ fontSize: '0.85rem', color: '#94a3b8', margin: '0.2rem 0 0 0' }}>Auto-post to Facebook Page feed & receive customer Messenger DMs directly in LetsTrack console.</p>
+                <p style={{ fontSize: '0.85rem', color: '#94a3b8', margin: '0.2rem 0 0 0' }}>
+                  Auto-post to Facebook Page feed & receive customer Messenger DMs directly in LetsTrack console.
+                  {fbData?.lastUpdated && <span style={{ marginLeft: '0.75rem', color: '#64748b' }}>Last synced: {new Date(fbData.lastUpdated).toLocaleTimeString()}</span>}
+                </p>
               </div>
             </div>
-            <div style={{ backgroundColor: 'rgba(24, 119, 242, 0.15)', border: '1px solid rgba(24, 119, 242, 0.3)', color: '#38bdf8', padding: '0.5rem 1rem', borderRadius: '20px', fontSize: '0.82rem', fontWeight: 800 }}>
-              {fbData?.connected ? `Linked Page: ${fbData.pageName || 'Connected'}` : 'Not Connected'}
+            
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <button
+                onClick={fetchFacebookStats}
+                disabled={loadingFb}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.4rem',
+                  backgroundColor: 'rgba(255,255,255,0.08)',
+                  border: '1px solid rgba(255,255,255,0.15)',
+                  borderRadius: '10px',
+                  padding: '0.5rem 0.85rem',
+                  color: '#fff',
+                  fontSize: '0.82rem',
+                  fontWeight: 700,
+                  cursor: 'pointer'
+                }}
+              >
+                <RefreshCw size={14} className={loadingFb ? 'animate-spin' : ''} />
+                {loadingFb ? 'Syncing...' : 'Refresh Meta Stats'}
+              </button>
+
+              <div style={{ backgroundColor: 'rgba(24, 119, 242, 0.15)', border: '1px solid rgba(24, 119, 242, 0.3)', color: '#38bdf8', padding: '0.5rem 1rem', borderRadius: '20px', fontSize: '0.82rem', fontWeight: 800 }}>
+                {fbData?.connected ? `Linked Page: ${fbData.page?.name || 'Connected'}` : 'Not Connected'}
+              </div>
             </div>
           </div>
 
@@ -493,28 +543,44 @@ export default function MarketingTabContainer({ businessGroup, activeTabOverride
               </p>
             </div>
           ) : (
-            /* Facebook Stats Grid */
+            /* Facebook Real Graph API Metrics Grid */
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.25rem' }}>
+              {/* Followers */}
               <div style={{ backgroundColor: '#0f172a', padding: '1.25rem', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.06)' }}>
-                <span style={{ fontSize: '0.82rem', color: '#94a3b8', display: 'block', marginBottom: '0.35rem' }}>Page Likes & Followers</span>
+                <span style={{ fontSize: '0.82rem', color: '#94a3b8', display: 'block', marginBottom: '0.35rem' }}>Page Followers</span>
                 <strong style={{ fontSize: '1.6rem', fontWeight: 900, color: '#fff' }}>
-                  {fbData.stats?.followersCount?.toLocaleString() || 0}
+                  {fbData.metrics?.followers?.available && fbData.metrics.followers.value !== null ? fbData.metrics.followers.value.toLocaleString() : 'N/A'}
                 </strong>
-                <div style={{ fontSize: '0.75rem', color: '#10b981', fontWeight: 700, marginTop: '0.25rem' }}>Verified Page Audience</div>
+                <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.25rem' }}>Verified Page Followers</div>
               </div>
+
+              {/* Page Likes */}
               <div style={{ backgroundColor: '#0f172a', padding: '1.25rem', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.06)' }}>
-                <span style={{ fontSize: '0.82rem', color: '#94a3b8', display: 'block', marginBottom: '0.35rem' }}>Monthly Page Reach</span>
+                <span style={{ fontSize: '0.82rem', color: '#94a3b8', display: 'block', marginBottom: '0.35rem' }}>Page Likes</span>
                 <strong style={{ fontSize: '1.6rem', fontWeight: 900, color: '#fff' }}>
-                  {fbData.stats?.monthlyReach?.toLocaleString() || 0}
+                  {fbData.metrics?.likes?.available && fbData.metrics.likes.value !== null ? fbData.metrics.likes.value.toLocaleString() : 'N/A'}
                 </strong>
-                <div style={{ fontSize: '0.75rem', color: '#38bdf8', fontWeight: 700, marginTop: '0.25rem' }}>Organic Impressions</div>
+                <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.25rem' }}>Fan Count</div>
               </div>
+
+              {/* People Talking About This */}
               <div style={{ backgroundColor: '#0f172a', padding: '1.25rem', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.06)' }}>
-                <span style={{ fontSize: '0.82rem', color: '#94a3b8', display: 'block', marginBottom: '0.35rem' }}>Messenger Conversations</span>
-                <strong style={{ fontSize: '1.6rem', fontWeight: 900, color: '#38bdf8' }}>
-                  {fbData.stats?.conversationsSynced || 0} Synced
+                <span style={{ fontSize: '0.82rem', color: '#94a3b8', display: 'block', marginBottom: '0.35rem' }}>People Talking About This</span>
+                <strong style={{ fontSize: '1.6rem', fontWeight: 900, color: '#fff' }}>
+                  {fbData.metrics?.talkingAbout?.available && fbData.metrics.talkingAbout.value !== null ? fbData.metrics.talkingAbout.value.toLocaleString() : 'N/A'}
                 </strong>
-                <div style={{ fontSize: '0.75rem', color: '#34d399', fontWeight: 700, marginTop: '0.25rem' }}>LetsTrack Console Sync Active</div>
+                <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.25rem' }}>Page Story Engagements</div>
+              </div>
+
+              {/* Unique Page Reach */}
+              <div style={{ backgroundColor: '#0f172a', padding: '1.25rem', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                <span style={{ fontSize: '0.82rem', color: '#94a3b8', display: 'block', marginBottom: '0.35rem' }}>28-Day Unique Page Reach</span>
+                <strong style={{ fontSize: '1.6rem', fontWeight: 900, color: '#fff' }}>
+                  {fbData.metrics?.pageReach?.available && fbData.metrics.pageReach.value !== null ? fbData.metrics.pageReach.value.toLocaleString() : 'N/A'}
+                </strong>
+                <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.25rem' }}>
+                  {fbData.metrics?.pageReach?.reason || 'Page impressions unique'}
+                </div>
               </div>
             </div>
           )}
