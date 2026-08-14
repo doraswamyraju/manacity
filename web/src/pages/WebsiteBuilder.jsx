@@ -460,24 +460,24 @@ export default function WebsiteBuilder({ onBack }) {
         </div>
       </div>
 
-      {/* Live Preview Panel (Right) - Rendering SAME React engine components */}
+      {/* Live Preview Panel (Right) - Rendering 100% Live Website via iframe */}
       <div 
         style={{ 
           backgroundColor: theme === 'light-minimal' ? '#ffffff' : '#0f172a', 
           border: '3px solid var(--border-color)', 
           borderRadius: 'var(--radius-sm)',
-          maxHeight: '85vh', 
-          overflowY: 'auto',
+          height: '82vh',
           color: theme === 'light-minimal' ? '#0f172a' : '#fff',
           boxSizing: 'border-box',
           display: 'flex',
-          flexDirection: 'column'
+          flexDirection: 'column',
+          overflow: 'hidden'
         }}
       >
-        <div style={{ padding: '0.55rem 1rem', borderBottom: '1px solid var(--border-color)', backgroundColor: 'rgba(0,0,0,0.2)', textAlign: 'left', fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
+        <div style={{ padding: '0.55rem 1rem', borderBottom: '1px solid var(--border-color)', backgroundColor: 'rgba(0,0,0,0.2)', textAlign: 'left', fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem', flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <span style={{ fontWeight: 600 }}>Preview Viewport:</span>
-            <button type="button" onClick={() => setPreviewDevice('desktop')} style={{ ...deviceBtnStyle, backgroundColor: previewDevice === 'desktop' ? '#38bdf8' : 'transparent', color: previewDevice === 'desktop' ? '#0f172a' : '#cbd5e1' }}>💻 Desktop (Full)</button>
+            <button type="button" onClick={() => setPreviewDevice('desktop')} style={{ ...deviceBtnStyle, backgroundColor: previewDevice === 'desktop' ? '#38bdf8' : 'transparent', color: previewDevice === 'desktop' ? '#0f172a' : '#cbd5e1' }}>💻 Desktop</button>
             <button type="button" onClick={() => setPreviewDevice('tablet')} style={{ ...deviceBtnStyle, backgroundColor: previewDevice === 'tablet' ? '#38bdf8' : 'transparent', color: previewDevice === 'tablet' ? '#0f172a' : '#cbd5e1' }}>📱 Tablet</button>
             <button type="button" onClick={() => setPreviewDevice('mobile')} style={{ ...deviceBtnStyle, backgroundColor: previewDevice === 'mobile' ? '#38bdf8' : 'transparent', color: previewDevice === 'mobile' ? '#0f172a' : '#cbd5e1' }}>📲 Mobile</button>
           </div>
@@ -498,36 +498,31 @@ export default function WebsiteBuilder({ onBack }) {
           </div>
         </div>
 
-
-        {/* Inline Theme Engine Style Injection */}
+        {/* Dynamic Responsive Viewport Frame */}
         <div style={{
-          width: previewDevice === 'mobile' ? '375px' : previewDevice === 'tablet' ? '768px' : '100%',
-          margin: previewDevice === 'desktop' ? '0' : '1rem auto',
-          boxShadow: previewDevice === 'desktop' ? 'none' : '0 10px 30px rgba(0,0,0,0.5)',
-          borderRadius: previewDevice === 'desktop' ? '0' : '12px',
-          overflow: 'hidden',
-          transition: 'all 0.3s ease'
+          flex: 1,
+          width: '100%',
+          overflowY: 'auto',
+          backgroundColor: '#020617',
+          display: 'flex',
+          justifyContent: 'center',
+          padding: previewDevice === 'desktop' ? '0' : '1rem 0'
         }}>
-          <div style={themeVars}>
-            {sections
-              .filter(sec => sec.enabled)
-              .map(sec => {
-                // Dynamically map section types to imported components
-                if (sec.type === 'HEADER') return <Sections.HeaderSection key={sec.type} businessGroup={businessGroup} settings={sec.settings} theme={theme} />;
-                if (sec.type === 'HERO') return <Sections.HeroSection key={sec.type} businessGroup={businessGroup} settings={sec.settings} theme={theme} />;
-                if (sec.type === 'FEATURES') return <Sections.FeaturesSection key={sec.type} businessGroup={businessGroup} settings={sec.settings} theme={theme} />;
-                if (sec.type === 'ABOUT') return <Sections.AboutSection key={sec.type} businessGroup={businessGroup} settings={sec.settings} theme={theme} />;
-                if (sec.type === 'SERVICES') return <Sections.ServicesSection key={sec.type} businessGroup={businessGroup} settings={sec.settings} theme={theme} />;
-                if (sec.type === 'PRODUCTS') return <Sections.ProductsSection key={sec.type} businessGroup={businessGroup} settings={sec.settings} theme={theme} />;
-                if (sec.type === 'GALLERY') return <Sections.GallerySection key={sec.type} businessGroup={businessGroup} settings={sec.settings} theme={theme} />;
-                if (sec.type === 'REVIEWS') return <Sections.ReviewsSection key={sec.type} businessGroup={businessGroup} settings={sec.settings} theme={theme} />;
-                if (sec.type === 'CONTACT') return <Sections.ContactSection key={sec.type} businessGroup={businessGroup} settings={sec.settings} theme={theme} />;
-                if (sec.type === 'FAQ') return <Sections.FaqSection key={sec.type} businessGroup={businessGroup} settings={sec.settings} theme={theme} />;
-                if (sec.type === 'CTA') return <Sections.CtaSection key={sec.type} businessGroup={businessGroup} settings={sec.settings} theme={theme} />;
-                if (sec.type === 'FOOTER') return <Sections.FooterSection key={sec.type} businessGroup={businessGroup} settings={sec.settings} theme={theme} />;
-                return null;
-              })}
-          </div>
+          <iframe
+            key={`${subdomain}-${previewDevice}-${theme}`}
+            src={subdomain ? `https://${subdomain}.manacity.in` : 'https://manacity.in'}
+            title="Live Website Preview"
+            style={{
+              width: previewDevice === 'mobile' ? '375px' : previewDevice === 'tablet' ? '768px' : '100%',
+              height: '100%',
+              minHeight: '650px',
+              border: previewDevice === 'desktop' ? 'none' : '2px solid rgba(255,255,255,0.2)',
+              borderRadius: previewDevice === 'desktop' ? '0' : '12px',
+              backgroundColor: '#0f172a',
+              boxShadow: previewDevice === 'desktop' ? 'none' : '0 20px 40px rgba(0,0,0,0.8)',
+              transition: 'width 0.3s ease'
+            }}
+          />
         </div>
       </div>
     </div>
