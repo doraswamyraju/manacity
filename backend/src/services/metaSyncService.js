@@ -147,6 +147,14 @@ async function getInstagramAnalytics(businessGroup) {
         profileViews: buildMetric('profileViews', profileViewsVal),
         websiteClicks: buildMetric('websiteClicks', null, false, 'meta', 'Website clicks metric requires Meta Insights API level 2 access')
       },
+      stats: {
+        followersCount: profile.followers_count !== undefined && profile.followers_count !== null ? profile.followers_count : 0,
+        mediaCount: profile.media_count !== undefined && profile.media_count !== null ? profile.media_count : rawMedia.length,
+        reach: reachVal !== null ? reachVal : 0,
+        views: impressionsVal !== null ? impressionsVal : 0,
+        profileViews: profileViewsVal !== null ? profileViewsVal : 0,
+        engagementRate: rawMedia.length > 0 ? `${((rawMedia.reduce((acc, p) => acc + (p.like_count || 0) + (p.comments_count || 0), 0) / (profile.followers_count || 100)) * 10).toFixed(1)}%` : '0%'
+      },
       content: {
         posts,
         reels,

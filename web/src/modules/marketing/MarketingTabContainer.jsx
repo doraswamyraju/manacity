@@ -299,10 +299,12 @@ export default function MarketingTabContainer({ businessGroup, activeTabOverride
                   <Users size={18} color="#e1306c" />
                 </div>
                 <strong style={{ fontSize: '1.7rem', fontWeight: 900, color: '#fff' }}>
-                  {igData?.metrics?.followers?.available ? igData.metrics.followers.value.toLocaleString() : (igData?.stats?.followersCount ?? 'Not available')}
+                  {igData?.metrics?.followers?.value !== undefined && igData?.metrics?.followers?.value !== null
+                    ? igData.metrics.followers.value.toLocaleString()
+                    : (igData?.stats?.followersCount !== undefined ? igData.stats.followersCount.toLocaleString() : '0')}
                 </strong>
                 <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.25rem' }}>
-                  {igData?.metrics?.followers?.source ? `Source: ${igData.metrics.followers.source}` : 'Instagram followers'}
+                  Instagram followers
                 </div>
               </div>
 
@@ -313,12 +315,12 @@ export default function MarketingTabContainer({ businessGroup, activeTabOverride
                   <Eye size={18} color="#818cf8" />
                 </div>
                 <strong style={{ fontSize: '1.7rem', fontWeight: 900, color: '#fff' }}>
-                  {igData?.metrics?.views?.available && igData.metrics.views.value !== null 
-                    ? igData.metrics.views.value.toLocaleString() 
-                    : (igData?.stats?.views ?? 'Not available')}
+                  {igData?.metrics?.views?.value !== undefined && igData?.metrics?.views?.value !== null
+                    ? igData.metrics.views.value.toLocaleString()
+                    : (igData?.stats?.views !== undefined ? igData.stats.views.toLocaleString() : '0')}
                 </strong>
                 <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.25rem' }}>
-                  {igData?.metrics?.views?.reason || 'Account daily impressions'}
+                  Account daily impressions
                 </div>
               </div>
 
@@ -329,12 +331,12 @@ export default function MarketingTabContainer({ businessGroup, activeTabOverride
                   <TrendingUp size={18} color="#38bdf8" />
                 </div>
                 <strong style={{ fontSize: '1.7rem', fontWeight: 900, color: '#fff' }}>
-                  {igData?.metrics?.reach?.available && igData.metrics.reach.value !== null 
-                    ? igData.metrics.reach.value.toLocaleString() 
-                    : (igData?.stats?.reach ?? 'Not available')}
+                  {igData?.metrics?.reach?.value !== undefined && igData?.metrics?.reach?.value !== null
+                    ? igData.metrics.reach.value.toLocaleString()
+                    : (igData?.stats?.reach !== undefined ? igData.stats.reach.toLocaleString() : '0')}
                 </strong>
                 <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.25rem' }}>
-                  {igData?.metrics?.reach?.reason || 'Unique accounts reached'}
+                  Unique accounts reached
                 </div>
               </div>
 
@@ -345,12 +347,12 @@ export default function MarketingTabContainer({ businessGroup, activeTabOverride
                   <Globe size={18} color="#f59e0b" />
                 </div>
                 <strong style={{ fontSize: '1.7rem', fontWeight: 900, color: '#fff' }}>
-                  {igData?.metrics?.profileViews?.available && igData.metrics.profileViews.value !== null 
-                    ? igData.metrics.profileViews.value.toLocaleString() 
-                    : 'Not available'}
+                  {igData?.metrics?.profileViews?.value !== undefined && igData?.metrics?.profileViews?.value !== null
+                    ? igData.metrics.profileViews.value.toLocaleString()
+                    : (igData?.stats?.profileViews !== undefined ? igData.stats.profileViews.toLocaleString() : '0')}
                 </strong>
                 <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.25rem' }}>
-                  {igData?.metrics?.profileViews?.reason || 'Profile visits'}
+                  Profile visits
                 </div>
               </div>
 
