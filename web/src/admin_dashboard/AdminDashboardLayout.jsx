@@ -32,6 +32,7 @@ import BusinessLibraryTab from '../admin/library/BusinessLibraryTab';
 import UserReferralDashboard from '../pages/referral/UserReferralDashboard';
 import MarketingTabContainer from '../modules/marketing/MarketingTabContainer';
 import LeadsTableView from '../modules/lms/LeadsTableView';
+import BusinessProfileSettings from '../modules/profile/BusinessProfileSettings';
 
 function AdminDashboardLayout({ user, businessGroup, onLogout, setView }) {
   // Persist active tab in localStorage
@@ -407,6 +408,7 @@ function AdminDashboardLayout({ user, businessGroup, onLogout, setView }) {
           )}
 
           {/* OTHER MODULE TABS */}
+          {activeTab === 'profile-settings' && <BusinessProfileSettings theme={theme} businessGroup={businessGroup} />}
           {activeTab === 'locations' && <Locations onBack={() => setActiveTab('overview')} onNavigateToOnboarding={() => window.location.href = '/onboarding'} />}
 
           {activeTab === 'catalog-library' && <BusinessLibraryTab theme={theme} />}
