@@ -14,7 +14,7 @@ router.post('/meta/connect', auth, async (req, res) => {
     }
 
     // 1. Fetch user's managed Facebook Pages
-    const fbRes = await axios.get(`https://graph.facebook.com/v18.0/me/accounts?fields=id,name,link,access_token&access_token=${accessToken}`);
+    const fbRes = await axios.get(`https://graph.facebook.com/v24.0/me/accounts?fields=id,name,link,access_token&access_token=${accessToken}`);
     
     if (!fbRes.data || !fbRes.data.data || fbRes.data.data.length === 0) {
       return res.status(400).json({ error: 'No Facebook Business Pages found for this account. Please create or link a Facebook Page to your Meta account.' });
@@ -26,7 +26,7 @@ router.post('/meta/connect', auth, async (req, res) => {
       let instagramUrl = null;
 
       try {
-        const igRes = await axios.get(`https://graph.facebook.com/v18.0/${page.id}?fields=instagram_business_account{id,username,name}&access_token=${page.access_token || accessToken}`);
+        const igRes = await axios.get(`https://graph.facebook.com/v24.0/${page.id}?fields=instagram_business_account{id,username,name}&access_token=${page.access_token || accessToken}`);
         if (igRes.data && igRes.data.instagram_business_account) {
           const ig = igRes.data.instagram_business_account;
           instagramId = ig.id;
