@@ -284,6 +284,22 @@ export default function MarketingTabContainer({ businessGroup, activeTabOverride
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              {/* Sync Status Badge */}
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.4rem',
+                backgroundColor: igData?.syncStatus === 'LIVE' ? 'rgba(16, 185, 129, 0.15)' : (igData?.syncStatus === 'PARTIAL' ? 'rgba(245, 158, 11, 0.15)' : 'rgba(239, 68, 68, 0.15)'),
+                border: `1px solid ${igData?.syncStatus === 'LIVE' ? 'rgba(16, 185, 129, 0.3)' : (igData?.syncStatus === 'PARTIAL' ? 'rgba(245, 158, 11, 0.3)' : 'rgba(239, 68, 68, 0.3)')}`,
+                color: igData?.syncStatus === 'LIVE' ? '#34d399' : (igData?.syncStatus === 'PARTIAL' ? '#fbbf24' : '#f87171'),
+                padding: '0.4rem 0.85rem',
+                borderRadius: '20px',
+                fontSize: '0.82rem',
+                fontWeight: 800
+              }}>
+                ● Sync: {igData?.syncStatus || 'UNKNOWN'}
+              </div>
+
               <button
                 onClick={fetchInstagramStats}
                 disabled={loadingIg}
@@ -310,6 +326,21 @@ export default function MarketingTabContainer({ businessGroup, activeTabOverride
               </div>
             </div>
           </div>
+
+          {/* Meta API Diagnostics Section */}
+          <details style={{ backgroundColor: '#0f172a', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.08)', padding: '0.75rem 1.25rem' }}>
+            <summary style={{ color: '#94a3b8', fontSize: '0.85rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <AlertCircle size={16} color="#e1306c" /> Meta API Diagnostics & Connection Details (Developer Mode)
+            </summary>
+            <div style={{ marginTop: '0.75rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem', fontSize: '0.8rem', color: '#cbd5e1' }}>
+              <div><strong>Graph API Version:</strong> {igData?.diagnostics?.apiVersion || 'v24.0'}</div>
+              <div><strong>Page ID (Masked):</strong> {igData?.diagnostics?.pageIdMasked || 'N/A'}</div>
+              <div><strong>Instagram Account ID (Masked):</strong> {igData?.diagnostics?.instagramIdMasked || 'N/A'}</div>
+              <div><strong>Sync Status:</strong> <span style={{ color: igData?.syncStatus === 'LIVE' ? '#34d399' : '#fbbf24' }}>{igData?.syncStatus || 'N/A'}</span></div>
+              <div><strong>Last Successful Sync:</strong> {igData?.lastUpdated ? new Date(igData.lastUpdated).toLocaleTimeString() : 'N/A'}</div>
+              <div><strong>Last API Error:</strong> <span style={{ color: '#f87171' }}>{igData?.diagnostics?.lastError || 'None'}</span></div>
+            </div>
+          </details>
 
           {/* Real Account Statistics Cards */}
           {(igSubTab === 'overview' || igSubTab === 'posts') && (
@@ -507,6 +538,22 @@ export default function MarketingTabContainer({ businessGroup, activeTabOverride
             </div>
             
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              {/* Sync Status Badge */}
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.4rem',
+                backgroundColor: fbData?.syncStatus === 'LIVE' ? 'rgba(16, 185, 129, 0.15)' : (fbData?.syncStatus === 'PARTIAL' ? 'rgba(245, 158, 11, 0.15)' : 'rgba(239, 68, 68, 0.15)'),
+                border: `1px solid ${fbData?.syncStatus === 'LIVE' ? 'rgba(16, 185, 129, 0.3)' : (fbData?.syncStatus === 'PARTIAL' ? 'rgba(245, 158, 11, 0.3)' : 'rgba(239, 68, 68, 0.3)')}`,
+                color: fbData?.syncStatus === 'LIVE' ? '#34d399' : (fbData?.syncStatus === 'PARTIAL' ? '#fbbf24' : '#f87171'),
+                padding: '0.4rem 0.85rem',
+                borderRadius: '20px',
+                fontSize: '0.82rem',
+                fontWeight: 800
+              }}>
+                ● Sync: {fbData?.syncStatus || 'UNKNOWN'}
+              </div>
+
               <button
                 onClick={fetchFacebookStats}
                 disabled={loadingFb}
@@ -533,6 +580,20 @@ export default function MarketingTabContainer({ businessGroup, activeTabOverride
               </div>
             </div>
           </div>
+
+          {/* Meta API Diagnostics Section */}
+          <details style={{ backgroundColor: '#0f172a', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.08)', padding: '0.75rem 1.25rem' }}>
+            <summary style={{ color: '#94a3b8', fontSize: '0.85rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <AlertCircle size={16} color="#1877f2" /> Meta API Diagnostics & Connection Details (Developer Mode)
+            </summary>
+            <div style={{ marginTop: '0.75rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem', fontSize: '0.8rem', color: '#cbd5e1' }}>
+              <div><strong>Graph API Version:</strong> {fbData?.diagnostics?.apiVersion || 'v24.0'}</div>
+              <div><strong>Page ID (Masked):</strong> {fbData?.diagnostics?.pageIdMasked || 'N/A'}</div>
+              <div><strong>Sync Status:</strong> <span style={{ color: fbData?.syncStatus === 'LIVE' ? '#34d399' : '#fbbf24' }}>{fbData?.syncStatus || 'N/A'}</span></div>
+              <div><strong>Last Successful Sync:</strong> {fbData?.lastUpdated ? new Date(fbData.lastUpdated).toLocaleTimeString() : 'N/A'}</div>
+              <div><strong>Last API Error:</strong> <span style={{ color: '#f87171' }}>{fbData?.diagnostics?.lastError || 'None'}</span></div>
+            </div>
+          </details>
 
           {!fbData?.connected ? (
             <div style={{ backgroundColor: '#0f172a', borderRadius: '16px', padding: '2.5rem', textAlign: 'center', border: '1px solid rgba(255,255,255,0.08)' }}>

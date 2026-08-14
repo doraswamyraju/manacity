@@ -159,9 +159,26 @@ async function getInstagramAnalytics(businessGroup) {
     }
   });
 
+  // Calculate overall syncStatus and collect diagnostic info
+  let syncStatus = 'LIVE';
+  let lastError = null;
+
+  if (profileError || insightsError || mediaError) {
+    if (profileError && insightsError && mediaError) {
+      syncStatus = 'ERROR';
+      lastError = profileError || insightsError || mediaError;
+    } else {
+      syncStatus = 'PARTIAL';
+      lastError = insightsError || profileError || mediaError;
+    }
+  }
+
+  const maskId = (id) => (id ? `${id.substring(0, 4)}...${id.substring(id.length - 4)}` : 'Not set');
+
   const normalizedData = {
     connected: true,
     hasInstagram: true,
+    syncStatus, // LIVE, PARTIAL, ERROR
     account: profile ? {
       id: profile.id,
       username: `@${profile.username}`,
@@ -178,12 +195,27 @@ async function getInstagramAnalytics(businessGroup) {
       views: buildMetric('views', impressionsVal, impressionsVal !== null, 'meta', insightsError),
       profileViews: buildMetric('profileViews', profileViewsVal, profileViewsVal !== null, 'meta', insightsError)
     },
+    stats: {
+      followersCount: profile?.followers_count !== undefined && profile?.followers_count !== null ? profile.followers_count : null,
+      mediaCount: profile?.media_count !== undefined && profile?.media_count !== null ? profile.media_count : rawMedia.length,
+      reach: reachVal,
+      views: impressionsVal,
+      profileViews: profileViewsVal
+    },
     content: {
       posts,
       reels,
       stories,
       totalItems: rawMedia.length,
       error: mediaError
+    },
+    diagnostics: {
+      apiVersion: GRAPH_API_VERSION,
+      pageIdMasked: maskId(businessGroup.metaPageId),
+      instagramIdMasked: maskId(igId),
+      syncStatus,
+      lastUpdated,
+      lastError
     },
     lastUpdated
   };
@@ -258,8 +290,18 @@ async function getFacebookAnalytics(businessGroup) {
     }
   }));
 
+  let syncStatus = 'LIVE';
+  let lastError = null;
+  if (pageError || pageInsightsError) {
+    syncStatus = pageError ? 'ERROR' : 'PARTIAL';
+    lastError = pageError || pageInsightsError;
+  }
+
+  const maskId = (id) => (id ? `${id.substring(0, 4)}...${id.substring(id.length - 4)}` : 'Not set');
+
   return {
     connected: true,
+    syncStatus,
     page: p ? {
       id: p.id,
       name: p.name,
@@ -274,7 +316,20 @@ async function getFacebookAnalytics(businessGroup) {
       reviewCount: buildMetric('reviewCount', p?.rating_count, p !== null, 'meta', pageError),
       pageReach: buildMetric('pageReach', pageReachVal, pageReachVal !== null, 'meta', pageInsightsError)
     },
+    stats: {
+      followersCount: p?.followers_count !== undefined && p?.followers_count !== null ? p.followers_count : null,
+      fanCount: p?.fan_count !== undefined && p?.fan_count !== null ? p.fan_count : null,
+      monthlyReach: pageReachVal,
+      talkingAbout: p?.talking_about_count !== undefined && p?.talking_about_count !== null ? p.talking_about_count : null
+    },
     posts,
+    diagnostics: {
+      apiVersion: GRAPH_API_VERSION,
+      pageIdMasked: maskId(pageId),
+      syncStatus,
+      lastUpdated,
+      lastError
+    },
     lastUpdated
   };
 }
