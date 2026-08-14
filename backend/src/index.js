@@ -21,6 +21,8 @@ const phase1Routes = require('./routes/phase1Routes');
 const referralRoutes = require('./routes/referralRoutes');
 const claimRoutes = require('./routes/claimRoutes');
 const externalLeadRoutes = require('./routes/externalLeadRoutes');
+const marketingRoutes = require('./routes/marketingRoutes');
+const lmsRoutes = require('./routes/lmsRoutes');
 
 const path = require('path');
 
@@ -49,6 +51,8 @@ app.use('/api/phase1', phase1Routes);
 app.use('/api/referrals', referralRoutes);
 app.use('/api/claims', claimRoutes);
 app.use('/api/external-leads', externalLeadRoutes);
+app.use('/api/marketing', marketingRoutes);
+app.use('/api/lms', lmsRoutes);
 
 // Public System Settings
 app.get('/api/public/url-settings', systemSettingsController.getUrlSettings);
