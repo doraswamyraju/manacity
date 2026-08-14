@@ -117,7 +117,7 @@ export default function MarketingTabContainer({ businessGroup, activeTabOverride
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
       
-      {/* 4 Main Marketing Hub Tabs */}
+      {/* Top Bar Category Action Buttons */}
       <div style={{
         display: 'flex',
         gap: '0.65rem',
@@ -125,27 +125,26 @@ export default function MarketingTabContainer({ businessGroup, activeTabOverride
         paddingBottom: '0.85rem',
         flexWrap: 'wrap'
       }}>
-        {[
-          { id: 'INSTAGRAM', label: 'Instagram Marketing', icon: Instagram, color: '#e1306c' },
-          { id: 'FACEBOOK', label: 'Facebook Page & DMs', icon: Facebook, color: '#1877f2' },
-          { id: 'GOOGLE', label: 'Google SEO & Maps', icon: Search, color: '#ea4335' },
-          { id: 'LIBRARY', label: 'Marketing Asset Library', icon: ImageIcon, color: '#a855f7' },
-          { id: 'META_ADS', label: 'Meta Ads Manager', icon: Megaphone, color: '#38bdf8' }
-        ].map(tab => {
-          const Icon = tab.icon;
-          const isActive = activeTab === tab.id;
+        {activeTab === 'INSTAGRAM' && [
+          { id: 'overview', label: 'Statistics & Insights', icon: TrendingUp, color: '#e1306c' },
+          { id: 'posts', label: 'Posts & Feed Activity', icon: ImageIcon, color: '#818cf8' },
+          { id: 'scheduler', label: 'Schedule New Post', icon: Calendar, color: '#38bdf8' },
+          { id: 'ads', label: 'Instagram Ads', icon: Megaphone, color: '#f59e0b' }
+        ].map(sub => {
+          const Icon = sub.icon;
+          const isActive = igSubTab === sub.id;
           return (
             <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
+              key={sub.id}
+              onClick={() => setIgSubTab(sub.id)}
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.55rem',
                 padding: '0.65rem 1.15rem',
                 borderRadius: '12px',
-                border: isActive ? `1px solid ${tab.color}` : '1px solid rgba(255,255,255,0.08)',
-                backgroundColor: isActive ? `${tab.color}20` : '#0f172a',
+                border: isActive ? `1px solid ${sub.color}` : '1px solid rgba(255,255,255,0.08)',
+                backgroundColor: isActive ? `${sub.color}20` : '#0f172a',
                 color: isActive ? '#fff' : '#94a3b8',
                 fontSize: '0.88rem',
                 fontWeight: 800,
@@ -153,11 +152,87 @@ export default function MarketingTabContainer({ businessGroup, activeTabOverride
                 transition: 'all 0.2s ease'
               }}
             >
-              <Icon size={18} color={tab.color} />
-              {tab.label}
+              <Icon size={18} color={sub.color} />
+              {sub.label}
             </button>
           );
         })}
+
+        {activeTab === 'FACEBOOK' && [
+          { id: 'page-stats', label: 'Page Stats & Likes', icon: Facebook, color: '#1877f2' },
+          { id: 'feed', label: 'Feed Publisher', icon: Send, color: '#38bdf8' },
+          { id: 'messenger', label: 'Messenger DMs (LetsTrack Sync)', icon: MessageSquare, color: '#34d399' }
+        ].map(sub => {
+          const Icon = sub.icon;
+          const isActive = fbSubTab === sub.id;
+          return (
+            <button
+              key={sub.id}
+              onClick={() => setFbSubTab(sub.id)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.55rem',
+                padding: '0.65rem 1.15rem',
+                borderRadius: '12px',
+                border: isActive ? `1px solid ${sub.color}` : '1px solid rgba(255,255,255,0.08)',
+                backgroundColor: isActive ? `${sub.color}20` : '#0f172a',
+                color: isActive ? '#fff' : '#94a3b8',
+                fontSize: '0.88rem',
+                fontWeight: 800,
+                cursor: 'pointer',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              <Icon size={18} color={sub.color} />
+              {sub.label}
+            </button>
+          );
+        })}
+
+        {activeTab === 'GOOGLE' && [
+          { id: 'gbp-insights', label: 'GBP Map Rankings & Views', icon: Search, color: '#ea4335' },
+          { id: 'qr-booster', label: 'Review QR Standees', icon: Sparkles, color: '#fbbf24' },
+          { id: 'keywords', label: 'City Search Volume', icon: Globe, color: '#38bdf8' }
+        ].map(sub => {
+          const Icon = sub.icon;
+          const isActive = googleSubTab === sub.id;
+          return (
+            <button
+              key={sub.id}
+              onClick={() => setGoogleSubTab(sub.id)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.55rem',
+                padding: '0.65rem 1.15rem',
+                borderRadius: '12px',
+                border: isActive ? `1px solid ${sub.color}` : '1px solid rgba(255,255,255,0.08)',
+                backgroundColor: isActive ? `${sub.color}20` : '#0f172a',
+                color: isActive ? '#fff' : '#94a3b8',
+                fontSize: '0.88rem',
+                fontWeight: 800,
+                cursor: 'pointer',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              <Icon size={18} color={sub.color} />
+              {sub.label}
+            </button>
+          );
+        })}
+
+        {activeTab === 'LIBRARY' && (
+          <div style={{ fontSize: '0.95rem', fontWeight: 800, color: '#fff', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <ImageIcon size={20} color="#a855f7" /> Central Marketing Asset Library & Brand Flyers
+          </div>
+        )}
+
+        {activeTab === 'META_ADS' && (
+          <div style={{ fontSize: '0.95rem', fontWeight: 800, color: '#fff', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <Megaphone size={20} color="#38bdf8" /> Meta Ad Campaign Builder & Target Insights
+          </div>
+        )}
       </div>
 
       {/* 1. INSTAGRAM TAB */}
@@ -193,33 +268,6 @@ export default function MarketingTabContainer({ businessGroup, activeTabOverride
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: 'rgba(16, 185, 129, 0.15)', border: '1px solid rgba(16, 185, 129, 0.3)', padding: '0.5rem 1rem', borderRadius: '20px', color: '#34d399', fontSize: '0.82rem', fontWeight: 800 }}>
               <MessageSquare size={16} /> LetsTrack DM Sync: Active
             </div>
-          </div>
-
-          {/* Sub-Category Inner Top Navigation Bar */}
-          <div style={{ display: 'flex', gap: '0.5rem', backgroundColor: '#0f172a', padding: '0.4rem 0.6rem', borderRadius: '10px', width: 'fit-content', border: '1px solid rgba(255,255,255,0.06)' }}>
-            {[
-              { id: 'overview', label: '📊 Statistics & Insights' },
-              { id: 'posts', label: '📸 Posts & Media' },
-              { id: 'scheduler', label: '📅 Schedule Post' },
-              { id: 'ads', label: '🚀 Instagram Ads' }
-            ].map(sub => (
-              <button
-                key={sub.id}
-                onClick={() => setIgSubTab(sub.id)}
-                style={{
-                  padding: '0.4rem 0.85rem',
-                  borderRadius: '6px',
-                  border: 'none',
-                  backgroundColor: igSubTab === sub.id ? '#e1306c' : 'transparent',
-                  color: igSubTab === sub.id ? '#fff' : '#94a3b8',
-                  fontSize: '0.8rem',
-                  fontWeight: 700,
-                  cursor: 'pointer'
-                }}
-              >
-                {sub.label}
-              </button>
-            ))}
           </div>
 
           {/* Real Account Statistics Cards */}
