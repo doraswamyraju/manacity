@@ -156,21 +156,21 @@ router.get('/instagram/stats', auth, async (req, res) => {
 
         const data = igRes.data;
 
-        // Parse real Graph API reach & views metrics
-        let realReach = 34; // Default fallback to active Meta suite view
-        let realViews = 367;
+        // Parse real Graph API reach & views metrics strictly from API payload
+        let realReach = 0;
+        let realViews = 0;
 
         if (insightsRes?.data?.data) {
           const reachMetric = insightsRes.data.data.find(m => m.name === 'reach');
           const viewsMetric = insightsRes.data.data.find(m => m.name === 'impressions');
-          if (reachMetric?.values?.length) realReach = reachMetric.values.reduce((sum, v) => sum + (v.value || 0), 0) || 34;
-          if (viewsMetric?.values?.length) realViews = viewsMetric.values.reduce((sum, v) => sum + (v.value || 0), 0) || 367;
+          if (reachMetric?.values?.length) realReach = reachMetric.values.reduce((sum, v) => sum + (v.value || 0), 0);
+          if (viewsMetric?.values?.length) realViews = viewsMetric.values.reduce((sum, v) => sum + (v.value || 0), 0);
         }
 
         const posts = (data.media?.data || []).map(p => ({
           id: p.id,
-          caption: p.caption || 'Instagram Post',
-          mediaUrl: p.media_url || 'https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?q=80&w=600',
+          caption: p.caption || '',
+          mediaUrl: p.media_url || '',
           likeCount: p.like_count || 0,
           commentsCount: p.comments_count || 0,
           timestamp: p.timestamp,
@@ -179,13 +179,13 @@ router.get('/instagram/stats', auth, async (req, res) => {
 
         return res.status(200).json({
           connected: true,
-          handle: data.username ? `@${data.username}` : (bg.socialInstagram || '@instagram'),
+          handle: data.username ? `@${data.username}` : (bg.socialInstagram || ''),
           stats: {
-            followersCount: data.followers_count || 4,
-            mediaCount: data.media_count || posts.length || 38,
-            reach: realReach || 34,
-            views: realViews || 367,
-            engagementRate: '100%'
+            followersCount: data.followers_count || 0,
+            mediaCount: data.media_count !== undefined ? data.media_count : posts.length,
+            reach: realReach,
+            views: realViews,
+            engagementRate: '0%'
           },
           recentPosts: posts
         });
@@ -193,8 +193,8 @@ router.get('/instagram/stats', auth, async (req, res) => {
         console.error('Real Instagram Graph API Error:', graphErr.response?.data || graphErr.message);
         return res.status(200).json({
           connected: true,
-          handle: bg.socialInstagram || '@instagram',
-          stats: { followersCount: 4, mediaCount: 38, reach: 34, views: 367, engagementRate: '100%' },
+          handle: bg.socialInstagram || '',
+          stats: { followersCount: 0, mediaCount: 0, reach: 0, views: 0, engagementRate: '0%' },
           recentPosts: []
         });
       }

@@ -297,10 +297,10 @@ export default function MarketingTabContainer({ businessGroup, activeTabOverride
                   <Users size={18} color="#e1306c" />
                 </div>
                 <strong style={{ fontSize: '1.7rem', fontWeight: 900, color: '#fff' }}>
-                  {igData?.stats?.followersCount !== undefined ? igData.stats.followersCount.toLocaleString() : 4}
+                  {igData?.stats?.followersCount !== undefined ? igData.stats.followersCount.toLocaleString() : 0}
                 </strong>
-                <div style={{ fontSize: '0.75rem', color: '#10b981', fontWeight: 700, marginTop: '0.25rem' }}>
-                  +33.3% vs last period
+                <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.25rem' }}>
+                  Instagram followers
                 </div>
               </div>
 
@@ -310,10 +310,10 @@ export default function MarketingTabContainer({ businessGroup, activeTabOverride
                   <Eye size={18} color="#818cf8" />
                 </div>
                 <strong style={{ fontSize: '1.7rem', fontWeight: 900, color: '#fff' }}>
-                  {igData?.stats?.views !== undefined ? igData.stats.views.toLocaleString() : 367}
+                  {igData?.stats?.views !== undefined ? igData.stats.views.toLocaleString() : 0}
                 </strong>
-                <div style={{ fontSize: '0.75rem', color: '#10b981', fontWeight: 700, marginTop: '0.25rem' }}>
-                  +321.8% vs last period
+                <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.25rem' }}>
+                  Content impressions
                 </div>
               </div>
 
@@ -323,10 +323,10 @@ export default function MarketingTabContainer({ businessGroup, activeTabOverride
                   <TrendingUp size={18} color="#38bdf8" />
                 </div>
                 <strong style={{ fontSize: '1.7rem', fontWeight: 900, color: '#fff' }}>
-                  {igData?.stats?.reach !== undefined ? igData.stats.reach.toLocaleString() : 34}
+                  {igData?.stats?.reach !== undefined ? igData.stats.reach.toLocaleString() : 0}
                 </strong>
-                <div style={{ fontSize: '0.75rem', color: '#38bdf8', fontWeight: 700, marginTop: '0.25rem' }}>
-                  +142.9% organic reach
+                <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.25rem' }}>
+                  Unique accounts reached
                 </div>
               </div>
 
@@ -336,10 +336,10 @@ export default function MarketingTabContainer({ businessGroup, activeTabOverride
                   <Heart size={18} color="#f59e0b" />
                 </div>
                 <strong style={{ fontSize: '1.7rem', fontWeight: 900, color: '#fff' }}>
-                  {igData?.stats?.engagementRate || '100%'}
+                  {igData?.stats?.engagementRate || '0%'}
                 </strong>
-                <div style={{ fontSize: '0.75rem', color: '#10b981', fontWeight: 700, marginTop: '0.25rem' }}>
-                  High interaction rate
+                <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.25rem' }}>
+                  Engagement rate
                 </div>
               </div>
             </div>
