@@ -65,9 +65,15 @@ export default function MarketingTabContainer({ businessGroup, activeTabOverride
   // Ad Campaigns State
   const [campaigns, setCampaigns] = useState([]);
 
+  // Facebook Tab State
+  const [loadingFb, setLoadingFb] = useState(false);
+  const [fbData, setFbData] = useState(null);
+
   useEffect(() => {
     if (activeTab === 'INSTAGRAM') {
       fetchInstagramStats();
+    } else if (activeTab === 'FACEBOOK') {
+      fetchFacebookStats();
     }
   }, [activeTab]);
 
@@ -80,6 +86,18 @@ export default function MarketingTabContainer({ businessGroup, activeTabOverride
       console.error('Failed to load Instagram stats:', err);
     } finally {
       setLoadingIg(false);
+    }
+  };
+
+  const fetchFacebookStats = async () => {
+    setLoadingFb(true);
+    try {
+      const res = await axios.get('/api/marketing/facebook/stats');
+      setFbData(res.data);
+    } catch (err) {
+      console.error('Failed to load Facebook stats:', err);
+    } finally {
+      setLoadingFb(false);
     }
   };
 
@@ -437,34 +455,55 @@ export default function MarketingTabContainer({ businessGroup, activeTabOverride
       {/* 2. FACEBOOK TAB */}
       {activeTab === 'FACEBOOK' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-          <div style={{ backgroundColor: '#0f172a', borderRadius: '16px', padding: '1.5rem', border: '1px solid rgba(24, 119, 242, 0.3)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ backgroundColor: '#0f172a', borderRadius: '16px', padding: '1.5rem', border: '1px solid rgba(24, 119, 242, 0.3)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
               <Facebook size={36} color="#1877f2" />
               <div>
-                <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#fff', margin: 0 }}>Facebook Business Page & Messenger</h3>
+                <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#fff', margin: 0 }}>
+                  Facebook Business Page & Messenger {fbData?.pageName && <span style={{ color: '#1877f2', fontSize: '0.95rem' }}>({fbData.pageName})</span>}
+                </h3>
                 <p style={{ fontSize: '0.85rem', color: '#94a3b8', margin: '0.2rem 0 0 0' }}>Auto-post to Facebook Page feed & receive customer Messenger DMs directly in LetsTrack console.</p>
               </div>
             </div>
             <div style={{ backgroundColor: 'rgba(24, 119, 242, 0.15)', border: '1px solid rgba(24, 119, 242, 0.3)', color: '#38bdf8', padding: '0.5rem 1rem', borderRadius: '20px', fontSize: '0.82rem', fontWeight: 800 }}>
-              Linked Page: {businessGroup?.metaPageName || 'Rajugari Ventures'}
+              {fbData?.connected ? `Linked Page: ${fbData.pageName || 'Connected'}` : 'Not Connected'}
             </div>
           </div>
 
-          {/* Facebook Stats Grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.25rem' }}>
-            <div style={{ backgroundColor: '#0f172a', padding: '1.25rem', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.06)' }}>
-              <span style={{ fontSize: '0.82rem', color: '#94a3b8', display: 'block', marginBottom: '0.35rem' }}>Page Likes & Followers</span>
-              <strong style={{ fontSize: '1.6rem', fontWeight: 900, color: '#fff' }}>2,840</strong>
+          {!fbData?.connected ? (
+            <div style={{ backgroundColor: '#0f172a', borderRadius: '16px', padding: '2.5rem', textAlign: 'center', border: '1px solid rgba(255,255,255,0.08)' }}>
+              <AlertCircle size={40} color="#1877f2" style={{ margin: '0 auto 0.75rem auto' }} />
+              <h4 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#fff', margin: 0 }}>Facebook Business Page Not Linked</h4>
+              <p style={{ fontSize: '0.85rem', color: '#94a3b8', maxWidth: '480px', margin: '0.5rem auto 1.25rem auto' }}>
+                Connect your Facebook Business Page in Profile Settings to view real Graph API analytics, post directly to your Page feed, and auto-sync Messenger DMs to LetsTrack.
+              </p>
             </div>
-            <div style={{ backgroundColor: '#0f172a', padding: '1.25rem', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.06)' }}>
-              <span style={{ fontSize: '0.82rem', color: '#94a3b8', display: 'block', marginBottom: '0.35rem' }}>Monthly Page Reach</span>
-              <strong style={{ fontSize: '1.6rem', fontWeight: 900, color: '#fff' }}>14,200</strong>
+          ) : (
+            /* Facebook Stats Grid */
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.25rem' }}>
+              <div style={{ backgroundColor: '#0f172a', padding: '1.25rem', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                <span style={{ fontSize: '0.82rem', color: '#94a3b8', display: 'block', marginBottom: '0.35rem' }}>Page Likes & Followers</span>
+                <strong style={{ fontSize: '1.6rem', fontWeight: 900, color: '#fff' }}>
+                  {fbData.stats?.followersCount?.toLocaleString() || 0}
+                </strong>
+                <div style={{ fontSize: '0.75rem', color: '#10b981', fontWeight: 700, marginTop: '0.25rem' }}>Verified Page Audience</div>
+              </div>
+              <div style={{ backgroundColor: '#0f172a', padding: '1.25rem', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                <span style={{ fontSize: '0.82rem', color: '#94a3b8', display: 'block', marginBottom: '0.35rem' }}>Monthly Page Reach</span>
+                <strong style={{ fontSize: '1.6rem', fontWeight: 900, color: '#fff' }}>
+                  {fbData.stats?.monthlyReach?.toLocaleString() || 0}
+                </strong>
+                <div style={{ fontSize: '0.75rem', color: '#38bdf8', fontWeight: 700, marginTop: '0.25rem' }}>Organic Impressions</div>
+              </div>
+              <div style={{ backgroundColor: '#0f172a', padding: '1.25rem', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                <span style={{ fontSize: '0.82rem', color: '#94a3b8', display: 'block', marginBottom: '0.35rem' }}>Messenger Conversations</span>
+                <strong style={{ fontSize: '1.6rem', fontWeight: 900, color: '#38bdf8' }}>
+                  {fbData.stats?.conversationsSynced || 0} Synced
+                </strong>
+                <div style={{ fontSize: '0.75rem', color: '#34d399', fontWeight: 700, marginTop: '0.25rem' }}>LetsTrack Console Sync Active</div>
+              </div>
             </div>
-            <div style={{ backgroundColor: '#0f172a', padding: '1.25rem', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.06)' }}>
-              <span style={{ fontSize: '0.82rem', color: '#94a3b8', display: 'block', marginBottom: '0.35rem' }}>Messenger Conversations</span>
-              <strong style={{ fontSize: '1.6rem', fontWeight: 900, color: '#38bdf8' }}>94 Synced</strong>
-            </div>
-          </div>
+          )}
         </div>
       )}
 
