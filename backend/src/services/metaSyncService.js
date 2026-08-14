@@ -85,8 +85,10 @@ async function getInstagramAnalytics(businessGroup) {
     };
   }
 
-  // Query Instagram Insights metrics individually so unsupported metrics don't break remaining metrics
-  const [reachRes, impressionsRes, profileViewsRes, accountRes] = await Promise.allSettled([
+  // Query Profile, Media, and Instagram Insights metrics individually so unsupported metrics don't break remaining metrics
+  const [profileResult, mediaResult, reachRes, impressionsRes, profileViewsRes, accountRes] = await Promise.allSettled([
+    axios.get(`https://graph.facebook.com/${GRAPH_API_VERSION}/${igId}?fields=id,username,name,profile_picture_url,followers_count,follows_count,media_count,website&access_token=${token}`),
+    axios.get(`https://graph.facebook.com/${GRAPH_API_VERSION}/${igId}/media?fields=id,caption,media_type,media_url,thumbnail_url,permalink,timestamp,like_count,comments_count&limit=25&access_token=${token}`),
     axios.get(`https://graph.facebook.com/${GRAPH_API_VERSION}/${igId}/insights?metric=reach&period=day&access_token=${token}`),
     axios.get(`https://graph.facebook.com/${GRAPH_API_VERSION}/${igId}/insights?metric=impressions&period=day&access_token=${token}`),
     axios.get(`https://graph.facebook.com/${GRAPH_API_VERSION}/${igId}/insights?metric=profile_views&period=day&access_token=${token}`),
