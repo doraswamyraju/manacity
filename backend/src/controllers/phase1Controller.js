@@ -619,14 +619,22 @@ exports.addLibraryItemToBusiness = async (req, res) => {
       await prisma.businessService.create({
         data: {
           businessGroupId,
-          name: libraryItem.name
+          libraryItemId: libraryItem.id,
+          name: libraryItem.name,
+          price: libraryItem.defaultPrice || null,
+          description: libraryItem.description || null,
+          photos: libraryItem.photos || []
         }
       });
     } else {
       await prisma.businessProduct.create({
         data: {
           businessGroupId,
-          name: libraryItem.name
+          libraryItemId: libraryItem.id,
+          name: libraryItem.name,
+          price: libraryItem.defaultPrice || null,
+          description: libraryItem.description || null,
+          photos: libraryItem.photos || []
         }
       });
     }
