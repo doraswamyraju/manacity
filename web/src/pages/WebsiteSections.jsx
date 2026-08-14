@@ -609,7 +609,10 @@ export function ServicesSection({ businessGroup, settings, theme }) {
   const isLight = themeIsLight(theme);
   const [selectedService, setSelectedService] = useState(null);
 
-  const userServices = businessGroup?.services || [];
+  const userServices = (businessGroup?.services || []).filter(srv => {
+    const p = srv.price !== null && srv.price !== undefined && srv.price !== '' ? srv.price : srv.libraryItem?.defaultPrice;
+    return p !== null && p !== undefined && p !== '';
+  });
   if (userServices.length === 0) return null;
 
   const getServiceImage = (srv) => {
@@ -739,7 +742,10 @@ export function ProductsSection({ businessGroup, settings, theme }) {
   const isLight = themeIsLight(theme);
   const [selectedProduct, setSelectedProduct] = useState(null);
 
-  const userProducts = businessGroup?.products || [];
+  const userProducts = (businessGroup?.products || []).filter(prod => {
+    const p = prod.price !== null && prod.price !== undefined && prod.price !== '' ? prod.price : prod.libraryItem?.defaultPrice;
+    return p !== null && p !== undefined && p !== '';
+  });
   if (userProducts.length === 0) return null;
 
   const getProductImage = (prod) => {
