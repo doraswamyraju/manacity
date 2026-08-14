@@ -632,11 +632,7 @@ export function ServicesSection({ businessGroup, settings, theme }) {
     return srv.description || srv.libraryItem?.description || 'Quality professional service offering tailored to your exact specifications.';
   };
 
-  const list = userServices.length > 0 ? userServices : [
-    { name: 'Core Commercial Consultation', price: 'Contact for Quote', description: 'Comprehensive business consultation and tailored implementation strategy.' },
-    { name: 'Premium Service Package', price: 'Custom Pricing', description: 'End-to-end professional package designed for scaling operations.' },
-    { name: 'Standard Maintenance & Support', price: 'Subscription', description: '24/7 technical assistance, ongoing updates, and direct advisor access.' }
-  ];
+  const list = userServices;
 
   return (
     <section id="services" style={{ padding: '4rem 6%', backgroundColor: isLight ? '#f8fafc' : 'rgba(255, 255, 255, 0.01)', borderBottom: `1px solid ${isLight ? '#e2e8f0' : 'rgba(255,255,255,0.05)'}` }}>
@@ -762,10 +758,7 @@ export function ProductsSection({ businessGroup, settings, theme }) {
     return prod.description || prod.libraryItem?.description || 'Verified product offering with high quality standards and official warranty.';
   };
 
-  const list = userProducts.length > 0 ? userProducts : [
-    { name: 'Featured Commercial Item A', price: '₹2,499', description: 'Top quality verified commercial grade product with official warranty.' },
-    { name: 'Enterprise Bundle Kit B', price: '₹4,999', description: 'All-in-one product package built for high durability and efficiency.' }
-  ];
+  const list = userProducts;
 
   return (
     <section id="products" style={{ padding: '4rem 6%', backgroundColor: isLight ? '#ffffff' : 'transparent', borderBottom: `1px solid ${isLight ? '#e2e8f0' : 'rgba(255,255,255,0.05)'}` }}>
