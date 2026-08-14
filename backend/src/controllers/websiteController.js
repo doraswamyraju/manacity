@@ -487,8 +487,12 @@ exports.renderPublicWebsite = async (req, res) => {
                 reviews: { orderBy: { createdAt: 'desc' } }
               }
             },
-            services: true,
-            products: true
+            services: {
+              include: { libraryItem: true }
+            },
+            products: {
+              include: { libraryItem: true }
+            }
           }
         }
       }
