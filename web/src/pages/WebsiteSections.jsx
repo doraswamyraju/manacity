@@ -623,8 +623,12 @@ export function ServicesSection({ businessGroup, settings, theme }) {
   };
 
   const getServicePrice = (srv) => {
-    if (srv.price) return typeof srv.price === 'number' ? `₹${srv.price.toLocaleString('en-IN')}` : srv.price;
-    if (srv.libraryItem?.defaultPrice) return `₹${srv.libraryItem.defaultPrice.toLocaleString('en-IN')}`;
+    if (srv.price !== null && srv.price !== undefined && srv.price !== '') {
+      return typeof srv.price === 'number' ? `₹${srv.price.toLocaleString('en-IN')}` : srv.price;
+    }
+    if (srv.libraryItem?.defaultPrice !== null && srv.libraryItem?.defaultPrice !== undefined) {
+      return `₹${srv.libraryItem.defaultPrice.toLocaleString('en-IN')}`;
+    }
     return 'Custom Quote';
   };
 
@@ -749,8 +753,12 @@ export function ProductsSection({ businessGroup, settings, theme }) {
   };
 
   const getProductPrice = (prod) => {
-    if (prod.price) return typeof prod.price === 'number' ? `₹${prod.price.toLocaleString('en-IN')}` : prod.price;
-    if (prod.libraryItem?.defaultPrice) return `₹${prod.libraryItem.defaultPrice.toLocaleString('en-IN')}`;
+    if (prod.price !== null && prod.price !== undefined && prod.price !== '') {
+      return typeof prod.price === 'number' ? `₹${prod.price.toLocaleString('en-IN')}` : prod.price;
+    }
+    if (prod.libraryItem?.defaultPrice !== null && prod.libraryItem?.defaultPrice !== undefined) {
+      return `₹${prod.libraryItem.defaultPrice.toLocaleString('en-IN')}`;
+    }
     return 'Contact for Price';
   };
 
