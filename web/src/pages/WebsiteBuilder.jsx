@@ -279,11 +279,16 @@ export default function WebsiteBuilder({ onBack }) {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', gridColumn: '1 / -1' }}>
               <label style={{ fontSize: '0.85rem', fontWeight: 700, color: '#38bdf8' }}>Select Website Template</label>
-              <select value={theme} onChange={(e) => {
+              <select value={theme} onChange={async (e) => {
                 const newTheme = e.target.value;
                 setTheme(newTheme);
                 const colors = { 'modern-corporate': '#6366f1', 'light-minimal': '#0ea5e9' };
+                const pColor = colors[newTheme] || primaryColor;
                 if (colors[newTheme]) setPrimaryColor(colors[newTheme]);
+                // Immediate auto-save so live iframe updates theme instantly
+                try {
+                  await axios.post('/api/website/save', { theme: newTheme, primaryColor: pColor });
+                } catch (err) {}
               }} style={{ ...inputStyle, fontWeight: 700, backgroundColor: '#0f172a' }}>
                 <option value="modern-corporate">1. Dark Mode Template (Sleek Dark & Glass)</option>
                 <option value="light-minimal">2. Light Mode Template (Clean White & Vibrant)</option>
@@ -297,9 +302,13 @@ export default function WebsiteBuilder({ onBack }) {
                 ].map(tmpl => (
                   <div
                     key={tmpl.id}
-                    onClick={() => {
+                    onClick={async () => {
                       setTheme(tmpl.id);
                       setPrimaryColor(tmpl.color);
+                      // Immediate auto-save so live iframe updates theme instantly
+                      try {
+                        await axios.post('/api/website/save', { theme: tmpl.id, primaryColor: tmpl.color });
+                      } catch (err) {}
                     }}
                     style={{
                       border: theme === tmpl.id ? `2px solid ${tmpl.color}` : '1px solid rgba(255,255,255,0.1)',
@@ -510,7 +519,7 @@ export default function WebsiteBuilder({ onBack }) {
         }}>
           <iframe
             key={`${subdomain}-${previewDevice}-${theme}`}
-            src={subdomain ? `https://${subdomain}.manacity.in` : 'https://manacity.in'}
+            src={subdomain ? `https://${subdomain}.manacity.in?t=${theme}` : `https://manacity.in?t=${theme}`}
             title="Live Website Preview"
             style={{
               width: previewDevice === 'mobile' ? '375px' : previewDevice === 'tablet' ? '768px' : '100%',
@@ -518,7 +527,7 @@ export default function WebsiteBuilder({ onBack }) {
               minHeight: '650px',
               border: previewDevice === 'desktop' ? 'none' : '2px solid rgba(255,255,255,0.2)',
               borderRadius: previewDevice === 'desktop' ? '0' : '12px',
-              backgroundColor: '#0f172a',
+              backgroundColor: theme === 'light-minimal' ? '#ffffff' : '#0f172a',
               boxShadow: previewDevice === 'desktop' ? 'none' : '0 20px 40px rgba(0,0,0,0.8)',
               transition: 'width 0.3s ease'
             }}
