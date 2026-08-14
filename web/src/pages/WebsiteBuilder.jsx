@@ -23,6 +23,7 @@ export default function WebsiteBuilder({ onBack }) {
   const [font, setFont] = useState('Outfit');
   const [isPublished, setIsPublished] = useState(false);
   const [logoUrl, setLogoUrl] = useState('');
+  const [previewDevice, setPreviewDevice] = useState('desktop');
 
   // SEO & Analytics
   const [metaTitle, setMetaTitle] = useState('');
@@ -468,45 +469,65 @@ export default function WebsiteBuilder({ onBack }) {
           maxHeight: '85vh', 
           overflowY: 'auto',
           color: theme === 'light-minimal' ? '#0f172a' : '#fff',
-          boxSizing: 'border-box'
+          boxSizing: 'border-box',
+          display: 'flex',
+          flexDirection: 'column'
         }}
       >
-        <div style={{ padding: '0.5rem 1rem', borderBottom: '1px solid var(--border-color)', textAlign: 'left', fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span>
-            Live Site URL:{' '}
-            <a
-              href={subdomain ? `https://${subdomain}.manacity.in` : 'https://manacity.in'}
-              target="_blank"
-              rel="noreferrer"
-              style={{ color: '#38bdf8', fontWeight: 700, textDecoration: 'underline' }}
-            >
-              {subdomain ? `${subdomain}.manacity.in` : 'manacity.in'}
-            </a>
-          </span>
-          <span style={{ color: isPublished ? '#4caf50' : 'var(--accent-error)' }}>{isPublished ? '● Published' : '● Draft'}</span>
+        <div style={{ padding: '0.55rem 1rem', borderBottom: '1px solid var(--border-color)', backgroundColor: 'rgba(0,0,0,0.2)', textAlign: 'left', fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span style={{ fontWeight: 600 }}>Preview Viewport:</span>
+            <button type="button" onClick={() => setPreviewDevice('desktop')} style={{ ...deviceBtnStyle, backgroundColor: previewDevice === 'desktop' ? '#38bdf8' : 'transparent', color: previewDevice === 'desktop' ? '#0f172a' : '#cbd5e1' }}>💻 Desktop (Full)</button>
+            <button type="button" onClick={() => setPreviewDevice('tablet')} style={{ ...deviceBtnStyle, backgroundColor: previewDevice === 'tablet' ? '#38bdf8' : 'transparent', color: previewDevice === 'tablet' ? '#0f172a' : '#cbd5e1' }}>📱 Tablet</button>
+            <button type="button" onClick={() => setPreviewDevice('mobile')} style={{ ...deviceBtnStyle, backgroundColor: previewDevice === 'mobile' ? '#38bdf8' : 'transparent', color: previewDevice === 'mobile' ? '#0f172a' : '#cbd5e1' }}>📲 Mobile</button>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <span>
+              Live URL:{' '}
+              <a
+                href={subdomain ? `https://${subdomain}.manacity.in` : 'https://manacity.in'}
+                target="_blank"
+                rel="noreferrer"
+                style={{ color: '#38bdf8', fontWeight: 700, textDecoration: 'underline' }}
+              >
+                {subdomain ? `${subdomain}.manacity.in` : 'manacity.in'}
+              </a>
+            </span>
+            <span style={{ color: isPublished ? '#4caf50' : 'var(--accent-error)', fontWeight: 700 }}>{isPublished ? '● Published' : '● Draft'}</span>
+          </div>
         </div>
 
 
         {/* Inline Theme Engine Style Injection */}
-        <div style={themeVars}>
-          {sections
-            .filter(sec => sec.enabled)
-            .map(sec => {
-              // Dynamically map section types to imported components
-              if (sec.type === 'HEADER') return <Sections.HeaderSection key={sec.type} businessGroup={businessGroup} settings={sec.settings} theme={theme} />;
-              if (sec.type === 'HERO') return <Sections.HeroSection key={sec.type} businessGroup={businessGroup} settings={sec.settings} theme={theme} />;
-              if (sec.type === 'FEATURES') return <Sections.FeaturesSection key={sec.type} businessGroup={businessGroup} settings={sec.settings} theme={theme} />;
-              if (sec.type === 'ABOUT') return <Sections.AboutSection key={sec.type} businessGroup={businessGroup} settings={sec.settings} theme={theme} />;
-              if (sec.type === 'SERVICES') return <Sections.ServicesSection key={sec.type} businessGroup={businessGroup} settings={sec.settings} theme={theme} />;
-              if (sec.type === 'PRODUCTS') return <Sections.ProductsSection key={sec.type} businessGroup={businessGroup} settings={sec.settings} theme={theme} />;
-              if (sec.type === 'GALLERY') return <Sections.GallerySection key={sec.type} businessGroup={businessGroup} settings={sec.settings} theme={theme} />;
-              if (sec.type === 'REVIEWS') return <Sections.ReviewsSection key={sec.type} businessGroup={businessGroup} settings={sec.settings} theme={theme} />;
-              if (sec.type === 'CONTACT') return <Sections.ContactSection key={sec.type} businessGroup={businessGroup} settings={sec.settings} theme={theme} />;
-              if (sec.type === 'FAQ') return <Sections.FaqSection key={sec.type} businessGroup={businessGroup} settings={sec.settings} theme={theme} />;
-              if (sec.type === 'CTA') return <Sections.CtaSection key={sec.type} businessGroup={businessGroup} settings={sec.settings} theme={theme} />;
-              if (sec.type === 'FOOTER') return <Sections.FooterSection key={sec.type} businessGroup={businessGroup} settings={sec.settings} theme={theme} />;
-              return null;
-            })}
+        <div style={{
+          width: previewDevice === 'mobile' ? '375px' : previewDevice === 'tablet' ? '768px' : '100%',
+          margin: previewDevice === 'desktop' ? '0' : '1rem auto',
+          boxShadow: previewDevice === 'desktop' ? 'none' : '0 10px 30px rgba(0,0,0,0.5)',
+          borderRadius: previewDevice === 'desktop' ? '0' : '12px',
+          overflow: 'hidden',
+          transition: 'all 0.3s ease'
+        }}>
+          <div style={themeVars}>
+            {sections
+              .filter(sec => sec.enabled)
+              .map(sec => {
+                // Dynamically map section types to imported components
+                if (sec.type === 'HEADER') return <Sections.HeaderSection key={sec.type} businessGroup={businessGroup} settings={sec.settings} theme={theme} />;
+                if (sec.type === 'HERO') return <Sections.HeroSection key={sec.type} businessGroup={businessGroup} settings={sec.settings} theme={theme} />;
+                if (sec.type === 'FEATURES') return <Sections.FeaturesSection key={sec.type} businessGroup={businessGroup} settings={sec.settings} theme={theme} />;
+                if (sec.type === 'ABOUT') return <Sections.AboutSection key={sec.type} businessGroup={businessGroup} settings={sec.settings} theme={theme} />;
+                if (sec.type === 'SERVICES') return <Sections.ServicesSection key={sec.type} businessGroup={businessGroup} settings={sec.settings} theme={theme} />;
+                if (sec.type === 'PRODUCTS') return <Sections.ProductsSection key={sec.type} businessGroup={businessGroup} settings={sec.settings} theme={theme} />;
+                if (sec.type === 'GALLERY') return <Sections.GallerySection key={sec.type} businessGroup={businessGroup} settings={sec.settings} theme={theme} />;
+                if (sec.type === 'REVIEWS') return <Sections.ReviewsSection key={sec.type} businessGroup={businessGroup} settings={sec.settings} theme={theme} />;
+                if (sec.type === 'CONTACT') return <Sections.ContactSection key={sec.type} businessGroup={businessGroup} settings={sec.settings} theme={theme} />;
+                if (sec.type === 'FAQ') return <Sections.FaqSection key={sec.type} businessGroup={businessGroup} settings={sec.settings} theme={theme} />;
+                if (sec.type === 'CTA') return <Sections.CtaSection key={sec.type} businessGroup={businessGroup} settings={sec.settings} theme={theme} />;
+                if (sec.type === 'FOOTER') return <Sections.FooterSection key={sec.type} businessGroup={businessGroup} settings={sec.settings} theme={theme} />;
+                return null;
+              })}
+          </div>
         </div>
       </div>
     </div>
@@ -549,4 +570,14 @@ const iconBtnStyle = {
   color: '#fff',
   borderRadius: '4px',
   cursor: 'pointer'
+};
+
+const deviceBtnStyle = {
+  padding: '0.3rem 0.65rem',
+  fontSize: '0.75rem',
+  fontWeight: 700,
+  border: '1px solid rgba(255,255,255,0.15)',
+  borderRadius: '6px',
+  cursor: 'pointer',
+  transition: 'all 0.2s ease'
 };
