@@ -91,6 +91,17 @@ model BusinessGroup {
   letsTrackApiKey   String?
   letsTrackTenantId String?
 
+  // Meta Integration
+  socialFacebook    String?
+  socialInstagram   String?
+  socialYouTube     String?
+  socialLinkedIn    String?
+  socialTwitter     String?
+  metaAccessToken   String?
+  metaPageId        String?
+  metaPageName      String?
+  metaInstagramId   String?
+
   // Relations
   locations       Location[]
   subscriptions   Subscription[]
@@ -103,6 +114,7 @@ model BusinessGroup {
   directoryListing DirectoryListing?
   leads           Lead[]
   letsTrackVisitors LetsTrackVisitor[]
+  metaAdCampaigns MetaAdCampaign[]
 }
 
 model BusinessService {
@@ -565,12 +577,46 @@ model Lead {
   visitorLocation String?
   viewedServices  String[]
   viewedProducts  String[]
-  channel         String        // "CALL", "WHATSAPP", "FORM"
+  channel         String        // "CALL", "WHATSAPP", "FORM", "META_ADS"
   contactName     String?
   contactEmail    String?
   contactPhone    String?
   message         String?
+
+  // LMS Innovations
+  status          String        @default("NEW") // "NEW", "CONTACTED", "PROPOSAL_SENT", "CONVERTED", "LOST"
+  priority        String        @default("MEDIUM") // "LOW", "MEDIUM", "HIGH"
+  saleAmount      Float?
+  saleNotes       String?
+  convertedAt     DateTime?
+  reminderDate    DateTime?
+  reminderNote    String?
+  notes           String?
+
   createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @default(now()) @updatedAt
+}
+
+model MetaAdCampaign {
+  id              String        @id @default(auto()) @map("_id") @db.ObjectId
+  businessGroupId String        @db.ObjectId
+  businessGroup   BusinessGroup @relation(fields: [businessGroupId], references: [id], onDelete: Cascade)
+
+  campaignName    String
+  adHeadline      String
+  adDescription   String?
+  targetLocation  String        @default("Tirupati")
+  targetCategory  String?
+  dailyBudget     Float
+  status          String        @default("ACTIVE") // ACTIVE, PAUSED, COMPLETED
+  impressions     Int           @default(0)
+  clicks          Int           @default(0)
+  leadsGenerated  Int           @default(0)
+  totalSpent      Float         @default(0.0)
+  metaCampaignId  String?
+
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
 }
 
 model LetsTrackVisitor {

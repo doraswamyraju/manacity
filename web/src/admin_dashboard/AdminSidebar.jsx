@@ -16,6 +16,7 @@ import {
   QrCode,
   Sliders,
   Package,
+  Megaphone,
   Share2
 } from 'lucide-react';
 
@@ -41,6 +42,7 @@ function AdminSidebar({
     { id: 'locations', label: 'Business Locations', icon: MapPin, badge: null, color: '#38bdf8' },
     { id: 'catalog-library', label: 'Products & Services', icon: Package, badge: null, color: '#f43f5e' },
     { id: 'website-builder', label: 'Website Builder', icon: Globe, badge: 'PRO', color: '#818cf8' },
+    { id: 'marketing', label: 'Marketing Hub', icon: Megaphone, badge: 'META', color: '#1877f2' },
     { id: 'referrals', label: 'Refer & Earn', icon: Share2, badge: 'EARN', color: '#34d399' },
 
     { id: 'reviews', label: 'Review Management', icon: Star, badge: null, color: '#fbbf24' },

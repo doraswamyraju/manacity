@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import MetaConnectCard from '../components/onboarding/MetaConnectCard';
 
 // Helper to extract dominant primary and secondary color palette from uploaded logo
 export function extractColorsFromLogo(imageSrc) {
@@ -919,6 +920,9 @@ function StepSocialLinks({ initialData, onNext, onBack }) {
   const [socialYouTube, setSocialYouTube] = useState(initialData.socialYouTube || '');
   const [socialLinkedIn, setSocialLinkedIn] = useState(initialData.socialLinkedIn || '');
   const [socialTwitter, setSocialTwitter] = useState(initialData.socialTwitter || '');
+  const [metaAccessToken, setMetaAccessToken] = useState(initialData.metaAccessToken || '');
+  const [metaPageId, setMetaPageId] = useState(initialData.metaPageId || '');
+  const [metaPageName, setMetaPageName] = useState(initialData.metaPageName || '');
   const [error, setError] = useState('');
 
   const handleNext = () => {
@@ -946,12 +950,32 @@ function StepSocialLinks({ initialData, onNext, onBack }) {
     }
 
     setError('');
-    onNext({ socialFacebook, socialInstagram, socialYouTube, socialLinkedIn, socialTwitter });
+    onNext({
+      socialFacebook,
+      socialInstagram,
+      socialYouTube,
+      socialLinkedIn,
+      socialTwitter,
+      metaAccessToken,
+      metaPageId,
+      metaPageName
+    });
+  };
+
+  const handleMetaConnected = (metaData) => {
+    if (metaData.socialFacebook) setSocialFacebook(metaData.socialFacebook);
+    if (metaData.socialInstagram) setSocialInstagram(metaData.socialInstagram);
+    if (metaData.metaPageId) setMetaPageId(metaData.metaPageId);
+    if (metaData.metaPageName) setMetaPageName(metaData.metaPageName);
+    if (metaData.metaAccessToken) setMetaAccessToken(metaData.metaAccessToken);
   };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', textAlign: 'left' }}>
-      <h3 style={{ fontSize: '1.4rem', fontWeight: 600, color: 'var(--accent-secondary)' }}>Step 5: Social Links</h3>
+      <h3 style={{ fontSize: '1.4rem', fontWeight: 600, color: 'var(--accent-secondary)' }}>Step 5: Social Links & Meta Page Integration</h3>
+
+      {/* Standalone Meta Connection Card Module */}
+      <MetaConnectCard initialData={initialData} onMetaConnected={handleMetaConnected} />
 
       {error && <div style={{ color: 'var(--accent-error)', fontSize: '0.9rem' }}>{error}</div>}
 

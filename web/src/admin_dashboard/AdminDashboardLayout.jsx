@@ -30,6 +30,8 @@ import Billing from '../pages/Billing';
 import LMSAllLeadsTab from '../admin/lms/LMSAllLeadsTab';
 import BusinessLibraryTab from '../admin/library/BusinessLibraryTab';
 import UserReferralDashboard from '../pages/referral/UserReferralDashboard';
+import MarketingTabContainer from '../modules/marketing/MarketingTabContainer';
+import LeadsTableView from '../modules/lms/LeadsTableView';
 
 function AdminDashboardLayout({ user, businessGroup, onLogout, setView }) {
   // Persist active tab in localStorage
@@ -409,13 +411,14 @@ function AdminDashboardLayout({ user, businessGroup, onLogout, setView }) {
 
           {activeTab === 'catalog-library' && <BusinessLibraryTab theme={theme} />}
           {activeTab === 'website-builder' && <WebsiteBuilder onBack={() => setActiveTab('overview')} />}
+          {activeTab === 'marketing' && <MarketingTabContainer businessGroup={businessGroup} />}
           {activeTab === 'referrals' && <UserReferralDashboard theme={theme} />}
           {activeTab === 'reviews' && <ReviewManagement onBack={() => setActiveTab('overview')} />}
           {activeTab === 'billing' && <Billing onBack={() => setActiveTab('overview')} />}
           
           {/* LMS Submodules */}
           {(activeTab === 'lms' || activeTab === 'lms-all' || activeTab === 'lms-reports' || activeTab === 'lms-qr' || activeTab === 'lms-settings') && (
-            <LMSAllLeadsTab theme={theme} />
+            <LeadsTableView />
           )}
 
         </main>
