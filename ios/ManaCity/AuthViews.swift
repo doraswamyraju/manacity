@@ -8,6 +8,8 @@ struct LoginView: View {
     @State private var password: String = ""
     @State private var errorMessage: String? = nil
     @State private var isLoading: Bool = false
+    @State private var showGoogleSheet: Bool = false
+
 
     var body: some View {
         ZStack {
@@ -18,10 +20,13 @@ struct LoginView: View {
                     Spacer().frame(height: 20)
 
                     // Logo & Header
-                    VStack(spacing: 8) {
-                        Text("ManaCity")
-                            .font(.system(size: 32, weight: .black))
-                            .foregroundColor(.manaViolet)
+                    VStack(spacing: 12) {
+                        Image("AppIcon")
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(maxWidth: 180, maxHeight: 80)
+                            .cornerRadius(12)
+
                         Text("Welcome Back")
                             .font(.system(size: 24, weight: .bold))
                             .foregroundColor(.manaTextPrimary)
@@ -30,6 +35,7 @@ struct LoginView: View {
                             .foregroundColor(.manaTextSecondary)
                             .multilineTextAlignment(.center)
                     }
+
 
                     VStack(alignment: .leading, spacing: 16) {
                         // Error Alert Banner
@@ -56,8 +62,9 @@ struct LoginView: View {
                         .cornerRadius(10)
 
                         // Google / Gmail Sign In Button
+                        // Google / Gmail Sign In Button
                         Button(action: {
-                            performSocialLogin(token: "google_mobile_token_\(UUID().uuidString)", provider: "google", email: nil, name: nil)
+                            performSocialLogin(token: "google_ios_auth_\(UUID().uuidString)", provider: "google", email: nil, name: nil)
                         }) {
                             HStack(spacing: 8) {
                                 Image(systemName: "g.circle.fill")
@@ -73,6 +80,12 @@ struct LoginView: View {
                             .cornerRadius(10)
                             .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.manaBorder, lineWidth: 1))
                         }
+
+
+
+
+
+
 
                         Text("⚡ Fast 1-Click Authentication")
                             .font(.system(size: 11, weight: .bold))
@@ -244,10 +257,13 @@ struct RegisterView: View {
                 VStack(spacing: 20) {
                     Spacer().frame(height: 10)
 
-                    VStack(spacing: 6) {
-                        Text("ManaCity")
-                            .font(.system(size: 30, weight: .black))
-                            .foregroundColor(.manaViolet)
+                    VStack(spacing: 8) {
+                        Image("AppIcon")
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(maxWidth: 180, maxHeight: 75)
+                            .cornerRadius(12)
+
                         Text("Create Your Account")
                             .font(.system(size: 22, weight: .bold))
                             .foregroundColor(.manaTextPrimary)
@@ -255,6 +271,7 @@ struct RegisterView: View {
                             .font(.system(size: 12))
                             .foregroundColor(.manaTextSecondary)
                     }
+
 
                     VStack(alignment: .leading, spacing: 14) {
                         HStack(spacing: 6) {

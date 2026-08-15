@@ -1,17 +1,18 @@
 import SwiftUI
 
 extension Color {
-    static let manaBackground = Color(red: 15/255, green: 23/255, blue: 42/255)
-    static let manaSurfaceDark = Color(red: 30/255, green: 41/255, blue: 59/255)
-    static let manaSurfaceCard = Color(red: 51/255, green: 65/255, blue: 85/255)
-    static let manaViolet = Color(red: 99/255, green: 102/255, blue: 241/255)
-    static let manaTeal = Color(red: 20/255, green: 184/255, blue: 166/255)
+    static let manaBackground = Color(red: 248/255, green: 250/255, blue: 252/255)
+    static let manaSurfaceDark = Color(red: 255/255, green: 255/255, blue: 255/255)
+    static let manaSurfaceCard = Color(red: 255/255, green: 255/255, blue: 255/255)
+    static let manaViolet = Color(red: 2/255, green: 132/255, blue: 199/255) // Mana Blue
+    static let manaTeal = Color(red: 16/255, green: 185/255, blue: 129/255) // Emerald Green
     static let manaAmber = Color(red: 245/255, green: 158/255, blue: 11/255)
     static let manaEmerald = Color(red: 16/255, green: 185/255, blue: 129/255)
-    static let manaTextPrimary = Color(red: 248/255, green: 250/255, blue: 252/255)
-    static let manaTextSecondary = Color(red: 148/255, green: 163/255, blue: 184/255)
-    static let manaBorder = Color(red: 71/255, green: 85/255, blue: 105/255)
+    static let manaTextPrimary = Color(red: 15/255, green: 23/255, blue: 42/255)
+    static let manaTextSecondary = Color(red: 71/255, green: 85/255, blue: 105/255)
+    static let manaBorder = Color(red: 226/255, green: 232/255, blue: 240/255)
 }
+
 
 
 struct ManaGlassCardModifier: ViewModifier {

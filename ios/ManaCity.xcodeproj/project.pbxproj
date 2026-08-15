@@ -15,6 +15,7 @@
 		111111112222222233333336 /* PublicHomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 222222223333333344444446 /* PublicHomeView.swift */; };
 		111111112222222233333337 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 222222223333333344444447 /* Theme.swift */; };
 		111111112222222233333338 /* AppleAuthHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 222222223333333344444448 /* AppleAuthHelper.swift */; };
+		111111112222222233333339 /* GoogleAuthHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 222222223333333344444449 /* GoogleAuthHelper.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -27,6 +28,7 @@
 		222222223333333344444446 /* PublicHomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublicHomeView.swift; sourceTree = "<group>"; };
 		222222223333333344444447 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		222222223333333344444448 /* AppleAuthHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleAuthHelper.swift; sourceTree = "<group>"; };
+		222222223333333344444449 /* GoogleAuthHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoogleAuthHelper.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -49,6 +51,7 @@
 				222222223333333344444446 /* PublicHomeView.swift */,
 				222222223333333344444447 /* Theme.swift */,
 				222222223333333344444448 /* AppleAuthHelper.swift */,
+				222222223333333344444449 /* GoogleAuthHelper.swift */,
 			);
 			path = ManaCity;
 			sourceTree = "<group>";
@@ -90,6 +93,7 @@
 				TargetAttributes = {
 					444444445555555566666661 = {
 						CreatedOnToolsVersion = 15.0;
+						DevelopmentTeam = UDYR7AUVZ7;
 					};
 				};
 			};
@@ -124,6 +128,7 @@
 				111111112222222233333336 /* PublicHomeView.swift in Sources */,
 				111111112222222233333337 /* Theme.swift in Sources */,
 				111111112222222233333338 /* AppleAuthHelper.swift in Sources */,
+				111111112222222233333339 /* GoogleAuthHelper.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -174,6 +179,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				DEVELOPMENT_TEAM = UDYR7AUVZ7;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				SDKROOT = iphoneos;
 			};
@@ -183,6 +189,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				DEVELOPMENT_TEAM = UDYR7AUVZ7;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				SDKROOT = iphoneos;
 			};
