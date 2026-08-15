@@ -59,35 +59,28 @@ export default function Home({
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [themeMode, setThemeMode] = useState('dark');
+  const [themeMode, setThemeMode] = useState('light');
 
   const heroSearchRef = useRef(null);
   const [isHeroSearchVisible, setIsHeroSearchVisible] = useState(true);
 
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        setIsHeroSearchVisible(entry.isIntersecting);
-      },
-      { threshold: 0.1 }
-    );
-    if (heroSearchRef.current) {
-      observer.observe(heroSearchRef.current);
-    }
-    return () => observer.disconnect();
+    document.body.classList.add('light-mode');
+    document.body.setAttribute('data-theme', 'light');
   }, []);
 
   const toggleTheme = () => {
-    const nextTheme = themeMode === 'dark' ? 'light' : 'dark';
+    const nextTheme = themeMode === 'light' ? 'dark' : 'light';
     setThemeMode(nextTheme);
     if (nextTheme === 'light') {
       document.body.classList.add('light-mode');
       document.body.setAttribute('data-theme', 'light');
     } else {
       document.body.classList.remove('light-mode');
-      document.body.removeAttribute('data-theme');
+      document.body.setAttribute('data-theme', 'dark');
     }
   };
+
 
 
 
@@ -602,32 +595,34 @@ export default function Home({
 
       {/* 2. Hero Search & Promo Banners Section (Matching Justdial Screenshot 1) */}
       <section className="home-section-padding">
-        <h1 style={{ fontSize: 'clamp(1.3rem, 5vw, 2.2rem)', fontWeight: 900, marginBottom: '1.25rem', color: '#fff' }}>
-          Search across <span style={{ color: '#38bdf8' }}>'10,000+' Verified Businesses</span>
+        <h1 style={{ fontSize: 'clamp(1.3rem, 5vw, 2.2rem)', fontWeight: 900, marginBottom: '1.25rem', color: 'var(--text-primary)' }}>
+          Search across <span style={{ color: 'var(--accent-primary)' }}>'10,000+' Verified Businesses</span>
         </h1>
 
-        {/* Integrated Search Bar (City selector removed from hero, accessible via header locality) */}
+
+        {/* Integrated Search Bar */}
         <form ref={heroSearchRef} onSubmit={handleSearchSubmit} style={{
           display: 'flex',
           flexWrap: 'wrap',
           gap: '0.5rem',
-          backgroundColor: '#1e293b',
+          backgroundColor: 'var(--bg-secondary)',
           padding: '0.5rem',
           borderRadius: '12px',
-          boxShadow: '0 10px 30px rgba(0, 0, 0, 0.4)',
-          border: '1px solid rgba(255, 255, 255, 0.1)',
+          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
+          border: '1px solid var(--border-color)',
           marginBottom: '1.5rem'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#0f172a', padding: '0.65rem 1rem', borderRadius: '8px', flex: '1 1 300px', position: 'relative' }}>
-            <Search size={18} color="#94a3b8" />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: 'var(--bg-primary)', padding: '0.65rem 1rem', borderRadius: '8px', flex: '1 1 300px', position: 'relative' }}>
+            <Search size={18} color="var(--text-muted)" />
             <input
               type="text"
               placeholder="Search for Spa, Salons, Rice Mills, SEO..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onFocus={() => { if (suggestions.length > 0) setShowSuggestions(true); }}
-              style={{ background: 'transparent', border: 'none', color: '#fff', width: '100%', outline: 'none', fontSize: '0.92rem' }}
+              style={{ background: 'transparent', border: 'none', color: 'var(--text-primary)', width: '100%', outline: 'none', fontSize: '0.92rem' }}
             />
+
             <Mic size={18} color="#6366f1" style={{ cursor: 'pointer' }} />
 
             {/* Live Autocomplete Suggestions Overlay Dropdown */}
@@ -755,44 +750,45 @@ export default function Home({
           </div>
 
           {/* Vertical Feature Card 1: B2B */}
-          <div style={{ backgroundColor: '#1e293b', borderRadius: '16px', padding: '1.15rem', border: '1px solid rgba(255,255,255,0.08)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+          <div style={{ backgroundColor: 'var(--bg-secondary)', borderRadius: '16px', padding: '1.15rem', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', boxShadow: '0 4px 12px rgba(0,0,0,0.04)' }}>
             <div>
-              <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#38bdf8' }}>B2B</span>
-              <h4 style={{ fontSize: '0.95rem', fontWeight: 800, margin: '0.35rem 0' }}>Quick Quotes</h4>
-              <p style={{ fontSize: '0.78rem', color: '#94a3b8' }}>Manufacturers & Wholesale</p>
+              <span style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--accent-primary)' }}>B2B</span>
+              <h4 style={{ fontSize: '0.95rem', fontWeight: 800, margin: '0.35rem 0', color: 'var(--text-primary)' }}>Quick Quotes</h4>
+              <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>Manufacturers & Wholesale</p>
             </div>
-            <ChevronRight size={18} color="#38bdf8" />
+            <ChevronRight size={18} color="var(--accent-primary)" />
           </div>
 
           {/* Vertical Feature Card 2: REPAIRS & SERVICES */}
-          <div style={{ backgroundColor: '#1e293b', borderRadius: '16px', padding: '1.15rem', border: '1px solid rgba(255,255,255,0.08)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+          <div style={{ backgroundColor: 'var(--bg-secondary)', borderRadius: '16px', padding: '1.15rem', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', boxShadow: '0 4px 12px rgba(0,0,0,0.04)' }}>
             <div>
-              <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#34d399' }}>REPAIRS</span>
-              <h4 style={{ fontSize: '0.95rem', fontWeight: 800, margin: '0.35rem 0' }}>Get Vendor</h4>
-              <p style={{ fontSize: '0.78rem', color: '#94a3b8' }}>AC, Electrician, Plumber</p>
+              <span style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--accent-secondary)' }}>REPAIRS</span>
+              <h4 style={{ fontSize: '0.95rem', fontWeight: 800, margin: '0.35rem 0', color: 'var(--text-primary)' }}>Get Vendor</h4>
+              <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>AC, Electrician, Plumber</p>
             </div>
-            <ChevronRight size={18} color="#34d399" />
+            <ChevronRight size={18} color="var(--accent-secondary)" />
           </div>
 
           {/* Vertical Feature Card 3: REAL ESTATE */}
-          <div style={{ backgroundColor: '#1e293b', borderRadius: '16px', padding: '1.15rem', border: '1px solid rgba(255,255,255,0.08)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+          <div style={{ backgroundColor: 'var(--bg-secondary)', borderRadius: '16px', padding: '1.15rem', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', boxShadow: '0 4px 12px rgba(0,0,0,0.04)' }}>
             <div>
-              <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#c084fc' }}>REAL ESTATE</span>
-              <h4 style={{ fontSize: '0.95rem', fontWeight: 800, margin: '0.35rem 0' }}>Finest Agents</h4>
-              <p style={{ fontSize: '0.78rem', color: '#94a3b8' }}>Rent & Buy Properties</p>
+              <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#8b5cf6' }}>REAL ESTATE</span>
+              <h4 style={{ fontSize: '0.95rem', fontWeight: 800, margin: '0.35rem 0', color: 'var(--text-primary)' }}>Finest Agents</h4>
+              <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>Rent & Buy Properties</p>
             </div>
-            <ChevronRight size={18} color="#c084fc" />
+            <ChevronRight size={18} color="#8b5cf6" />
           </div>
 
           {/* Vertical Feature Card 4: DOCTORS */}
-          <div style={{ backgroundColor: '#1e293b', borderRadius: '16px', padding: '1.15rem', border: '1px solid rgba(255,255,255,0.08)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+          <div style={{ backgroundColor: 'var(--bg-secondary)', borderRadius: '16px', padding: '1.15rem', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', boxShadow: '0 4px 12px rgba(0,0,0,0.04)' }}>
             <div>
-              <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#f87171' }}>DOCTORS</span>
-              <h4 style={{ fontSize: '0.95rem', fontWeight: 800, margin: '0.35rem 0' }}>Book Consultation</h4>
-              <p style={{ fontSize: '0.78rem', color: '#94a3b8' }}>Clinics & Dentists</p>
+              <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#ef4444' }}>DOCTORS</span>
+              <h4 style={{ fontSize: '0.95rem', fontWeight: 800, margin: '0.35rem 0', color: 'var(--text-primary)' }}>Book Consultation</h4>
+              <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>Clinics & Dentists</p>
             </div>
-            <ChevronRight size={18} color="#f87171" />
+            <ChevronRight size={18} color="#ef4444" />
           </div>
+
         </div>
       </section>
 

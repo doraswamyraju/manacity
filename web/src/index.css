@@ -2,31 +2,31 @@
   /* Font Family */
   --font-sans: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
 
-  /* Default Theme: CLEAN LIGHT MODE (Official ManaCity Logo Palette) */
-  --bg-primary: #f8fafc;
+  /* Default Theme: DECENT & READABLE LIGHT MODE */
+  --bg-primary: #f1f5f9;
   --bg-secondary: #ffffff;
-  --bg-tertiary: #f1f5f9;
+  --bg-tertiary: #e2e8f0;
   
-  --accent-primary: #0284c7; /* Vibrant Mana City Blue */
+  --accent-primary: #0284c7; /* Mana City Sky Blue */
   --accent-primary-hover: #0369a1;
-  --accent-secondary: #10b981; /* Mana City Emerald Green */
+  --accent-secondary: #059669; /* Emerald Green */
   --accent-success: #16a34a;
   --accent-warning: #d97706;
   --accent-error: #dc2626;
 
   /* Text Colors */
   --text-primary: #0f172a;
-  --text-secondary: #475569;
+  --text-secondary: #334155;
   --text-muted: #64748b;
   
   /* Borders and Dividers */
-  --border-color: #e2e8f0;
-  --border-hover: #cbd5e1;
+  --border-color: #cbd5e1;
+  --border-hover: #94a3b8;
   
   /* Glassmorphism Details (Light Mode) */
-  --glass-bg: rgba(255, 255, 255, 0.95);
-  --glass-border: rgba(226, 232, 240, 0.8);
-  --glass-shadow: 0 8px 30px rgba(0, 0, 0, 0.04);
+  --glass-bg: #ffffff;
+  --glass-border: #cbd5e1;
+  --glass-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
 
   /* Border Radii */
   --radius-sm: 8px;
@@ -39,7 +39,7 @@
   --transition-normal: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* OPTIONAL DARK MODE OVERRIDE */
+/* DARK MODE OVERRIDE */
 [data-theme="dark"], body.dark-mode {
   --bg-primary: #090d16;
   --bg-secondary: #0f172a;
@@ -56,6 +56,7 @@
   --glass-border: rgba(255, 255, 255, 0.08);
   --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
 }
+
 
 
 
