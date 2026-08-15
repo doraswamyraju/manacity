@@ -281,6 +281,98 @@ exports.googleAuth = async (req, res) => {
   }
 };
 
+// 4b. Apple OAuth Authentication Endpoint
+exports.appleAuth = async (req, res) => {
+  try {
+    const { identityToken, appleId, email, name, role: userRole } = req.body;
+
+    if (!identityToken && !appleId) {
+      return res.status(400).json({ error: 'Apple identity token or user identifier is required.' });
+    }
+
+    let payload = null;
+    if (identityToken) {
+      try {
+        payload = jwt.decode(identityToken);
+      } catch (e) {
+        console.warn('Apple JWT decode warning:', e.message);
+      }
+    }
+
+    const userEmail = (email || (payload && payload.email) || `${appleId || 'apple_user'}@appleid.anon`).toLowerCase().trim();
+    const userAppleId = String(appleId || (payload && payload.sub) || `apple_${userEmail}`);
+    const userName = name || (payload && payload.email ? payload.email.split('@')[0] : 'Apple User');
+
+    let user = await prisma.user.findFirst({
+      where: { appleId: userAppleId }
+    });
+
+    if (!user) {
+      user = await prisma.user.findUnique({
+        where: { email: userEmail }
+      });
+
+      if (user) {
+        user = await prisma.user.update({
+          where: { id: user.id },
+          data: {
+            appleId: userAppleId,
+            provider: 'APPLE'
+          }
+        });
+      } else {
+        const requestedRole = userRole === 'CUSTOMER' ? 'CUSTOMER' : 'BUSINESS_OWNER';
+        user = await prisma.user.create({
+          data: {
+            email: userEmail,
+            name: userName,
+            provider: 'APPLE',
+            appleId: userAppleId,
+            role: requestedRole
+          }
+        });
+
+        if (requestedRole === 'BUSINESS_OWNER') {
+          const businessGroup = await prisma.businessGroup.create({
+            data: {
+              name: `${user.name}'s Businesses`,
+              ownerId: user.id
+            }
+          });
+
+          await prisma.subscription.create({
+            data: {
+              businessGroupId: businessGroup.id,
+              tier: 'FREE',
+              status: 'ACTIVE',
+              locationLimit: 1,
+              websiteLimit: 1
+            }
+          });
+        }
+      }
+    }
+
+    const token = generateToken(user.id);
+
+    return res.status(200).json({
+      status: 'success',
+      token,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        provider: user.provider
+      }
+    });
+  } catch (error) {
+    console.error('Apple auth error:', error);
+    return res.status(500).json({ error: 'Apple login failed due to a server error.' });
+  }
+};
+
+
 
 
 // 5. Delete User Account and all cascaded data

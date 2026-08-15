@@ -81,4 +81,13 @@ dependencies {
   implementation(libs.androidx.navigation3.ui)
   implementation(libs.androidx.navigation3.runtime)
   implementation(libs.androidx.lifecycle.viewmodel.navigation3)
+
+  // Material Icons Extended & Serialization
+  implementation(libs.androidx.compose.material.icons.extended)
+  implementation(libs.kotlinx.serialization.json)
+
+  // Network & Images
+  implementation(libs.okhttp.logging.interceptor)
+  implementation(libs.retrofit.core)
+  implementation(libs.coil.compose)
 }

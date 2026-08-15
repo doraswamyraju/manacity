@@ -7,7 +7,9 @@ const auth = require('../middleware/auth');
 router.post('/register', authController.register);
 router.post('/login', authController.login);
 router.post('/google', authController.googleAuth);
+router.post('/apple', authController.appleAuth);
 router.get('/me', auth, authController.getMe);
+
 router.post('/update-phone', auth, authController.updatePhone);
 router.post('/delete-account', authController.deleteAccount);
 

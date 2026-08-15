@@ -1,0 +1,215 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		111111112222222233333331 /* AdminDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 222222223333333344444441 /* AdminDashboardView.swift */; };
+		111111112222222233333332 /* AuthViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 222222223333333344444442 /* AuthViews.swift */; };
+		111111112222222233333333 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 222222223333333344444443 /* ContentView.swift */; };
+		111111112222222233333334 /* CustomerAndSuperAdminViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 222222223333333344444444 /* CustomerAndSuperAdminViews.swift */; };
+		111111112222222233333335 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 222222223333333344444445 /* Models.swift */; };
+		111111112222222233333336 /* PublicHomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 222222223333333344444446 /* PublicHomeView.swift */; };
+		111111112222222233333337 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 222222223333333344444447 /* Theme.swift */; };
+		111111112222222233333338 /* AppleAuthHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 222222223333333344444448 /* AppleAuthHelper.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		000000000000000000000001 /* ManaCity.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ManaCity.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		222222223333333344444441 /* AdminDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdminDashboardView.swift; sourceTree = "<group>"; };
+		222222223333333344444442 /* AuthViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthViews.swift; sourceTree = "<group>"; };
+		222222223333333344444443 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		222222223333333344444444 /* CustomerAndSuperAdminViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomerAndSuperAdminViews.swift; sourceTree = "<group>"; };
+		222222223333333344444445 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+		222222223333333344444446 /* PublicHomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublicHomeView.swift; sourceTree = "<group>"; };
+		222222223333333344444447 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
+		222222223333333344444448 /* AppleAuthHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleAuthHelper.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		333333334444444455555551 = {
+			isa = PBXGroup;
+			children = (
+				333333334444444455555552 /* ManaCity */,
+				333333334444444455555553 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		333333334444444455555552 /* ManaCity */ = {
+			isa = PBXGroup;
+			children = (
+				222222223333333344444441 /* AdminDashboardView.swift */,
+				222222223333333344444442 /* AuthViews.swift */,
+				222222223333333344444443 /* ContentView.swift */,
+				222222223333333344444444 /* CustomerAndSuperAdminViews.swift */,
+				222222223333333344444445 /* Models.swift */,
+				222222223333333344444446 /* PublicHomeView.swift */,
+				222222223333333344444447 /* Theme.swift */,
+				222222223333333344444448 /* AppleAuthHelper.swift */,
+			);
+			path = ManaCity;
+			sourceTree = "<group>";
+		};
+		333333334444444455555553 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				000000000000000000000001 /* ManaCity.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		444444445555555566666661 /* ManaCity */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 555555556666666677777771 /* Build configuration list for PBXNativeTarget "ManaCity" */;
+			buildPhases = (
+				666666667777777788888881 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = ManaCity;
+			productName = ManaCity;
+			productReference = 000000000000000000000001 /* ManaCity.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		555555556666666677777772 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastUpgradeCheck = 1500;
+				TargetAttributes = {
+					444444445555555566666661 = {
+						CreatedOnToolsVersion = 15.0;
+					};
+				};
+			};
+			buildConfigurationList = 555555556666666677777773 /* Build configuration list for PBXProject "ManaCity" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 333333334444444455555551;
+			productRefGroup = 333333334444444455555553 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				444444445555555566666661 /* ManaCity */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		666666667777777788888881 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				111111112222222233333331 /* AdminDashboardView.swift in Sources */,
+				111111112222222233333332 /* AuthViews.swift in Sources */,
+				111111112222222233333333 /* ContentView.swift in Sources */,
+				111111112222222233333334 /* CustomerAndSuperAdminViews.swift in Sources */,
+				111111112222222233333335 /* Models.swift in Sources */,
+				111111112222222233333336 /* PublicHomeView.swift in Sources */,
+				111111112222222233333337 /* Theme.swift in Sources */,
+				111111112222222233333338 /* AppleAuthHelper.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		777777778888888899999991 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = UDYR7AUVZ7;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.manacity.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		777777778888888899999992 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = UDYR7AUVZ7;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.manacity.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		777777778888888899999993 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				SDKROOT = iphoneos;
+			};
+			name = Debug;
+		};
+		777777778888888899999994 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				SDKROOT = iphoneos;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		555555556666666677777771 /* Build configuration list for PBXNativeTarget "ManaCity" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				777777778888888899999991 /* Debug */,
+				777777778888888899999992 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		555555556666666677777773 /* Build configuration list for PBXProject "ManaCity" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				777777778888888899999993 /* Debug */,
+				777777778888888899999994 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 555555556666666677777772 /* Project object */;
+}
