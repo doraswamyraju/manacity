@@ -363,7 +363,9 @@ exports.googleAuthWeb = (req, res) => {
             .then(function(res) { return res.json(); })
             .then(function(data) {
               if (data.token) {
-                window.location.href = '/api/auth/google-web?token=' + encodeURIComponent(data.token) + '&email=' + encodeURIComponent(data.user ? data.user.email : '');
+                var role = data.user && data.user.role ? data.user.role : 'BUSINESS_OWNER';
+                var email = data.user && data.user.email ? data.user.email : '';
+                window.location.href = '/api/auth/google-web?token=' + encodeURIComponent(data.token) + '&role=' + encodeURIComponent(role) + '&email=' + encodeURIComponent(email);
               } else {
                 alert(data.error || 'Google login failed.');
               }

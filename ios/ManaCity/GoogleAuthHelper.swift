@@ -1,10 +1,9 @@
 import SwiftUI
-import AuthenticationServices
 import WebKit
 
 struct GoogleSignInWebSheet: UIViewControllerRepresentable {
     let url: URL
-    var onCompletion: (String?, String?) -> Void // (idToken, email)
+    var onCompletion: (String?, String?, String?) -> Void // (token, role, email)
 
     func makeUIViewController(context: Context) -> WebViewController {
         let vc = WebViewController()
@@ -15,35 +14,17 @@ struct GoogleSignInWebSheet: UIViewControllerRepresentable {
 
     func updateUIViewController(_ uiViewController: WebViewController, context: Context) {}
 
-    class WebViewController: UIViewController, WKNavigationDelegate, ASWebAuthenticationPresentationContextProviding {
+    class WebViewController: UIViewController, WKNavigationDelegate {
         var url: URL?
         var webView: WKWebView!
-        var onCompletion: ((String?, String?) -> Void)?
-        var authSession: ASWebAuthenticationSession?
+        var onCompletion: ((String?, String?, String?) -> Void)?
 
         override func viewDidLoad() {
             super.viewDidLoad()
             view.backgroundColor = .systemBackground
 
-            if let targetUrl = url {
-                let callbackScheme = "https"
-                authSession = ASWebAuthenticationSession(url: targetUrl, callbackURLScheme: callbackScheme) { callbackURL, error in
-                    if let callbackURL = callbackURL {
-                        let urlString = callbackURL.absoluteString
-                        let token = self.extractQueryParam(from: urlString, param: "token") ?? self.extractQueryParam(from: urlString, param: "id_token")
-                        let email = self.extractQueryParam(from: urlString, param: "email")
-                        self.onCompletion?(token, email)
-                    } else {
-                        self.onCompletion?(nil, nil)
-                    }
-                    self.dismiss(animated: true)
-                }
-                authSession?.presentationContextProvider = self
-                authSession?.prefersEphemeralWebBrowserSession = false
-                authSession?.start()
-            }
-
-            webView = WKWebView(frame: view.bounds)
+            let config = WKWebViewConfiguration()
+            webView = WKWebView(frame: view.bounds, configuration: config)
             webView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
             webView.navigationDelegate = self
             view.addSubview(webView)
@@ -53,16 +34,14 @@ struct GoogleSignInWebSheet: UIViewControllerRepresentable {
             }
         }
 
-        func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor {
-            return view.window ?? UIWindow()
-        }
-
         func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
-            if let url = navigationAction.request.url?.absoluteString {
-                if url.contains("token=") || url.contains("id_token=") || url.contains("code=") {
-                    let token = extractQueryParam(from: url, param: "token") ?? extractQueryParam(from: url, param: "id_token") ?? extractQueryParam(from: url, param: "code")
-                    let email = extractQueryParam(from: url, param: "email")
-                    onCompletion?(token, email)
+            if let urlString = navigationAction.request.url?.absoluteString {
+                if urlString.contains("token=") {
+                    let token = extractParam(from: urlString, param: "token")
+                    let role = extractParam(from: urlString, param: "role")
+                    let email = extractParam(from: urlString, param: "email")
+                    
+                    onCompletion?(token, role, email)
                     dismiss(animated: true)
                     decisionHandler(.cancel)
                     return
@@ -71,7 +50,7 @@ struct GoogleSignInWebSheet: UIViewControllerRepresentable {
             decisionHandler(.allow)
         }
 
-        private func extractQueryParam(from urlString: String, param: String) -> String? {
+        private func extractParam(from urlString: String, param: String) -> String? {
             guard let components = URLComponents(string: urlString) else { return nil }
             if let val = components.queryItems?.first(where: { $0.name == param })?.value {
                 return val
@@ -89,4 +68,3 @@ struct GoogleSignInWebSheet: UIViewControllerRepresentable {
         }
     }
 }
-

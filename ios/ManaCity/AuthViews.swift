@@ -73,9 +73,11 @@ struct LoginView: View {
                             .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.manaBorder, lineWidth: 1))
                         }
                         .sheet(isPresented: $showGoogleSheet) {
-                            GoogleSignInWebSheet(url: URL(string: "https://manacity.in/api/auth/google-web")!) { token, email in
-                                if let token = token {
-                                    performSocialLogin(token: token, provider: "google", email: email, name: nil)
+                            GoogleSignInWebSheet(url: URL(string: "https://manacity.in/api/auth/google-web")!) { token, role, email in
+                                if let token = token, !token.isEmpty {
+                                    UserDefaults.standard.set(token, forKey: "userToken")
+                                    let finalRole = role ?? "BUSINESS_OWNER"
+                                    onLoginSuccess(finalRole)
                                 } else {
                                     errorMessage = "Google sign-in was cancelled or failed."
                                 }
@@ -408,9 +410,11 @@ struct RegisterView: View {
                             .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.manaBorder, lineWidth: 1))
                         }
                         .sheet(isPresented: $showGoogleSheet) {
-                            GoogleSignInWebSheet(url: URL(string: "https://manacity.in/api/auth/google-web")!) { token, email in
-                                if let token = token {
-                                    performSocialRegistration(token: token, provider: "google", email: email, name: nil)
+                            GoogleSignInWebSheet(url: URL(string: "https://manacity.in/api/auth/google-web")!) { token, role, email in
+                                if let token = token, !token.isEmpty {
+                                    UserDefaults.standard.set(token, forKey: "userToken")
+                                    let finalRole = role ?? "BUSINESS_OWNER"
+                                    onRegisterSuccess(finalRole)
                                 } else {
                                     errorMessage = "Google registration was cancelled or failed."
                                 }
