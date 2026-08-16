@@ -291,6 +291,19 @@ exports.googleAuthGet = (req, res) => {
   });
 };
 
+exports.googleAuthCallback = (req, res) => {
+  res.send(`
+    <!DOCTYPE html>
+    <html>
+      <head><title>Authenticating...</title></head>
+      <body style="font-family: sans-serif; text-align: center; padding-top: 50px; background-color: #090d16; color: white;">
+        <h2>Google Authentication Complete</h2>
+        <p>Closing window and returning to app...</p>
+      </body>
+    </html>
+  `);
+};
+
 // 4b. Apple OAuth Authentication Endpoint
 exports.appleAuth = async (req, res) => {
   try {
