@@ -15,6 +15,7 @@ struct ReviewManagementView: View {
     @State private var googleReviewUrl: String = "https://g.page/r/manacity-tirupati/review"
     @State private var ratingThreshold: Int = 4
     @State private var scanners: [ReviewScannerModel] = []
+    @State private var selectedScannerDetail: ReviewScannerModel? = nil
     @State private var showCreateModal: Bool = false
     @State private var showSaveSuccess: Bool = false
 
@@ -110,8 +111,10 @@ struct ReviewManagementView: View {
                 } else {
                     VStack(spacing: 12) {
                         ForEach(scanners) { scanner in
-                            ReviewScannerCardView(scanner: scanner, onDelete: {
-                                scanners.removeAll(where: { $0.id == scanner.id })
+                            ReviewScannerCardView(scanner: scanner, onTap: {
+                                selectedScannerDetail = scanner
+                            }, onDelete: {
+                                deleteScanner(scannerId: scanner.id)
                             })
                         }
                     }
@@ -131,6 +134,27 @@ struct ReviewManagementView: View {
                 onClose: { showCreateModal = false }
             )
         }
+        .sheet(item: $selectedScannerDetail) { scanner in
+            ScannerDetailSheetView(
+                scanner: scanner,
+                googleReviewUrl: googleReviewUrl,
+                onClose: { selectedScannerDetail = nil },
+                onDelete: {
+                    deleteScanner(scannerId: scanner.id)
+                    selectedScannerDetail = nil
+                }
+            )
+        }
+    }
+
+    private func deleteScanner(scannerId: String) {
+        scanners.removeAll(where: { $0.id == scannerId })
+        guard let token = UserDefaults.standard.string(forKey: "userToken") else { return }
+        guard let url = URL(string: "https://manacity.in/api/reviews/qrs/\(scannerId)") else { return }
+        var req = URLRequest(url: url)
+        req.httpMethod = "DELETE"
+        req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        URLSession.shared.dataTask(with: req).resume()
     }
 
     private func fetchScanners() {
@@ -235,6 +259,7 @@ struct ReviewManagementView: View {
 // MARK: - Review Scanner Card View
 struct ReviewScannerCardView: View {
     let scanner: ReviewScannerModel
+    let onTap: () -> Void
     let onDelete: () -> Void
 
     var convRate: String {
@@ -317,18 +342,16 @@ struct ReviewScannerCardView: View {
 
                 Spacer()
 
-                Button(action: {
-                    UIPasteboard.general.string = scanner.qrUrl ?? "https://manacity.in/r/\(scanner.uniqueQrId)"
-                }) {
+                Button(action: onTap) {
                     HStack(spacing: 4) {
-                        Image(systemName: "doc.on.doc")
-                        Text("Copy Link")
+                        Image(systemName: "qrcode")
+                        Text("View QR Details")
                     }
                     .font(.system(size: 10, weight: .bold))
-                    .foregroundColor(.manaViolet)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(Color.manaViolet.opacity(0.12))
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 5)
+                    .background(Color.manaViolet)
                     .cornerRadius(6)
                 }
 
@@ -346,6 +369,237 @@ struct ReviewScannerCardView: View {
         .background(Color.manaSurfaceDark)
         .cornerRadius(14)
         .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.manaBorder, lineWidth: 1))
+        .onTapGesture {
+            onTap()
+        }
+    }
+}
+
+// MARK: - Scanner Detail Sheet View
+struct ScannerDetailSheetView: View {
+    let scanner: ReviewScannerModel
+    let googleReviewUrl: String
+    let onClose: () -> Void
+    let onDelete: () -> Void
+
+    @State private var copied: Bool = false
+    @State private var qrImage: UIImage? = nil
+
+    var convRate: String {
+        let scans = scanner.scanCounter
+        let opens = scanner.redirectCounter
+        if scans > 0 {
+            return String(format: "%.1f", (Double(opens) / Double(scans)) * 100.0)
+        }
+        return "0.0"
+    }
+
+    var scannerUrl: String {
+        return scanner.qrUrl ?? "https://manacity.in/r/\(scanner.uniqueQrId)"
+    }
+
+    var body: some View {
+        ScrollView(showsIndicators: false) {
+            VStack(spacing: 18) {
+                Capsule().fill(Color.gray.opacity(0.4)).frame(width: 40, height: 5).padding(.top, 10)
+
+                // Header
+                HStack {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(scanner.name)
+                            .font(.system(size: 18, weight: .bold))
+                            .foregroundColor(.manaTextPrimary)
+                        Text("\(scanner.type) SCANNER • ID: \(scanner.uniqueQrId)")
+                            .font(.system(size: 11, weight: .bold))
+                            .foregroundColor(.manaViolet)
+                    }
+                    Spacer()
+                    Button(action: onClose) {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.system(size: 22))
+                            .foregroundColor(.manaTextSecondary)
+                    }
+                }
+                .padding(.horizontal, 16)
+
+                // High-Res Printable QR Table Stand Preview Card
+                VStack(spacing: 14) {
+                    ManaLogoView(type: .horizontal, height: 28)
+
+                    Text("Scan to Review Us on Google")
+                        .font(.system(size: 16, weight: .black))
+                        .foregroundColor(.black)
+
+                    // Generated QR Code Frame
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 16)
+                            .fill(Color.white)
+                            .frame(width: 170, height: 170)
+                            .shadow(color: Color.black.opacity(0.15), radius: 8, y: 4)
+
+                        if let qrImg = qrImage {
+                            Image(uiImage: qrImg)
+                                .resizable()
+                                .interpolation(.none)
+                                .scaledToFit()
+                                .frame(width: 150, height: 150)
+                        } else {
+                            Image(systemName: "qrcode")
+                                .font(.system(size: 120))
+                                .foregroundColor(.black)
+                        }
+                    }
+
+                    VStack(spacing: 2) {
+                        Text("Direct Scan URL")
+                            .font(.system(size: 10, weight: .bold))
+                            .foregroundColor(.gray)
+                        Text(scannerUrl)
+                            .font(.system(size: 11, weight: .bold))
+                            .foregroundColor(.black)
+                    }
+
+                    Text("Powered by ManaCity.in")
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundColor(.gray)
+                }
+                .padding(20)
+                .frame(maxWidth: .infinity)
+                .background(Color.white)
+                .cornerRadius(20)
+                .shadow(color: Color.black.opacity(0.2), radius: 10, y: 5)
+                .padding(.horizontal, 16)
+
+                // Analytics Metrics Cards
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("Live Scanner Performance")
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundColor(.manaTextPrimary)
+
+                    HStack(spacing: 10) {
+                        VStack(spacing: 4) {
+                            Text("Total Scanned")
+                                .font(.system(size: 10))
+                                .foregroundColor(.manaTextSecondary)
+                            Text("\(scanner.scanCounter)")
+                                .font(.system(size: 20, weight: .black))
+                                .foregroundColor(.blue)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(12)
+                        .background(Color.manaSurfaceDark)
+                        .cornerRadius(12)
+
+                        VStack(spacing: 4) {
+                            Text("Review Opens")
+                                .font(.system(size: 10))
+                                .foregroundColor(.manaTextSecondary)
+                            Text("\(scanner.redirectCounter)")
+                                .font(.system(size: 20, weight: .black))
+                                .foregroundColor(.green)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(12)
+                        .background(Color.manaSurfaceDark)
+                        .cornerRadius(12)
+
+                        VStack(spacing: 4) {
+                            Text("Conv. Rate")
+                                .font(.system(size: 10))
+                                .foregroundColor(.manaTextSecondary)
+                            Text("\(convRate)%")
+                                .font(.system(size: 20, weight: .black))
+                                .foregroundColor(.orange)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(12)
+                        .background(Color.manaSurfaceDark)
+                        .cornerRadius(12)
+                    }
+
+                    Text("Last Scanned: \(scanner.lastScan ?? "Never")")
+                        .font(.system(size: 11))
+                        .foregroundColor(.manaTextSecondary)
+                        .padding(.top, 4)
+                }
+                .padding(.horizontal, 16)
+
+                // Action Buttons
+                VStack(spacing: 10) {
+                    // Copy Link Button
+                    Button(action: {
+                        UIPasteboard.general.string = scannerUrl
+                        copied = true
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 2) { copied = false }
+                    }) {
+                        HStack {
+                            Image(systemName: copied ? "checkmark.circle.fill" : "doc.on.doc.fill")
+                            Text(copied ? "Scanner Link Copied!" : "Copy Scanner URL Link")
+                        }
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                        .background(copied ? Color.green : Color.manaViolet)
+                        .cornerRadius(12)
+                    }
+
+                    // Test Live Redirect in Safari
+                    Button(action: {
+                        if let url = URL(string: scannerUrl) {
+                            UIApplication.shared.open(url)
+                        }
+                    }) {
+                        HStack {
+                            Image(systemName: "safari.fill")
+                            Text("Test Live Scanner Redirect in Safari")
+                        }
+                        .font(.system(size: 13, weight: .bold))
+                        .foregroundColor(.manaTeal)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 11)
+                        .background(Color.manaTeal.opacity(0.12))
+                        .cornerRadius(12)
+                        .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.manaTeal.opacity(0.4), lineWidth: 1))
+                    }
+
+                    // Delete Scanner Button
+                    Button(action: onDelete) {
+                        HStack {
+                            Image(systemName: "trash.fill")
+                            Text("Delete QR Scanner")
+                        }
+                        .font(.system(size: 13, weight: .bold))
+                        .foregroundColor(.red)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 10)
+                        .background(Color.red.opacity(0.1))
+                        .cornerRadius(12)
+                    }
+                }
+                .padding(.horizontal, 16)
+                .padding(.bottom, 24)
+            }
+        }
+        .background(Color.manaBackground.ignoresSafeArea())
+        .onAppear {
+            generateQR()
+        }
+    }
+
+    private func generateQR() {
+        if let filter = CIFilter(name: "CIQRCodeGenerator") {
+            filter.setValue(Data(scannerUrl.utf8), forKey: "inputMessage")
+            filter.setValue("Q", forKey: "inputCorrectionLevel")
+            if let outputImage = filter.outputImage {
+                let transform = CGAffineTransform(scaleX: 10, y: 10)
+                let scaledImage = outputImage.transformed(by: transform)
+                let context = CIContext()
+                if let cgImage = context.createCGImage(scaledImage, from: scaledImage.extent) {
+                    qrImage = UIImage(cgImage: cgImage)
+                }
+            }
+        }
     }
 }
 
