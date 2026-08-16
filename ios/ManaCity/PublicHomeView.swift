@@ -41,10 +41,7 @@ struct PublicHomeView: View {
                 // MARK: - Top Navigation Bar
                 HStack(spacing: 12) {
                     // ManaCity Horizontal Logo
-                    Image("LogoHorizontal")
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(height: 34)
+                    ManaLogoView(type: .horizontal, height: 34)
 
                     Spacer()
 

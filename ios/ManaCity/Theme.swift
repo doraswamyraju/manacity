@@ -13,8 +13,6 @@ extension Color {
     static let manaBorder = Color(red: 226/255, green: 232/255, blue: 240/255)
 }
 
-
-
 struct ManaGlassCardModifier: ViewModifier {
     func body(content: Content) -> some View {
         content
@@ -78,5 +76,36 @@ struct StatusBadge: View {
             .padding(.vertical, 4)
             .background(colorTuple.0)
             .cornerRadius(8)
+    }
+}
+
+struct ManaLogoView: View {
+    enum LogoType {
+        case horizontal
+        case square
+    }
+
+    let type: LogoType
+    var height: CGFloat = 32
+
+    var body: some View {
+        Group {
+            if type == .horizontal {
+                HStack(spacing: 6) {
+                    Image("LogoHorizontal")
+                        .resizable()
+                        .renderingMode(.original)
+                        .aspectRatio(contentMode: .fit)
+                        .frame(height: height)
+                }
+            } else {
+                Image("LogoSquare")
+                    .resizable()
+                    .renderingMode(.original)
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: height, height: height)
+                    .cornerRadius(8)
+            }
+        }
     }
 }

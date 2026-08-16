@@ -33,10 +33,7 @@ struct LoginView: View {
 
                     Spacer()
 
-                    Image("LogoHorizontal")
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(height: 28)
+                    ManaLogoView(type: .horizontal, height: 28)
                 }
                 .padding(.horizontal, 16)
                 .padding(.top, 8)
@@ -46,11 +43,7 @@ struct LoginView: View {
                     VStack(spacing: 20) {
                         // Header
                         VStack(spacing: 8) {
-                            Image("LogoSquare")
-                                .resizable()
-                                .aspectRatio(contentMode: .fit)
-                                .frame(width: 90, height: 90)
-                                .cornerRadius(16)
+                            ManaLogoView(type: .square, height: 80)
 
                             Text("Welcome Back")
                                 .font(.system(size: 24, weight: .bold))
@@ -295,10 +288,7 @@ struct RegisterView: View {
 
                     Spacer()
 
-                    Image("LogoHorizontal")
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(height: 28)
+                    ManaLogoView(type: .horizontal, height: 28)
                 }
                 .padding(.horizontal, 16)
                 .padding(.top, 8)
@@ -307,11 +297,7 @@ struct RegisterView: View {
                 ScrollView {
                     VStack(spacing: 20) {
                         VStack(spacing: 8) {
-                            Image("LogoSquare")
-                                .resizable()
-                                .aspectRatio(contentMode: .fit)
-                                .frame(width: 80, height: 80)
-                                .cornerRadius(16)
+                            ManaLogoView(type: .square, height: 80)
 
                             Text("Create Your Account")
                                 .font(.system(size: 22, weight: .bold))

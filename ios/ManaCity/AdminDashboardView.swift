@@ -33,10 +33,7 @@ struct AdminDashboardView: View {
             VStack(spacing: 0) {
                 // MARK: - Top Navigation Bar with Logo
                 HStack(spacing: 12) {
-                    Image("LogoHorizontal")
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(height: 32)
+                    ManaLogoView(type: .horizontal, height: 32)
 
                     Spacer()
 

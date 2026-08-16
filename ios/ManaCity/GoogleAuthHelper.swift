@@ -19,7 +19,7 @@ class GoogleSignInManager: NSObject, ASWebAuthenticationPresentationContextProvi
     }
     
     func signIn(completion: @escaping (Result<String, Error>) -> Void) {
-        let authURLString = "https://accounts.google.com/o/oauth2/v2/auth?client_id=\(clientID)&redirect_uri=\(redirectURI)&response_type=code&scope=openid%20email%20profile&prompt=select_account"
+        let authURLString = "https://accounts.google.com/o/oauth2/v2/auth?client_id=\(clientID)&redirect_uri=\(redirectURI)&response_type=code&scope=openid%20email%20profile"
         
         guard let authURL = URL(string: authURLString) else {
             completion(.failure(NSError(domain: "GoogleAuth", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid Auth URL"])))
