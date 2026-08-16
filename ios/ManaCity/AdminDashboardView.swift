@@ -30,6 +30,7 @@ struct AdminDashboardView: View {
     @State private var showPrivacyModal: Bool = false
     @State private var showTermsModal: Bool = false
     @State private var showDeleteAccountModal: Bool = false
+    @State private var showOptionsDrawerSheet: Bool = false
 
     let tabs = ["Overview", "Leads (LMS)", "Products & Services", "Marketing", "Reviews & QR", "Website Builder", "Locations", "Referrals"]
 
@@ -149,74 +150,85 @@ struct AdminDashboardView: View {
                 }
             }
 
-            // MARK: - Bottom Navigation Bar
-            HStack(spacing: 0) {
-                // Tab 1: Overview
-                Button(action: { selectedTab = 0 }) {
-                    VStack(spacing: 4) {
-                        Image(systemName: "chart.pie.fill")
-                            .font(.system(size: 18))
-                        Text("Overview")
-                            .font(.system(size: 10, weight: .bold))
+            // MARK: - Bottom Navigation Bar with Swipe Up Gesture & Handle
+            VStack(spacing: 4) {
+                // Swipe Up Pull Handle Indicator
+                Button(action: { showOptionsDrawerSheet = true }) {
+                    HStack(spacing: 4) {
+                        Capsule()
+                            .fill(Color.manaViolet.opacity(0.8))
+                            .frame(width: 32, height: 4)
                     }
-                    .foregroundColor(selectedTab == 0 ? .manaViolet : .manaTextSecondary)
-                    .frame(maxWidth: .infinity)
+                    .padding(.top, 6)
                 }
 
-                // Tab 2: LMS Leads
-                Button(action: { selectedTab = 1 }) {
-                    VStack(spacing: 4) {
-                        Image(systemName: "person.2.fill")
-                            .font(.system(size: 18))
-                        Text("Leads")
-                            .font(.system(size: 10, weight: .semibold))
+                HStack(spacing: 0) {
+                    // Tab 1: Overview (Index 0)
+                    Button(action: { selectedTab = 0 }) {
+                        VStack(spacing: 4) {
+                            Image(systemName: "chart.pie.fill")
+                                .font(.system(size: 18))
+                            Text("Overview")
+                                .font(.system(size: 10, weight: .bold))
+                        }
+                        .foregroundColor(selectedTab == 0 ? .manaViolet : .manaTextSecondary)
+                        .frame(maxWidth: .infinity)
                     }
-                    .foregroundColor(selectedTab == 1 ? .manaViolet : .manaTextSecondary)
-                    .frame(maxWidth: .infinity)
-                }
 
-                // Tab 3: Center Action (Marketing / AI)
-                Button(action: { selectedTab = 2 }) {
-                    ZStack {
-                        Circle()
-                            .fill(LinearGradient(colors: [Color.manaViolet, Color.manaTeal], startPoint: .topLeading, endPoint: .bottomTrailing))
-                            .frame(width: 50, height: 50)
-                            .shadow(color: Color.manaViolet.opacity(0.35), radius: 6, y: 3)
-                        Image(systemName: "bolt.fill")
-                            .font(.system(size: 20, weight: .bold))
-                            .foregroundColor(.white)
+                    // Tab 2: LMS Leads (Index 1)
+                    Button(action: { selectedTab = 1 }) {
+                        VStack(spacing: 4) {
+                            Image(systemName: "person.2.fill")
+                                .font(.system(size: 18))
+                            Text("Leads")
+                                .font(.system(size: 10, weight: .semibold))
+                        }
+                        .foregroundColor(selectedTab == 1 ? .manaViolet : .manaTextSecondary)
+                        .frame(maxWidth: .infinity)
                     }
-                }
-                .offset(y: -12)
-                .frame(maxWidth: .infinity)
 
-                // Tab 4: Reviews & QR
-                Button(action: { selectedTab = 3 }) {
-                    VStack(spacing: 4) {
-                        Image(systemName: "qrcode.viewfinder")
-                            .font(.system(size: 18))
-                        Text("Reviews")
-                            .font(.system(size: 10, weight: .semibold))
+                    // Tab 3: Center Action (Marketing Hub - Index 3)
+                    Button(action: { selectedTab = 3 }) {
+                        ZStack {
+                            Circle()
+                                .fill(LinearGradient(colors: [Color.manaViolet, Color.manaTeal], startPoint: .topLeading, endPoint: .bottomTrailing))
+                                .frame(width: 50, height: 50)
+                                .shadow(color: Color.manaViolet.opacity(0.35), radius: 6, y: 3)
+                            Image(systemName: "megaphone.fill")
+                                .font(.system(size: 18, weight: .bold))
+                                .foregroundColor(.white)
+                        }
                     }
-                    .foregroundColor(selectedTab == 3 ? .manaViolet : .manaTextSecondary)
+                    .offset(y: -10)
                     .frame(maxWidth: .infinity)
-                }
 
-                // Tab 5: Referrals
-                Button(action: { selectedTab = 4 }) {
-                    VStack(spacing: 4) {
-                        Image(systemName: "gift.fill")
-                            .font(.system(size: 18))
-                        Text("Referrals")
-                            .font(.system(size: 10, weight: .semibold))
+                    // Tab 4: Reviews & QR (Index 4)
+                    Button(action: { selectedTab = 4 }) {
+                        VStack(spacing: 4) {
+                            Image(systemName: "qrcode.viewfinder")
+                                .font(.system(size: 18))
+                            Text("Reviews")
+                                .font(.system(size: 10, weight: selectedTab == 4 ? .bold : .semibold))
+                        }
+                        .foregroundColor(selectedTab == 4 ? .manaViolet : .manaTextSecondary)
+                        .frame(maxWidth: .infinity)
                     }
-                    .foregroundColor(selectedTab == 4 ? .manaViolet : .manaTextSecondary)
-                    .frame(maxWidth: .infinity)
+
+                    // Tab 5: Referrals (Index 7)
+                    Button(action: { selectedTab = 7 }) {
+                        VStack(spacing: 4) {
+                            Image(systemName: "gift.fill")
+                                .font(.system(size: 18))
+                            Text("Referrals")
+                                .font(.system(size: 10, weight: selectedTab == 7 ? .bold : .semibold))
+                        }
+                        .foregroundColor(selectedTab == 7 ? .manaViolet : .manaTextSecondary)
+                        .frame(maxWidth: .infinity)
+                    }
                 }
+                .padding(.horizontal, 8)
+                .padding(.bottom, 16)
             }
-            .padding(.horizontal, 8)
-            .padding(.top, 10)
-            .padding(.bottom, 22)
             .background(Color.manaSurfaceDark.ignoresSafeArea(edges: .bottom))
             .overlay(
                 Rectangle()
@@ -224,9 +236,24 @@ struct AdminDashboardView: View {
                     .foregroundColor(Color.manaBorder),
                 alignment: .top
             )
+            .gesture(
+                DragGesture(minimumDistance: 15)
+                    .onEnded { value in
+                        if value.translation.height < -20 {
+                            showOptionsDrawerSheet = true
+                        }
+                    }
+            )
         }
         .onAppear {
             fetchAuthenticatedUser()
+        }
+        .sheet(isPresented: $showOptionsDrawerSheet) {
+            BusinessOwnerMenuSheet(
+                userProfile: userProfile,
+                selectedTab: $selectedTab,
+                onClose: { showOptionsDrawerSheet = false }
+            )
         }
         .sheet(isPresented: $showProfileSheet) {
             VStack(spacing: 18) {
@@ -734,5 +761,102 @@ struct ReferralSection: View {
             .cornerRadius(16)
             .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.manaBorder, lineWidth: 1))
         }
+    }
+}
+
+// MARK: - Business Owner Swipe-Up Navigation Drawer Sheet
+struct BusinessOwnerMenuSheet: View {
+    let userProfile: UserProfileData?
+    @Binding var selectedTab: Int
+    let onClose: () -> Void
+
+    let options: [(title: String, subtitle: String, icon: String, tabIdx: Int, color: Color, badge: String)] = [
+        ("Overview & Analytics", "Real-time metrics & performance", "chart.pie.fill", 0, .manaViolet, "DASHBOARD"),
+        ("Lead Management (LMS)", "Track customer quote inquiries", "person.2.fill", 1, .blue, "LMS PRO"),
+        ("Products & Services", "Master library offerings & catalog", "square.grid.3x3.fill", 2, .manaAmber, "CATALOG"),
+        ("Marketing Hub", "Meta Ads, Instagram & Google SEO", "megaphone.fill", 3, .pink, "META & GOOGLE"),
+        ("Reviews & QR Scanners", "Google Review QR stands & filter", "qrcode.viewfinder", 4, .orange, "QR STANDS"),
+        ("Website Builder", "Custom subdomain & section editor", "globe", 5, .manaTeal, "STOREFRONT"),
+        ("Store Locations", "Manage Tirupati business branches", "building.2.fill", 6, .purple, "BRANCHES"),
+        ("Referral Program", "Earn ₹500 per business referral", "gift.fill", 7, .pink, "EARN ₹500")
+    ]
+
+    var body: some View {
+        VStack(spacing: 16) {
+            Capsule().fill(Color.gray.opacity(0.4)).frame(width: 40, height: 5).padding(.top, 10)
+
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Business Management Options")
+                        .font(.system(size: 18, weight: .bold))
+                        .foregroundColor(.manaTextPrimary)
+                    Text(userProfile?.name ?? "Business Owner Console")
+                        .font(.system(size: 12))
+                        .foregroundColor(.manaTeal)
+                }
+                Spacer()
+                Button(action: onClose) {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.system(size: 22))
+                        .foregroundColor(.manaTextSecondary)
+                }
+            }
+            .padding(.horizontal, 16)
+
+            ScrollView(showsIndicators: false) {
+                VStack(spacing: 10) {
+                    ForEach(options, id: \.tabIdx) { opt in
+                        Button(action: {
+                            selectedTab = opt.tabIdx
+                            onClose()
+                        }) {
+                            HStack(spacing: 12) {
+                                ZStack {
+                                    Circle()
+                                        .fill(opt.color.opacity(0.15))
+                                        .frame(width: 40, height: 40)
+                                    Image(systemName: opt.icon)
+                                        .font(.system(size: 18))
+                                        .foregroundColor(opt.color)
+                                }
+
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(opt.title)
+                                        .font(.system(size: 14, weight: .bold))
+                                        .foregroundColor(.manaTextPrimary)
+                                    Text(opt.subtitle)
+                                        .font(.system(size: 11))
+                                        .foregroundColor(.manaTextSecondary)
+                                }
+
+                                Spacer()
+
+                                Text(opt.badge)
+                                    .font(.system(size: 9, weight: .black))
+                                    .foregroundColor(opt.color)
+                                    .padding(.horizontal, 8)
+                                    .padding(.vertical, 3)
+                                    .background(opt.color.opacity(0.12))
+                                    .cornerRadius(6)
+
+                                Image(systemName: "chevron.right")
+                                    .font(.system(size: 12, weight: .bold))
+                                    .foregroundColor(.manaTextSecondary)
+                            }
+                            .padding(12)
+                            .background(selectedTab == opt.tabIdx ? Color.manaViolet.opacity(0.15) : Color.manaSurfaceDark)
+                            .cornerRadius(14)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 14)
+                                    .stroke(selectedTab == opt.tabIdx ? Color.manaViolet : Color.manaBorder, lineWidth: 1)
+                            )
+                        }
+                    }
+                }
+                .padding(.horizontal, 16)
+                .padding(.bottom, 20)
+            }
+        }
+        .background(Color.manaBackground.ignoresSafeArea())
     }
 }

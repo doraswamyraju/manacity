@@ -134,47 +134,101 @@ struct ReviewManagementView: View {
     }
 
     private func fetchScanners() {
-        // Initialize default scanner if empty
-        if scanners.isEmpty {
-            scanners = [
-                ReviewScannerModel(
-                    id: "sc1",
-                    name: "Main Counter Google Review Scanner",
-                    type: "COUNTER",
-                    uniqueQrId: "REV101",
-                    scanCounter: 42,
-                    redirectCounter: 28,
-                    lastScan: "Today, 18:30 IST",
-                    qrUrl: "https://manacity.in/r/REV101"
-                ),
-                ReviewScannerModel(
-                    id: "sc2",
-                    name: "Table Standee Scanner #4",
-                    type: "TABLE",
-                    uniqueQrId: "REV102",
-                    scanCounter: 18,
-                    redirectCounter: 12,
-                    lastScan: "Yesterday, 20:15 IST",
-                    qrUrl: "https://manacity.in/r/REV102"
-                )
-            ]
-        }
+        guard let token = UserDefaults.standard.string(forKey: "userToken") else { return }
+
+        // Fetch location first if available
+        guard let url = URL(string: "https://manacity.in/api/business") else { return }
+        var request = URLRequest(url: url)
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+
+        URLSession.shared.dataTask(with: request) { data, _, _ in
+            if let data = data,
+               let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+               let groups = json["businessGroups"] as? [[String: Any]],
+               let firstGroup = groups.first,
+               let locations = firstGroup["locations"] as? [[String: Any]],
+               let firstLoc = locations.first,
+               let locId = firstLoc["id"] as? String {
+
+                DispatchQueue.main.async {
+                    if let reviewUrl = firstGroup["googleReviewUrl"] as? String, !reviewUrl.isEmpty {
+                        self.googleReviewUrl = reviewUrl
+                    }
+                }
+
+                // Fetch live QR codes for this location
+                guard let qrsUrl = URL(string: "https://manacity.in/api/reviews/qrs?locationId=\(locId)") else { return }
+                var qrsRequest = URLRequest(url: qrsUrl)
+                qrsRequest.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+
+                URLSession.shared.dataTask(with: qrsRequest) { qData, _, _ in
+                    if let qData = qData,
+                       let qJson = try? JSONSerialization.jsonObject(with: qData) as? [String: Any],
+                       let itemsRaw = qJson["data"] as? [[String: Any]] {
+
+                        let parsed: [ReviewScannerModel] = itemsRaw.map { raw in
+                            ReviewScannerModel(
+                                id: raw["id"] as? String ?? UUID().uuidString,
+                                name: raw["name"] as? String ?? "Google Review Scanner",
+                                type: raw["type"] as? String ?? "COUNTER",
+                                uniqueQrId: raw["uniqueQrId"] as? String ?? "REV",
+                                scanCounter: raw["scanCounter"] as? Int ?? 0,
+                                redirectCounter: raw["redirectCounter"] as? Int ?? 0,
+                                lastScan: raw["lastScan"] as? String,
+                                qrUrl: raw["qrUrl"] as? String ?? "https://manacity.in/r/\(raw["uniqueQrId"] as? String ?? "")"
+                            )
+                        }
+
+                        DispatchQueue.main.async {
+                            self.scanners = parsed
+                        }
+                    }
+                }.resume()
+            }
+        }.resume()
     }
 
     private func createNewScanner() {
-        let newScan = ReviewScannerModel(
-            id: UUID().uuidString,
-            name: newScannerName.isEmpty ? "Google Review Scanner" : newScannerName,
-            type: newScannerType,
-            uniqueQrId: String(UUID().uuidString.prefix(6)).uppercased(),
-            scanCounter: 0,
-            redirectCounter: 0,
-            lastScan: "Never",
-            qrUrl: "https://manacity.in/r/NEW"
-        )
-        scanners.append(newScan)
-        showCreateModal = false
-        newScannerName = ""
+        guard let token = UserDefaults.standard.string(forKey: "userToken") else { return }
+
+        // Fetch location first
+        guard let url = URL(string: "https://manacity.in/api/business") else { return }
+        var request = URLRequest(url: url)
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+
+        URLSession.shared.dataTask(with: request) { data, _, _ in
+            if let data = data,
+               let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+               let groups = json["businessGroups"] as? [[String: Any]],
+               let firstGroup = groups.first,
+               let locations = firstGroup["locations"] as? [[String: Any]],
+               let firstLoc = locations.first,
+               let locId = firstLoc["id"] as? String {
+
+                guard let postUrl = URL(string: "https://manacity.in/api/reviews/qrs") else { return }
+                var postReq = URLRequest(url: postUrl)
+                postReq.httpMethod = "POST"
+                postReq.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+                postReq.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+                let payload: [String: Any] = [
+                    "locationId": locId,
+                    "name": newScannerName.isEmpty ? "Google Review Scanner" : newScannerName,
+                    "type": newScannerType,
+                    "qrTypeClass": "STATIC"
+                ]
+
+                postReq.httpBody = try? JSONSerialization.data(withJSONObject: payload)
+
+                URLSession.shared.dataTask(with: postReq) { _, _, _ in
+                    DispatchQueue.main.async {
+                        self.showCreateModal = false
+                        self.newScannerName = ""
+                        self.fetchScanners()
+                    }
+                }.resume()
+            }
+        }.resume()
     }
 }
 
