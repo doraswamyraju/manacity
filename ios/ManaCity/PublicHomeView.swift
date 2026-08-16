@@ -237,30 +237,35 @@ struct PublicHomeView: View {
                 }
             }
 
-            // MARK: - Dual Split Bottom Navigation Bar (Swipe Up Enabled)
+            // MARK: - Dual Split Bottom Navigation Bar (Matching 18:38 Screenshot Exactly)
             HStack(spacing: 0) {
-                // Left Pill Navigation: Home, Track & Profile
-                HStack(spacing: 24) {
+                // Left Side Pill Navigation (Home, Track, Profile)
+                HStack(spacing: 28) {
+                    // Home Button
                     Button(action: {
                         selectedCategory = "All"
                         searchText = ""
                     }) {
                         VStack(spacing: 3) {
-                            Image(systemName: "house.fill").font(.system(size: 16))
-                            Text("Home").font(.system(size: 10, weight: .bold))
+                            Image(systemName: "house.fill")
+                                .font(.system(size: 18))
+                            Text("Home")
+                                .font(.system(size: 10, weight: .bold))
                         }
-                        .foregroundColor(.manaViolet)
+                        .foregroundColor(Color(red: 0.0, green: 0.45, blue: 0.85))
                     }
 
-                    // Track Button (Opens Enquiry Status Sheet)
+                    // Track Button (Box Truck 3D Icon matching screenshot)
                     Button(action: {
                         showEnquiriesSheet = true
                     }) {
                         VStack(spacing: 3) {
-                            Image(systemName: "list.clipboard.fill").font(.system(size: 16))
-                            Text("Track").font(.system(size: 10, weight: .semibold))
+                            Image(systemName: "shippingbox.fill")
+                                .font(.system(size: 18))
+                            Text("Track")
+                                .font(.system(size: 10, weight: .semibold))
                         }
-                        .foregroundColor(.manaTextSecondary)
+                        .foregroundColor(Color.manaTextSecondary)
                     }
 
                     // Profile Button
@@ -272,17 +277,20 @@ struct PublicHomeView: View {
                         }
                     }) {
                         VStack(spacing: 3) {
-                            Image(systemName: "person.crop.circle").font(.system(size: 16))
-                            Text("Profile").font(.system(size: 10, weight: .semibold))
+                            Image(systemName: "person.crop.circle")
+                                .font(.system(size: 18))
+                            Text("Profile")
+                                .font(.system(size: 10, weight: .semibold))
                         }
-                        .foregroundColor(.manaTextSecondary)
+                        .foregroundColor(Color.manaTextSecondary)
                     }
                 }
-                .padding(.horizontal, 18)
+                .padding(.horizontal, 22)
                 .padding(.vertical, 10)
-                .background(Color.manaSurfaceDark)
-                .cornerRadius(24)
-                .overlay(RoundedRectangle(cornerRadius: 24).stroke(Color.manaBorder, lineWidth: 1))
+                .background(Color.white)
+                .cornerRadius(30)
+                .shadow(color: Color.black.opacity(0.08), radius: 8, x: 0, y: 3)
+                .overlay(RoundedRectangle(cornerRadius: 30).stroke(Color(red: 0.88, green: 0.92, blue: 0.96), lineWidth: 1))
                 .gesture(
                     DragGesture().onEnded { value in
                         if value.translation.height < -25 {
@@ -293,20 +301,25 @@ struct PublicHomeView: View {
 
                 Spacer()
 
-                // Right Floating Search Button with Logo (Swiping up opens Services Sheet)
+                // Right Side Floating Search Pill Container (Teal/Cyan Gradient with Logo + Glass side-by-side)
                 Button(action: { showServicesSheet = true }) {
-                    ZStack {
-                        Circle()
-                            .fill(LinearGradient(colors: [.manaViolet, .manaTeal], startPoint: .topLeading, endPoint: .bottomTrailing))
-                            .frame(width: 50, height: 50)
-                            .shadow(color: Color.manaViolet.opacity(0.4), radius: 6, y: 3)
-                        HStack(spacing: 2) {
-                            ManaLogoView(type: .square, height: 20)
-                            Image(systemName: "magnifyingglass")
-                                .font(.system(size: 12, weight: .bold))
-                                .foregroundColor(.white)
-                        }
+                    HStack(spacing: 6) {
+                        ManaLogoView(type: .square, height: 24)
+                        Image(systemName: "magnifyingglass")
+                            .font(.system(size: 15, weight: .bold))
+                            .foregroundColor(.white)
                     }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
+                    .background(
+                        LinearGradient(
+                            colors: [Color(red: 0.0, green: 0.72, blue: 0.78), Color(red: 0.0, green: 0.62, blue: 0.68)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .cornerRadius(30)
+                    .shadow(color: Color(red: 0.0, green: 0.72, blue: 0.78).opacity(0.35), radius: 8, x: 0, y: 4)
                 }
                 .gesture(
                     DragGesture().onEnded { value in
