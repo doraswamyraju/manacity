@@ -472,6 +472,7 @@ model ReviewQRCode {
   type            String          // COUNTER, TABLE, INVOICE, DIGITAL, VISITING_CARD, STANDEE
   qrTypeClass     String          @default("STATIC") // STATIC, DYNAMIC
   scanCounter     Int             @default(0)
+  redirectCounter Int             @default(0)
   lastScan        DateTime?
   createdBy       String          // User ID
   isActive        Boolean         @default(true)

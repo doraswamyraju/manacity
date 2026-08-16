@@ -621,61 +621,104 @@ export default function ReviewManagement({ onBack }) {
           )}
 
           {/* ========================================================= */}
-          {/* TAB: QR CODES */}
+          {/* TAB: QR CODES / REVIEW SCANNERS */}
           {/* ========================================================= */}
           {activeTab === 'qrs' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <input 
-                  type="text" 
-                  placeholder="Search QRs..." 
-                  value={searchQuery} 
-                  onChange={(e) => setSearchQuery(e.target.value)} 
-                  style={{ ...inputStyle, width: '300px' }}
-                />
-                <button className="btn btn-primary" onClick={() => { setFormData({ name: '', type: 'COUNTER', qrTypeClass: 'STATIC', campaignId: '' }); setShowModal('qr'); }}>
-                  + Generate QR Code
-                </button>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800 }}>Google Review Scanners</h3>
+                  <p style={{ margin: '0.2rem 0 0 0', fontSize: '0.85rem', opacity: 0.7 }}>
+                    Generate custom QR scanners for counter stands, tables, invoices, and posters for your Google Review link.
+                  </p>
+                </div>
+
+                <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                  <input 
+                    type="text" 
+                    placeholder="Search scanners..." 
+                    value={searchQuery} 
+                    onChange={(e) => setSearchQuery(e.target.value)} 
+                    style={{ ...inputStyle, width: '220px' }}
+                  />
+                  <button className="btn btn-primary" onClick={() => { setFormData({ name: '', type: 'COUNTER', qrTypeClass: 'STATIC', campaignId: '' }); setShowModal('qr'); }}>
+                    + Generate New Review Scanner
+                  </button>
+                </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.25rem' }}>
                 {qrs.map(qr => {
                   const scanUrl = `${window.location.origin}/r/${qr.uniqueQrId}`;
+                  const scans = qr.scanCounter || 0;
+                  const opens = qr.redirectCounter || 0;
+                  const convRate = scans > 0 ? ((opens / scans) * 100).toFixed(1) : '0.0';
+
                   return (
-                    <div key={qr.id} className="glass-card" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem', alignItems: 'center', textLeft: 'center' }}>
-                      <div style={{ background: '#fff', padding: '0.5rem', borderRadius: '8px' }}>
+                    <div key={qr.id} className="glass-card" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem', alignItems: 'center', position: 'relative' }}>
+                      
+                      {/* QR Type Badge */}
+                      <div style={{ alignSelf: 'flex-start', display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
+                        <span style={{ fontSize: '0.75rem', fontWeight: 800, padding: '0.25rem 0.6rem', backgroundColor: 'rgba(99, 102, 241, 0.15)', border: '1px solid rgba(99, 102, 241, 0.3)', borderRadius: '12px', color: '#a5b4fc' }}>
+                          {qr.type} SCANNER
+                        </span>
+                        <span style={{ fontSize: '0.75rem', color: qr.isActive ? '#34d399' : '#f87171', fontWeight: 700 }}>
+                          ● {qr.isActive ? 'ACTIVE' : 'INACTIVE'}
+                        </span>
+                      </div>
+
+                      {/* QR Code Image Frame */}
+                      <div style={{ background: '#fff', padding: '0.75rem', borderRadius: '12px', boxShadow: '0 4px 15px rgba(0,0,0,0.1)' }}>
                         {qr.qrImage ? (
-                          <img src={qr.qrImage} alt="QR Code" style={{ width: '120px', height: '120px', display: 'block' }} />
+                          <img src={qr.qrImage} alt="Review QR Scanner" style={{ width: '140px', height: '140px', display: 'block' }} />
                         ) : (
-                          <div style={{ width: '120px', height: '120px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#eee', color: '#333', fontSize: '0.75rem', fontWeight: 600 }}>
-                            Generating...
+                          <div style={{ width: '140px', height: '140px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#eee', color: '#333', fontSize: '0.75rem', fontWeight: 600 }}>
+                            Generating QR...
                           </div>
                         )}
                       </div>
                       
+                      {/* Title & Subtitle */}
                       <div style={{ textAlign: 'center' }}>
-                        <h4 style={{ margin: '0 0 0.25rem 0' }}>{qr.name}</h4>
-                        <span style={{ fontSize: '0.75rem', padding: '0.1rem 0.4rem', backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: '4px', color: 'var(--accent-secondary)' }}>
-                          {qr.type} ({qr.qrTypeClass})
+                        <h4 style={{ margin: '0 0 0.25rem 0', fontSize: '1.05rem', fontWeight: 800 }}>{qr.name}</h4>
+                        <span style={{ fontSize: '0.78rem', color: '#94a3b8' }}>
+                          ID: <code style={{ backgroundColor: 'rgba(255,255,255,0.06)', padding: '0.1rem 0.3rem', borderRadius: '4px' }}>{qr.uniqueQrId}</code>
                         </span>
                       </div>
 
-                      <div style={{ width: '100%', fontSize: '0.8rem', display: 'flex', flexDirection: 'column', gap: '0.25rem', borderTop: '1px solid var(--border-color)', paddingTop: '0.75rem' }}>
-                        <div>Scan Count: <strong>{qr.scanCounter}</strong></div>
-                        {qr.lastScan ? (
-                          <div>Last Scan: <strong>{new Date(qr.lastScan).toLocaleDateString()}</strong></div>
-                        ) : (
-                          <div>Last Scan: <strong>Never</strong></div>
-                        )}
+                      {/* Scanner Live Metrics Grid */}
+                      <div style={{ width: '100%', gridTemplateColumns: '1fr 1fr 1fr', display: 'grid', gap: '0.5rem', backgroundColor: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '10px', padding: '0.75rem', textAlign: 'center' }}>
+                        <div>
+                          <div style={{ fontSize: '0.7rem', color: '#94a3b8', fontWeight: 600 }}>Scanned</div>
+                          <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#38bdf8' }}>{scans}</div>
+                        </div>
+                        <div>
+                          <div style={{ fontSize: '0.7rem', color: '#94a3b8', fontWeight: 600 }}>Review Opens</div>
+                          <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#34d399' }}>{opens}</div>
+                        </div>
+                        <div>
+                          <div style={{ fontSize: '0.7rem', color: '#94a3b8', fontWeight: 600 }}>Conv. Rate</div>
+                          <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#fbbf24' }}>{convRate}%</div>
+                        </div>
                       </div>
 
+                      <div style={{ width: '100%', fontSize: '0.78rem', color: '#94a3b8', textAlign: 'left', display: 'flex', justifyContent: 'space-between' }}>
+                        <span>Last Scanned:</span>
+                        <strong>{qr.lastScan ? new Date(qr.lastScan).toLocaleString() : 'Never'}</strong>
+                      </div>
+
+                      {/* Actions Row */}
                       <div style={{ display: 'flex', gap: '0.5rem', width: '100%' }}>
-                        <button className="btn btn-secondary" style={{ flex: 1, padding: '0.35rem 0.5rem', fontSize: '0.75rem' }} onClick={() => copyToClipboard(scanUrl)}>Copy Link</button>
-                        <a href={`/print-review-qr?qrId=${qr.id}`} target="_blank" rel="noopener noreferrer" className="btn btn-primary" style={{ flex: 1, padding: '0.35rem 0.5rem', fontSize: '0.75rem', textAlign: 'center', textDecoration: 'none', lineHeight: 'normal', height: 'auto', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <button className="btn btn-secondary" style={{ flex: 1, padding: '0.4rem 0.5rem', fontSize: '0.75rem', fontWeight: 700 }} onClick={() => copyToClipboard(scanUrl)}>
+                          Copy Link
+                        </button>
+                        <a href={`/print-review-qr?qrId=${qr.id}`} target="_blank" rel="noopener noreferrer" className="btn btn-primary" style={{ flex: 1, padding: '0.4rem 0.5rem', fontSize: '0.75rem', fontWeight: 700, textAlign: 'center', textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                           Print Poster
                         </a>
                       </div>
-                      <button className="btn btn-secondary" style={{ width: '100%', padding: '0.35rem 0.5rem', fontSize: '0.75rem', color: 'var(--accent-error)' }} onClick={() => handleDeleteItem('qr', qr.id)}>Delete QR</button>
+                      <button className="btn btn-secondary" style={{ width: '100%', padding: '0.35rem 0.5rem', fontSize: '0.75rem', color: 'var(--accent-error)' }} onClick={() => handleDeleteItem('qr', qr.id)}>
+                        Delete Scanner
+                      </button>
                     </div>
                   );
                 })}

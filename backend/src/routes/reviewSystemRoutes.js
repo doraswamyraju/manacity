@@ -25,6 +25,7 @@ router.delete('/customers/:id', auth, controller.deleteCustomer);
 router.get('/qrs', auth, controller.listQRs);
 router.post('/qrs', auth, controller.createQR);
 router.post('/qrs/:uniqueQrId/scan', controller.incrementQRScan); // Public scan counter
+router.post('/qrs/:uniqueQrId/redirect', controller.incrementQRRedirect); // Public review page open counter
 router.delete('/qrs/:id', auth, controller.deleteQR);
 
 // --- LANDING PAGES ---

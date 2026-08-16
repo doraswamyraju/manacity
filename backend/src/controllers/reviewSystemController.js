@@ -507,7 +507,7 @@ exports.listQRs = async (req, res) => {
 
     const skip = (Number(page) - 1) * Number(limit);
 
-    const [qrs, total] = await Promise.all([
+    let [qrs, total] = await Promise.all([
       prisma.reviewQRCode.findMany({
         where,
         skip,
@@ -517,6 +517,36 @@ exports.listQRs = async (req, res) => {
       }),
       prisma.reviewQRCode.count({ where })
     ]);
+
+    // Auto-provision a default Google Review Scanner from onboarding Google review link if 0 exist
+    if (total === 0 && !search && Number(page) === 1) {
+      try {
+        let isUnique = false;
+        let uniqueQrId = '';
+        while (!isUnique) {
+          uniqueQrId = Math.random().toString(36).substring(2, 8).toUpperCase();
+          const dup = await prisma.reviewQRCode.findUnique({ where: { uniqueQrId } });
+          if (!dup) isUnique = true;
+        }
+
+        const autoQr = await prisma.reviewQRCode.create({
+          data: {
+            locationId,
+            uniqueQrId,
+            name: 'Main Counter Google Review Scanner',
+            type: 'COUNTER',
+            qrTypeClass: 'STATIC',
+            createdBy: req.user.id,
+            isActive: true
+          }
+        });
+
+        qrs = [autoQr];
+        total = 1;
+      } catch (autoErr) {
+        console.warn('Auto QR creation warning:', autoErr.message);
+      }
+    }
 
     // Attach real QR base64 images to profiles dynamically
     const baseUrl = process.env.REVIEW_BASE_URL || 'https://reviews.manacity.in';
@@ -700,6 +730,37 @@ exports.deleteQR = async (req, res) => {
   } catch (error) {
     console.error('Delete QR error:', error);
     res.status(500).json({ error: 'Failed to delete QR code.' });
+  }
+};
+
+exports.incrementQRRedirect = async (req, res) => {
+  try {
+    const { uniqueQrId } = req.params;
+
+    const qr = await prisma.reviewQRCode.findUnique({
+      where: { uniqueQrId },
+      include: { location: { include: { businessGroup: true } } }
+    });
+
+    if (!qr) {
+      return res.status(404).json({ error: 'QR Code scanner not found.' });
+    }
+
+    const updated = await prisma.reviewQRCode.update({
+      where: { id: qr.id },
+      data: { redirectCounter: { increment: 1 } }
+    });
+
+    const googleReviewUrl = qr.location?.businessGroup?.googleReviewUrl || `https://search.google.com/local/writereview?placeid=${qr.location?.googlePlaceId || ''}`;
+
+    res.json({
+      status: 'success',
+      redirectUrl: googleReviewUrl,
+      redirectCounter: updated.redirectCounter
+    });
+  } catch (error) {
+    console.error('Increment QR redirect error:', error);
+    res.status(500).json({ error: 'Failed to record QR review open.' });
   }
 };
 
