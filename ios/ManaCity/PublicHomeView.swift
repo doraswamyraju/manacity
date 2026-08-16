@@ -82,25 +82,19 @@ struct PublicHomeView: View {
                         .overlay(RoundedRectangle(cornerRadius: 20).stroke(Color.manaBorder, lineWidth: 1))
                     }
 
-                    // Notification Bell (Alerts Icon)
+                    // Sign In Icon Button in Top Bar
                     Button(action: onNavigateToLogin) {
-                        ZStack(alignment: .topTrailing) {
-                            Image(systemName: "bell.fill")
-                                .font(.system(size: 18))
-                                .foregroundColor(.manaTextPrimary)
-                                .padding(8)
-                                .background(Color.manaSurfaceDark)
-                                .clipShape(Circle())
-                                .overlay(Circle().stroke(Color.manaBorder, lineWidth: 1))
-
-                            Text("3")
-                                .font(.system(size: 9, weight: .black))
-                                .foregroundColor(.white)
-                                .padding(4)
-                                .background(Color.red)
-                                .clipShape(Circle())
-                                .offset(x: 2, y: -2)
+                        HStack(spacing: 4) {
+                            Image(systemName: "person.crop.circle.badge.plus")
+                                .font(.system(size: 16, weight: .semibold))
+                            Text("Sign In")
+                                .font(.system(size: 12, weight: .bold))
                         }
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                        .background(Color.manaViolet)
+                        .cornerRadius(16)
                     }
                 }
                 .padding(.horizontal, 16)
@@ -417,6 +411,9 @@ struct PublicHomeView: View {
         .onAppear {
             fetchLiveBusinesses()
         }
+        .onChange(of: selectedCity) { _ in
+            fetchLiveBusinesses()
+        }
         // City Picker Sheet
         .sheet(isPresented: $showCityPicker) {
             VStack(alignment: .leading, spacing: 16) {
@@ -586,16 +583,18 @@ struct PublicHomeView: View {
 
     private func fetchLiveBusinesses() {
         isLoadingLive = true
-        guard let url = URL(string: "https://manacity.in/api/businesses") else { return }
+        let cityParam = selectedCity.lowercased()
+        guard let url = URL(string: "https://manacity.in/api/phase1/directory/\(cityParam)/all") else { return }
+        
         URLSession.shared.dataTask(with: url) { data, response, error in
             DispatchQueue.main.async {
-                isLoadingLive = false
+                self.isLoadingLive = false
                 guard let data = data,
                       let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-                      let array = json["businesses"] as? [[String: Any]] else { return }
+                      let array = json["listings"] as? [[String: Any]] else { return }
 
                 let fetched = array.compactMap { item -> Business? in
-                    guard let name = item["name"] as? String else { return nil }
+                    guard let name = (item["businessName"] as? String) ?? (item["name"] as? String) else { return nil }
                     let category = item["category"] as? String ?? "Services"
                     let city = item["city"] as? String ?? "Tirupati"
                     let phone = item["phone"] as? String ?? "+91 9999999999"
@@ -611,7 +610,9 @@ struct PublicHomeView: View {
                         phone: phone,
                         rating: rating,
                         reviewCount: reviewCount,
-                        description: item["description"] as? String ?? "Verified Local Business"
+                        description: item["description"] as? String ?? "Verified Local Business",
+                        logoUrl: item["logoUrl"] as? String ?? item["logo"] as? String,
+                        coverImage: item["coverImage"] as? String ?? item["banner"] as? String
                     )
                 }
                 if !fetched.isEmpty {

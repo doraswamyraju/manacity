@@ -21,6 +21,7 @@ import {
   User,
   X,
   Zap,
+  Check,
   Pin,
   ChevronRight,
   Utensils,

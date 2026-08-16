@@ -13,16 +13,48 @@ struct CustomerDashboardView: View {
             Color.manaBackground.ignoresSafeArea()
 
             VStack(spacing: 0) {
-                // Topbar (Logo + Profile Icon)
-                HStack {
+                // Topbar (Logo + Landing Page + Profile + Logout)
+                HStack(spacing: 10) {
                     ManaLogoView(type: .horizontal, height: 30)
+
                     Spacer()
+
+                    // Landing Page / Explore Button
+                    Button(action: onLogout) {
+                        HStack(spacing: 4) {
+                            Image(systemName: "globe")
+                                .font(.system(size: 14, weight: .bold))
+                            Text("Explore")
+                                .font(.system(size: 12, weight: .bold))
+                        }
+                        .foregroundColor(.manaViolet)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                        .background(Color.manaViolet.opacity(0.12))
+                        .cornerRadius(16)
+                    }
+
+                    // Profile Icon Button
                     Button(action: { showProfileSheet = true }) {
                         Image(systemName: "person.crop.circle.fill")
-                            .font(.system(size: 24, weight: .bold))
+                            .font(.system(size: 20, weight: .bold))
                             .foregroundColor(.manaViolet)
-                            .padding(8)
+                            .padding(6)
                             .background(Color.manaViolet.opacity(0.12))
+                            .clipShape(Circle())
+                    }
+
+                    // Direct Logout Button
+                    Button(action: {
+                        UserDefaults.standard.removeObject(forKey: "userToken")
+                        UserDefaults.standard.removeObject(forKey: "userRole")
+                        onLogout()
+                    }) {
+                        Image(systemName: "rectangle.portrait.and.arrow.right")
+                            .font(.system(size: 16, weight: .bold))
+                            .foregroundColor(.red)
+                            .padding(6)
+                            .background(Color.red.opacity(0.1))
                             .clipShape(Circle())
                     }
                 }
