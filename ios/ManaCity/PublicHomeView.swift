@@ -95,20 +95,22 @@ struct PublicHomeView: View {
                 // MARK: - Main Scroll Body
                 ScrollView(showsIndicators: false) {
                     VStack(alignment: .leading, spacing: 20) {
-                        // Hero Header & Location Selector
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("Find everything near you in")
-                                .font(.system(size: 14, weight: .medium))
-                                .foregroundColor(.manaTextSecondary)
+                        // Hero Header & Location Selector (Same Line Layout)
+                        VStack(alignment: .leading, spacing: 10) {
+                            HStack(spacing: 6) {
+                                Text("Find everything near you in")
+                                    .font(.system(size: 14, weight: .medium))
+                                    .foregroundColor(.manaTextSecondary)
 
-                            Button(action: { showCityPicker.toggle() }) {
-                                HStack(spacing: 6) {
-                                    Text(selectedCity)
-                                        .font(.system(size: 24, weight: .black))
-                                        .foregroundColor(.manaViolet)
-                                    Image(systemName: "chevron.down")
-                                        .font(.system(size: 14, weight: .bold))
-                                        .foregroundColor(.manaViolet)
+                                Button(action: { showCityPicker.toggle() }) {
+                                    HStack(spacing: 4) {
+                                        Text(selectedCity)
+                                            .font(.system(size: 18, weight: .black))
+                                            .foregroundColor(.manaViolet)
+                                        Image(systemName: "chevron.down")
+                                            .font(.system(size: 12, weight: .bold))
+                                            .foregroundColor(.manaViolet)
+                                    }
                                 }
                             }
 
@@ -402,6 +404,11 @@ struct PublicHomeView: View {
                 searchQuery: $searchText,
                 selectedCategory: $selectedCategory,
                 quickCategories: quickCategories,
+                selectedCity: selectedCity,
+                onSelectBusiness: onSelectBusiness,
+                onSelectUnonboarded: { biz in
+                    selectedUnonboardedBusiness = biz
+                },
                 onClose: { showServicesSheet = false }
             )
         }

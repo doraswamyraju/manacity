@@ -310,13 +310,10 @@ export default function Home({
     setLoading(true);
     try {
       const res = await axios.get(`/api/phase1/directory/${selectedCity}/all?query=${encodeURIComponent(query)}&category=${encodeURIComponent(selectedCategory)}`);
-      if (res.data && res.data.listings && res.data.listings.length > 0) {
-        setListings(res.data.listings);
-      } else {
-        setListings(getMockListings());
-      }
+      setListings(res.data?.listings || []);
     } catch (err) {
-      setListings(getMockListings());
+      console.error('Error fetching listings:', err);
+      setListings([]);
     } finally {
       setLoading(false);
     }
