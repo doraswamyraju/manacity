@@ -9,9 +9,15 @@ struct PublicHomeView: View {
     @State private var selectedCity: String = "Tirupati"
     @State private var selectedCategory: String = "All"
     @State private var selectedTab: Int = 0
-    @State private var showExploreSheet: Bool = false
+    
+    // Bottom Sheet Controls
+    @State private var showServicesSheet: Bool = false
+    @State private var showEnquiriesSheet: Bool = false
     @State private var showCityPicker: Bool = false
-    @State private var showClaimModal: Bool = false
+    
+    // Live Backend Data
+    @State private var liveBusinesses: [Business] = []
+    @State private var isLoadingLive: Bool = false
 
     let cities = ["Tirupati", "Hyderabad", "Vijayawada", "Visakhapatnam", "Chennai", "Bangalore"]
 
@@ -26,12 +32,23 @@ struct PublicHomeView: View {
         ("More", "ellipsis.circle.fill", Color.gray)
     ]
 
-    let businesses = [
+    let fallbackBusinesses = [
         Business(name: "Sri Sai Electricals", slug: "sri-sai-electricals", category: "Electrician", city: "Tirupati", address: "Tuda Complex, Tirupati", phone: "+91 079979 91101", rating: 4.9, reviewCount: 128, description: "AC Services, Wiring, Commercial & Residential"),
         Business(name: "Kumar Restaurant", slug: "kumar-restaurant", category: "Multi Cuisine", city: "Tirupati", address: "Bhavani Nagar, Tirupati", phone: "+91 9876543210", rating: 4.8, reviewCount: 96, description: "Authentic Biryani, South Indian & Fine Dining"),
         Business(name: "VR Air Conditioning", slug: "vr-ac-services", category: "AC Services", city: "Tirupati", address: "AIR Bypass Road, Tirupati", phone: "+91 9123456789", rating: 4.7, reviewCount: 74, description: "Installation, Gas Filling & Quick Repair"),
         Business(name: "More Super Market", slug: "more-supermarket", category: "Super Market", city: "Tirupati", address: "KT Road, Tirupati", phone: "+91 9988776655", rating: 4.6, reviewCount: 152, description: "Daily Needs, Groceries & Household Items")
     ]
+
+    var displayBusinesses: [Business] {
+        return liveBusinesses.isEmpty ? fallbackBusinesses : liveBusinesses
+    }
+
+    var isLoggedIn: Bool {
+        if let token = UserDefaults.standard.string(forKey: "userToken"), !token.isEmpty {
+            return true
+        }
+        return false
+    }
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -65,7 +82,7 @@ struct PublicHomeView: View {
                         .overlay(RoundedRectangle(cornerRadius: 20).stroke(Color.manaBorder, lineWidth: 1))
                     }
 
-                    // Notification Bell with Badge
+                    // Notification Bell (Alerts Icon)
                     Button(action: onNavigateToLogin) {
                         ZStack(alignment: .topTrailing) {
                             Image(systemName: "bell.fill")
@@ -116,87 +133,59 @@ struct PublicHomeView: View {
                         .padding(.horizontal, 16)
                         .padding(.top, 6)
 
-                        // Search Bar with Voice/Search icons
+                        // Search Bar
                         HStack(spacing: 10) {
                             Image(systemName: "magnifyingglass")
-                                .foregroundColor(.manaTextSecondary)
-                                .font(.system(size: 16))
+                                .foregroundColor(.manaViolet)
+                                .font(.system(size: 16, weight: .bold))
 
-                            TextField("Search services, shops, businesses...", text: $searchQuery)
-                                .foregroundColor(.manaTextPrimary)
+                            TextField("Search electricians, doctors, restaurants...", text: $searchQuery)
                                 .font(.system(size: 14))
-
-                            if !searchQuery.isEmpty {
-                                Button(action: { searchQuery = "" }) {
-                                    Image(systemName: "xmark.circle.fill")
-                                        .foregroundColor(.manaTextSecondary)
-                                }
-                            } else {
-                                Image(systemName: "mic.fill")
-                                    .foregroundColor(.manaTextSecondary)
-                                    .font(.system(size: 14))
-                            }
+                                .foregroundColor(.manaTextPrimary)
                         }
                         .padding(.horizontal, 14)
                         .padding(.vertical, 12)
                         .background(Color.manaSurfaceDark)
                         .cornerRadius(14)
-                        .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.manaBorder, lineWidth: 1))
+                        .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.manaBorder, lineWidth: 1.5))
                         .padding(.horizontal, 16)
 
-                        // Quick Category Grid (8 Top Categories)
-                        VStack(alignment: .leading, spacing: 12) {
-                            HStack {
-                                Text("Popular Near You")
-                                    .font(.system(size: 16, weight: .bold))
-                                    .foregroundColor(.manaTextPrimary)
-                                Spacer()
-                                Button(action: { showExploreSheet = true }) {
-                                    Text("See all")
-                                        .font(.system(size: 13, weight: .semibold))
-                                        .foregroundColor(.manaViolet)
-                                }
-                            }
-                            .padding(.horizontal, 16)
-
-                            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+                        // Quick Categories Grid
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 12) {
                                 ForEach(quickCategories, id: \.name) { cat in
                                     Button(action: {
-                                        if cat.name == "More" {
-                                            showExploreSheet = true
-                                        } else {
-                                            selectedCategory = cat.name
-                                        }
+                                        selectedCategory = cat.name
+                                        showServicesSheet = true
                                     }) {
-                                        VStack(spacing: 8) {
+                                        VStack(spacing: 6) {
                                             ZStack {
-                                                RoundedRectangle(cornerRadius: 14)
+                                                Circle()
                                                     .fill(cat.color.opacity(0.12))
-                                                    .frame(width: 52, height: 52)
+                                                    .frame(width: 48, height: 48)
                                                 Image(systemName: cat.icon)
-                                                    .font(.system(size: 22))
+                                                    .font(.system(size: 20))
                                                     .foregroundColor(cat.color)
                                             }
                                             Text(cat.name)
-                                                .font(.system(size: 11, weight: .medium))
+                                                .font(.system(size: 11, weight: .semibold))
                                                 .foregroundColor(.manaTextPrimary)
-                                                .multilineTextAlignment(.center)
-                                                .lineLimit(1)
                                         }
+                                        .frame(width: 72)
                                     }
                                 }
                             }
                             .padding(.horizontal, 16)
                         }
 
-                        // Promotional Business Banner (Get More Leads)
-                        HStack(spacing: 14) {
+                        // Banner Promotion Card
+                        HStack {
                             VStack(alignment: .leading, spacing: 6) {
-                                Text("Need something? We've got you.")
-                                    .font(.system(size: 15, weight: .bold))
+                                Text("Grow Your Business 10x")
+                                    .font(.system(size: 16, weight: .bold))
                                     .foregroundColor(.white)
-                                Text("Explore 120+ categories and connect with top verified local vendors.")
-                                    .font(.system(size: 11))
+                                Text("Get verified leads & your own smart website in Tirupati.")
+                                    .font(.system(size: 12))
                                     .foregroundColor(.white.opacity(0.85))
 
                                 Button(action: onNavigateToRegister) {
@@ -213,35 +202,30 @@ struct PublicHomeView: View {
 
                             Spacer()
 
-                            Image("LogoSquare")
-                                .resizable()
-                                .aspectRatio(contentMode: .fit)
-                                .frame(width: 70, height: 70)
-                                .cornerRadius(14)
+                            ManaLogoView(type: .square, height: 60)
                         }
                         .padding(16)
                         .background(LinearGradient(colors: [Color.manaViolet, Color.blue], startPoint: .topLeading, endPoint: .bottomTrailing))
                         .cornerRadius(18)
                         .padding(.horizontal, 16)
 
-                        // Recommended Businesses List
+                        // Recommended Live Businesses List
                         VStack(alignment: .leading, spacing: 12) {
                             HStack {
-                                Text("Recommended for You")
+                                Text("Recommended Local Businesses")
                                     .font(.system(size: 16, weight: .bold))
                                     .foregroundColor(.manaTextPrimary)
                                 Spacer()
-                                Button(action: {}) {
-                                    Text("See all")
-                                        .font(.system(size: 13, weight: .semibold))
-                                        .foregroundColor(.manaViolet)
+                                if isLoadingLive {
+                                    ProgressView()
+                                        .scaleEffect(0.8)
                                 }
                             }
                             .padding(.horizontal, 16)
 
                             ScrollView(.horizontal, showsIndicators: false) {
                                 HStack(spacing: 14) {
-                                    ForEach(businesses, id: \.slug) { b in
+                                    ForEach(displayBusinesses, id: \.slug) { b in
                                         Button(action: { onSelectBusiness(b) }) {
                                             VStack(alignment: .leading, spacing: 8) {
                                                 ZStack(alignment: .topTrailing) {
@@ -279,7 +263,7 @@ struct PublicHomeView: View {
                                                     .foregroundColor(.manaTextSecondary)
 
                                                 HStack {
-                                                    Text("Open Now")
+                                                    Text("Verified")
                                                         .font(.system(size: 10, weight: .semibold))
                                                         .foregroundColor(.green)
                                                     Spacer()
@@ -300,132 +284,95 @@ struct PublicHomeView: View {
                             }
                         }
 
-                        // Bottom Spacing for Floating TabBar
-                        Spacer().frame(height: 80)
+                        Spacer().frame(height: 90)
                     }
                 }
             }
 
-            // MARK: - Bottom 5-Tab Navigation Bar
-            HStack(spacing: 0) {
-                // Tab 1: Home
-                Button(action: { selectedTab = 0 }) {
-                    VStack(spacing: 4) {
-                        Image(systemName: "house.fill")
-                            .font(.system(size: 18))
-                        Text("Home")
-                            .font(.system(size: 10, weight: .bold))
+            // MARK: - 2-Part Split Bottom Navbar (Left: Home/Track/Profile, Right: ManaCity Search Action)
+            HStack(spacing: 12) {
+                // Left Segment: Home, Track, Profile
+                HStack(spacing: 0) {
+                    Button(action: { selectedTab = 0 }) {
+                        VStack(spacing: 4) {
+                            Image(systemName: "house.fill")
+                                .font(.system(size: 17))
+                            Text("Home")
+                                .font(.system(size: 10, weight: .bold))
+                        }
+                        .foregroundColor(selectedTab == 0 ? .manaViolet : .manaTextSecondary)
+                        .frame(maxWidth: .infinity)
                     }
-                    .foregroundColor(selectedTab == 0 ? .manaViolet : .manaTextSecondary)
-                    .frame(maxWidth: .infinity)
-                }
 
-                // Tab 2: Track / Leads
-                Button(action: { selectedTab = 1; onNavigateToLogin() }) {
-                    VStack(spacing: 4) {
-                        Image(systemName: "shippingbox.fill")
-                            .font(.system(size: 18))
-                        Text("Track")
-                            .font(.system(size: 10, weight: .semibold))
+                    Button(action: {
+                        selectedTab = 1
+                        showEnquiriesSheet = true
+                    }) {
+                        VStack(spacing: 4) {
+                            Image(systemName: "shippingbox.fill")
+                                .font(.system(size: 17))
+                            Text("Track")
+                                .font(.system(size: 10, weight: .semibold))
+                        }
+                        .foregroundColor(selectedTab == 1 ? .manaViolet : .manaTextSecondary)
+                        .frame(maxWidth: .infinity)
                     }
-                    .foregroundColor(selectedTab == 1 ? .manaViolet : .manaTextSecondary)
-                    .frame(maxWidth: .infinity)
-                }
 
-                // Tab 3: Center Elevated Action (Explore / Search)
-                Button(action: { showExploreSheet = true }) {
-                    ZStack {
-                        Circle()
-                            .fill(LinearGradient(colors: [Color.manaViolet, Color.blue], startPoint: .topLeading, endPoint: .bottomTrailing))
-                            .frame(width: 52, height: 52)
-                            .shadow(color: Color.manaViolet.opacity(0.4), radius: 8, y: 4)
-                        Image(systemName: "magnifyingglass")
-                            .font(.system(size: 20, weight: .bold))
-                            .foregroundColor(.white)
-                    }
-                }
-                .offset(y: -14)
-                .frame(maxWidth: .infinity)
-
-                // Tab 4: Alerts
-                Button(action: { selectedTab = 3; onNavigateToLogin() }) {
-                    VStack(spacing: 4) {
-                        Image(systemName: "bell.fill")
-                            .font(.system(size: 18))
-                        Text("Alerts")
-                            .font(.system(size: 10, weight: .semibold))
-                    }
-                    .foregroundColor(selectedTab == 3 ? .manaViolet : .manaTextSecondary)
-                    .frame(maxWidth: .infinity)
-                }
-
-                // Tab 5: Profile / Login
-                Button(action: { selectedTab = 4; onNavigateToLogin() }) {
-                    VStack(spacing: 4) {
-                        Image(systemName: "person.crop.circle.fill")
-                            .font(.system(size: 18))
-                        Text("Profile")
-                            .font(.system(size: 10, weight: .semibold))
-                    }
-                    .foregroundColor(selectedTab == 4 ? .manaViolet : .manaTextSecondary)
-                    .frame(maxWidth: .infinity)
-                }
-            }
-            .padding(.horizontal, 8)
-            .padding(.top, 10)
-            .padding(.bottom, 22)
-            .background(Color.manaSurfaceDark.ignoresSafeArea(edges: .bottom))
-            .overlay(
-                Rectangle()
-                    .frame(height: 1)
-                    .foregroundColor(Color.manaBorder),
-                alignment: .top
-            )
-        }
-        // Explore Categories Bottom Sheet
-        .sheet(isPresented: $showExploreSheet) {
-            VStack(spacing: 16) {
-                Capsule()
-                    .fill(Color.gray.opacity(0.4))
-                    .frame(width: 40, height: 5)
-                    .padding(.top, 8)
-
-                HStack {
-                    Text("Explore All Categories")
-                        .font(.system(size: 20, weight: .bold))
-                        .foregroundColor(.manaTextPrimary)
-                    Spacer()
-                    Button(action: { showExploreSheet = false }) {
-                        Image(systemName: "xmark.circle.fill")
-                            .font(.system(size: 22))
-                            .foregroundColor(.manaTextSecondary)
+                    Button(action: {
+                        selectedTab = 2
+                        onNavigateToLogin()
+                    }) {
+                        VStack(spacing: 4) {
+                            Image(systemName: "person.crop.circle.fill")
+                                .font(.system(size: 17))
+                            Text("Profile")
+                                .font(.system(size: 10, weight: .semibold))
+                        }
+                        .foregroundColor(selectedTab == 2 ? .manaViolet : .manaTextSecondary)
+                        .frame(maxWidth: .infinity)
                     }
                 }
-                .padding(.horizontal)
-
-                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: 14) {
-                    ForEach(quickCategories, id: \.name) { cat in
-                        VStack(spacing: 8) {
-                            ZStack {
-                                RoundedRectangle(cornerRadius: 14)
-                                    .fill(cat.color.opacity(0.12))
-                                    .frame(width: 54, height: 54)
-                                Image(systemName: cat.icon)
-                                    .font(.system(size: 22))
-                                    .foregroundColor(cat.color)
-                            }
-                            Text(cat.name)
-                                .font(.system(size: 11, weight: .medium))
-                                .foregroundColor(.manaTextPrimary)
-                                .multilineTextAlignment(.center)
+                .padding(.vertical, 8)
+                .background(Color.manaSurfaceDark)
+                .cornerRadius(24)
+                .overlay(RoundedRectangle(cornerRadius: 24).stroke(Color.manaBorder, lineWidth: 1.5))
+                .gesture(
+                    DragGesture().onEnded { value in
+                        if value.translation.height < -25 {
+                            showEnquiriesSheet = true
                         }
                     }
-                }
-                .padding()
+                )
 
-                Spacer()
+                // Right Segment: Customized Elevated ManaCity Logo Search Action
+                Button(action: { showServicesSheet = true }) {
+                    HStack(spacing: 6) {
+                        ManaLogoView(type: .square, height: 26)
+                        Image(systemName: "magnifyingglass")
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundColor(.white)
+                    }
+                    .padding(.horizontal, 16)
+                    .frame(height: 50)
+                    .background(
+                        LinearGradient(colors: [.manaViolet, .manaTeal], startPoint: .leading, endPoint: .trailing)
+                    )
+                    .cornerRadius(25)
+                    .shadow(color: Color.manaViolet.opacity(0.35), radius: 6, y: 3)
+                }
+                .gesture(
+                    DragGesture().onEnded { value in
+                        if value.translation.height < -25 {
+                            showServicesSheet = true
+                        }
+                    }
+                )
             }
-            .background(Color.manaBackground)
+            .padding(.horizontal, 16)
+            .padding(.bottom, 16)
+        }
+        .onAppear {
+            fetchLiveBusinesses()
         }
         // City Picker Sheet
         .sheet(isPresented: $showCityPicker) {
@@ -448,26 +395,186 @@ struct PublicHomeView: View {
                     }) {
                         HStack {
                             Image(systemName: "mappin.circle.fill")
-                                .foregroundColor(selectedCity == city ? .manaViolet : .manaTextSecondary)
+                                .foregroundColor(.manaTeal)
                             Text(city)
-                                .font(.system(size: 16, weight: selectedCity == city ? .bold : .regular))
+                                .font(.system(size: 16, weight: .medium))
                                 .foregroundColor(.manaTextPrimary)
                             Spacer()
                             if selectedCity == city {
-                                Image(systemName: "checkmark")
+                                Image(systemName: "checkmark.circle.fill")
                                     .foregroundColor(.manaViolet)
                             }
                         }
                         .padding()
                         .background(Color.manaSurfaceDark)
                         .cornerRadius(12)
-                        .padding(.horizontal)
                     }
+                    .padding(.horizontal)
+                }
+                Spacer()
+            }
+            .padding(.top)
+        }
+        // Left-side Enquiries Bottom Sheet
+        .sheet(isPresented: $showEnquiriesSheet) {
+            VStack(spacing: 18) {
+                Capsule()
+                    .fill(Color.gray.opacity(0.4))
+                    .frame(width: 40, height: 5)
+                    .padding(.top, 8)
+
+                HStack {
+                    Text("My Enquiries & Service Quotes")
+                        .font(.system(size: 18, weight: .bold))
+                        .foregroundColor(.manaTextPrimary)
+                    Spacer()
+                    Button(action: { showEnquiriesSheet = false }) {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.system(size: 22))
+                            .foregroundColor(.manaTextSecondary)
+                    }
+                }
+
+                if isLoggedIn {
+                    VStack(alignment: .leading, spacing: 12) {
+                        HStack {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Sri Sai Electricals")
+                                    .font(.system(size: 15, weight: .bold))
+                                    .foregroundColor(.manaTextPrimary)
+                                Text("Catering & AC Wiring Inquiry")
+                                    .font(.system(size: 12))
+                                    .foregroundColor(.manaTextSecondary)
+                            }
+                            Spacer()
+                            StatusBadge(status: "CONTACTED")
+                        }
+                        .padding()
+                        .background(Color.manaSurfaceDark)
+                        .cornerRadius(14)
+                        .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.manaBorder, lineWidth: 1))
+                    }
+                } else {
+                    VStack(spacing: 12) {
+                        Image(systemName: "lock.shield.fill")
+                            .font(.system(size: 40))
+                            .foregroundColor(.manaViolet)
+
+                        Text("Sign In to Track Enquiries")
+                            .font(.system(size: 16, weight: .bold))
+                            .foregroundColor(.manaTextPrimary)
+
+                        Text("Please sign in to view status updates, quotes, and direct calls from local businesses.")
+                            .font(.system(size: 13))
+                            .foregroundColor(.manaTextSecondary)
+                            .multilineTextAlignment(.center)
+
+                        ManaGradientButton(title: "Sign In Now") {
+                            showEnquiriesSheet = false
+                            onNavigateToLogin()
+                        }
+                    }
+                    .padding(20)
+                    .background(Color.manaSurfaceDark)
+                    .cornerRadius(16)
+                    .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.manaBorder, lineWidth: 1))
                 }
 
                 Spacer()
             }
-            .background(Color.manaBackground)
+            .padding(.horizontal, 16)
+            .background(Color.manaBackground.ignoresSafeArea())
         }
+        // Right-side All Services & Search Bottom Sheet
+        .sheet(isPresented: $showServicesSheet) {
+            VStack(spacing: 16) {
+                Capsule()
+                    .fill(Color.gray.opacity(0.4))
+                    .frame(width: 40, height: 5)
+                    .padding(.top, 8)
+
+                HStack {
+                    ManaLogoView(type: .horizontal, height: 28)
+                    Spacer()
+                    Text("All Services")
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundColor(.manaTextPrimary)
+                }
+
+                HStack(spacing: 10) {
+                    Image(systemName: "magnifyingglass")
+                        .foregroundColor(.manaViolet)
+                    TextField("Search all local services...", text: $searchQuery)
+                        .font(.system(size: 14))
+                }
+                .padding(12)
+                .background(Color.manaSurfaceDark)
+                .cornerRadius(12)
+                .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.manaBorder, lineWidth: 1))
+
+                ScrollView {
+                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: 14) {
+                        ForEach(quickCategories, id: \.name) { cat in
+                            VStack(spacing: 8) {
+                                ZStack {
+                                    RoundedRectangle(cornerRadius: 14)
+                                        .fill(cat.color.opacity(0.12))
+                                        .frame(width: 54, height: 54)
+                                    Image(systemName: cat.icon)
+                                        .font(.system(size: 22))
+                                        .foregroundColor(cat.color)
+                                }
+                                Text(cat.name)
+                                    .font(.system(size: 11, weight: .medium))
+                                    .foregroundColor(.manaTextPrimary)
+                                    .multilineTextAlignment(.center)
+                            }
+                        }
+                    }
+                    .padding(.vertical, 8)
+                }
+
+                Spacer()
+            }
+            .padding(.horizontal, 16)
+            .background(Color.manaBackground.ignoresSafeArea())
+        }
+    }
+
+    private func fetchLiveBusinesses() {
+        isLoadingLive = true
+        guard let url = URL(string: "https://manacity.in/api/businesses") else { return }
+        URLSession.shared.dataTask(with: url) { data, response, error in
+            DispatchQueue.main.async {
+                isLoadingLive = false
+                guard let data = data,
+                      let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                      let array = json["businesses"] as? [[String: Any]] else { return }
+
+                let fetched = array.compactMap { item -> Business? in
+                    guard let name = item["name"] as? String else { return nil }
+                    let category = item["category"] as? String ?? "Services"
+                    let city = item["city"] as? String ?? "Tirupati"
+                    let phone = item["phone"] as? String ?? "+91 9999999999"
+                    let rating = item["rating"] as? Double ?? 4.8
+                    let reviewCount = item["reviewCount"] as? Int ?? 45
+                    let address = item["address"] as? String ?? city
+                    return Business(
+                        name: name,
+                        slug: item["slug"] as? String ?? name.lowercased().replacingOccurrences(of: " ", with: "-"),
+                        category: category,
+                        city: city,
+                        address: address,
+                        phone: phone,
+                        rating: rating,
+                        reviewCount: reviewCount,
+                        description: item["description"] as? String ?? "Verified Local Business"
+                    )
+                }
+                if !fetched.isEmpty {
+                    self.liveBusinesses = fetched
+                }
+            }
+        }.resume()
     }
 }

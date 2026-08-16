@@ -25,6 +25,8 @@ struct AdminDashboardView: View {
     @State private var isLoadingProfile: Bool = false
     @State private var errorMessage: String? = nil
 
+    @State private var showProfileSheet: Bool = false
+
     let tabs = ["Overview", "Leads (LMS)", "Marketing", "Reviews & QR", "Referrals"]
 
     @State private var leads = [
@@ -38,33 +40,19 @@ struct AdminDashboardView: View {
             Color.manaBackground.ignoresSafeArea()
 
             VStack(spacing: 0) {
-                // MARK: - Top Navigation Bar with Logo
+                // MARK: - Clean Top Navigation Bar (Logo + Profile Icon)
                 HStack(spacing: 12) {
                     ManaLogoView(type: .horizontal, height: 32)
 
                     Spacer()
 
-                    VStack(alignment: .trailing, spacing: 2) {
-                        Text(userProfile?.businessName ?? userProfile?.name ?? "My Business")
-                            .font(.system(size: 13, weight: .bold))
-                            .foregroundColor(.manaTextPrimary)
-                            .lineLimit(1)
-                        Text(userProfile?.email ?? "Verified Owner")
-                            .font(.system(size: 11))
-                            .foregroundColor(.manaTeal)
-                            .lineLimit(1)
-                    }
-
-                    // Logout Button
-                    Button(action: {
-                        UserDefaults.standard.removeObject(forKey: "userToken")
-                        onLogout()
-                    }) {
-                        Image(systemName: "rectangle.portrait.and.arrow.right")
-                            .font(.system(size: 16, weight: .bold))
-                            .foregroundColor(.red)
+                    // Single Profile Icon Button
+                    Button(action: { showProfileSheet = true }) {
+                        Image(systemName: "person.crop.circle.fill")
+                            .font(.system(size: 24, weight: .bold))
+                            .foregroundColor(.manaViolet)
                             .padding(8)
-                            .background(Color.red.opacity(0.1))
+                            .background(Color.manaViolet.opacity(0.12))
                             .clipShape(Circle())
                     }
                 }
@@ -205,6 +193,93 @@ struct AdminDashboardView: View {
         .onAppear {
             fetchAuthenticatedUser()
         }
+        .sheet(isPresented: $showProfileSheet) {
+            VStack(spacing: 18) {
+                Capsule()
+                    .fill(Color.gray.opacity(0.3))
+                    .frame(width: 40, height: 5)
+                    .padding(.top, 10)
+
+                HStack(spacing: 14) {
+                    Image(systemName: "person.crop.circle.fill")
+                        .font(.system(size: 48))
+                        .foregroundColor(.manaViolet)
+
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(userProfile?.businessName ?? userProfile?.name ?? "ManaCity Owner")
+                            .font(.system(size: 17, weight: .bold))
+                            .foregroundColor(.manaTextPrimary)
+                        Text(userProfile?.email ?? "Verified Owner")
+                            .font(.system(size: 13))
+                            .foregroundColor(.manaTextSecondary)
+                        StatusBadge(status: userProfile?.role ?? "BUSINESS_OWNER")
+                    }
+                    Spacer()
+                }
+                .padding(16)
+                .background(Color.manaSurfaceDark)
+                .cornerRadius(16)
+                .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.manaBorder, lineWidth: 1))
+
+                // Switch Google Account Button
+                Button(action: {
+                    showProfileSheet = false
+                    GoogleSignInManager.shared.switchAccount { result in
+                        if case .success(let idToken) = result {
+                            performSocialLogin(token: idToken)
+                        }
+                    }
+                }) {
+                    HStack {
+                        Image(systemName: "arrow.triangle.2.circlepath.circle.fill")
+                            .font(.system(size: 20))
+                            .foregroundColor(.manaViolet)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Switch Google Account")
+                                .font(.system(size: 15, weight: .bold))
+                                .foregroundColor(.manaTextPrimary)
+                            Text("Sign in with another Gmail / Google account")
+                                .font(.system(size: 11))
+                                .foregroundColor(.manaTextSecondary)
+                        }
+                        Spacer()
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundColor(.manaTextSecondary)
+                    }
+                    .padding(14)
+                    .background(Color.white)
+                    .cornerRadius(12)
+                    .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.manaBorder, lineWidth: 1.5))
+                }
+
+                // Logout Button
+                Button(action: {
+                    showProfileSheet = false
+                    UserDefaults.standard.removeObject(forKey: "userToken")
+                    UserDefaults.standard.removeObject(forKey: "userRole")
+                    onLogout()
+                }) {
+                    HStack {
+                        Image(systemName: "rectangle.portrait.and.arrow.right.fill")
+                            .font(.system(size: 18))
+                            .foregroundColor(.red)
+                        Text("Sign Out of ManaCity")
+                            .font(.system(size: 15, weight: .bold))
+                            .foregroundColor(.red)
+                        Spacer()
+                    }
+                    .padding(14)
+                    .background(Color.red.opacity(0.08))
+                    .cornerRadius(12)
+                    .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.red.opacity(0.2), lineWidth: 1))
+                }
+
+                Spacer()
+            }
+            .padding(.horizontal, 20)
+            .background(Color.manaBackground.ignoresSafeArea())
+        }
     }
 
     private func fetchAuthenticatedUser() {
@@ -229,6 +304,41 @@ struct AdminDashboardView: View {
                     role: userData["role"] as? String,
                     profilePicture: userData["profilePicture"] as? String,
                     businessName: userData["businessName"] as? String
+                )
+            }
+        }.resume()
+    }
+
+    private func performSocialLogin(token: String) {
+        guard let url = URL(string: "https://manacity.in/api/auth/google") else { return }
+        var req = URLRequest(url: url)
+        req.httpMethod = "POST"
+        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        let body = ["idToken": token]
+        req.httpBody = try? JSONSerialization.data(withJSONObject: body)
+
+        URLSession.shared.dataTask(with: req) { data, response, error in
+            DispatchQueue.main.async {
+                guard let data = data,
+                      let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                      let userObj = json["user"] as? [String: Any],
+                      let role = userObj["role"] as? String else { return }
+
+                if let token = json["token"] as? String {
+                    UserDefaults.standard.set(token, forKey: "userToken")
+                }
+                UserDefaults.standard.set(userObj["email"] as? String ?? "", forKey: "userEmail")
+                UserDefaults.standard.set(userObj["name"] as? String ?? "", forKey: "userName")
+                UserDefaults.standard.set(role, forKey: "userRole")
+                UserDefaults.standard.set(userObj["businessName"] as? String ?? "\(userObj["name"] as? String ?? "User")'s Business", forKey: "userBusinessName")
+
+                self.userProfile = UserProfileData(
+                    id: userObj["id"] as? String,
+                    email: userObj["email"] as? String,
+                    name: userObj["name"] as? String,
+                    role: role,
+                    profilePicture: userObj["profilePicture"] as? String,
+                    businessName: userObj["businessName"] as? String
                 )
             }
         }.resume()

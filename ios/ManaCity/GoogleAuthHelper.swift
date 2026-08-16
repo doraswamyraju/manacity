@@ -40,6 +40,12 @@ class GoogleSignInManager: NSObject, ObservableObject {
         }
     }
 
+    func switchAccount(completion: @escaping (Result<String, Error>) -> Void) {
+        // Sign out current account from Keychain and run interactive picker for new account
+        signOut()
+        performInteractiveSignIn(completion: completion)
+    }
+
     private func performInteractiveSignIn(completion: @escaping (Result<String, Error>) -> Void) {
         guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
               let rootViewController = windowScene.windows.first(where: { $0.isKeyWindow })?.rootViewController else {
