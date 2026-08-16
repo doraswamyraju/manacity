@@ -20,11 +20,11 @@ struct LoginView: View {
 
                     // Logo & Header
                     VStack(spacing: 12) {
-                        Image("AppIcon")
+                        Image("LogoSquare")
                             .resizable()
                             .aspectRatio(contentMode: .fit)
-                            .frame(maxWidth: 180, maxHeight: 80)
-                            .cornerRadius(12)
+                            .frame(maxWidth: 120, maxHeight: 120)
+                            .cornerRadius(16)
 
                         Text("Welcome Back")
                             .font(.system(size: 24, weight: .bold))
@@ -258,11 +258,11 @@ struct RegisterView: View {
                     Spacer().frame(height: 10)
 
                     VStack(spacing: 8) {
-                        Image("AppIcon")
+                        Image("LogoSquare")
                             .resizable()
                             .aspectRatio(contentMode: .fit)
-                            .frame(maxWidth: 180, maxHeight: 75)
-                            .cornerRadius(12)
+                            .frame(maxWidth: 110, maxHeight: 110)
+                            .cornerRadius(16)
 
                         Text("Create Your Account")
                             .font(.system(size: 22, weight: .bold))

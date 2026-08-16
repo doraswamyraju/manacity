@@ -464,7 +464,10 @@ export default function Home({
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <img src="/logo.png" alt="ManaCity Logo" style={{ height: '32px' }} />
+            <picture>
+              <source media="(max-width: 768px)" srcSet="/logo-square.png" />
+              <img src="/logo-horizontal.png" alt="ManaCity Logo" style={{ height: '38px', objectFit: 'contain' }} />
+            </picture>
             <span className="desktop-only" style={{ fontSize: '0.78rem', padding: '0.25rem 0.65rem', borderRadius: '12px', background: 'linear-gradient(90deg, #6366f1, #a855f7)', color: '#fff', fontWeight: 800 }}>
               ManaCity Directory
             </span>
