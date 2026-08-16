@@ -54,17 +54,9 @@ struct LoginView: View {
                             .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.red.opacity(0.3), lineWidth: 1))
                         }
 
-                        // Native Sign in with Apple
-                        SignInWithAppleButtonView { token, email, name in
-                            performSocialLogin(token: token, provider: "apple", email: email, name: name)
-                        }
-                        .frame(height: 48)
-                        .cornerRadius(10)
-
-                        // Google / Gmail Sign In Button
                         // Google / Gmail Sign In Button
                         Button(action: {
-                            performSocialLogin(token: "google_ios_auth_\(UUID().uuidString)", provider: "google", email: nil, name: nil)
+                            showGoogleSheet = true
                         }) {
                             HStack(spacing: 8) {
                                 Image(systemName: "g.circle.fill")
@@ -72,7 +64,7 @@ struct LoginView: View {
                                     .foregroundColor(.red)
                                 Text("Sign In with Google / Gmail")
                                     .font(.system(size: 15, weight: .semibold))
-                                    .foregroundColor(.white)
+                                    .foregroundColor(.manaTextPrimary)
                             }
                             .frame(maxWidth: .infinity)
                             .frame(height: 48)
@@ -80,6 +72,16 @@ struct LoginView: View {
                             .cornerRadius(10)
                             .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.manaBorder, lineWidth: 1))
                         }
+                        .sheet(isPresented: $showGoogleSheet) {
+                            GoogleSignInWebSheet(url: URL(string: "https://accounts.google.com/o/oauth2/v2/auth?client_id=1028741369324-manacity.apps.googleusercontent.com&redirect_uri=https://manacity.in/api/auth/google/callback&response_type=token%20id_token&scope=openid%20email%20profile")!) { token, email in
+                                if let token = token {
+                                    performSocialLogin(token: token, provider: "google", email: email, name: nil)
+                                } else {
+                                    errorMessage = "Google sign-in was cancelled or failed."
+                                }
+                            }
+                        }
+
 
 
 
@@ -248,6 +250,7 @@ struct RegisterView: View {
     @State private var password: String = ""
     @State private var errorMessage: String? = nil
     @State private var isLoading: Bool = false
+    @State private var showGoogleSheet: Bool = false
 
     var body: some View {
         ZStack {
@@ -386,11 +389,33 @@ struct RegisterView: View {
                             Rectangle().frame(height: 1).foregroundColor(.manaBorder.opacity(0.5))
                         }
 
-                        SignInWithAppleButtonView { token, email, name in
-                            performSocialRegistration(token: token, provider: "apple", email: email, name: name)
+                        // Google Sign Up Button
+                        Button(action: {
+                            showGoogleSheet = true
+                        }) {
+                            HStack(spacing: 8) {
+                                Image(systemName: "g.circle.fill")
+                                    .font(.system(size: 20))
+                                    .foregroundColor(.red)
+                                Text("Continue with Google / Gmail")
+                                    .font(.system(size: 14, weight: .semibold))
+                                    .foregroundColor(.manaTextPrimary)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 44)
+                            .background(Color.manaSurfaceDark)
+                            .cornerRadius(10)
+                            .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.manaBorder, lineWidth: 1))
                         }
-                        .frame(height: 44)
-                        .cornerRadius(10)
+                        .sheet(isPresented: $showGoogleSheet) {
+                            GoogleSignInWebSheet(url: URL(string: "https://accounts.google.com/o/oauth2/v2/auth?client_id=1028741369324-manacity.apps.googleusercontent.com&redirect_uri=https://manacity.in/api/auth/google/callback&response_type=token%20id_token&scope=openid%20email%20profile")!) { token, email in
+                                if let token = token {
+                                    performSocialRegistration(token: token, provider: "google", email: email, name: nil)
+                                } else {
+                                    errorMessage = "Google registration was cancelled or failed."
+                                }
+                            }
+                        }
 
                         HStack {
                             Text("Already registered?")

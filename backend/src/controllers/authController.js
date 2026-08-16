@@ -185,20 +185,9 @@ exports.googleAuth = async (req, res) => {
       }
     }
 
-    // Method D: Mobile token fallback
+    // Method D: Mobile token fallback removed - authentic Google verification only
     if (!payload || !payload.email) {
-      if (typeof tokenToVerify === 'string' && tokenToVerify.startsWith('google_ios_')) {
-        const demoEmail = `ios_user_${tokenToVerify.slice(-6)}@gmail.com`;
-        payload = {
-          email: demoEmail,
-          sub: tokenToVerify,
-          name: 'Google Mobile User'
-        };
-      }
-    }
-
-    if (!payload || !payload.email) {
-      return res.status(400).json({ error: 'Failed to verify Google login credentials. Please try again.' });
+      return res.status(400).json({ error: 'Failed to verify Google login credentials with Google servers. Please try again.' });
     }
 
 
@@ -292,6 +281,14 @@ exports.googleAuth = async (req, res) => {
     console.error('Google auth controller catch block error:', error);
     return res.status(500).json({ error: 'Google login failed due to a server error. Please try again.' });
   }
+};
+
+// 4b. GET Handler for Google Auth Endpoint (Friendly Response)
+exports.googleAuthGet = (req, res) => {
+  return res.status(200).json({
+    status: 'info',
+    message: 'Google authentication endpoint accepts POST requests with idToken credential payload.'
+  });
 };
 
 // 4b. Apple OAuth Authentication Endpoint
