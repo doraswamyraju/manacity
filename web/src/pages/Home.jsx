@@ -506,31 +506,7 @@ export default function Home({
 
         {/* Desktop Header Links */}
         <div className="desktop-only" style={{ display: 'flex', gap: '1.25rem', alignItems: 'center', fontSize: '0.86rem', color: 'var(--text-secondary)' }}>
-          <button
-            onClick={toggleTheme}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.4rem',
-              backgroundColor: 'var(--bg-tertiary)',
-              border: '1px solid var(--border-color)',
-              color: 'var(--text-primary)',
-              padding: '0.35rem 0.75rem',
-              borderRadius: '20px',
-              fontSize: '0.8rem',
-              fontWeight: 700,
-              cursor: 'pointer'
-            }}
-          >
-            {themeMode === 'dark' ? <Moon size={14} color="#38bdf8" /> : <Sun size={14} color="#f59e0b" />}
-            {themeMode === 'dark' ? 'Dark Mode' : 'Light Mode'}
-          </button>
-
           <a href="#hiring" style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}>We Are Hiring</a>
-          <a href="#advertise" style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}>Advertise</a>
-          <button onClick={handleFreeBusinessListingClick} style={{ background: 'rgba(255,152,0,0.15)', color: '#ff9800', border: '1px solid rgba(255,152,0,0.4)', padding: '0.35rem 0.75rem', borderRadius: '6px', fontWeight: 700, cursor: 'pointer' }}>
-            Free Business Listing
-          </button>
           {user ? (
             <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
               {user.role === 'SUPER_ADMIN' && (
@@ -602,16 +578,6 @@ export default function Home({
         </div>
 
       </header>
-
-      {/* Floating Side Action Badges (Desktop Only) */}
-      <div className="desktop-only" style={{ position: 'fixed', right: 0, top: '40%', zIndex: 99, display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-        <button onClick={handleFreeBusinessListingClick} style={{ writingMode: 'vertical-rl', backgroundColor: '#3b82f6', color: '#fff', padding: '0.85rem 0.4rem', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px', border: 'none', fontWeight: 800, fontSize: '0.78rem', cursor: 'pointer' }}>
-          Free Listing
-        </button>
-        <button onClick={handleFreeBusinessListingClick} style={{ writingMode: 'vertical-rl', backgroundColor: '#f97316', color: '#fff', padding: '0.85rem 0.4rem', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px', border: 'none', fontWeight: 800, fontSize: '0.78rem', cursor: 'pointer' }}>
-          Advertise
-        </button>
-      </div>
 
 
       {/* 2. Hero Search & Promo Banners Section (Matching Justdial Screenshot 1) */}
@@ -734,10 +700,6 @@ export default function Home({
               </div>
             )}
           </div>
-
-          <button type="submit" className="btn btn-primary" style={{ padding: '0.65rem 1.75rem', borderRadius: '8px', fontWeight: 800, background: '#38bdf8', color: '#0f172a', width: '100%', maxWidth: '120px' }}>
-            Search
-          </button>
         </form>
 
         {/* Hero Feature Banner Carousel Grid */}
