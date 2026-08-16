@@ -684,6 +684,8 @@ exports.incrementQRScan = async (req, res) => {
       where: { locationId: qr.locationId }
     });
 
+    const effectiveGoogleReviewUrl = landingPage?.googleReviewUrl || location?.businessGroup?.googleReviewUrl || (location?.googlePlaceId ? `https://search.google.com/local/writereview?placeid=${location.googlePlaceId}` : null);
+
     if (!landingPage) {
       landingPage = await prisma.reviewLandingPage.create({
         data: {
@@ -691,8 +693,14 @@ exports.incrementQRScan = async (req, res) => {
           welcomeMessage: 'How was your experience with us?',
           ratingThreshold: 4,
           thankYouMessage: 'Thank you for your feedback!',
-          buttonText: 'Write a Review'
+          buttonText: 'Write a Review',
+          googleReviewUrl: effectiveGoogleReviewUrl
         }
+      });
+    } else if (!landingPage.googleReviewUrl && effectiveGoogleReviewUrl) {
+      landingPage = await prisma.reviewLandingPage.update({
+        where: { id: landingPage.id },
+        data: { googleReviewUrl: effectiveGoogleReviewUrl }
       });
     }
 
@@ -702,7 +710,8 @@ exports.incrementQRScan = async (req, res) => {
       location: {
         id: location.id,
         name: location.name,
-        logoUrl: location.businessGroup.logoUrl
+        logoUrl: location.businessGroup.logoUrl,
+        googleReviewUrl: effectiveGoogleReviewUrl
       },
       landingPage
     });

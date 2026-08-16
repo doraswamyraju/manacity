@@ -65,6 +65,18 @@ export default function PublicReviewLanding() {
     if (rating >= threshold) {
       setStep('redirecting');
       
+      let redirectTargetUrl = landingPage?.googleReviewUrl || location?.googleReviewUrl || 'https://google.com';
+
+      // Increment redirect open counter for this QR scanner
+      try {
+        const redirRes = await axios.post(`/api/reviews/qrs/${uniqueQrId}/redirect`);
+        if (redirRes.data && redirRes.data.redirectUrl) {
+          redirectTargetUrl = redirRes.data.redirectUrl;
+        }
+      } catch (err) {
+        console.warn('Failed to log QR redirect event:', err);
+      }
+
       // Track request redirection if request parameter exists
       if (requestId) {
         try {
@@ -75,11 +87,10 @@ export default function PublicReviewLanding() {
         }
       }
 
-      // Redirect to Google Business profile reviews page
-      const redirectUrl = landingPage?.googleReviewUrl || 'https://google.com';
+      // Redirect to official Google Business Profile review page
       setTimeout(() => {
-        window.location.href = redirectUrl;
-      }, 1500);
+        window.location.href = redirectTargetUrl;
+      }, 1200);
 
     } else {
       setStep('feedback');
