@@ -1,4 +1,5 @@
 import SwiftUI
+import GoogleSignIn
 
 enum AppScreen {
     case publicHome
@@ -76,6 +77,9 @@ struct ContentView: View {
         }
         .onAppear {
             checkExistingSession()
+        }
+        .onOpenURL { url in
+            GIDSignIn.sharedInstance.handle(url)
         }
     }
 
