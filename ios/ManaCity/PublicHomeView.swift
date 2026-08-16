@@ -12,10 +12,11 @@ struct PublicHomeView: View {
     @State private var liveBusinesses: [Business] = []
     @State private var searchSuggestions: [Business] = []
     @State private var isLoadingLive: Bool = false
-    @State private var isSearching: Bool = false
+    @State private var isSearchingSuggestions: Bool = false
     @State private var showCityPicker: Bool = false
     @State private var showServicesSheet: Bool = false
     @State private var showEnquiriesSheet: Bool = false
+    @State private var selectedUnonboardedBusiness: Business? = nil
 
     let cities = ["Tirupati", "Hyderabad", "Vijayawada", "Visakhapatnam", "Chennai", "Bangalore"]
 
@@ -58,7 +59,7 @@ struct PublicHomeView: View {
             Color.manaBackground.ignoresSafeArea()
 
             VStack(spacing: 0) {
-                // MARK: - Top Navigation Bar (Logo + Sign In Icon ONLY, No topbar location)
+                // MARK: - Top Navigation Bar (Logo + Sign In Icon ONLY)
                 HStack(spacing: 12) {
                     ManaLogoView(type: .horizontal, height: 34)
 
@@ -111,7 +112,7 @@ struct PublicHomeView: View {
                                 }
                             }
 
-                            // Unified Search Bar with Auto-complete API
+                            // Search Bar with Live Web-Parity Dual Autocomplete API
                             SearchBarView(text: $searchText, placeholder: "Search restaurants, doctors, services...")
                                 .onChange(of: searchText) { newValue in
                                     performLiveSearch(query: newValue)
@@ -120,40 +121,74 @@ struct PublicHomeView: View {
                         .padding(.horizontal, 16)
                         .padding(.top, 14)
 
-                        // Search Autocomplete Results Dropdown (DB + Google Places)
-                        if !searchSuggestions.isEmpty && !searchText.isEmpty {
+                        // Search Autocomplete Overlay Dropdown (DB + Google Places) - Parity with Web Version Home.jsx
+                        if (!searchSuggestions.isEmpty || isSearchingSuggestions) && !searchText.trimmingCharacters(in: .whitespaces).isEmpty {
                             VStack(alignment: .leading, spacing: 8) {
-                                Text("Search Suggestions")
-                                    .font(.system(size: 12, weight: .bold))
-                                    .foregroundColor(.manaTextSecondary)
-                                    .padding(.horizontal, 16)
+                                HStack {
+                                    Text("Search Results across Tirupati")
+                                        .font(.system(size: 12, weight: .bold))
+                                        .foregroundColor(.manaTextSecondary)
+                                    Spacer()
+                                    if isSearchingSuggestions {
+                                        ProgressView().scaleEffect(0.8)
+                                    }
+                                }
+                                .padding(.horizontal, 16)
 
                                 ForEach(searchSuggestions) { item in
-                                    Button(action: {
-                                        onSelectBusiness(item)
-                                    }) {
-                                        HStack {
-                                            Image(systemName: item.isVerified ? "checkmark.seal.fill" : "mappin.and.ellipse")
-                                                .foregroundColor(item.isVerified ? .green : .blue)
-                                            VStack(alignment: .leading, spacing: 2) {
-                                                Text(item.name)
-                                                    .font(.system(size: 13, weight: .bold))
-                                                    .foregroundColor(.manaTextPrimary)
-                                                Text(item.address)
-                                                    .font(.system(size: 11))
-                                                    .foregroundColor(.manaTextSecondary)
+                                    HStack(spacing: 12) {
+                                        ZStack {
+                                            Circle()
+                                                .fill(item.isVerified ? Color.green.opacity(0.12) : Color.orange.opacity(0.12))
+                                                .frame(width: 36, height: 36)
+                                            Image(systemName: item.isVerified ? "checkmark.seal.fill" : "mappin.circle.fill")
+                                                .font(.system(size: 16))
+                                                .foregroundColor(item.isVerified ? .green : .orange)
+                                        }
+
+                                        VStack(alignment: .leading, spacing: 2) {
+                                            Text(item.name)
+                                                .font(.system(size: 13, weight: .bold))
+                                                .foregroundColor(.manaTextPrimary)
+                                                .lineLimit(1)
+                                            Text(item.address.isEmpty ? item.category : item.address)
+                                                .font(.system(size: 11))
+                                                .foregroundColor(.manaTextSecondary)
+                                                .lineLimit(1)
+                                        }
+
+                                        Spacer()
+
+                                        if item.isVerified {
+                                            Button(action: {
+                                                onSelectBusiness(item)
+                                            }) {
+                                                Text("Verified Page")
+                                                    .font(.system(size: 10, weight: .bold))
+                                                    .foregroundColor(.white)
+                                                    .padding(.horizontal, 10)
+                                                    .padding(.vertical, 5)
+                                                    .background(Color.manaViolet)
+                                                    .cornerRadius(8)
                                             }
-                                            Spacer()
-                                            if item.isVerified {
-                                                Text("Verified").font(.system(size: 10, weight: .bold)).foregroundColor(.green)
-                                            } else {
-                                                Text("Google").font(.system(size: 10, weight: .bold)).foregroundColor(.blue)
+                                        } else {
+                                            Button(action: {
+                                                selectedUnonboardedBusiness = item
+                                            }) {
+                                                Text("Enquire Now")
+                                                    .font(.system(size: 10, weight: .bold))
+                                                    .foregroundColor(.white)
+                                                    .padding(.horizontal, 10)
+                                                    .padding(.vertical, 5)
+                                                    .background(Color.orange)
+                                                    .cornerRadius(8)
                                             }
                                         }
-                                        .padding(10)
-                                        .background(Color.manaSurfaceDark)
-                                        .cornerRadius(10)
                                     }
+                                    .padding(12)
+                                    .background(Color.manaSurfaceDark)
+                                    .cornerRadius(12)
+                                    .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.manaBorder, lineWidth: 1))
                                     .padding(.horizontal, 16)
                                 }
                             }
@@ -380,6 +415,9 @@ struct PublicHomeView: View {
                 onClose: { showEnquiriesSheet = false }
             )
         }
+        .sheet(item: $selectedUnonboardedBusiness) { biz in
+            UnonboardedEnquirySheet(business: biz, onClose: { selectedUnonboardedBusiness = nil })
+        }
     }
 
     private func fetchLiveDirectory() {
@@ -417,69 +455,92 @@ struct PublicHomeView: View {
     }
 
     private func performLiveSearch(query: String) {
-        guard query.trimmingCharacters(in: .whitespaces).count >= 2 else {
+        let q = query.trimmingCharacters(in: .whitespaces)
+        guard q.count >= 2 else {
             searchSuggestions = []
             return
         }
 
+        isSearchingSuggestions = true
         let citySlug = selectedCity.lowercased()
-        let encodedQuery = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? query
+        let encodedQuery = q.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? q
 
         guard let dbUrl = URL(string: "https://manacity.in/api/phase1/directory/\(citySlug)/all?query=\(encodedQuery)") else { return }
 
         URLSession.shared.dataTask(with: dbUrl) { data, _, _ in
             DispatchQueue.main.async {
-                guard let data = data,
-                      let res = try? JSONDecoder().decode(DirectoryApiResponse.self, from: data) else { return }
-
-                var results: [Business] = res.listings.prefix(4).map { l in
-                    Business(
-                        id: l.id ?? UUID().uuidString,
-                        name: l.businessName,
-                        slug: l.slug ?? "",
-                        category: l.category,
-                        city: l.city,
-                        address: l.address,
-                        phone: l.phone,
-                        rating: l.rating ?? 4.8,
-                        reviewCount: l.reviewCount ?? 12,
-                        isVerified: true,
-                        isClaimed: true,
-                        description: l.category,
-                        logoUrl: l.logoUrl,
-                        coverImage: l.coverImage
-                    )
+                var dbResults: [Business] = []
+                if let data = data,
+                   let res = try? JSONDecoder().decode(DirectoryApiResponse.self, from: data) {
+                    dbResults = res.listings.prefix(4).map { l in
+                        Business(
+                            id: l.id ?? UUID().uuidString,
+                            name: l.businessName,
+                            slug: l.slug ?? "",
+                            category: l.category,
+                            city: l.city,
+                            address: l.address,
+                            phone: l.phone,
+                            rating: l.rating ?? 4.8,
+                            reviewCount: l.reviewCount ?? 12,
+                            isVerified: true,
+                            isClaimed: true,
+                            description: l.category,
+                            logoUrl: l.logoUrl,
+                            coverImage: l.coverImage
+                        )
+                    }
                 }
 
+                // Query Google Places Autocomplete API
                 if let gUrl = URL(string: "https://manacity.in/api/phase1/google-places/autocomplete?input=\(encodedQuery)") {
                     URLSession.shared.dataTask(with: gUrl) { gData, _, _ in
                         DispatchQueue.main.async {
+                            self.isSearchingSuggestions = false
+                            var combined = dbResults
+
                             if let gData = gData,
                                let gJson = try? JSONSerialization.jsonObject(with: gData) as? [String: Any],
-                               let predictions = gJson["predictions"] as? [[String: Any]] {
-                                let googleItems: [Business] = predictions.prefix(4).map { p in
-                                    Business(
-                                        id: p["placeId"] as? String ?? UUID().uuidString,
-                                        name: p["name"] as? String ?? (p["description"] as? String ?? "Google Result"),
+                               let predictions = (gJson["predictions"] as? [[String: Any]]) ?? (gJson["suggestions"] as? [[String: Any]]) {
+
+                                let googleItems: [Business] = predictions.prefix(5).compactMap { p in
+                                    let placeId = p["placeId"] as? String ?? (p["place_id"] as? String ?? "")
+                                    let name = p["name"] as? String ?? (p["description"] as? String ?? "")
+                                    guard !name.isEmpty else { return nil }
+
+                                    return Business(
+                                        id: placeId.isEmpty ? UUID().uuidString : placeId,
+                                        name: name,
                                         slug: "",
-                                        category: "Google Business Result",
+                                        category: "Google Business Listing",
                                         city: selectedCity,
-                                        address: p["description"] as? String ?? "",
+                                        address: p["description"] as? String ?? name,
                                         phone: "",
                                         rating: 4.5,
                                         reviewCount: 0,
                                         isVerified: false,
                                         isClaimed: false,
-                                        description: "Google Places Listing"
+                                        description: "Local Business Listing"
                                     )
                                 }
-                                results.append(contentsOf: googleItems)
+
+                                // Deduplicate against internal ManaCity DB listings
+                                let filteredGoogleItems = googleItems.filter { g in
+                                    let gNameLower = g.name.lowercased().trimmingCharacters(in: .whitespaces)
+                                    return !dbResults.contains(where: { db in
+                                        let dbNameLower = db.name.lowercased().trimmingCharacters(in: .whitespaces)
+                                        return dbNameLower.contains(gNameLower) || gNameLower.contains(dbNameLower)
+                                    })
+                                }
+
+                                combined.append(contentsOf: filteredGoogleItems)
                             }
-                            self.searchSuggestions = results
+                            self.searchSuggestions = combined
                         }
                     }.resume()
                 } else {
-                    self.searchSuggestions = results
+                    self.isSearchingSuggestions = false
+                    self.searchSuggestions = dbResults
                 }
             }
         }.resume()
@@ -565,6 +626,88 @@ struct CustomerEnquiriesSheet: View {
                     .padding(14)
                     .background(Color.manaSurfaceDark)
                     .cornerRadius(12)
+                }
+                .padding(.horizontal, 16)
+            }
+
+            Spacer()
+        }
+        .background(Color.manaBackground.ignoresSafeArea())
+    }
+}
+
+// MARK: - Unonboarded Business Enquiry Sheet (Google Places Instant Inquiry)
+struct UnonboardedEnquirySheet: View {
+    let business: Business
+    let onClose: () -> Void
+
+    @State private var name: String = ""
+    @State private var phone: String = ""
+    @State private var message: String = ""
+    @State private var isSent: Bool = false
+
+    var body: some View {
+        VStack(spacing: 16) {
+            Capsule()
+                .fill(Color.gray.opacity(0.4))
+                .frame(width: 40, height: 5)
+                .padding(.top, 10)
+
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Enquire with \(business.name)")
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundColor(.manaTextPrimary)
+                    Text(business.address)
+                        .font(.system(size: 12))
+                        .foregroundColor(.manaTextSecondary)
+                        .lineLimit(1)
+                }
+                Spacer()
+                Button(action: onClose) {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.system(size: 20))
+                        .foregroundColor(.manaTextSecondary)
+                }
+            }
+            .padding(.horizontal, 16)
+
+            if isSent {
+                VStack(spacing: 12) {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 48))
+                        .foregroundColor(.green)
+                    Text("Inquiry Sent Successfully!")
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundColor(.manaTextPrimary)
+                    Text("We are notifying \(business.name) in Tirupati to connect with you.")
+                        .font(.system(size: 13))
+                        .foregroundColor(.manaTextSecondary)
+                        .multilineTextAlignment(.center)
+                }
+                .padding(24)
+            } else {
+                VStack(spacing: 14) {
+                    CustomFormField(label: "Your Full Name", placeholder: "Enter your name", text: $name)
+                    CustomFormField(label: "Phone Number", placeholder: "Enter your 10-digit mobile number", text: $phone)
+                    CustomFormField(label: "Inquiry Details", placeholder: "What service or pricing are you looking for?", text: $message)
+
+                    Button(action: {
+                        if !name.isEmpty && !phone.isEmpty {
+                            isSent = true
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                                onClose()
+                            }
+                        }
+                    }) {
+                        Text("Send Instant Inquiry")
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 12)
+                            .background(Color.manaViolet)
+                            .cornerRadius(12)
+                    }
                 }
                 .padding(.horizontal, 16)
             }
