@@ -70,7 +70,7 @@ struct ContentView: View {
                 )
 
             case .superAdminConsole:
-                SuperAdminView(
+                SuperAdminConsoleView(
                     onLogout: {
                         clearSession()
                         currentScreen = .publicHome

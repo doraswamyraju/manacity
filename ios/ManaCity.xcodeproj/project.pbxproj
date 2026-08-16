@@ -26,6 +26,8 @@
 		111111112222222233333347 /* WebsiteBuilderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 222222223333333344444457 /* WebsiteBuilderView.swift */; };
 		111111112222222233333348 /* LocationsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 222222223333333344444458 /* LocationsView.swift */; };
 		111111112222222233333349 /* PrivacyAndTermsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 222222223333333344444459 /* PrivacyAndTermsView.swift */; };
+		111111112222222233333360 /* CustomerDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 222222223333333344444470 /* CustomerDashboardView.swift */; };
+		111111112222222233333361 /* SuperAdminConsoleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 222222223333333344444471 /* SuperAdminConsoleView.swift */; };
 		999999998888888877777772 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 999999998888888877777771 /* GoogleSignIn */; };
 /* End PBXBuildFile section */
 
@@ -34,7 +36,6 @@
 		222222223333333344444441 /* AdminDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdminDashboardView.swift; sourceTree = "<group>"; };
 		222222223333333344444442 /* AuthViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthViews.swift; sourceTree = "<group>"; };
 		222222223333333344444443 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
-		222222223333333344444444 /* CustomerAndSuperAdminViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomerAndSuperAdminViews.swift; sourceTree = "<group>"; };
 		222222223333333344444445 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
 		222222223333333344444446 /* PublicHomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublicHomeView.swift; sourceTree = "<group>"; };
 		222222223333333344444447 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
@@ -50,6 +51,8 @@
 		222222223333333344444457 /* WebsiteBuilderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebsiteBuilderView.swift; sourceTree = "<group>"; };
 		222222223333333344444458 /* LocationsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationsView.swift; sourceTree = "<group>"; };
 		222222223333333344444459 /* PrivacyAndTermsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyAndTermsView.swift; sourceTree = "<group>"; };
+		222222223333333344444470 /* CustomerDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomerDashboardView.swift; sourceTree = "<group>"; };
+		222222223333333344444471 /* SuperAdminConsoleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SuperAdminConsoleView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -94,6 +97,8 @@
 				222222223333333344444457 /* WebsiteBuilderView.swift */,
 				222222223333333344444458 /* LocationsView.swift */,
 				222222223333333344444459 /* PrivacyAndTermsView.swift */,
+				222222223333333344444470 /* CustomerDashboardView.swift */,
+				222222223333333344444471 /* SuperAdminConsoleView.swift */,
 			);
 			path = ManaCity;
 			sourceTree = "<group>";
@@ -184,7 +189,6 @@
 				111111112222222233333331 /* AdminDashboardView.swift in Sources */,
 				111111112222222233333332 /* AuthViews.swift in Sources */,
 				111111112222222233333333 /* ContentView.swift in Sources */,
-				111111112222222233333334 /* CustomerAndSuperAdminViews.swift in Sources */,
 				111111112222222233333335 /* Models.swift in Sources */,
 				111111112222222233333336 /* PublicHomeView.swift in Sources */,
 				111111112222222233333337 /* Theme.swift in Sources */,
@@ -199,6 +203,8 @@
 				111111112222222233333347 /* WebsiteBuilderView.swift in Sources */,
 				111111112222222233333348 /* LocationsView.swift in Sources */,
 				111111112222222233333349 /* PrivacyAndTermsView.swift in Sources */,
+				111111112222222233333360 /* CustomerDashboardView.swift in Sources */,
+				111111112222222233333361 /* SuperAdminConsoleView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
