@@ -124,7 +124,7 @@ struct AdminDashboardView: View {
                 ScrollView(showsIndicators: false) {
                     VStack(spacing: 16) {
                         if selectedTab == 0 {
-                            OverviewSection(user: userProfile)
+                            OverviewSection(user: userProfile, leads: leads, onSelectTab: { idx in selectedTab = idx })
                         } else if selectedTab == 1 {
                             LmsSection(leads: $leads)
                         } else if selectedTab == 2 {
@@ -436,10 +436,16 @@ struct AdminDashboardView: View {
 
 struct OverviewSection: View {
     let user: UserProfileData?
+    let leads: [Lead]
+    let onSelectTab: (Int) -> Void
+
+    var convertedCount: Int {
+        leads.filter { $0.status == "CONVERTED" }.count
+    }
 
     var body: some View {
-        VStack(spacing: 14) {
-            // Welcome Card
+        VStack(spacing: 16) {
+            // Welcome Banner Card
             HStack(spacing: 12) {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Welcome back,")
@@ -455,19 +461,127 @@ struct OverviewSection: View {
                 Spacer()
                 StatusBadge(status: "ACTIVE TIER")
             }
-            .padding()
+            .padding(16)
             .background(Color.manaSurfaceDark)
             .cornerRadius(16)
             .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.manaBorder, lineWidth: 1))
 
+            // Real Live Metrics Cards (Zero Dummy Hardcoded Data)
             HStack(spacing: 12) {
-                StatCard(title: "Total Leads", value: "128", change: "+18%", color: .manaViolet)
-                StatCard(title: "Converted", value: "42", change: "32.8%", color: .manaEmerald)
+                StatCard(title: "Total Customer Leads", value: "\(leads.count)", change: leads.isEmpty ? "No leads yet" : "Live LMS", color: .manaViolet)
+                StatCard(title: "Converted Deals", value: "\(convertedCount)", change: leads.isEmpty ? "0% Rate" : "\(Int(Double(convertedCount)/Double(max(1, leads.count))*100))% Rate", color: .manaEmerald)
             }
-            HStack(spacing: 12) {
-                StatCard(title: "Profile Views", value: "3.4k", change: "+24%", color: .manaTeal)
-                StatCard(title: "Avg Rating", value: "4.9 ★", change: "142 revs", color: .manaAmber)
+
+            // Quick Business Management Actions (All 6 Modules matching Dashboard)
+            VStack(alignment: .leading, spacing: 12) {
+                Text("Business Management Options")
+                    .font(.system(size: 15, weight: .bold))
+                    .foregroundColor(.manaTextPrimary)
+
+                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+                    OverviewOptionCard(
+                        title: "Leads (LMS)",
+                        subtitle: "Track customer quote requests",
+                        icon: "person.2.fill",
+                        color: .manaViolet,
+                        badge: "\(leads.count) Leads",
+                        action: { onSelectTab(1) }
+                    )
+
+                    OverviewOptionCard(
+                        title: "Marketing Ads",
+                        subtitle: "Meta & Google Ads automation",
+                        icon: "sparkles.tv.fill",
+                        color: .blue,
+                        badge: "Automated",
+                        action: { onSelectTab(2) }
+                    )
+
+                    OverviewOptionCard(
+                        title: "Reviews & QR Stand",
+                        subtitle: "Google review poster & 4-star filter",
+                        icon: "star.bubble.fill",
+                        color: .orange,
+                        badge: "QR Stand",
+                        action: { onSelectTab(3) }
+                    )
+
+                    OverviewOptionCard(
+                        title: "Website Builder",
+                        subtitle: "Custom domain & section layout",
+                        icon: "globe",
+                        color: .teal,
+                        badge: "Subdomain",
+                        action: { onSelectTab(4) }
+                    )
+
+                    OverviewOptionCard(
+                        title: "Store Locations",
+                        subtitle: "Manage branches in Tirupati",
+                        icon: "building.2.fill",
+                        color: .purple,
+                        badge: "Branches",
+                        action: { onSelectTab(5) }
+                    )
+
+                    OverviewOptionCard(
+                        title: "Referral Program",
+                        subtitle: "Earn ₹500 per business referral",
+                        icon: "gift.fill",
+                        color: .pink,
+                        badge: "₹500 Reward",
+                        action: { onSelectTab(6) }
+                    )
+                }
             }
+        }
+    }
+}
+
+struct OverviewOptionCard: View {
+    let title: String
+    let subtitle: String
+    let icon: String
+    let color: Color
+    let badge: String
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    ZStack {
+                        Circle()
+                            .fill(color.opacity(0.12))
+                            .frame(width: 36, height: 36)
+                        Image(systemName: icon)
+                            .font(.system(size: 16))
+                            .foregroundColor(color)
+                    }
+                    Spacer()
+                    Text(badge)
+                        .font(.system(size: 9, weight: .bold))
+                        .foregroundColor(color)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(color.opacity(0.12))
+                        .cornerRadius(6)
+                }
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(title)
+                        .font(.system(size: 13, weight: .bold))
+                        .foregroundColor(.manaTextPrimary)
+                    Text(subtitle)
+                        .font(.system(size: 10))
+                        .foregroundColor(.manaTextSecondary)
+                        .lineLimit(2)
+                }
+            }
+            .padding(12)
+            .background(Color.manaSurfaceDark)
+            .cornerRadius(14)
+            .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.manaBorder, lineWidth: 1))
         }
     }
 }
