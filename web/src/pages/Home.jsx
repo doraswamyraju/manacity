@@ -462,26 +462,42 @@ export default function Home({
         zIndex: 100
       }}>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
             <picture>
               <source media="(max-width: 768px)" srcSet="/logo-square.png" />
               <img src="/logo-horizontal.png" alt="ManaCity Logo" style={{ height: '38px', objectFit: 'contain' }} />
             </picture>
-            <span className="desktop-only" style={{ fontSize: '0.78rem', padding: '0.25rem 0.65rem', borderRadius: '12px', background: 'linear-gradient(90deg, #6366f1, #a855f7)', color: '#fff', fontWeight: 800 }}>
-              ManaCity Directory
-            </span>
           </div>
-          {/* City selector placed directly under logo */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', color: '#38bdf8', fontSize: '0.78rem', fontWeight: 700 }}>
-            <MapPin size={13} color="#38bdf8" />
-            <span>Locality:</span>
+          {/* City selector styled as Google AI search pill */}
+          <div style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.4rem',
+            background: 'linear-gradient(135deg, rgba(2, 132, 199, 0.08), rgba(99, 102, 241, 0.08))',
+            border: '1px solid rgba(2, 132, 199, 0.35)',
+            boxShadow: '0 2px 8px rgba(2, 132, 199, 0.08)',
+            padding: '0.2rem 0.65rem',
+            borderRadius: '20px',
+            width: 'fit-content'
+          }}>
+            <MapPin size={13} color="#0284c7" />
+            <span style={{ fontSize: '0.76rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Locality:</span>
             <select
               value={selectedCity}
               onChange={(e) => setSelectedCity(e.target.value)}
-              style={{ background: 'transparent', border: 'none', color: '#38bdf8', outline: 'none', fontWeight: 800, textTransform: 'capitalize', cursor: 'pointer' }}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: '#0284c7',
+                outline: 'none',
+                fontWeight: 800,
+                fontSize: '0.8rem',
+                textTransform: 'capitalize',
+                cursor: 'pointer'
+              }}
             >
-              {cities.map(c => <option key={c.id} value={c.id} style={{ backgroundColor: '#0f172a', color: '#fff' }}>{c.name}</option>)}
+              {cities.map(c => <option key={c.id} value={c.id} style={{ backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)' }}>{c.name}</option>)}
             </select>
           </div>
         </div>
@@ -795,267 +811,38 @@ export default function Home({
         </div>
       </section>
 
-      {/* 3. Popular Category Icon Grid - 4 columns on mobile, 9 columns on desktop (Matching Justdial Screenshot 1) */}
-      <section className="home-section-padding">
-        <h2 style={{ fontSize: '1.25rem', fontWeight: 800, marginBottom: '1rem', color: '#fff' }}>
-          Explore Popular Categories
-        </h2>
-
-        <div className="category-icon-grid">
-          {iconCategories.map((cat, idx) => {
-            const Icon = cat.icon;
-            return (
-              <div
-                key={idx}
-                onClick={() => { setSelectedCategory(cat.name); fetchListings(); }}
-                style={{
-                  backgroundColor: '#1e293b',
-                  borderRadius: '14px',
-                  padding: '0.85rem 0.35rem',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  textAlign: 'center',
-                  border: '1px solid rgba(255,255,255,0.06)',
-                  cursor: 'pointer',
-                  position: 'relative',
-                  transition: 'transform 0.15s'
-                }}
-              >
-                {cat.badge && (
-                  <span style={{
-                    position: 'absolute',
-                    top: '-6px',
-                    right: '4px',
-                    backgroundColor: '#ef4444',
-                    color: '#fff',
-                    fontSize: '0.58rem',
-                    fontWeight: 800,
-                    padding: '0.1rem 0.3rem',
-                    borderRadius: '6px'
-                  }}>
-                    {cat.badge}
-                  </span>
-                )}
-                <div style={{
-                  backgroundColor: `${cat.color}20`,
-                  color: cat.color,
-                  padding: '0.6rem',
-                  borderRadius: '50%',
-                  marginBottom: '0.4rem',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}>
-                  <Icon size={18} />
-                </div>
-                <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#e2e8f0', lineHeight: 1.2 }}>
-                  {cat.name}
-                </span>
-              </div>
-            );
-          })}
-        </div>
-      </section>
-
-      {/* 4. Multi-Column Collection Cards Grid (Matching Justdial Screenshot 2) */}
-      <section className="home-section-padding">
-        <div className="collections-grid">
-          {collections.map((col, idx) => (
-            <div
-              key={idx}
-              style={{
-                backgroundColor: '#1e293b',
-                borderRadius: '16px',
-                padding: '1.25rem',
-                border: '1px solid rgba(255,255,255,0.08)'
-              }}
-            >
-              <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#fff', marginBottom: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <span style={{ width: '6px', height: '16px', backgroundColor: col.color, borderRadius: '4px' }}></span>
-                {col.title}
-              </h3>
-
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.75rem' }}>
-                {col.items.map((sub, sIdx) => (
-                  <div
-                    key={sIdx}
-                    onClick={() => { setSelectedCategory(sub.name); fetchListings(); }}
-                    style={{ cursor: 'pointer', textAlign: 'center' }}
-                  >
-                    <img
-                      src={sub.img}
-                      alt={sub.name}
-                      style={{ width: '100%', height: '75px', objectFit: 'cover', borderRadius: '10px', marginBottom: '0.35rem' }}
-                    />
-                    <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#cbd5e1' }}>
-                      {sub.name}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* 5. Travel Bookings Hub Section (Matching Justdial Screenshot 2) */}
-      <section className="home-section-padding">
-        <div style={{
-          backgroundColor: '#1e293b',
-          borderRadius: '16px',
-          padding: '1.5rem',
-          border: '1px solid rgba(255,255,255,0.08)'
-        }}>
-          <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#fff', marginBottom: '0.25rem' }}>
-            Travel & Tour Bookings
-          </h3>
-          <p style={{ fontSize: '0.82rem', color: '#94a3b8', marginTop: 0, marginBottom: '1rem' }}>
-            Instant ticket bookings & vehicle rentals for your best travel experience.
-          </p>
-
-          <div className="travel-grid">
-
-            {[
-              { label: 'Flight', desc: 'Affordable Airfares', icon: Plane, color: '#38bdf8' },
-              { label: 'Bus', desc: 'Comfort Rides', icon: Bus, color: '#f43f5e' },
-              { label: 'Train', desc: 'IRCTC Booking', icon: Train, color: '#eab308' },
-              { label: 'Hotel', desc: 'Budget Stays', icon: Hotel, color: '#34d399' },
-              { label: 'Car Rentals', desc: 'Drive Anywhere', icon: Car, color: '#c084fc' }
-            ].map((t, idx) => {
-              const Icon = t.icon;
-              return (
-                <div
-                  key={idx}
-                  style={{
-                    backgroundColor: '#0f172a',
-                    padding: '1rem',
-                    borderRadius: '12px',
-                    textAlign: 'center',
-                    border: '1px solid rgba(255,255,255,0.06)',
-                    cursor: 'pointer'
-                  }}
-                >
-                  <Icon size={24} color={t.color} style={{ margin: '0 auto 0.4rem auto' }} />
-                  <span style={{ fontSize: '0.9rem', fontWeight: 800, color: '#fff', display: 'block' }}>{t.label}</span>
-                  <span style={{ fontSize: '0.74rem', color: '#94a3b8' }}>{t.desc}</span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* 6. Explore Top Tourist Places (Matching Justdial Screenshot 3) */}
-      <section style={{ padding: '1rem 2rem 2.5rem 2rem', maxWidth: '1280px', margin: '0 auto', width: '100%' }}>
-        <h2 style={{ fontSize: '1.3rem', fontWeight: 800, marginBottom: '1.25rem', color: '#fff' }}>
-          Explore Top Tourist Destinations
-        </h2>
-
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.25rem' }}>
-          {touristPlaces.map((tp, idx) => (
-            <div
-              key={idx}
-              style={{
-                backgroundColor: '#1e293b',
-                borderRadius: '14px',
-                overflow: 'hidden',
-                border: '1px solid rgba(255,255,255,0.08)',
-                cursor: 'pointer'
-              }}
-            >
-              <img src={tp.img} alt={tp.name} style={{ width: '100%', height: '140px', objectFit: 'cover' }} />
-              <div style={{ padding: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div>
-                  <span style={{ fontSize: '0.95rem', fontWeight: 800, color: '#fff', display: 'block' }}>{tp.name}</span>
-                  <span style={{ fontSize: '0.78rem', color: '#94a3b8' }}>{tp.city}</span>
-                </div>
-                <span style={{ color: '#38bdf8', fontSize: '0.85rem', fontWeight: 700 }}>Explore &gt;</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* 7. Popular Search Action Cards (Matching Justdial Screenshot 3) */}
-      <section style={{ padding: '1rem 2rem 2.5rem 2rem', maxWidth: '1280px', margin: '0 auto', width: '100%' }}>
-        <h2 style={{ fontSize: '1.3rem', fontWeight: 800, marginBottom: '1.25rem', color: '#fff' }}>
-          Popular Business Searches
-        </h2>
-
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '1rem' }}>
-          {popularSearches.map((ps, idx) => (
-            <div
-              key={idx}
-              style={{
-                backgroundColor: '#0284c7',
-                borderRadius: '14px',
-                overflow: 'hidden',
-                display: 'flex',
-                flexDirection: 'column',
-                justify: 'space-between',
-                color: '#fff',
-                boxShadow: '0 4px 15px rgba(2, 132, 199, 0.3)'
-              }}
-            >
-              <img src={ps.img} alt={ps.title} style={{ width: '100%', height: '110px', objectFit: 'cover' }} />
-              <div style={{ padding: '0.85rem' }}>
-                <span style={{ fontSize: '0.88rem', fontWeight: 800, display: 'block', marginBottom: '0.65rem' }}>{ps.title}</span>
-                <button
-                  onClick={() => setSelectedLeadModal({ id: `ps-${idx}`, businessName: ps.title })}
-                  style={{
-                    width: '100%',
-                    backgroundColor: '#fff',
-                    color: '#0284c7',
-                    border: 'none',
-                    borderRadius: '6px',
-                    padding: '0.4rem',
-                    fontSize: '0.78rem',
-                    fontWeight: 900,
-                    cursor: 'pointer'
-                  }}
-                >
-                  Enquire Now
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* 8. Top Verified Business Listings Grid */}
-      <section style={{ padding: '1.5rem 2rem 3rem 2rem', maxWidth: '1280px', margin: '0 auto', width: '100%' }}>
+      {/* 3. Top Verified Business Listings Grid (Moved right below Hero & above Categories) */}
+      <section style={{ padding: '1.5rem 2rem 2.5rem 2rem', maxWidth: '1280px', margin: '0 auto', width: '100%' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-          <h2 style={{ fontSize: '1.3rem', fontWeight: 800 }}>
-            Top Verified Listings in <span style={{ color: '#38bdf8', textTransform: 'capitalize' }}>{selectedCity}</span>
+          <h2 style={{ fontSize: '1.35rem', fontWeight: 800, color: 'var(--text-primary)' }}>
+            Top Verified Listings in <span style={{ color: 'var(--accent-primary)', textTransform: 'capitalize' }}>{selectedCity}</span>
           </h2>
-          <span style={{ fontSize: '0.85rem', color: '#94a3b8' }}>
+          <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
             Showing {listings.length} Results
           </span>
         </div>
 
         {loading ? (
-          <div style={{ textAlign: 'center', padding: '3rem', color: '#94a3b8' }}>
+          <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-secondary)' }}>
             Searching ManaCity aggregator...
           </div>
         ) : listings.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '3rem', backgroundColor: '#1e293b', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.08)' }}>
-            <h3>No matching businesses found</h3>
-            <p style={{ color: '#94a3b8', marginTop: '0.5rem', fontSize: '0.9rem' }}>Try searching another category or city.</p>
+          <div style={{ textAlign: 'center', padding: '3rem', backgroundColor: 'var(--bg-secondary)', borderRadius: '16px', border: '1px solid var(--border-color)' }}>
+            <h3 style={{ color: 'var(--text-primary)' }}>No matching businesses found</h3>
+            <p style={{ color: 'var(--text-secondary)', marginTop: '0.5rem', fontSize: '0.9rem' }}>Try searching another category or city.</p>
           </div>
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '1.25rem' }}>
             {listings.map(item => (
               <div key={item.id} style={{
-                backgroundColor: '#1e293b',
+                backgroundColor: 'var(--bg-secondary)',
                 borderRadius: '14px',
                 padding: '1.35rem',
-                border: item.isSponsored ? '1px solid rgba(251, 191, 36, 0.4)' : '1px solid rgba(255, 255, 255, 0.08)',
+                border: item.isSponsored ? '1px solid rgba(251, 191, 36, 0.4)' : '1px solid var(--border-color)',
                 display: 'flex',
                 flexDirection: 'column',
-                justify: 'space-between',
-                boxShadow: '0 4px 15px rgba(0, 0, 0, 0.2)',
+                justifyContent: 'space-between',
+                boxShadow: '0 4px 15px rgba(0, 0, 0, 0.05)',
                 position: 'relative'
               }}>
                 {item.isSponsored && (
@@ -1080,11 +867,11 @@ export default function Home({
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.65rem' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                      <span style={{ fontSize: '0.75rem', fontWeight: 700, padding: '0.2rem 0.55rem', borderRadius: '6px', backgroundColor: 'rgba(99, 102, 241, 0.15)', color: '#818cf8' }}>
+                      <span style={{ fontSize: '0.75rem', fontWeight: 700, padding: '0.2rem 0.55rem', borderRadius: '6px', backgroundColor: 'rgba(99, 102, 241, 0.12)', color: '#6366f1' }}>
                         {item.category}
                       </span>
                       {item.verified && (
-                        <span style={{ fontSize: '0.75rem', fontWeight: 700, padding: '0.2rem 0.55rem', borderRadius: '6px', backgroundColor: 'rgba(56, 189, 248, 0.15)', color: '#38bdf8', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                        <span style={{ fontSize: '0.75rem', fontWeight: 700, padding: '0.2rem 0.55rem', borderRadius: '6px', backgroundColor: 'rgba(2, 132, 199, 0.12)', color: '#0284c7', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
                           <ShieldCheck size={13} /> Verified
                         </span>
                       )}
@@ -1095,12 +882,12 @@ export default function Home({
                         const reviewsUrl = item.googleReviewsUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.businessName + ' ' + (item.address || 'Tirupati'))}`;
                         window.open(reviewsUrl, '_blank');
                       }}
-                      style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', backgroundColor: 'rgba(234, 179, 8, 0.15)', padding: '0.2rem 0.5rem', borderRadius: '6px', color: '#facc15', fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer' }}
+                      style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', backgroundColor: 'rgba(234, 179, 8, 0.15)', padding: '0.2rem 0.5rem', borderRadius: '6px', color: '#d97706', fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer' }}
                       title="Click to view live Google Reviews"
                     >
-                      <Star size={13} fill="#facc15" />
+                      <Star size={13} fill="#d97706" />
                       {item.rating} ({item.reviewCount})
-                      <ExternalLink size={11} color="#facc15" />
+                      <ExternalLink size={11} color="#d97706" />
                     </div>
                   </div>
 
@@ -1111,7 +898,7 @@ export default function Home({
                         : `/site/${item.slug || 'kumar-shirts'}`;
                       window.open(manacityUrl, '_blank');
                     }}
-                    style={{ fontSize: '1.15rem', fontWeight: 800, marginBottom: '0.35rem', color: '#f8fafc', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
+                    style={{ fontSize: '1.15rem', fontWeight: 800, marginBottom: '0.35rem', color: 'var(--text-primary)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
                     title="Click to open business website"
                   >
                     {item.businessName}
@@ -1126,21 +913,20 @@ export default function Home({
                       style={{ display: 'inline-flex', alignItems: 'center', cursor: 'pointer' }}
                       title="Open external website"
                     >
-                      <ExternalLink size={14} color="#38bdf8" />
+                      <ExternalLink size={14} color="#0284c7" />
                     </span>
                   </h3>
 
-
-                  <p style={{ fontSize: '0.82rem', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.85rem' }}>
-                    <MapPin size={14} color="#64748b" />
+                  <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.85rem' }}>
+                    <MapPin size={14} color="var(--text-muted)" />
                     {item.address}
                   </p>
 
                   <div style={{ marginBottom: '1.1rem' }}>
-                    <span style={{ fontSize: '0.78rem', color: '#64748b', display: 'block', marginBottom: '0.35rem', fontWeight: 600 }}>Products & Services:</span>
+                    <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.35rem', fontWeight: 600 }}>Products & Services:</span>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem' }}>
                       {item.services && item.services.map((svc, idx) => (
-                        <span key={idx} style={{ fontSize: '0.74rem', backgroundColor: '#0f172a', color: '#cbd5e1', padding: '0.2rem 0.5rem', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                        <span key={idx} style={{ fontSize: '0.74rem', backgroundColor: 'var(--bg-tertiary)', color: 'var(--text-primary)', padding: '0.2rem 0.5rem', borderRadius: '4px', border: '1px solid var(--border-color)' }}>
                           {svc}
                         </span>
                       ))}
@@ -1150,10 +936,10 @@ export default function Home({
 
                 <div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginBottom: '0.75rem' }}>
-                    <button onClick={() => handleCallClick(item)} className="btn" style={{ backgroundColor: '#10b981', color: '#fff', fontSize: '0.82rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem', padding: '0.5rem' }}>
+                    <button onClick={() => handleCallClick(item)} className="btn" style={{ backgroundColor: '#10b981', color: '#fff', fontSize: '0.82rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem', padding: '0.5rem', borderRadius: '8px', border: 'none', cursor: 'pointer' }}>
                       <Phone size={14} /> Call Now
                     </button>
-                    <button onClick={() => handleWhatsAppClick(item)} className="btn" style={{ backgroundColor: '#25d366', color: '#fff', fontSize: '0.82rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem', padding: '0.5rem' }}>
+                    <button onClick={() => handleWhatsAppClick(item)} className="btn" style={{ backgroundColor: '#25d366', color: '#fff', fontSize: '0.82rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem', padding: '0.5rem', borderRadius: '8px', border: 'none', cursor: 'pointer' }}>
                       <MessageSquare size={14} /> WhatsApp
                     </button>
                   </div>
@@ -1164,9 +950,9 @@ export default function Home({
                       width: '100%',
                       padding: '0.6rem',
                       borderRadius: '8px',
-                      backgroundColor: 'rgba(99, 102, 241, 0.15)',
-                      border: '1px solid rgba(99, 102, 241, 0.4)',
-                      color: '#818cf8',
+                      backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                      border: '1px solid rgba(99, 102, 241, 0.35)',
+                      color: '#6366f1',
                       fontSize: '0.88rem',
                       fontWeight: 800,
                       cursor: 'pointer',
@@ -1183,6 +969,179 @@ export default function Home({
             ))}
           </div>
         )}
+      </section>
+
+      {/* 4. Popular Category Icon Grid (Matching Justdial Screenshot 1 with light mode support) */}
+      <section className="home-section-padding">
+        <h2 style={{ fontSize: '1.35rem', fontWeight: 800, marginBottom: '1.15rem', color: 'var(--text-primary)' }}>
+          Explore Popular Categories
+        </h2>
+
+        <div className="category-icon-grid">
+          {iconCategories.map((cat, idx) => {
+            const Icon = cat.icon;
+            return (
+              <div
+                key={idx}
+                onClick={() => { setSelectedCategory(cat.name); fetchListings(); }}
+                style={{
+                  backgroundColor: 'var(--bg-secondary)',
+                  borderRadius: '14px',
+                  padding: '0.95rem 0.4rem',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  textAlign: 'center',
+                  border: '1px solid var(--border-color)',
+                  boxShadow: '0 2px 10px rgba(0,0,0,0.03)',
+                  cursor: 'pointer',
+                  position: 'relative',
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
+                onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+              >
+                {cat.badge && (
+                  <span style={{
+                    position: 'absolute',
+                    top: '-6px',
+                    right: '4px',
+                    backgroundColor: '#ef4444',
+                    color: '#fff',
+                    fontSize: '0.58rem',
+                    fontWeight: 800,
+                    padding: '0.1rem 0.35rem',
+                    borderRadius: '6px'
+                  }}>
+                    {cat.badge}
+                  </span>
+                )}
+                <div style={{
+                  backgroundColor: `${cat.color}15`,
+                  color: cat.color,
+                  padding: '0.65rem',
+                  borderRadius: '50%',
+                  marginBottom: '0.5rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  <Icon size={20} />
+                </div>
+                <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.2 }}>
+                  {cat.name}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* 5. Multi-Column Collection Cards Grid */}
+      <section className="home-section-padding">
+        <div className="collections-grid">
+          {collections.map((col, idx) => (
+            <div
+              key={idx}
+              style={{
+                backgroundColor: 'var(--bg-secondary)',
+                borderRadius: '16px',
+                padding: '1.25rem',
+                border: '1px solid var(--border-color)',
+                boxShadow: '0 4px 15px rgba(0,0,0,0.03)'
+              }}
+            >
+              <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{ width: '6px', height: '16px', backgroundColor: col.color, borderRadius: '4px' }}></span>
+                {col.title}
+              </h3>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.75rem' }}>
+                {col.items.map((sub, sIdx) => (
+                  <div
+                    key={sIdx}
+                    onClick={() => { setSelectedCategory(sub.name); fetchListings(); }}
+                    style={{ cursor: 'pointer', textAlign: 'center' }}
+                  >
+                    <img
+                      src={sub.img}
+                      alt={sub.name}
+                      style={{ width: '100%', height: '75px', objectFit: 'cover', borderRadius: '10px', marginBottom: '0.35rem' }}
+                    />
+                    <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-secondary)' }}>
+                      {sub.name}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* 6. Travel Bookings Hub Section */}
+      <section className="home-section-padding">
+        <div style={{
+          backgroundColor: 'var(--bg-secondary)',
+          borderRadius: '16px',
+          padding: '1.5rem',
+          border: '1px solid var(--border-color)',
+          boxShadow: '0 4px 15px rgba(0,0,0,0.03)'
+        }}>
+          <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '0.25rem' }}>
+            Travel & Tour Bookings
+          </h3>
+          <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginTop: 0, marginBottom: '1rem' }}>
+            Instant ticket bookings & vehicle rentals for your best travel experience.
+          </p>
+
+          <div className="travel-grid">
+            {[
+              { title: 'Flights', sub: 'Domestic & Int.', color: '#38bdf8', icon: Globe },
+              { title: 'Bus Tickets', sub: 'AC / Sleeper', color: '#10b981', icon: Truck },
+              { title: 'Train Status', sub: 'Live PNR & Booking', color: '#f59e0b', icon: MapPin },
+              { title: 'Cab Rental', sub: 'Local & Outstation', color: '#ec4899', icon: Car },
+              { title: 'Holiday Tours', sub: 'Packages', color: '#8b5cf6', icon: Heart }
+            ].map((t, idx) => {
+              const Icon = t.icon;
+              return (
+                <div
+                  key={idx}
+                  onClick={() => alert(`Redirecting to ManaCity ${t.title} Booking Gateway...`)}
+                  style={{
+                    backgroundColor: 'var(--bg-primary)',
+                    borderRadius: '12px',
+                    padding: '1rem',
+                    border: '1px solid var(--border-color)',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    textAlign: 'center',
+                    gap: '0.4rem',
+                    transition: 'all 0.15s ease'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.borderColor = t.color}
+                  onMouseLeave={(e) => e.currentTarget.style.borderColor = 'var(--border-color)'}
+                >
+                  <div style={{
+                    backgroundColor: `${t.color}15`,
+                    color: t.color,
+                    padding: '0.65rem',
+                    borderRadius: '50%'
+                  }}>
+                    <Icon size={20} />
+                  </div>
+                  <div>
+                    <h4 style={{ fontSize: '0.88rem', fontWeight: 800, margin: 0, color: 'var(--text-primary)' }}>{t.title}</h4>
+                    <p style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', margin: '0.15rem 0 0 0' }}>{t.sub}</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
       </section>
 
       {/* Inquiry Lead Modal */}
