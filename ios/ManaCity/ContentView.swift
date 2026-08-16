@@ -12,13 +12,16 @@ enum AppScreen {
 
 struct ContentView: View {
     @State private var currentScreen: AppScreen = .publicHome
+    @State private var selectedBusinessForWebsite: Business? = nil
 
     var body: some View {
         Group {
             switch currentScreen {
             case .publicHome:
                 PublicHomeView(
-                    onSelectBusiness: { _ in },
+                    onSelectBusiness: { biz in
+                        selectedBusinessForWebsite = biz
+                    },
                     onNavigateToLogin: { currentScreen = .login },
                     onNavigateToRegister: { currentScreen = .register }
                 )
@@ -74,6 +77,9 @@ struct ContentView: View {
                     }
                 )
             }
+        }
+        .sheet(item: $selectedBusinessForWebsite) { biz in
+            PublicBusinessWebsiteView(business: biz, onClose: { selectedBusinessForWebsite = nil })
         }
         .onAppear {
             checkExistingSession()

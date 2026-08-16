@@ -26,8 +26,12 @@ struct AdminDashboardView: View {
     @State private var errorMessage: String? = nil
 
     @State private var showProfileSheet: Bool = false
+    @State private var showOnboardingWizard: Bool = false
+    @State private var showPrivacyModal: Bool = false
+    @State private var showTermsModal: Bool = false
+    @State private var showDeleteAccountModal: Bool = false
 
-    let tabs = ["Overview", "Leads (LMS)", "Marketing", "Reviews & QR", "Referrals"]
+    let tabs = ["Overview", "Leads (LMS)", "Marketing", "Reviews & QR", "Website Builder", "Locations", "Referrals"]
 
     @State private var leads = [
         Lead(name: "Raju Sharma", phone: "+91 9888877777", source: "Meta Ads", status: "NEW", notes: "Interested in catering for 50 people", createdAt: "10 mins ago"),
@@ -130,7 +134,11 @@ struct AdminDashboardView: View {
                         } else if selectedTab == 2 {
                             MarketingSection()
                         } else if selectedTab == 3 {
-                            ReviewSection()
+                            ReviewManagementView()
+                        } else if selectedTab == 4 {
+                            WebsiteBuilderView()
+                        } else if selectedTab == 5 {
+                            LocationsView()
                         } else {
                             ReferralSection(user: userProfile)
                         }
@@ -282,6 +290,50 @@ struct AdminDashboardView: View {
                     .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.manaBorder, lineWidth: 1.5))
                 }
 
+                // Launch Wizard Button
+                Button(action: {
+                    showProfileSheet = false
+                    showOnboardingWizard = true
+                }) {
+                    HStack {
+                        Image(systemName: "wand.and.stars")
+                            .font(.system(size: 18))
+                            .foregroundColor(.manaViolet)
+                        Text("Business Onboarding Wizard")
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundColor(.manaTextPrimary)
+                        Spacer()
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundColor(.manaTextSecondary)
+                    }
+                    .padding(14)
+                    .background(Color.manaSurfaceDark)
+                    .cornerRadius(12)
+                    .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.manaBorder, lineWidth: 1))
+                }
+
+                HStack(spacing: 12) {
+                    Button(action: { showProfileSheet = false; showPrivacyModal = true }) {
+                        Text("Privacy Policy")
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundColor(.manaTextSecondary)
+                    }
+                    Text("•").foregroundColor(.manaTextSecondary)
+                    Button(action: { showProfileSheet = false; showTermsModal = true }) {
+                        Text("Terms")
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundColor(.manaTextSecondary)
+                    }
+                    Text("•").foregroundColor(.manaTextSecondary)
+                    Button(action: { showProfileSheet = false; showDeleteAccountModal = true }) {
+                        Text("Delete Account")
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundColor(.red)
+                    }
+                }
+                .padding(.vertical, 4)
+
                 // Logout Button
                 Button(action: {
                     showProfileSheet = false
@@ -308,6 +360,18 @@ struct AdminDashboardView: View {
             }
             .padding(.horizontal, 20)
             .background(Color.manaBackground.ignoresSafeArea())
+        }
+        .sheet(isPresented: $showOnboardingWizard) {
+            OnboardingWizardView(onComplete: { showOnboardingWizard = false }, onCancel: { showOnboardingWizard = false })
+        }
+        .sheet(isPresented: $showPrivacyModal) {
+            PrivacyAndTermsView(mode: .privacy, onClose: { showPrivacyModal = false })
+        }
+        .sheet(isPresented: $showTermsModal) {
+            PrivacyAndTermsView(mode: .terms, onClose: { showTermsModal = false })
+        }
+        .sheet(isPresented: $showDeleteAccountModal) {
+            PrivacyAndTermsView(mode: .deleteAccount, onClose: { showDeleteAccountModal = false })
         }
     }
 
