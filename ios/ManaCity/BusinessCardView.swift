@@ -8,7 +8,7 @@ struct BusinessCardView: View {
         VStack(alignment: .leading, spacing: 0) {
             // Top Banner with Category, Rating, and Verified Badges
             ZStack(alignment: .top) {
-                if let cover = business.coverImage, !cover.isEmpty, let url = URL(string: cover) {
+                if let url = fullImageUrl(business.coverImage) {
                     AsyncImage(url: url) { phase in
                         switch phase {
                         case .success(let img):
@@ -55,7 +55,7 @@ struct BusinessCardView: View {
             VStack(alignment: .leading, spacing: 10) {
                 HStack(alignment: .bottom) {
                     ZStack(alignment: .bottomTrailing) {
-                        if let logo = business.logoUrl, !logo.isEmpty, let url = URL(string: logo) {
+                        if let url = fullImageUrl(business.logoUrl) {
                             AsyncImage(url: url) { phase in
                                 switch phase {
                                 case .success(let img):

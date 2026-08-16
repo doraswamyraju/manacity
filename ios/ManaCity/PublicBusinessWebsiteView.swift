@@ -26,7 +26,7 @@ struct PublicBusinessWebsiteView: View {
                 Spacer()
 
                 HStack(spacing: 6) {
-                    if let logo = business.logoUrl, !logo.isEmpty, let url = URL(string: logo) {
+                    if let url = fullImageUrl(business.logoUrl) {
                         AsyncImage(url: url) { img in
                             img.resizable().aspectRatio(contentMode: .fill)
                         } placeholder: {
@@ -64,7 +64,7 @@ struct PublicBusinessWebsiteView: View {
                 VStack(alignment: .leading, spacing: 20) {
                     // Cover Photo & Overlapping Badge
                     ZStack(alignment: .bottomLeading) {
-                        if let cover = business.coverImage, !cover.isEmpty, let url = URL(string: cover) {
+                        if let url = fullImageUrl(business.coverImage) {
                             AsyncImage(url: url) { img in
                                 img.resizable().aspectRatio(contentMode: .fill)
                             } placeholder: {

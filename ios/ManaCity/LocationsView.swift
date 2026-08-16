@@ -9,11 +9,7 @@ struct LocationItem: Identifiable {
 }
 
 struct LocationsView: View {
-    @State private var locations: [LocationItem] = [
-        LocationItem(id: "1", name: "Tirupati Main Branch", city: "Tirupati", address: "Bairagi Patteda, Near Anna Canteen", isPrimary: true),
-        LocationItem(id: "2", name: "Tirupati Railway Station Branch", city: "Tirupati", address: "VV Mahal Road, Opp Shubhamastu", isPrimary: false)
-    ]
-
+    @State private var locations: [LocationItem] = []
     @State private var showAddLocationModal: Bool = false
     @State private var newBranchName: String = ""
     @State private var newBranchCity: String = "Tirupati"
@@ -60,43 +56,59 @@ struct LocationsView: View {
                     }
                 }
 
-                VStack(spacing: 12) {
-                    ForEach(locations) { loc in
-                        HStack(alignment: .top, spacing: 12) {
-                            ZStack {
-                                Circle()
-                                    .fill(loc.isPrimary ? Color.green.opacity(0.12) : Color.manaViolet.opacity(0.12))
-                                    .frame(width: 44, height: 44)
-                                Image(systemName: loc.isPrimary ? "building.2.fill" : "mappin.circle.fill")
-                                    .font(.system(size: 20))
-                                    .foregroundColor(loc.isPrimary ? .green : .manaViolet)
-                            }
-
-                            VStack(alignment: .leading, spacing: 4) {
-                                HStack {
-                                    Text(loc.name)
-                                        .font(.system(size: 14, weight: .bold))
-                                        .foregroundColor(.manaTextPrimary)
-                                    if loc.isPrimary {
-                                        Text("PRIMARY")
-                                            .font(.system(size: 9, weight: .bold))
-                                            .foregroundColor(.green)
-                                            .padding(.horizontal, 6)
-                                            .padding(.vertical, 2)
-                                            .background(Color.green.opacity(0.12))
-                                            .cornerRadius(6)
-                                    }
+                if locations.isEmpty {
+                    VStack(spacing: 8) {
+                        Image(systemName: "building.2")
+                            .font(.system(size: 32))
+                            .foregroundColor(.manaTextSecondary)
+                        Text("No store branches added yet")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundColor(.manaTextSecondary)
+                        Text("Tap '+ Add Branch' to register a store or clinic location.")
+                            .font(.system(size: 12))
+                            .foregroundColor(.manaTextSecondary)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 30)
+                } else {
+                    VStack(spacing: 12) {
+                        ForEach(locations) { loc in
+                            HStack(alignment: .top, spacing: 12) {
+                                ZStack {
+                                    Circle()
+                                        .fill(loc.isPrimary ? Color.green.opacity(0.12) : Color.manaViolet.opacity(0.12))
+                                        .frame(width: 44, height: 44)
+                                    Image(systemName: loc.isPrimary ? "building.2.fill" : "mappin.circle.fill")
+                                        .font(.system(size: 20))
+                                        .foregroundColor(loc.isPrimary ? .green : .manaViolet)
                                 }
-                                Text(loc.address)
-                                    .font(.system(size: 12))
-                                    .foregroundColor(.manaTextSecondary)
+
+                                VStack(alignment: .leading, spacing: 4) {
+                                    HStack {
+                                        Text(loc.name)
+                                            .font(.system(size: 14, weight: .bold))
+                                            .foregroundColor(.manaTextPrimary)
+                                        if loc.isPrimary {
+                                            Text("PRIMARY")
+                                                .font(.system(size: 9, weight: .bold))
+                                                .foregroundColor(.green)
+                                                .padding(.horizontal, 6)
+                                                .padding(.vertical, 2)
+                                                .background(Color.green.opacity(0.12))
+                                                .cornerRadius(6)
+                                        }
+                                    }
+                                    Text(loc.address)
+                                        .font(.system(size: 12))
+                                        .foregroundColor(.manaTextSecondary)
+                                }
+                                Spacer()
                             }
-                            Spacer()
+                            .padding(14)
+                            .background(Color.manaSurfaceDark)
+                            .cornerRadius(14)
+                            .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.manaBorder, lineWidth: 1))
                         }
-                        .padding(14)
-                        .background(Color.manaSurfaceDark)
-                        .cornerRadius(14)
-                        .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.manaBorder, lineWidth: 1))
                     }
                 }
             }

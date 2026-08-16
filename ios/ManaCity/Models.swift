@@ -46,3 +46,12 @@ struct Campaign: Codable, Identifiable {
     var leadsGenerated: Int = 14
     var clicks: Int = 340
 }
+
+func fullImageUrl(_ path: String?) -> URL? {
+    guard let path = path, !path.trimmingCharacters(in: .whitespaces).isEmpty else { return nil }
+    if path.hasPrefix("http://") || path.hasPrefix("https://") {
+        return URL(string: path)
+    }
+    let formattedPath = path.hasPrefix("/") ? path : "/\(path)"
+    return URL(string: "https://manacity.in\(formattedPath)")
+}

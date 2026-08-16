@@ -33,11 +33,7 @@ struct AdminDashboardView: View {
 
     let tabs = ["Overview", "Leads (LMS)", "Marketing", "Reviews & QR", "Website Builder", "Locations", "Referrals"]
 
-    @State private var leads = [
-        Lead(name: "Raju Sharma", phone: "+91 9888877777", source: "Meta Ads", status: "NEW", notes: "Interested in catering for 50 people", createdAt: "10 mins ago"),
-        Lead(name: "Priya Verma", phone: "+91 9777766666", source: "Website", status: "CONTACTED", notes: "Asked for menu & pricing", createdAt: "2 hours ago"),
-        Lead(name: "Kiran Kumar", phone: "+91 9666655555", source: "Google QR", status: "CONVERTED", notes: "Booked table for anniversary", createdAt: "Yesterday", dealAmount: 15000.0)
-    ]
+    @State private var leads: [Lead] = []
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -515,31 +511,48 @@ struct LmsSection: View {
                 StatusBadge(status: "LMS ACTIVE")
             }
 
-            ForEach(leads) { lead in
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack {
-                        VStack(alignment: .leading) {
-                            Text(lead.name)
-                                .font(.system(size: 16, weight: .bold))
-                                .foregroundColor(.manaTextPrimary)
-                            Text("\(lead.phone) • \(lead.source)")
-                                .font(.system(size: 13))
+            if leads.isEmpty {
+                VStack(spacing: 8) {
+                    Image(systemName: "tray")
+                        .font(.system(size: 32))
+                        .foregroundColor(.manaTextSecondary)
+                    Text("No customer inquiries yet")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(.manaTextSecondary)
+                    Text("Leads generated from Meta Ads, Google Ads, or your website will appear here in real-time.")
+                        .font(.system(size: 12))
+                        .foregroundColor(.manaTextSecondary)
+                        .multilineTextAlignment(.center)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 30)
+            } else {
+                ForEach(leads) { lead in
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack {
+                            VStack(alignment: .leading) {
+                                Text(lead.name)
+                                    .font(.system(size: 16, weight: .bold))
+                                    .foregroundColor(.manaTextPrimary)
+                                Text("\(lead.phone) • \(lead.source)")
+                                    .font(.system(size: 13))
+                                    .foregroundColor(.manaTextSecondary)
+                            }
+                            Spacer()
+                            StatusBadge(status: lead.status)
+                        }
+
+                        if !lead.notes.isEmpty {
+                            Text(lead.notes)
+                                .font(.system(size: 12))
                                 .foregroundColor(.manaTextSecondary)
                         }
-                        Spacer()
-                        StatusBadge(status: lead.status)
                     }
-
-                    if !lead.notes.isEmpty {
-                        Text(lead.notes)
-                            .font(.system(size: 12))
-                            .foregroundColor(.manaTextSecondary)
-                    }
+                    .padding(14)
+                    .background(Color.manaSurfaceDark)
+                    .cornerRadius(14)
+                    .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.manaBorder, lineWidth: 1))
                 }
-                .padding(14)
-                .background(Color.manaSurfaceDark)
-                .cornerRadius(14)
-                .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.manaBorder, lineWidth: 1))
             }
         }
     }
