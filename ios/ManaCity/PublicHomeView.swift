@@ -15,6 +15,7 @@ struct PublicHomeView: View {
     @State private var isSearching: Bool = false
     @State private var showCityPicker: Bool = false
     @State private var showServicesSheet: Bool = false
+    @State private var showEnquiriesSheet: Bool = false
 
     let cities = ["Tirupati", "Hyderabad", "Vijayawada", "Visakhapatnam", "Chennai", "Bangalore"]
 
@@ -45,6 +46,13 @@ struct PublicHomeView: View {
         return items
     }
 
+    var isLoggedIn: Bool {
+        if let token = UserDefaults.standard.string(forKey: "userToken"), !token.isEmpty {
+            return true
+        }
+        return false
+    }
+
     var body: some View {
         ZStack(alignment: .bottom) {
             Color.manaBackground.ignoresSafeArea()
@@ -52,14 +60,19 @@ struct PublicHomeView: View {
             VStack(spacing: 0) {
                 // MARK: - Top Navigation Bar (Logo + Sign In Icon ONLY, No topbar location)
                 HStack(spacing: 12) {
-                    // ManaCity Horizontal Logo
                     ManaLogoView(type: .horizontal, height: 34)
 
                     Spacer()
 
-                    // Sign In Icon Button in Top Bar (Icon Only)
-                    Button(action: onNavigateToLogin) {
-                        Image(systemName: "person.crop.circle.badge.plus")
+                    // Sign In / Profile Icon Button in Top Bar
+                    Button(action: {
+                        if isLoggedIn {
+                            showEnquiriesSheet = true
+                        } else {
+                            onNavigateToLogin()
+                        }
+                    }) {
+                        Image(systemName: isLoggedIn ? "person.crop.circle.fill" : "person.crop.circle.badge.plus")
                             .font(.system(size: 20, weight: .bold))
                             .foregroundColor(.manaViolet)
                             .padding(8)
@@ -219,15 +232,19 @@ struct PublicHomeView: View {
                                 }
                             }
                         }
-                        .padding(.bottom, 80)
+                        .padding(.bottom, 85)
                     }
                 }
             }
 
-            // MARK: - Dual Split Bottom Navigation Bar
+            // MARK: - Dual Split Bottom Navigation Bar (Swipe Up Enabled)
             HStack(spacing: 0) {
-                HStack(spacing: 20) {
-                    Button(action: {}) {
+                // Left Pill Navigation: Home, Track & Profile
+                HStack(spacing: 24) {
+                    Button(action: {
+                        selectedCategory = "All"
+                        searchText = ""
+                    }) {
                         VStack(spacing: 3) {
                             Image(systemName: "house.fill").font(.system(size: 16))
                             Text("Home").font(.system(size: 10, weight: .bold))
@@ -235,15 +252,25 @@ struct PublicHomeView: View {
                         .foregroundColor(.manaViolet)
                     }
 
-                    Button(action: {}) {
+                    // Track Button (Opens Enquiry Status Sheet)
+                    Button(action: {
+                        showEnquiriesSheet = true
+                    }) {
                         VStack(spacing: 3) {
-                            Image(systemName: "box.truck.fill").font(.system(size: 16))
+                            Image(systemName: "list.clipboard.fill").font(.system(size: 16))
                             Text("Track").font(.system(size: 10, weight: .semibold))
                         }
                         .foregroundColor(.manaTextSecondary)
                     }
 
-                    Button(action: onNavigateToLogin) {
+                    // Profile Button
+                    Button(action: {
+                        if isLoggedIn {
+                            showEnquiriesSheet = true
+                        } else {
+                            onNavigateToLogin()
+                        }
+                    }) {
                         VStack(spacing: 3) {
                             Image(systemName: "person.crop.circle").font(.system(size: 16))
                             Text("Profile").font(.system(size: 10, weight: .semibold))
@@ -251,28 +278,43 @@ struct PublicHomeView: View {
                         .foregroundColor(.manaTextSecondary)
                     }
                 }
-                .padding(.horizontal, 16)
+                .padding(.horizontal, 18)
                 .padding(.vertical, 10)
                 .background(Color.manaSurfaceDark)
                 .cornerRadius(24)
                 .overlay(RoundedRectangle(cornerRadius: 24).stroke(Color.manaBorder, lineWidth: 1))
+                .gesture(
+                    DragGesture().onEnded { value in
+                        if value.translation.height < -25 {
+                            showEnquiriesSheet = true
+                        }
+                    }
+                )
 
                 Spacer()
 
+                // Right Floating Search Button with Logo (Swiping up opens Services Sheet)
                 Button(action: { showServicesSheet = true }) {
                     ZStack {
                         Circle()
                             .fill(LinearGradient(colors: [.manaViolet, .manaTeal], startPoint: .topLeading, endPoint: .bottomTrailing))
-                            .frame(width: 48, height: 48)
+                            .frame(width: 50, height: 50)
                             .shadow(color: Color.manaViolet.opacity(0.4), radius: 6, y: 3)
                         HStack(spacing: 2) {
-                            ManaLogoView(type: .square, height: 18)
+                            ManaLogoView(type: .square, height: 20)
                             Image(systemName: "magnifyingglass")
                                 .font(.system(size: 12, weight: .bold))
                                 .foregroundColor(.white)
                         }
                     }
                 }
+                .gesture(
+                    DragGesture().onEnded { value in
+                        if value.translation.height < -25 {
+                            showServicesSheet = true
+                        }
+                    }
+                )
             }
             .padding(.horizontal, 16)
             .padding(.bottom, 12)
@@ -313,6 +355,16 @@ struct PublicHomeView: View {
                 selectedCategory: $selectedCategory,
                 quickCategories: quickCategories,
                 onClose: { showServicesSheet = false }
+            )
+        }
+        .sheet(isPresented: $showEnquiriesSheet) {
+            CustomerEnquiriesSheet(
+                isLoggedIn: isLoggedIn,
+                onNavigateToLogin: {
+                    showEnquiriesSheet = false
+                    onNavigateToLogin()
+                },
+                onClose: { showEnquiriesSheet = false }
             )
         }
     }
@@ -360,7 +412,6 @@ struct PublicHomeView: View {
         let citySlug = selectedCity.lowercased()
         let encodedQuery = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? query
 
-        // 1. Fetch live DB search items
         guard let dbUrl = URL(string: "https://manacity.in/api/phase1/directory/\(citySlug)/all?query=\(encodedQuery)") else { return }
 
         URLSession.shared.dataTask(with: dbUrl) { data, _, _ in
@@ -387,7 +438,6 @@ struct PublicHomeView: View {
                     )
                 }
 
-                // 2. Fetch Google Places Autocomplete items
                 if let gUrl = URL(string: "https://manacity.in/api/phase1/google-places/autocomplete?input=\(encodedQuery)") {
                     URLSession.shared.dataTask(with: gUrl) { gData, _, _ in
                         DispatchQueue.main.async {
@@ -423,23 +473,91 @@ struct PublicHomeView: View {
     }
 }
 
-struct DirectoryApiResponse: Codable {
-    let success: Bool?
-    let listings: [DirectoryListingApiItem]
-}
+// MARK: - Customer Enquiries Status Sheet (Left Navbar Swipe-up)
+struct CustomerEnquiriesSheet: View {
+    let isLoggedIn: Bool
+    let onNavigateToLogin: () -> Void
+    let onClose: () -> Void
 
-struct DirectoryListingApiItem: Codable {
-    let id: String?
-    let businessName: String
-    let category: String
-    let city: String
-    let slug: String?
-    let rating: Double?
-    let reviewCount: Int?
-    let phone: String
-    let address: String
-    let logoUrl: String?
-    let coverImage: String?
-    let verified: Bool?
-    let services: [String]?
+    var body: some View {
+        VStack(spacing: 16) {
+            Capsule()
+                .fill(Color.gray.opacity(0.4))
+                .frame(width: 40, height: 5)
+                .padding(.top, 10)
+
+            HStack {
+                Text("My Enquiries Status")
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundColor(.manaTextPrimary)
+                Spacer()
+                Button(action: onClose) {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.system(size: 20))
+                        .foregroundColor(.manaTextSecondary)
+                }
+            }
+            .padding(.horizontal, 16)
+
+            if !isLoggedIn {
+                VStack(spacing: 14) {
+                    Image(systemName: "person.crop.circle.badge.exclamationmark")
+                        .font(.system(size: 44))
+                        .foregroundColor(.manaViolet)
+                    Text("Sign In to View Enquiries")
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundColor(.manaTextPrimary)
+                    Text("Please sign in to track your submitted quotes and business responses.")
+                        .font(.system(size: 13))
+                        .foregroundColor(.manaTextSecondary)
+                        .multilineTextAlignment(.center)
+
+                    Button(action: onNavigateToLogin) {
+                        HStack {
+                            Image(systemName: "arrow.right.circle.fill")
+                            Text("Sign In / Register Now")
+                        }
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 24)
+                        .padding(.vertical, 12)
+                        .background(Color.manaViolet)
+                        .cornerRadius(12)
+                    }
+                }
+                .padding(24)
+                .background(Color.manaSurfaceDark)
+                .cornerRadius(16)
+                .padding(.horizontal, 16)
+            } else {
+                VStack(spacing: 12) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack {
+                            Text("Grand Spice Restaurant")
+                                .font(.system(size: 15, weight: .bold))
+                                .foregroundColor(.manaTextPrimary)
+                            Spacer()
+                            Text("CONTACTED")
+                                .font(.system(size: 10, weight: .bold))
+                                .foregroundColor(.orange)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 3)
+                                .background(Color.orange.opacity(0.12))
+                                .cornerRadius(8)
+                        }
+                        Text("Inquiry for catering service for 50 guests")
+                            .font(.system(size: 12))
+                            .foregroundColor(.manaTextSecondary)
+                    }
+                    .padding(14)
+                    .background(Color.manaSurfaceDark)
+                    .cornerRadius(12)
+                }
+                .padding(.horizontal, 16)
+            }
+
+            Spacer()
+        }
+        .background(Color.manaBackground.ignoresSafeArea())
+    }
 }

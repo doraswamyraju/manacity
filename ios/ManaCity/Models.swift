@@ -55,3 +55,24 @@ func fullImageUrl(_ path: String?) -> URL? {
     let formattedPath = path.hasPrefix("/") ? path : "/\(path)"
     return URL(string: "https://manacity.in\(formattedPath)")
 }
+
+struct DirectoryApiResponse: Codable {
+    let success: Bool?
+    let listings: [DirectoryListingApiItem]
+}
+
+struct DirectoryListingApiItem: Codable {
+    let id: String?
+    let businessName: String
+    let category: String
+    let city: String
+    let slug: String?
+    let rating: Double?
+    let reviewCount: Int?
+    let phone: String
+    let address: String
+    let logoUrl: String?
+    let coverImage: String?
+    let verified: Bool?
+    let services: [String]?
+}
