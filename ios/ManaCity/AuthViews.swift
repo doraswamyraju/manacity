@@ -3,156 +3,181 @@ import SwiftUI
 struct LoginView: View {
     let onLoginSuccess: (String) -> Void
     let onNavigateToRegister: () -> Void
+    let onNavigateToHome: () -> Void
 
     @State private var email: String = ""
     @State private var password: String = ""
     @State private var errorMessage: String? = nil
     @State private var isLoading: Bool = false
 
-
     var body: some View {
         ZStack {
             Color.manaBackground.ignoresSafeArea()
 
-            ScrollView {
-                VStack(spacing: 24) {
-                    Spacer().frame(height: 20)
-
-                    // Logo & Header
-                    VStack(spacing: 12) {
-                        Image("LogoSquare")
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(maxWidth: 120, maxHeight: 120)
-                            .cornerRadius(16)
-
-                        Text("Welcome Back")
-                            .font(.system(size: 24, weight: .bold))
-                            .foregroundColor(.manaTextPrimary)
-                        Text("Sign in to manage your business growth & local leads")
-                            .font(.system(size: 13))
-                            .foregroundColor(.manaTextSecondary)
-                            .multilineTextAlignment(.center)
+            VStack(spacing: 0) {
+                // Top Navigation Bar with Back to Home
+                HStack {
+                    Button(action: onNavigateToHome) {
+                        HStack(spacing: 6) {
+                            Image(systemName: "chevron.left")
+                                .font(.system(size: 14, weight: .bold))
+                            Text("Home")
+                                .font(.system(size: 14, weight: .semibold))
+                        }
+                        .foregroundColor(.manaViolet)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(Color.manaViolet.opacity(0.1))
+                        .cornerRadius(20)
                     }
 
+                    Spacer()
 
-                    VStack(alignment: .leading, spacing: 16) {
-                        // Error Alert Banner
-                        if let error = errorMessage {
-                            HStack {
-                                Image(systemName: "exclamationmark.triangle.fill")
-                                    .foregroundColor(.red)
-                                Text(error)
-                                    .font(.system(size: 13))
-                                    .foregroundColor(.red)
-                            }
-                            .padding()
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .background(Color.red.opacity(0.1))
-                            .cornerRadius(10)
-                            .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.red.opacity(0.3), lineWidth: 1))
+                    Image("LogoHorizontal")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(height: 28)
+                }
+                .padding(.horizontal, 16)
+                .padding(.top, 8)
+                .padding(.bottom, 8)
+
+                ScrollView {
+                    VStack(spacing: 20) {
+                        // Header
+                        VStack(spacing: 8) {
+                            Image("LogoSquare")
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 90, height: 90)
+                                .cornerRadius(16)
+
+                            Text("Welcome Back")
+                                .font(.system(size: 24, weight: .bold))
+                                .foregroundColor(.manaTextPrimary)
+                            Text("Sign in to manage your business growth & local leads")
+                                .font(.system(size: 13))
+                                .foregroundColor(.manaTextSecondary)
+                                .multilineTextAlignment(.center)
                         }
+                        .padding(.top, 4)
 
-                        // Google / Gmail Sign In Button
-                        Button(action: {
-                            errorMessage = nil
-                            GoogleSignInManager.shared.signIn { result in
-                                switch result {
-                                case .success(let idToken):
-                                    performSocialLogin(token: idToken, provider: "google", email: nil, name: nil)
-                                case .failure(let error):
-                                    errorMessage = error.localizedDescription
+                        VStack(alignment: .leading, spacing: 16) {
+                            // Error Alert Banner
+                            if let error = errorMessage {
+                                HStack {
+                                    Image(systemName: "exclamationmark.triangle.fill")
+                                        .foregroundColor(.red)
+                                    Text(error)
+                                        .font(.system(size: 13))
+                                        .foregroundColor(.red)
                                 }
+                                .padding()
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .background(Color.red.opacity(0.1))
+                                .cornerRadius(10)
+                                .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.red.opacity(0.3), lineWidth: 1))
                             }
-                        }) {
-                            HStack(spacing: 8) {
-                                Image(systemName: "g.circle.fill")
-                                    .font(.system(size: 20))
-                                    .foregroundColor(.red)
-                                Text("Sign In with Google / Gmail")
-                                    .font(.system(size: 15, weight: .semibold))
+
+                            // Google / Gmail Sign In Button
+                            Button(action: {
+                                errorMessage = nil
+                                GoogleSignInManager.shared.signIn { result in
+                                    switch result {
+                                    case .success(let idToken):
+                                        performSocialLogin(token: idToken, provider: "google", email: nil, name: nil)
+                                    case .failure(let error):
+                                        errorMessage = error.localizedDescription
+                                    }
+                                }
+                            }) {
+                                HStack(spacing: 8) {
+                                    Image(systemName: "g.circle.fill")
+                                        .font(.system(size: 20))
+                                        .foregroundColor(.red)
+                                    Text("Sign In with Google / Gmail")
+                                        .font(.system(size: 15, weight: .semibold))
+                                        .foregroundColor(.manaTextPrimary)
+                                }
+                                .frame(maxWidth: .infinity)
+                                .frame(height: 48)
+                                .background(Color.white)
+                                .cornerRadius(10)
+                                .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.manaBorder, lineWidth: 1.5))
+                            }
+
+                            Text("⚡ Fast 1-Click Authentication")
+                                .font(.system(size: 11, weight: .bold))
+                                .foregroundColor(.manaViolet)
+                                .frame(maxWidth: .infinity, alignment: .center)
+
+                            // Divider
+                            HStack {
+                                Rectangle().frame(height: 1).foregroundColor(Color.manaBorder)
+                                Text("or sign in with email")
+                                    .font(.system(size: 12))
+                                    .foregroundColor(.manaTextSecondary)
+                                Rectangle().frame(height: 1).foregroundColor(Color.manaBorder)
+                            }
+                            .padding(.vertical, 2)
+
+                            // Form Inputs with High-Contrast Light Mode
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text("Email Address")
+                                    .font(.system(size: 13, weight: .semibold))
+                                    .foregroundColor(.manaTextPrimary)
+                                TextField("name@company.com", text: $email)
+                                    .keyboardType(.emailAddress)
+                                    .autocapitalization(.none)
+                                    .padding()
+                                    .background(Color.white)
+                                    .cornerRadius(10)
+                                    .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.manaBorder, lineWidth: 1.5))
                                     .foregroundColor(.manaTextPrimary)
                             }
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 48)
-                            .background(Color.manaSurfaceDark)
-                            .cornerRadius(10)
-                            .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.manaBorder, lineWidth: 1))
-                        }
 
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text("Password")
+                                    .font(.system(size: 13, weight: .semibold))
+                                    .foregroundColor(.manaTextPrimary)
+                                SecureField("••••••••", text: $password)
+                                    .padding()
+                                    .background(Color.white)
+                                    .cornerRadius(10)
+                                    .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.manaBorder, lineWidth: 1.5))
+                                    .foregroundColor(.manaTextPrimary)
+                            }
 
+                            ManaGradientButton(title: isLoading ? "Signing In..." : "Sign In") {
+                                if email.isEmpty || password.isEmpty {
+                                    errorMessage = "Please fill in all fields."
+                                } else {
+                                    errorMessage = nil
+                                    performEmailLogin()
+                                }
+                            }
+                            .padding(.top, 6)
 
-
-
-
-
-
-                        Text("⚡ Fast 1-Click Authentication")
-                            .font(.system(size: 11, weight: .bold))
-                            .foregroundColor(.manaViolet)
+                            // Navigate to Sign Up
+                            HStack {
+                                Text("Don't have an account?")
+                                    .font(.system(size: 14))
+                                    .foregroundColor(.manaTextSecondary)
+                                Button(action: onNavigateToRegister) {
+                                    Text("Sign Up")
+                                        .font(.system(size: 14, weight: .bold))
+                                        .foregroundColor(.manaTeal)
+                                }
+                            }
                             .frame(maxWidth: .infinity, alignment: .center)
-
-                        // Divider
-                        HStack {
-                            Rectangle().frame(height: 1).foregroundColor(.manaBorder.opacity(0.5))
-                            Text("or sign in with email")
-                                .font(.system(size: 12))
-                                .foregroundColor(.manaTextSecondary)
-                            Rectangle().frame(height: 1).foregroundColor(.manaBorder.opacity(0.5))
+                            .padding(.top, 4)
                         }
-                        .padding(.vertical, 4)
-
-                        // Form Inputs
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text("Email Address")
-                                .font(.system(size: 13, weight: .semibold))
-                                .foregroundColor(.manaTextPrimary)
-                            TextField("name@company.com", text: $email)
-                                .keyboardType(.emailAddress)
-                                .autocapitalization(.none)
-                                .padding()
-                                .background(Color.manaSurfaceDark)
-                                .cornerRadius(10)
-                                .foregroundColor(.manaTextPrimary)
-                        }
-
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text("Password")
-                                .font(.system(size: 13, weight: .semibold))
-                                .foregroundColor(.manaTextPrimary)
-                            SecureField("••••••••", text: $password)
-                                .padding()
-                                .background(Color.manaSurfaceDark)
-                                .cornerRadius(10)
-                                .foregroundColor(.manaTextPrimary)
-                        }
-
-                        ManaGradientButton(title: isLoading ? "Signing In..." : "Sign In") {
-                            if email.isEmpty || password.isEmpty {
-                                errorMessage = "Please fill in all fields."
-                            } else {
-                                errorMessage = nil
-                                performEmailLogin()
-                            }
-                        }
-                        .padding(.top, 8)
-
-                        // Navigate to Sign Up
-                        HStack {
-                            Text("Don't have an account?")
-                                .font(.system(size: 14))
-                                .foregroundColor(.manaTextSecondary)
-                            Button(action: onNavigateToRegister) {
-                                Text("Sign Up")
-                                    .font(.system(size: 14, weight: .bold))
-                                    .foregroundColor(.manaTeal)
-                            }
-                        }
-                        .frame(maxWidth: .infinity, alignment: .center)
-                        .padding(.top, 4)
+                        .padding(18)
+                        .background(Color.manaSurfaceDark)
+                        .cornerRadius(18)
+                        .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color.manaBorder, lineWidth: 1))
+                        .padding(.horizontal, 16)
                     }
-                    .manaGlassCard()
-                    .padding(.horizontal)
                 }
             }
         }
@@ -232,14 +257,12 @@ struct LoginView: View {
             }
         }.resume()
     }
-
-
-
 }
 
 struct RegisterView: View {
     let onRegisterSuccess: (String) -> Void
     let onNavigateToLogin: () -> Void
+    let onNavigateToHome: () -> Void
 
     @State private var role: String = "BUSINESS_OWNER"
     @State private var name: String = ""
@@ -253,181 +276,222 @@ struct RegisterView: View {
         ZStack {
             Color.manaBackground.ignoresSafeArea()
 
-            ScrollView {
-                VStack(spacing: 20) {
-                    Spacer().frame(height: 10)
-
-                    VStack(spacing: 8) {
-                        Image("LogoSquare")
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(maxWidth: 110, maxHeight: 110)
-                            .cornerRadius(16)
-
-                        Text("Create Your Account")
-                            .font(.system(size: 22, weight: .bold))
-                            .foregroundColor(.manaTextPrimary)
-                        Text("Join the local business directory & aggregator platform")
-                            .font(.system(size: 12))
-                            .foregroundColor(.manaTextSecondary)
+            VStack(spacing: 0) {
+                // Top Navigation Bar with Back to Home
+                HStack {
+                    Button(action: onNavigateToHome) {
+                        HStack(spacing: 6) {
+                            Image(systemName: "chevron.left")
+                                .font(.system(size: 14, weight: .bold))
+                            Text("Home")
+                                .font(.system(size: 14, weight: .semibold))
+                        }
+                        .foregroundColor(.manaViolet)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(Color.manaViolet.opacity(0.1))
+                        .cornerRadius(20)
                     }
 
+                    Spacer()
 
-                    VStack(alignment: .leading, spacing: 14) {
-                        HStack(spacing: 6) {
-                            Button(action: { role = "BUSINESS_OWNER" }) {
-                                HStack(spacing: 6) {
-                                    Image(systemName: "building.2.fill")
-                                        .font(.system(size: 12))
-                                    Text("Admin (Business Owner)")
-                                        .font(.system(size: 12, weight: .bold))
-                                }
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 10)
-                                .background(role == "BUSINESS_OWNER" ? Color.manaViolet : Color.clear)
-                                .foregroundColor(.white)
-                                .cornerRadius(8)
-                            }
+                    Image("LogoHorizontal")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(height: 28)
+                }
+                .padding(.horizontal, 16)
+                .padding(.top, 8)
+                .padding(.bottom, 8)
 
-                            Button(action: { role = "CUSTOMER" }) {
-                                HStack(spacing: 6) {
-                                    Image(systemName: "person.fill")
-                                        .font(.system(size: 12))
-                                    Text("Customer / End User")
-                                        .font(.system(size: 12, weight: .bold))
-                                }
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 10)
-                                .background(role == "CUSTOMER" ? Color.manaViolet : Color.clear)
-                                .foregroundColor(.white)
-                                .cornerRadius(8)
-                            }
-                        }
-                        .padding(4)
-                        .background(Color.manaBackground)
-                        .cornerRadius(10)
+                ScrollView {
+                    VStack(spacing: 20) {
+                        VStack(spacing: 8) {
+                            Image("LogoSquare")
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 80, height: 80)
+                                .cornerRadius(16)
 
-                        if let error = errorMessage {
-                            HStack {
-                                Image(systemName: "exclamationmark.triangle.fill")
-                                    .foregroundColor(.red)
-                                Text(error)
-                                    .font(.system(size: 13))
-                                    .foregroundColor(.red)
-                            }
-                            .padding()
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .background(Color.red.opacity(0.1))
-                            .cornerRadius(10)
-                        }
-
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text("Full Name *")
-                                .font(.system(size: 13, weight: .semibold))
+                            Text("Create Your Account")
+                                .font(.system(size: 22, weight: .bold))
                                 .foregroundColor(.manaTextPrimary)
-                            TextField("e.g. Doraswamy Raju", text: $name)
-                                .padding()
-                                .background(Color.manaSurfaceDark)
-                                .cornerRadius(10)
-                                .foregroundColor(.manaTextPrimary)
-                        }
-
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text("Email Address *")
-                                .font(.system(size: 13, weight: .semibold))
-                                .foregroundColor(.manaTextPrimary)
-                            TextField("name@company.com", text: $email)
-                                .keyboardType(.emailAddress)
-                                .autocapitalization(.none)
-                                .padding()
-                                .background(Color.manaSurfaceDark)
-                                .cornerRadius(10)
-                                .foregroundColor(.manaTextPrimary)
-                        }
-
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text("10-Digit Mobile Number *")
-                                .font(.system(size: 13, weight: .semibold))
-                                .foregroundColor(.manaTextPrimary)
-                            TextField("+91 98765 43210", text: $phone)
-                                .keyboardType(.phonePad)
-                                .padding()
-                                .background(Color.manaSurfaceDark)
-                                .cornerRadius(10)
-                                .foregroundColor(.manaTextPrimary)
-                        }
-
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text("Password *")
-                                .font(.system(size: 13, weight: .semibold))
-                                .foregroundColor(.manaTextPrimary)
-                            SecureField("At least 6 characters", text: $password)
-                                .padding()
-                                .background(Color.manaSurfaceDark)
-                                .cornerRadius(10)
-                                .foregroundColor(.manaTextPrimary)
-                        }
-
-                        ManaGradientButton(title: role == "BUSINESS_OWNER" ? "Sign Up as Business Admin" : "Sign Up as Customer") {
-                            if name.isEmpty || email.isEmpty || phone.isEmpty || password.isEmpty {
-                                errorMessage = "Please fill in all required fields including your mobile number."
-                            } else {
-                                errorMessage = nil
-                                performRegistration()
-                            }
-                        }
-                        .padding(.top, 6)
-
-                        HStack {
-                            Rectangle().frame(height: 1).foregroundColor(.manaBorder.opacity(0.5))
-                            Text("or continue with")
+                            Text("Join the local business directory & aggregator platform")
                                 .font(.system(size: 12))
                                 .foregroundColor(.manaTextSecondary)
-                            Rectangle().frame(height: 1).foregroundColor(.manaBorder.opacity(0.5))
                         }
 
-                        // Google Sign Up Button
-                        Button(action: {
-                            errorMessage = nil
-                            GoogleSignInManager.shared.signIn { result in
-                                switch result {
-                                case .success(let idToken):
-                                    performSocialRegistration(token: idToken, provider: "google", email: nil, name: nil)
-                                case .failure(let error):
-                                    errorMessage = error.localizedDescription
+                        VStack(alignment: .leading, spacing: 14) {
+                            HStack(spacing: 6) {
+                                Button(action: { role = "BUSINESS_OWNER" }) {
+                                    HStack(spacing: 6) {
+                                        Image(systemName: "building.2.fill")
+                                            .font(.system(size: 12))
+                                        Text("Business Owner")
+                                            .font(.system(size: 12, weight: .bold))
+                                    }
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 10)
+                                    .background(role == "BUSINESS_OWNER" ? Color.manaViolet : Color.manaBackground)
+                                    .foregroundColor(role == "BUSINESS_OWNER" ? .white : Color.manaTextSecondary)
+                                    .cornerRadius(8)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 8)
+                                            .stroke(role == "BUSINESS_OWNER" ? Color.manaViolet : Color.manaBorder, lineWidth: 1)
+                                    )
+                                }
+
+                                Button(action: { role = "CUSTOMER" }) {
+                                    HStack(spacing: 6) {
+                                        Image(systemName: "person.fill")
+                                            .font(.system(size: 12))
+                                        Text("Customer")
+                                            .font(.system(size: 12, weight: .bold))
+                                    }
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 10)
+                                    .background(role == "CUSTOMER" ? Color.manaViolet : Color.manaBackground)
+                                    .foregroundColor(role == "CUSTOMER" ? .white : Color.manaTextSecondary)
+                                    .cornerRadius(8)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 8)
+                                            .stroke(role == "CUSTOMER" ? Color.manaViolet : Color.manaBorder, lineWidth: 1)
+                                    )
                                 }
                             }
-                        }) {
-                            HStack(spacing: 8) {
-                                Image(systemName: "g.circle.fill")
-                                    .font(.system(size: 20))
-                                    .foregroundColor(.red)
-                                Text("Continue with Google / Gmail")
-                                    .font(.system(size: 14, weight: .semibold))
+                            .padding(4)
+                            .background(Color.manaBackground)
+                            .cornerRadius(10)
+
+                            if let error = errorMessage {
+                                HStack {
+                                    Image(systemName: "exclamationmark.triangle.fill")
+                                        .foregroundColor(.red)
+                                    Text(error)
+                                        .font(.system(size: 13))
+                                        .foregroundColor(.red)
+                                }
+                                .padding()
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .background(Color.red.opacity(0.1))
+                                .cornerRadius(10)
+                            }
+
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text("Full Name *")
+                                    .font(.system(size: 13, weight: .semibold))
+                                    .foregroundColor(.manaTextPrimary)
+                                TextField("e.g. Doraswamy Raju", text: $name)
+                                    .padding()
+                                    .background(Color.white)
+                                    .cornerRadius(10)
+                                    .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.manaBorder, lineWidth: 1.5))
                                     .foregroundColor(.manaTextPrimary)
                             }
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 44)
-                            .background(Color.manaSurfaceDark)
-                            .cornerRadius(10)
-                            .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.manaBorder, lineWidth: 1))
-                        }
 
-                        HStack {
-                            Text("Already registered?")
-                                .font(.system(size: 14))
-                                .foregroundColor(.manaTextSecondary)
-                            Button(action: onNavigateToLogin) {
-                                Text("Sign In Here")
-                                    .font(.system(size: 14, weight: .bold))
-                                    .foregroundColor(.manaTeal)
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text("Email Address *")
+                                    .font(.system(size: 13, weight: .semibold))
+                                    .foregroundColor(.manaTextPrimary)
+                                TextField("name@company.com", text: $email)
+                                    .keyboardType(.emailAddress)
+                                    .autocapitalization(.none)
+                                    .padding()
+                                    .background(Color.white)
+                                    .cornerRadius(10)
+                                    .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.manaBorder, lineWidth: 1.5))
+                                    .foregroundColor(.manaTextPrimary)
                             }
+
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text("10-Digit Mobile Number *")
+                                    .font(.system(size: 13, weight: .semibold))
+                                    .foregroundColor(.manaTextPrimary)
+                                TextField("+91 98765 43210", text: $phone)
+                                    .keyboardType(.phonePad)
+                                    .padding()
+                                    .background(Color.white)
+                                    .cornerRadius(10)
+                                    .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.manaBorder, lineWidth: 1.5))
+                                    .foregroundColor(.manaTextPrimary)
+                            }
+
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text("Password *")
+                                    .font(.system(size: 13, weight: .semibold))
+                                    .foregroundColor(.manaTextPrimary)
+                                SecureField("At least 6 characters", text: $password)
+                                    .padding()
+                                    .background(Color.white)
+                                    .cornerRadius(10)
+                                    .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.manaBorder, lineWidth: 1.5))
+                                    .foregroundColor(.manaTextPrimary)
+                            }
+
+                            ManaGradientButton(title: role == "BUSINESS_OWNER" ? "Sign Up as Business Admin" : "Sign Up as Customer") {
+                                if name.isEmpty || email.isEmpty || phone.isEmpty || password.isEmpty {
+                                    errorMessage = "Please fill in all required fields including your mobile number."
+                                } else {
+                                    errorMessage = nil
+                                    performRegistration()
+                                }
+                            }
+                            .padding(.top, 6)
+
+                            HStack {
+                                Rectangle().frame(height: 1).foregroundColor(Color.manaBorder)
+                                Text("or continue with")
+                                    .font(.system(size: 12))
+                                    .foregroundColor(.manaTextSecondary)
+                                Rectangle().frame(height: 1).foregroundColor(Color.manaBorder)
+                            }
+
+                            // Google Sign Up Button
+                            Button(action: {
+                                errorMessage = nil
+                                GoogleSignInManager.shared.signIn { result in
+                                    switch result {
+                                    case .success(let idToken):
+                                        performSocialRegistration(token: idToken, provider: "google", email: nil, name: nil)
+                                    case .failure(let error):
+                                        errorMessage = error.localizedDescription
+                                    }
+                                }
+                            }) {
+                                HStack(spacing: 8) {
+                                    Image(systemName: "g.circle.fill")
+                                        .font(.system(size: 20))
+                                        .foregroundColor(.red)
+                                    Text("Continue with Google / Gmail")
+                                        .font(.system(size: 14, weight: .semibold))
+                                        .foregroundColor(.manaTextPrimary)
+                                }
+                                .frame(maxWidth: .infinity)
+                                .frame(height: 44)
+                                .background(Color.white)
+                                .cornerRadius(10)
+                                .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.manaBorder, lineWidth: 1.5))
+                            }
+
+                            HStack {
+                                Text("Already registered?")
+                                    .font(.system(size: 14))
+                                    .foregroundColor(.manaTextSecondary)
+                                Button(action: onNavigateToLogin) {
+                                    Text("Sign In Here")
+                                        .font(.system(size: 14, weight: .bold))
+                                        .foregroundColor(.manaTeal)
+                                }
+                            }
+                            .frame(maxWidth: .infinity, alignment: .center)
+                            .padding(.top, 4)
                         }
-                        .frame(maxWidth: .infinity, alignment: .center)
-                        .padding(.top, 4)
+                        .padding(18)
+                        .background(Color.manaSurfaceDark)
+                        .cornerRadius(18)
+                        .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color.manaBorder, lineWidth: 1))
+                        .padding(.horizontal, 16)
                     }
-                    .manaGlassCard()
-                    .padding(.horizontal)
                 }
             }
         }
@@ -457,11 +521,11 @@ struct RegisterView: View {
 
                 if let errText = json["error"] as? String {
                     errorMessage = errText
-                } else if let userObj = json["user"] as? [String: Any], let assignedRole = userObj["role"] as? String {
+                } else if let userObj = json["user"] as? [String: Any], let role = userObj["role"] as? String {
                     if let token = json["token"] as? String {
                         UserDefaults.standard.set(token, forKey: "userToken")
                     }
-                    onRegisterSuccess(assignedRole)
+                    onRegisterSuccess(role)
                 } else {
                     errorMessage = "Registration failed. Please try again."
                 }
@@ -496,18 +560,15 @@ struct RegisterView: View {
 
                 if let errText = json["error"] as? String {
                     errorMessage = errText
-                } else if let userObj = json["user"] as? [String: Any], let assignedRole = userObj["role"] as? String {
+                } else if let userObj = json["user"] as? [String: Any], let role = userObj["role"] as? String {
                     if let token = json["token"] as? String {
                         UserDefaults.standard.set(token, forKey: "userToken")
                     }
-                    onRegisterSuccess(assignedRole)
+                    onRegisterSuccess(role)
                 } else {
-                    errorMessage = "\(provider.capitalized) sign-up failed."
+                    errorMessage = "\(provider.capitalized) registration failed."
                 }
             }
         }.resume()
     }
-
-
-
 }

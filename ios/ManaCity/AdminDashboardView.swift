@@ -1,11 +1,24 @@
 import SwiftUI
 
+struct UserProfileData: Codable {
+    let id: String?
+    let email: String?
+    let name: String?
+    let role: String?
+    let profilePicture: String?
+    let businessName: String?
+}
+
 struct AdminDashboardView: View {
     let onLogout: () -> Void
     let onNavigateToWizard: () -> Void
 
     @State private var selectedTab: Int = 0
-    let tabs = ["Overview", "LMS Leads", "Marketing", "Reviews", "Referrals"]
+    @State private var userProfile: UserProfileData? = nil
+    @State private var isLoadingProfile: Bool = true
+    @State private var errorMessage: String? = nil
+
+    let tabs = ["Overview", "Leads (LMS)", "Marketing", "Reviews & QR", "Referrals"]
 
     @State private var leads = [
         Lead(name: "Raju Sharma", phone: "+91 9888877777", source: "Meta Ads", status: "NEW", notes: "Interested in catering for 50 people", createdAt: "10 mins ago"),
@@ -14,56 +27,83 @@ struct AdminDashboardView: View {
     ]
 
     var body: some View {
-        ZStack {
+        ZStack(alignment: .bottom) {
             Color.manaBackground.ignoresSafeArea()
 
             VStack(spacing: 0) {
-                // Header Bar
-                HStack {
-                    VStack(alignment: .leading) {
-                        Text("ManaCity Business")
-                            .font(.system(size: 18, weight: .bold))
-                            .foregroundColor(.manaTextPrimary)
-                        Text("Grand Spice Restaurant")
-                            .font(.system(size: 12))
-                            .foregroundColor(.manaTeal)
-                    }
+                // MARK: - Top Navigation Bar with Logo
+                HStack(spacing: 12) {
+                    Image("LogoHorizontal")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(height: 32)
+
                     Spacer()
-                    Button(action: onNavigateToWizard) {
-                        Image(systemName: "gearshape.fill")
-                            .foregroundColor(.manaTextSecondary)
+
+                    VStack(alignment: .trailing, spacing: 2) {
+                        Text(userProfile?.businessName ?? userProfile?.name ?? "My Business")
+                            .font(.system(size: 13, weight: .bold))
+                            .foregroundColor(.manaTextPrimary)
+                            .lineLimit(1)
+                        Text(userProfile?.email ?? "Verified Owner")
+                            .font(.system(size: 11))
+                            .foregroundColor(.manaTeal)
+                            .lineLimit(1)
                     }
-                    Button(action: onLogout) {
+
+                    // Logout Button
+                    Button(action: {
+                        UserDefaults.standard.removeObject(forKey: "userToken")
+                        onLogout()
+                    }) {
                         Image(systemName: "rectangle.portrait.and.arrow.right")
+                            .font(.system(size: 16, weight: .bold))
                             .foregroundColor(.red)
+                            .padding(8)
+                            .background(Color.red.opacity(0.1))
+                            .clipShape(Circle())
                     }
                 }
-                .padding()
+                .padding(.horizontal, 16)
+                .padding(.top, 8)
+                .padding(.bottom, 10)
                 .background(Color.manaSurfaceDark)
+                .overlay(
+                    Rectangle()
+                        .frame(height: 1)
+                        .foregroundColor(Color.manaBorder),
+                    alignment: .bottom
+                )
 
-                // Navigation Segment Picker
+                // Navigation Segment Picker with High-Contrast Text
                 ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 12) {
+                    HStack(spacing: 8) {
                         ForEach(0..<tabs.count, id: \.self) { idx in
                             Button(action: { selectedTab = idx }) {
                                 Text(tabs[idx])
-                                    .font(.system(size: 13, weight: selectedTab == idx ? .bold : .regular))
+                                    .font(.system(size: 13, weight: selectedTab == idx ? .bold : .semibold))
                                     .padding(.horizontal, 14)
                                     .padding(.vertical, 8)
                                     .background(selectedTab == idx ? Color.manaViolet : Color.manaSurfaceDark)
-                                    .foregroundColor(.white)
-                                    .cornerRadius(12)
+                                    .foregroundColor(selectedTab == idx ? .white : Color.manaTextSecondary)
+                                    .cornerRadius(20)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 20)
+                                            .stroke(selectedTab == idx ? Color.manaViolet : Color.manaBorder, lineWidth: 1)
+                                    )
                             }
                         }
                     }
-                    .padding()
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 10)
                 }
+                .background(Color.manaBackground)
 
-                // Tab Contents
-                ScrollView {
+                // Tab Content Scroll Area
+                ScrollView(showsIndicators: false) {
                     VStack(spacing: 16) {
                         if selectedTab == 0 {
-                            OverviewSection()
+                            OverviewSection(user: userProfile)
                         } else if selectedTab == 1 {
                             LmsSection(leads: $leads)
                         } else if selectedTab == 2 {
@@ -71,19 +111,152 @@ struct AdminDashboardView: View {
                         } else if selectedTab == 3 {
                             ReviewSection()
                         } else {
-                            ReferralSection()
+                            ReferralSection(user: userProfile)
                         }
+
+                        // Bottom Spacing for Floating Tab Bar
+                        Spacer().frame(height: 85)
                     }
-                    .padding()
+                    .padding(.horizontal, 16)
+                    .padding(.top, 8)
                 }
             }
+
+            // MARK: - Bottom Navigation Bar
+            HStack(spacing: 0) {
+                // Tab 1: Overview
+                Button(action: { selectedTab = 0 }) {
+                    VStack(spacing: 4) {
+                        Image(systemName: "chart.pie.fill")
+                            .font(.system(size: 18))
+                        Text("Overview")
+                            .font(.system(size: 10, weight: .bold))
+                    }
+                    .foregroundColor(selectedTab == 0 ? .manaViolet : .manaTextSecondary)
+                    .frame(maxWidth: .infinity)
+                }
+
+                // Tab 2: LMS Leads
+                Button(action: { selectedTab = 1 }) {
+                    VStack(spacing: 4) {
+                        Image(systemName: "person.2.fill")
+                            .font(.system(size: 18))
+                        Text("Leads")
+                            .font(.system(size: 10, weight: .semibold))
+                    }
+                    .foregroundColor(selectedTab == 1 ? .manaViolet : .manaTextSecondary)
+                    .frame(maxWidth: .infinity)
+                }
+
+                // Tab 3: Center Action (Marketing / AI)
+                Button(action: { selectedTab = 2 }) {
+                    ZStack {
+                        Circle()
+                            .fill(LinearGradient(colors: [Color.manaViolet, Color.manaTeal], startPoint: .topLeading, endPoint: .bottomTrailing))
+                            .frame(width: 50, height: 50)
+                            .shadow(color: Color.manaViolet.opacity(0.35), radius: 6, y: 3)
+                        Image(systemName: "bolt.fill")
+                            .font(.system(size: 20, weight: .bold))
+                            .foregroundColor(.white)
+                    }
+                }
+                .offset(y: -12)
+                .frame(maxWidth: .infinity)
+
+                // Tab 4: Reviews & QR
+                Button(action: { selectedTab = 3 }) {
+                    VStack(spacing: 4) {
+                        Image(systemName: "qrcode.viewfinder")
+                            .font(.system(size: 18))
+                        Text("Reviews")
+                            .font(.system(size: 10, weight: .semibold))
+                    }
+                    .foregroundColor(selectedTab == 3 ? .manaViolet : .manaTextSecondary)
+                    .frame(maxWidth: .infinity)
+                }
+
+                // Tab 5: Referrals
+                Button(action: { selectedTab = 4 }) {
+                    VStack(spacing: 4) {
+                        Image(systemName: "gift.fill")
+                            .font(.system(size: 18))
+                        Text("Referrals")
+                            .font(.system(size: 10, weight: .semibold))
+                    }
+                    .foregroundColor(selectedTab == 4 ? .manaViolet : .manaTextSecondary)
+                    .frame(maxWidth: .infinity)
+                }
+            }
+            .padding(.horizontal, 8)
+            .padding(.top, 10)
+            .padding(.bottom, 22)
+            .background(Color.manaSurfaceDark.ignoresSafeArea(edges: .bottom))
+            .overlay(
+                Rectangle()
+                    .frame(height: 1)
+                    .foregroundColor(Color.manaBorder),
+                alignment: .top
+            )
         }
+        .onAppear {
+            fetchAuthenticatedUser()
+        }
+    }
+
+    private func fetchAuthenticatedUser() {
+        guard let token = UserDefaults.standard.string(forKey: "userToken") else { return }
+        guard let url = URL(string: "https://manacity.in/api/auth/me") else { return }
+
+        var req = URLRequest(url: url)
+        req.httpMethod = "GET"
+        req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+
+        URLSession.shared.dataTask(with: req) { data, response, error in
+            DispatchQueue.main.async {
+                self.isLoadingProfile = false
+                guard let data = data,
+                      let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                      let userData = json["user"] as? [String: Any] else { return }
+
+                self.userProfile = UserProfileData(
+                    id: userData["id"] as? String,
+                    email: userData["email"] as? String,
+                    name: userData["name"] as? String,
+                    role: userData["role"] as? String,
+                    profilePicture: userData["profilePicture"] as? String,
+                    businessName: userData["businessName"] as? String
+                )
+            }
+        }.resume()
     }
 }
 
 struct OverviewSection: View {
+    let user: UserProfileData?
+
     var body: some View {
         VStack(spacing: 14) {
+            // Welcome Card
+            HStack(spacing: 12) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Welcome back,")
+                        .font(.system(size: 13))
+                        .foregroundColor(.manaTextSecondary)
+                    Text(user?.name ?? "Business Owner")
+                        .font(.system(size: 18, weight: .black))
+                        .foregroundColor(.manaTextPrimary)
+                    Text(user?.email ?? "")
+                        .font(.system(size: 11))
+                        .foregroundColor(.manaTeal)
+                }
+                Spacer()
+                StatusBadge(status: "ACTIVE TIER")
+            }
+            .padding()
+            .background(Color.manaSurfaceDark)
+            .cornerRadius(16)
+            .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.manaBorder, lineWidth: 1))
+
             HStack(spacing: 12) {
                 StatCard(title: "Total Leads", value: "128", change: "+18%", color: .manaViolet)
                 StatCard(title: "Converted", value: "42", change: "32.8%", color: .manaEmerald)
@@ -105,7 +278,7 @@ struct StatCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(title)
-                .font(.system(size: 12))
+                .font(.system(size: 12, weight: .semibold))
                 .foregroundColor(.manaTextSecondary)
             Text(value)
                 .font(.system(size: 22, weight: .bold))
@@ -115,7 +288,10 @@ struct StatCard: View {
                 .foregroundColor(color)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .manaGlassCard()
+        .padding(14)
+        .background(Color.manaSurfaceDark)
+        .cornerRadius(14)
+        .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.manaBorder, lineWidth: 1))
     }
 }
 
@@ -153,7 +329,10 @@ struct LmsSection: View {
                             .foregroundColor(.manaTextSecondary)
                     }
                 }
-                .manaGlassCard()
+                .padding(14)
+                .background(Color.manaSurfaceDark)
+                .cornerRadius(14)
+                .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.manaBorder, lineWidth: 1))
             }
         }
     }
@@ -171,7 +350,10 @@ struct MarketingSection: View {
                     .foregroundColor(.manaTextSecondary)
                 ManaGradientButton(title: "Connect Facebook Page") {}
             }
-            .manaGlassCard()
+            .padding(16)
+            .background(Color.manaSurfaceDark)
+            .cornerRadius(16)
+            .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.manaBorder, lineWidth: 1))
         }
     }
 }
@@ -187,26 +369,34 @@ struct ReviewSection: View {
                     .font(.system(size: 12))
                     .foregroundColor(.manaTextSecondary)
             }
-            .manaGlassCard()
+            .padding(16)
+            .background(Color.manaSurfaceDark)
+            .cornerRadius(16)
+            .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.manaBorder, lineWidth: 1))
         }
     }
 }
 
 struct ReferralSection: View {
+    let user: UserProfileData?
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             VStack(alignment: .leading, spacing: 8) {
                 Text("Refer & Earn Program")
                     .font(.system(size: 18, weight: .bold))
                     .foregroundColor(.manaTextPrimary)
-                Text("Earn ₹500 for every business that joins using your code.")
+                Text("Earn ₹500 for every business that joins using your referral link.")
                     .font(.system(size: 13))
                     .foregroundColor(.manaTextSecondary)
-                Text("https://manacity.in/register?ref=SPICE500")
+                Text("https://manacity.in/register?ref=\(user?.id ?? "PRO500")")
                     .font(.system(size: 13, weight: .bold))
                     .foregroundColor(.manaTeal)
             }
-            .manaGlassCard()
+            .padding(16)
+            .background(Color.manaSurfaceDark)
+            .cornerRadius(16)
+            .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.manaBorder, lineWidth: 1))
         }
     }
 }

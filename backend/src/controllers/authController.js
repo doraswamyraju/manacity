@@ -124,15 +124,42 @@ exports.login = async (req, res) => {
 
 // 3. Get Authenticated User Details (Token Verification)
 exports.getMe = async (req, res) => {
-  res.json({
-    status: 'success',
-    user: {
-      id: req.user.id,
-      email: req.user.email,
-      name: req.user.name,
-      role: req.user.role
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: req.user.id },
+      include: {
+        businessGroups: {
+          include: {
+            locations: true,
+            subscription: true,
+            websites: true
+          }
+        }
+      }
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
     }
-  });
+
+    const firstBg = user.businessGroups && user.businessGroups.length > 0 ? user.businessGroups[0] : null;
+
+    res.json({
+      status: 'success',
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        profilePicture: user.profilePicture,
+        businessName: firstBg ? firstBg.name : `${user.name}'s Business`,
+        businessGroup: firstBg
+      }
+    });
+  } catch (error) {
+    console.error('getMe error:', error);
+    res.status(500).json({ error: 'Failed to retrieve profile' });
+  }
 };
 
 // 4. Google OAuth Authentication Endpoint

@@ -31,7 +31,8 @@ struct ContentView: View {
                         default: currentScreen = .adminDashboard
                         }
                     },
-                    onNavigateToRegister: { currentScreen = .register }
+                    onNavigateToRegister: { currentScreen = .register },
+                    onNavigateToHome: { currentScreen = .publicHome }
                 )
 
             case .register:
@@ -43,7 +44,8 @@ struct ContentView: View {
                         default: currentScreen = .adminDashboard
                         }
                     },
-                    onNavigateToLogin: { currentScreen = .login }
+                    onNavigateToLogin: { currentScreen = .login },
+                    onNavigateToHome: { currentScreen = .publicHome }
                 )
 
             case .adminDashboard:

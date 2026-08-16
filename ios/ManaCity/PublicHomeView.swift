@@ -204,8 +204,8 @@ struct PublicHomeView: View {
 
                                 Button(action: onNavigateToRegister) {
                                     Text("List Your Business")
-                                        .font(.system(size: 12, weight: .bold))
-                                        .foregroundColor(.manaBackground)
+                                        .font(.system(size: 12, weight: .black))
+                                        .foregroundColor(Color.manaViolet)
                                         .padding(.horizontal, 14)
                                         .padding(.vertical, 6)
                                         .background(Color.white)
