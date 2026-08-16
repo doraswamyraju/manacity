@@ -27,29 +27,42 @@ export default function PublicReviewLanding() {
 
   useEffect(() => {
     if (!uniqueQrId) {
-      setError('Invalid QR code link.');
+      setError('Invalid QR code scanner link.');
       setLoading(false);
       return;
     }
 
-    // 1. Increment Scan counter and resolve config
+    // 1. Increment Scan counter & resolve config
     axios.post(`/api/reviews/qrs/${uniqueQrId}/scan`)
-      .then(res => {
+      .then(async (res) => {
         setQrData(res.data.qr);
         setLocation(res.data.location);
         setLandingPage(res.data.landingPage);
 
-        // 2. Track request opened if request parameter exists
-        if (requestId) {
-          axios.put(`/api/reviews/requests/${requestId}`, { action: 'open' })
-            .catch(err => console.error('Failed to log request open event:', err));
+        let targetUrl = res.data.location?.googleReviewUrl || res.data.landingPage?.googleReviewUrl;
+
+        // 2. Increment redirect open counter
+        try {
+          const redirRes = await axios.post(`/api/reviews/qrs/${uniqueQrId}/redirect`);
+          if (redirRes.data && redirRes.data.redirectUrl) {
+            targetUrl = redirRes.data.redirectUrl;
+          }
+        } catch (err) {
+          console.warn('Failed to log redirect counter:', err);
         }
+
+        if (!targetUrl) {
+          targetUrl = 'https://google.com';
+        }
+
+        // 3. Directly redirect customer to official Google Review page immediately
+        window.location.replace(targetUrl);
       })
       .catch(err => {
         setError(err.response?.data?.error || 'Failed to scan or resolve QR code.');
-      })
-      .finally(() => setLoading(false));
-  }, [uniqueQrId, requestId]);
+        setLoading(false);
+      });
+  }, [uniqueQrId]);
 
   const handleRatingSelect = async (rating) => {
     setSelectedRating(rating);
@@ -133,11 +146,16 @@ export default function PublicReviewLanding() {
     }
   };
 
-  if (loading) {
+  if (loading || !error) {
     return (
       <div style={containerStyle}>
-        <div className="glass-card" style={cardStyle}>
-          <h3>Loading review landing page...</h3>
+        <div className="glass-card" style={{ ...cardStyle, textAlign: 'center', padding: '2.5rem' }}>
+          <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#fff', marginBottom: '0.5rem' }}>
+            Redirecting to Google Reviews...
+          </div>
+          <p style={{ fontSize: '0.9rem', color: '#94a3b8', margin: 0 }}>
+            Taking you directly to the official Google Business Profile review page.
+          </p>
         </div>
       </div>
     );
