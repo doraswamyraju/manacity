@@ -50,21 +50,55 @@ struct ContentView: View {
 
             case .adminDashboard:
                 AdminDashboardView(
-                    onLogout: { currentScreen = .publicHome },
+                    onLogout: {
+                        clearSession()
+                        currentScreen = .publicHome
+                    },
                     onNavigateToWizard: {}
                 )
 
             case .customerDashboard:
                 CustomerDashboardView(
-                    onLogout: { currentScreen = .publicHome }
+                    onLogout: {
+                        clearSession()
+                        currentScreen = .publicHome
+                    }
                 )
 
             case .superAdminConsole:
                 SuperAdminView(
-                    onLogout: { currentScreen = .publicHome }
+                    onLogout: {
+                        clearSession()
+                        currentScreen = .publicHome
+                    }
                 )
             }
         }
+        .onAppear {
+            checkExistingSession()
+        }
+    }
+
+    private func checkExistingSession() {
+        if let token = UserDefaults.standard.string(forKey: "userToken"), !token.isEmpty {
+            let role = UserDefaults.standard.string(forKey: "userRole") ?? "BUSINESS_OWNER"
+            switch role.uppercased() {
+            case "SUPER_ADMIN":
+                currentScreen = .superAdminConsole
+            case "CUSTOMER":
+                currentScreen = .customerDashboard
+            default:
+                currentScreen = .adminDashboard
+            }
+        }
+    }
+
+    private func clearSession() {
+        UserDefaults.standard.removeObject(forKey: "userToken")
+        UserDefaults.standard.removeObject(forKey: "userRole")
+        UserDefaults.standard.removeObject(forKey: "userEmail")
+        UserDefaults.standard.removeObject(forKey: "userName")
+        UserDefaults.standard.removeObject(forKey: "userBusinessName")
     }
 }
 
@@ -76,4 +110,3 @@ struct ManaCityApp: App {
         }
     }
 }
-
