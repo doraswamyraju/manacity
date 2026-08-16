@@ -52,7 +52,7 @@ function Login({ onAuthSuccess, onNavigateToRegister }) {
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 
       if (window.location.search.includes('mobile=1')) {
-        window.location.href = `/login?token=${token}&email=${encodeURIComponent(user.email)}`;
+        window.location.href = `/login?token=${token}&role=${encodeURIComponent(user.role)}&email=${encodeURIComponent(user.email)}`;
         return;
       }
 

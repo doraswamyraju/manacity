@@ -73,7 +73,7 @@ struct LoginView: View {
                             .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.manaBorder, lineWidth: 1))
                         }
                         .sheet(isPresented: $showGoogleSheet) {
-                            GoogleSignInWebSheet(url: URL(string: "https://manacity.in/api/auth/google-web")!) { token, role, email in
+                            GoogleSignInWebSheet(url: URL(string: "https://manacity.in/login?mobile=1")!) { token, role, email in
                                 if let token = token, !token.isEmpty {
                                     UserDefaults.standard.set(token, forKey: "userToken")
                                     let finalRole = role ?? "BUSINESS_OWNER"
@@ -410,7 +410,7 @@ struct RegisterView: View {
                             .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.manaBorder, lineWidth: 1))
                         }
                         .sheet(isPresented: $showGoogleSheet) {
-                            GoogleSignInWebSheet(url: URL(string: "https://manacity.in/api/auth/google-web")!) { token, role, email in
+                            GoogleSignInWebSheet(url: URL(string: "https://manacity.in/register?mobile=1")!) { token, role, email in
                                 if let token = token, !token.isEmpty {
                                     UserDefaults.standard.set(token, forKey: "userToken")
                                     let finalRole = role ?? "BUSINESS_OWNER"
