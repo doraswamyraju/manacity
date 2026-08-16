@@ -67,6 +67,11 @@ function Register({ onAuthSuccess, onNavigateToLogin }) {
       localStorage.setItem('user', JSON.stringify(user));
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 
+      if (window.location.search.includes('mobile=1')) {
+        window.location.href = `/register?token=${token}&email=${encodeURIComponent(user.email)}`;
+        return;
+      }
+
       onAuthSuccess(user);
     } catch (err) {
       setError(err.response?.data?.error || 'Google sign-in failed. Please try again.');

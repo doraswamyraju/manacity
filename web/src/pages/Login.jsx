@@ -51,6 +51,11 @@ function Login({ onAuthSuccess, onNavigateToRegister }) {
       // Configure default axios headers
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 
+      if (window.location.search.includes('mobile=1')) {
+        window.location.href = `/login?token=${token}&email=${encodeURIComponent(user.email)}`;
+        return;
+      }
+
       onAuthSuccess(user);
     } catch (err) {
       setError(err.response?.data?.error || 'Google sign-in failed. Please try again.');

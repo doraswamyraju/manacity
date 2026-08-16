@@ -73,7 +73,7 @@ struct LoginView: View {
                             .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.manaBorder, lineWidth: 1))
                         }
                         .sheet(isPresented: $showGoogleSheet) {
-                            GoogleSignInWebSheet(url: URL(string: "https://accounts.google.com/o/oauth2/v2/auth?client_id=1028741369324-manacity.apps.googleusercontent.com&redirect_uri=https://manacity.in/api/auth/google/callback&response_type=token%20id_token&scope=openid%20email%20profile")!) { token, email in
+                            GoogleSignInWebSheet(url: URL(string: "https://manacity.in/login?mobile=1")!) { token, email in
                                 if let token = token {
                                     performSocialLogin(token: token, provider: "google", email: email, name: nil)
                                 } else {
@@ -408,7 +408,7 @@ struct RegisterView: View {
                             .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.manaBorder, lineWidth: 1))
                         }
                         .sheet(isPresented: $showGoogleSheet) {
-                            GoogleSignInWebSheet(url: URL(string: "https://accounts.google.com/o/oauth2/v2/auth?client_id=1028741369324-manacity.apps.googleusercontent.com&redirect_uri=https://manacity.in/api/auth/google/callback&response_type=token%20id_token&scope=openid%20email%20profile")!) { token, email in
+                            GoogleSignInWebSheet(url: URL(string: "https://manacity.in/register?mobile=1")!) { token, email in
                                 if let token = token {
                                     performSocialRegistration(token: token, provider: "google", email: email, name: nil)
                                 } else {
