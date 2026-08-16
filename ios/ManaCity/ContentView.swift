@@ -94,12 +94,6 @@ struct ContentView: View {
             default:
                 currentScreen = .adminDashboard
             }
-        } else {
-            GoogleSignInManager.shared.restorePreviousSignIn { result in
-                if case .success(let idToken) = result {
-                    performBackendAuth(idToken: idToken)
-                }
-            }
         }
     }
 
