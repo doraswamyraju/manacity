@@ -84,6 +84,7 @@ struct ContentView: View {
     }
 
     private func checkExistingSession() {
+        // 1. Check local saved userToken
         if let token = UserDefaults.standard.string(forKey: "userToken"), !token.isEmpty {
             let role = UserDefaults.standard.string(forKey: "userRole") ?? "BUSINESS_OWNER"
             switch role.uppercased() {
@@ -93,6 +94,14 @@ struct ContentView: View {
                 currentScreen = .customerDashboard
             default:
                 currentScreen = .adminDashboard
+            }
+            return
+        }
+
+        // 2. Check if a saved Google session exists in Keychain
+        GoogleSignInManager.shared.restorePreviousSignIn { result in
+            if case .success(let idToken) = result {
+                performBackendAuth(idToken: idToken)
             }
         }
     }
@@ -130,7 +139,7 @@ struct ContentView: View {
     }
 
     private func clearSession() {
-        GoogleSignInManager.shared.signOut()
+        // Clear local ManaCity session without purging Google Keychain credentials
         UserDefaults.standard.removeObject(forKey: "userToken")
         UserDefaults.standard.removeObject(forKey: "userRole")
         UserDefaults.standard.removeObject(forKey: "userEmail")
