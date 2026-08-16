@@ -177,15 +177,17 @@ export default function Home({
         // 2. Google Places Autocomplete search
         let googleItems = [];
         try {
-          const gRes = await axios.get(`/api/phase1/google-places/autocomplete?input=${encodeURIComponent(query)}`);
+          const token = localStorage.getItem('userToken') || localStorage.getItem('token');
+          const headers = token ? { Authorization: `Bearer ${token}` } : {};
+          const gRes = await axios.get(`/api/phase1/google-places/autocomplete?input=${encodeURIComponent(query)}`, { headers });
           if (gRes.data?.predictions) {
             googleItems = gRes.data.predictions.slice(0, 4).map(p => ({
-              id: p.placeId,
+              id: p.placeId || p.place_id,
               businessName: p.name || p.description,
               address: p.description,
               category: 'Google Business Result',
               isVerifiedManaCity: false,
-              place_id: p.placeId
+              place_id: p.placeId || p.place_id
             }));
           }
         } catch (e) {

@@ -492,9 +492,17 @@ struct PublicHomeView: View {
                     }
                 }
 
+                // Immediately update suggestions with DB results so they are never blank
+                self.searchSuggestions = dbResults
+
                 // Query Google Places Autocomplete API
                 if let gUrl = URL(string: "https://manacity.in/api/phase1/google-places/autocomplete?input=\(encodedQuery)") {
-                    URLSession.shared.dataTask(with: gUrl) { gData, _, _ in
+                    var request = URLRequest(url: gUrl)
+                    if let token = UserDefaults.standard.string(forKey: "userToken"), !token.isEmpty {
+                        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+                    }
+
+                    URLSession.shared.dataTask(with: request) { gData, _, _ in
                         DispatchQueue.main.async {
                             self.isSearchingSuggestions = false
                             var combined = dbResults
