@@ -19,6 +19,32 @@ class GoogleSignInManager: NSObject, ASWebAuthenticationPresentationContextProvi
     }
     
     func signIn(completion: @escaping (Result<String, Error>) -> Void) {
+        // Step 1: Attempt silent authorization first (prompt=none) to bypass consent UI completely
+        let silentURLString = "https://accounts.google.com/o/oauth2/v2/auth?client_id=\(clientID)&redirect_uri=\(redirectURI)&response_type=code&scope=openid%20email%20profile&prompt=none"
+        
+        guard let silentURL = URL(string: silentURLString) else {
+            performInteractiveSignIn(completion: completion)
+            return
+        }
+        
+        let silentSession = ASWebAuthenticationSession(url: silentURL, callbackURLScheme: callbackScheme) { [weak self] callbackURL, error in
+            if let callbackURL = callbackURL,
+               let code = self?.extractQueryParam(from: callbackURL.absoluteString, param: "code") {
+                // Silent auth succeeded! Instant login without consent dialog!
+                self?.exchangeCodeForIDToken(code: code, completion: completion)
+                return
+            }
+            
+            // If silent auth fails or requires interactive consent, run standard flow
+            self?.performInteractiveSignIn(completion: completion)
+        }
+        
+        silentSession.presentationContextProvider = self
+        silentSession.prefersEphemeralWebBrowserSession = false
+        silentSession.start()
+    }
+
+    private func performInteractiveSignIn(completion: @escaping (Result<String, Error>) -> Void) {
         let authURLString = "https://accounts.google.com/o/oauth2/v2/auth?client_id=\(clientID)&redirect_uri=\(redirectURI)&response_type=code&scope=openid%20email%20profile"
         
         guard let authURL = URL(string: authURLString) else {
