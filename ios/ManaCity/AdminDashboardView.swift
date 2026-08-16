@@ -126,7 +126,7 @@ struct AdminDashboardView: View {
                         if selectedTab == 0 {
                             OverviewSection(user: userProfile, leads: leads, onSelectTab: { idx in selectedTab = idx })
                         } else if selectedTab == 1 {
-                            LmsSection(leads: $leads)
+                            LeadManagementView(leads: $leads)
                         } else if selectedTab == 2 {
                             ProductsAndServicesView()
                         } else if selectedTab == 3 {
