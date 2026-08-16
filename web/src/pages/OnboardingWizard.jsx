@@ -237,11 +237,11 @@ function StepBusinessInfo({ initialData, onNext, onAutoFill }) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', textAlign: 'left' }}>
-      <h3 style={{ fontSize: '1.4rem', fontWeight: 600, color: 'var(--accent-secondary)' }}>Step 1: Business Information & Google Places Import</h3>
+      <h3 style={{ fontSize: '1.35rem', fontWeight: 800, color: 'var(--text-primary, #0f172a)' }}>Step 1: Business Information & Google Places Import</h3>
       
       {/* Google Places 1-Click Auto Import Box */}
-      <div style={{ backgroundColor: 'rgba(99, 102, 241, 0.1)', border: '1px solid #6366f1', padding: '1rem', borderRadius: '10px', marginBottom: '0.5rem' }}>
-        <label style={{ fontSize: '0.85rem', fontWeight: 600, color: '#818cf8', display: 'block', marginBottom: '0.4rem' }}>
+      <div style={{ backgroundColor: 'rgba(2, 132, 199, 0.08)', border: '1.5px solid rgba(2, 132, 199, 0.35)', padding: '1.15rem', borderRadius: '12px', marginBottom: '0.5rem' }}>
+        <label style={{ fontSize: '0.85rem', fontWeight: 700, color: '#0284c7', display: 'block', marginBottom: '0.5rem' }}>
           ⚡ 1-Click Import from Google Places API
         </label>
         <div style={{ display: 'flex', gap: '0.5rem', position: 'relative' }}>
@@ -258,14 +258,14 @@ function StepBusinessInfo({ initialData, onNext, onAutoFill }) {
             }}
             onFocus={() => { if (placesQuery.trim().length >= 2) setShowDropdown(true); }}
             onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleGooglePlacesImport(); } }}
-            style={{ flex: 1, padding: '0.6rem', borderRadius: '6px', backgroundColor: '#0f172a', border: '1px solid rgba(255,255,255,0.2)', color: '#fff', fontSize: '0.85rem' }}
+            style={{ flex: 1, padding: '0.7rem 1rem', borderRadius: '8px', backgroundColor: 'var(--bg-primary, #ffffff)', border: '1.5px solid var(--border-color, #cbd5e1)', color: 'var(--text-primary, #0f172a)', fontSize: '0.9rem', outline: 'none' }}
           />
           <button
             type="button"
             className="btn btn-primary"
             onClick={handleGooglePlacesImport}
             disabled={importing}
-            style={{ backgroundColor: '#6366f1', fontSize: '0.85rem', padding: '0.6rem 1rem' }}
+            style={{ backgroundColor: '#0284c7', color: '#fff', fontSize: '0.85rem', padding: '0.7rem 1.25rem', borderRadius: '8px', fontWeight: 800, border: 'none', cursor: 'pointer' }}
           >
             {importing ? 'Importing...' : 'Auto-Import'}
           </button>
@@ -277,12 +277,12 @@ function StepBusinessInfo({ initialData, onNext, onAutoFill }) {
               top: '100%',
               left: 0,
               right: 0,
-              backgroundColor: '#0f172a',
-              border: '1px solid #6366f1',
-              borderRadius: '6px',
-              boxShadow: '0 12px 30px rgba(0,0,0,0.8)',
+              backgroundColor: 'var(--bg-secondary, #ffffff)',
+              border: '1.5px solid var(--border-color, #cbd5e1)',
+              borderRadius: '8px',
+              boxShadow: '0 12px 30px rgba(0,0,0,0.15)',
               zIndex: 9999,
-              marginTop: '4px',
+              marginTop: '6px',
               maxHeight: '250px',
               overflowY: 'auto'
             }}>
@@ -1202,10 +1202,10 @@ export default function OnboardingWizard({ onCompleteOnboarding, onCancel }) {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      backgroundColor: '#090d16',
+      backgroundColor: 'var(--bg-primary, #f8fafc)',
       padding: '2rem'
     }}>
-      <div className="glass-card" style={{ maxWidth: '650px', width: '100%', padding: '2.5rem' }}>
+      <div className="glass-card" style={{ maxWidth: '650px', width: '100%', padding: '2.5rem', backgroundColor: 'var(--bg-secondary, #ffffff)', border: '1px solid var(--border-color, #cbd5e1)', boxShadow: '0 8px 30px rgba(0,0,0,0.06)' }}>
         {/* Wizard Header */}
         <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
           <h2 style={{ fontSize: '1.8rem', fontWeight: 700, color: 'var(--text-primary)' }}>Business Onboarding</h2>
@@ -1289,10 +1289,10 @@ export default function OnboardingWizard({ onCompleteOnboarding, onCancel }) {
 // Styling Constants
 const inputStyle = {
   padding: '0.75rem 1rem',
-  backgroundColor: 'rgba(255, 255, 255, 0.03)',
-  border: '1px solid var(--border-color)',
-  borderRadius: 'var(--radius-sm)',
-  color: '#fff',
+  backgroundColor: 'var(--bg-primary, #ffffff)',
+  border: '1.5px solid var(--border-color, #cbd5e1)',
+  borderRadius: '8px',
+  color: 'var(--text-primary, #0f172a)',
   fontSize: '0.95rem',
   outline: 'none',
   fontFamily: 'var(--font-sans)',
@@ -1303,7 +1303,8 @@ const inputStyle = {
 const selectStyle = {
   ...inputStyle,
   cursor: 'pointer',
-  backgroundColor: '#0f172a'
+  backgroundColor: 'var(--bg-primary, #ffffff)',
+  color: 'var(--text-primary, #0f172a)'
 };
 
 const chipStyle = {

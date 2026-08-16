@@ -42,7 +42,9 @@ import {
   Mic,
   Sun,
   Moon,
-  Plus
+  Plus,
+  Globe,
+  Heart
 } from 'lucide-react';
 
 export default function Home({
