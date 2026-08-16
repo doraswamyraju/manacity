@@ -17,6 +17,9 @@
 		111111112222222233333338 /* AppleAuthHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 222222223333333344444448 /* AppleAuthHelper.swift */; };
 		111111112222222233333339 /* GoogleAuthHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 222222223333333344444449 /* GoogleAuthHelper.swift */; };
 		111111112222222233333340 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 222222223333333344444450 /* Assets.xcassets */; };
+		111111112222222233333341 /* SearchBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 222222223333333344444451 /* SearchBarView.swift */; };
+		111111112222222233333342 /* BusinessCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 222222223333333344444452 /* BusinessCardView.swift */; };
+		111111112222222233333343 /* ServicesSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 222222223333333344444453 /* ServicesSheetView.swift */; };
 		999999998888888877777772 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 999999998888888877777771 /* GoogleSignIn */; };
 /* End PBXBuildFile section */
 
@@ -32,6 +35,9 @@
 		222222223333333344444448 /* AppleAuthHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleAuthHelper.swift; sourceTree = "<group>"; };
 		222222223333333344444449 /* GoogleAuthHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoogleAuthHelper.swift; sourceTree = "<group>"; };
 		222222223333333344444450 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		222222223333333344444451 /* SearchBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchBarView.swift; sourceTree = "<group>"; };
+		222222223333333344444452 /* BusinessCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BusinessCardView.swift; sourceTree = "<group>"; };
+		222222223333333344444453 /* ServicesSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServicesSheetView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -67,6 +73,9 @@
 				222222223333333344444448 /* AppleAuthHelper.swift */,
 				222222223333333344444449 /* GoogleAuthHelper.swift */,
 				222222223333333344444450 /* Assets.xcassets */,
+				222222223333333344444451 /* SearchBarView.swift */,
+				222222223333333344444452 /* BusinessCardView.swift */,
+				222222223333333344444453 /* ServicesSheetView.swift */,
 			);
 			path = ManaCity;
 			sourceTree = "<group>";
@@ -163,6 +172,9 @@
 				111111112222222233333337 /* Theme.swift in Sources */,
 				111111112222222233333338 /* AppleAuthHelper.swift in Sources */,
 				111111112222222233333339 /* GoogleAuthHelper.swift in Sources */,
+				111111112222222233333341 /* SearchBarView.swift in Sources */,
+				111111112222222233333342 /* BusinessCardView.swift in Sources */,
+				111111112222222233333343 /* ServicesSheetView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
