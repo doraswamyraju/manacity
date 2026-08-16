@@ -8,7 +8,6 @@ struct LoginView: View {
     @State private var password: String = ""
     @State private var errorMessage: String? = nil
     @State private var isLoading: Bool = false
-    @State private var showGoogleSheet: Bool = false
 
 
     var body: some View {
@@ -56,7 +55,15 @@ struct LoginView: View {
 
                         // Google / Gmail Sign In Button
                         Button(action: {
-                            showGoogleSheet = true
+                            errorMessage = nil
+                            GoogleSignInManager.shared.signIn { result in
+                                switch result {
+                                case .success(let idToken):
+                                    performSocialLogin(token: idToken, provider: "google", email: nil, name: nil)
+                                case .failure(let error):
+                                    errorMessage = error.localizedDescription
+                                }
+                            }
                         }) {
                             HStack(spacing: 8) {
                                 Image(systemName: "g.circle.fill")
@@ -71,17 +78,6 @@ struct LoginView: View {
                             .background(Color.manaSurfaceDark)
                             .cornerRadius(10)
                             .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.manaBorder, lineWidth: 1))
-                        }
-                        .sheet(isPresented: $showGoogleSheet) {
-                            GoogleSignInWebSheet(url: URL(string: "https://manacity.in/login?mobile=1")!) { token, role, email in
-                                if let token = token, !token.isEmpty {
-                                    UserDefaults.standard.set(token, forKey: "userToken")
-                                    let finalRole = role ?? "BUSINESS_OWNER"
-                                    onLoginSuccess(finalRole)
-                                } else {
-                                    errorMessage = "Google sign-in was cancelled or failed."
-                                }
-                            }
                         }
 
 
@@ -252,7 +248,6 @@ struct RegisterView: View {
     @State private var password: String = ""
     @State private var errorMessage: String? = nil
     @State private var isLoading: Bool = false
-    @State private var showGoogleSheet: Bool = false
 
     var body: some View {
         ZStack {
@@ -393,7 +388,15 @@ struct RegisterView: View {
 
                         // Google Sign Up Button
                         Button(action: {
-                            showGoogleSheet = true
+                            errorMessage = nil
+                            GoogleSignInManager.shared.signIn { result in
+                                switch result {
+                                case .success(let idToken):
+                                    performSocialRegistration(token: idToken, provider: "google", email: nil, name: nil)
+                                case .failure(let error):
+                                    errorMessage = error.localizedDescription
+                                }
+                            }
                         }) {
                             HStack(spacing: 8) {
                                 Image(systemName: "g.circle.fill")
@@ -408,17 +411,6 @@ struct RegisterView: View {
                             .background(Color.manaSurfaceDark)
                             .cornerRadius(10)
                             .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.manaBorder, lineWidth: 1))
-                        }
-                        .sheet(isPresented: $showGoogleSheet) {
-                            GoogleSignInWebSheet(url: URL(string: "https://manacity.in/register?mobile=1")!) { token, role, email in
-                                if let token = token, !token.isEmpty {
-                                    UserDefaults.standard.set(token, forKey: "userToken")
-                                    let finalRole = role ?? "BUSINESS_OWNER"
-                                    onRegisterSuccess(finalRole)
-                                } else {
-                                    errorMessage = "Google registration was cancelled or failed."
-                                }
-                            }
                         }
 
                         HStack {
