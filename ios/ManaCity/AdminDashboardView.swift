@@ -130,7 +130,7 @@ struct AdminDashboardView: View {
                         } else if selectedTab == 2 {
                             ProductsAndServicesView()
                         } else if selectedTab == 3 {
-                            MarketingSection()
+                            MarketingHubView()
                         } else if selectedTab == 4 {
                             ReviewManagementView()
                         } else if selectedTab == 5 {
