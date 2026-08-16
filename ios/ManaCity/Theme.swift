@@ -91,20 +91,49 @@ struct ManaLogoView: View {
     var body: some View {
         Group {
             if type == .horizontal {
-                HStack(spacing: 6) {
-                    Image("LogoHorizontal")
+                if let uiImage = UIImage(named: "LogoHorizontal") {
+                    Image(uiImage: uiImage)
                         .resizable()
                         .renderingMode(.original)
                         .aspectRatio(contentMode: .fit)
                         .frame(height: height)
+                } else {
+                    // Fallback Branded Horizontal Logo View (100% visible on any iOS device/simulator)
+                    HStack(spacing: 8) {
+                        ZStack {
+                            RoundedRectangle(cornerRadius: height * 0.25)
+                                .fill(LinearGradient(colors: [.manaViolet, .manaTeal], startPoint: .topLeading, endPoint: .bottomTrailing))
+                                .frame(width: height, height: height)
+                            Text("M")
+                                .font(.system(size: height * 0.55, weight: .black))
+                                .foregroundColor(.white)
+                        }
+                        
+                        Text("ManaCity")
+                            .font(.system(size: height * 0.6, weight: .black))
+                            .foregroundColor(.manaTextPrimary)
+                    }
                 }
             } else {
-                Image("LogoSquare")
-                    .resizable()
-                    .renderingMode(.original)
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: height, height: height)
-                    .cornerRadius(8)
+                if let uiImage = UIImage(named: "LogoSquare") {
+                    Image(uiImage: uiImage)
+                        .resizable()
+                        .renderingMode(.original)
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: height, height: height)
+                        .cornerRadius(height * 0.2)
+                } else {
+                    // Fallback Branded Square Logo View (100% visible on any iOS device/simulator)
+                    ZStack {
+                        RoundedRectangle(cornerRadius: height * 0.22)
+                            .fill(LinearGradient(colors: [.manaViolet, .manaTeal], startPoint: .topLeading, endPoint: .bottomTrailing))
+                            .frame(width: height, height: height)
+                        
+                        Text("M")
+                            .font(.system(size: height * 0.5, weight: .black))
+                            .foregroundColor(.white)
+                    }
+                }
             }
         }
     }

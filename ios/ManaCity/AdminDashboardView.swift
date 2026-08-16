@@ -14,8 +14,15 @@ struct AdminDashboardView: View {
     let onNavigateToWizard: () -> Void
 
     @State private var selectedTab: Int = 0
-    @State private var userProfile: UserProfileData? = nil
-    @State private var isLoadingProfile: Bool = true
+    @State private var userProfile: UserProfileData? = UserProfileData(
+        id: nil,
+        email: UserDefaults.standard.string(forKey: "userEmail"),
+        name: UserDefaults.standard.string(forKey: "userName"),
+        role: UserDefaults.standard.string(forKey: "userRole"),
+        profilePicture: nil,
+        businessName: UserDefaults.standard.string(forKey: "userBusinessName")
+    )
+    @State private var isLoadingProfile: Bool = false
     @State private var errorMessage: String? = nil
 
     let tabs = ["Overview", "Leads (LMS)", "Marketing", "Reviews & QR", "Referrals"]

@@ -204,6 +204,10 @@ struct LoginView: View {
                     if let token = json["token"] as? String {
                         UserDefaults.standard.set(token, forKey: "userToken")
                     }
+                    UserDefaults.standard.set(userObj["email"] as? String ?? "", forKey: "userEmail")
+                    UserDefaults.standard.set(userObj["name"] as? String ?? "", forKey: "userName")
+                    UserDefaults.standard.set(role, forKey: "userRole")
+                    UserDefaults.standard.set(userObj["businessName"] as? String ?? "\(userObj["name"] as? String ?? "User")'s Business", forKey: "userBusinessName")
                     onLoginSuccess(role)
                 } else {
                     errorMessage = "Authentication failed. Please check your credentials."
@@ -243,6 +247,10 @@ struct LoginView: View {
                     if let token = json["token"] as? String {
                         UserDefaults.standard.set(token, forKey: "userToken")
                     }
+                    UserDefaults.standard.set(userObj["email"] as? String ?? "", forKey: "userEmail")
+                    UserDefaults.standard.set(userObj["name"] as? String ?? "", forKey: "userName")
+                    UserDefaults.standard.set(role, forKey: "userRole")
+                    UserDefaults.standard.set(userObj["businessName"] as? String ?? "\(userObj["name"] as? String ?? "User")'s Business", forKey: "userBusinessName")
                     onLoginSuccess(role)
                 } else {
                     errorMessage = "\(provider.capitalized) authentication failed."
