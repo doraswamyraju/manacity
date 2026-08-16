@@ -9,7 +9,6 @@ router.post('/login', authController.login);
 router.post('/google', authController.googleAuth);
 router.get('/google', authController.googleAuthGet);
 router.get('/google-web', authController.googleAuthWeb);
-router.get('/google/callback', authController.googleAuthCallback);
 router.post('/apple', authController.appleAuth);
 router.get('/me', auth, authController.getMe);
 

@@ -379,6 +379,10 @@ exports.googleAuthWeb = (req, res) => {
   `);
 };
 
+exports.googleAuthCallback = (req, res) => {
+  return res.status(200).send('OK');
+};
+
 // 4b. Apple OAuth Authentication Endpoint
 exports.appleAuth = async (req, res) => {
   try {
