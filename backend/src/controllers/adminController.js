@@ -123,13 +123,6 @@ exports.updateUserRole = async (req, res) => {
 exports.getBusinesses = async (req, res) => {
   try {
     const rawBusinesses = await prisma.businessGroup.findMany({
-      where: {
-        owner: {
-          role: {
-            not: 'CUSTOMER'
-          }
-        }
-      },
       include: {
         owner: {
           select: { id: true, name: true, email: true, role: true }
@@ -179,6 +172,13 @@ exports.updateBusinessStatus = async (req, res) => {
 exports.deleteBusiness = async (req, res) => {
   try {
     const { id } = req.params;
+
+    // Delete associated directory listing, locations, leads, websites, subscriptions
+    await prisma.directoryListing.deleteMany({ where: { businessGroupId: id } }).catch(() => {});
+    await prisma.location.deleteMany({ where: { businessGroupId: id } }).catch(() => {});
+    await prisma.lead.deleteMany({ where: { businessGroupId: id } }).catch(() => {});
+    await prisma.website.deleteMany({ where: { businessGroupId: id } }).catch(() => {});
+    await prisma.subscription.deleteMany({ where: { businessGroupId: id } }).catch(() => {});
 
     await prisma.businessGroup.delete({
       where: { id }

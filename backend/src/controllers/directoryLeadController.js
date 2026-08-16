@@ -65,8 +65,8 @@ exports.searchDirectoryListings = async (req, res) => {
       }
     });
 
-    // Filter out orphaned listings or businesses with 0 active locations
-    listings = listings.filter(l => l.businessGroup && l.businessGroup.locations && l.businessGroup.locations.length > 0);
+    // Filter out orphaned listings or disabled businesses
+    listings = listings.filter(l => l.businessGroup && l.businessGroup.status !== 'DISABLED');
 
     if (query) {
       const q = query.toLowerCase();
