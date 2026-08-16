@@ -224,59 +224,102 @@ struct PublicHomeView: View {
                             .padding(.horizontal, 16)
 
                             ScrollView(.horizontal, showsIndicators: false) {
-                                HStack(spacing: 14) {
+                                HStack(spacing: 16) {
                                     ForEach(displayBusinesses, id: \.slug) { b in
                                         Button(action: { onSelectBusiness(b) }) {
-                                            VStack(alignment: .leading, spacing: 8) {
-                                                ZStack(alignment: .topTrailing) {
-                                                    RoundedRectangle(cornerRadius: 14)
-                                                        .fill(Color.manaSurfaceDark)
-                                                        .frame(width: 170, height: 100)
-                                                        .overlay(
-                                                            Image(systemName: "building.2.crop.circle.fill")
-                                                                .font(.system(size: 40))
-                                                                .foregroundColor(.manaTeal.opacity(0.6))
-                                                        )
-
-                                                    HStack(spacing: 3) {
-                                                        Image(systemName: "star.fill")
-                                                            .font(.system(size: 10))
-                                                            .foregroundColor(.yellow)
-                                                        Text(String(format: "%.1f", b.rating))
-                                                            .font(.system(size: 11, weight: .bold))
-                                                            .foregroundColor(.white)
+                                            VStack(alignment: .leading, spacing: 0) {
+                                                // Top Banner with Category & Rating Badges
+                                                ZStack(alignment: .top) {
+                                                    ZStack {
+                                                        LinearGradient(colors: [Color.manaViolet.opacity(0.8), Color.blue.opacity(0.8)], startPoint: .topLeading, endPoint: .bottomTrailing)
+                                                        Image(systemName: b.category.contains("Clinic") ? "cross.case.fill" : b.category.contains("Digital") ? "laptopcomputer" : "building.2.fill")
+                                                            .font(.system(size: 40))
+                                                            .foregroundColor(.white.opacity(0.25))
                                                     }
-                                                    .padding(.horizontal, 6)
-                                                    .padding(.vertical, 3)
-                                                    .background(Color.black.opacity(0.7))
-                                                    .cornerRadius(8)
-                                                    .padding(8)
+                                                    .frame(width: 220, height: 110)
+                                                    .clipped()
+
+                                                    HStack {
+                                                        Text(b.category)
+                                                            .font(.system(size: 10, weight: .bold))
+                                                            .foregroundColor(.blue)
+                                                            .padding(.horizontal, 8)
+                                                            .padding(.vertical, 4)
+                                                            .background(Color.white)
+                                                            .cornerRadius(12)
+
+                                                        Spacer()
+
+                                                        HStack(spacing: 3) {
+                                                            Image(systemName: "star.fill")
+                                                                .font(.system(size: 9))
+                                                                .foregroundColor(.yellow)
+                                                            Text(String(format: "%.1f", b.rating))
+                                                                .font(.system(size: 10, weight: .bold))
+                                                                .foregroundColor(.white)
+                                                        }
+                                                        .padding(.horizontal, 7)
+                                                        .padding(.vertical, 4)
+                                                        .background(Color.black.opacity(0.65))
+                                                        .cornerRadius(12)
+                                                    }
+                                                    .padding(10)
                                                 }
+                                                .frame(width: 220, height: 110)
 
-                                                Text(b.name)
-                                                    .font(.system(size: 13, weight: .bold))
-                                                    .foregroundColor(.manaTextPrimary)
-                                                    .lineLimit(1)
+                                                // Overlapping Logo Avatar & Details
+                                                VStack(alignment: .leading, spacing: 8) {
+                                                    HStack(alignment: .bottom) {
+                                                        ZStack(alignment: .bottomTrailing) {
+                                                            Circle()
+                                                                .fill(LinearGradient(colors: [.manaTeal.opacity(0.2), .manaViolet.opacity(0.2)], startPoint: .topLeading, endPoint: .bottomTrailing))
+                                                                .frame(width: 48, height: 48)
+                                                                .overlay(
+                                                                    Text(b.name.prefix(2).uppercased())
+                                                                        .font(.system(size: 16, weight: .black))
+                                                                        .foregroundColor(.manaTeal)
+                                                                )
+                                                                .overlay(Circle().stroke(Color.white, lineWidth: 2.5))
+                                                                .shadow(color: Color.black.opacity(0.12), radius: 4, y: 2)
 
-                                                Text(b.category)
-                                                    .font(.system(size: 11))
-                                                    .foregroundColor(.manaTextSecondary)
+                                                            Image(systemName: "checkmark.seal.fill")
+                                                                .font(.system(size: 14))
+                                                                .foregroundColor(.green)
+                                                                .background(Circle().fill(Color.white))
+                                                                .offset(x: 2, y: 2)
+                                                        }
+                                                        .offset(y: -20)
 
-                                                HStack {
-                                                    Text("Verified")
-                                                        .font(.system(size: 10, weight: .semibold))
-                                                        .foregroundColor(.green)
-                                                    Spacer()
-                                                    Text(b.city)
-                                                        .font(.system(size: 10))
+                                                        Spacer()
+                                                    }
+                                                    .frame(height: 28)
+
+                                                    Text(b.name)
+                                                        .font(.system(size: 14, weight: .bold))
+                                                        .foregroundColor(.manaTextPrimary)
+                                                        .lineLimit(1)
+
+                                                    Text(b.address)
+                                                        .font(.system(size: 11))
                                                         .foregroundColor(.manaTextSecondary)
+                                                        .lineLimit(2)
+
+                                                    HStack {
+                                                        Text("Verified Listing")
+                                                            .font(.system(size: 10, weight: .bold))
+                                                            .foregroundColor(.green)
+                                                        Spacer()
+                                                        Text(b.city)
+                                                            .font(.system(size: 10))
+                                                            .foregroundColor(.manaTextSecondary)
+                                                    }
                                                 }
+                                                .padding(12)
                                             }
-                                            .frame(width: 170)
-                                            .padding(10)
+                                            .frame(width: 220)
                                             .background(Color.manaSurfaceDark)
-                                            .cornerRadius(16)
-                                            .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.manaBorder, lineWidth: 1))
+                                            .cornerRadius(18)
+                                            .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color.manaBorder, lineWidth: 1.5))
                                         }
                                     }
                                 }

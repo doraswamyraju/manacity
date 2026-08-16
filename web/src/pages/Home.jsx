@@ -797,140 +797,213 @@ export default function Home({
           </div>
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '1.25rem' }}>
-            {listings.map(item => (
-              <div key={item.id} style={{
-                backgroundColor: 'var(--bg-secondary)',
-                borderRadius: '14px',
-                padding: '1.35rem',
-                border: item.isSponsored ? '1px solid rgba(251, 191, 36, 0.4)' : '1px solid var(--border-color)',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between',
-                boxShadow: '0 4px 15px rgba(0, 0, 0, 0.05)',
-                position: 'relative'
-              }}>
-                {item.isSponsored && (
+            {listings.map(item => {
+              const bannerImg = item.coverImage || item.banner || (
+                (item.category || '').toLowerCase().includes('digital') ? 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&auto=format&fit=crop&q=80' :
+                (item.category || '').toLowerCase().includes('clinic') || (item.category || '').toLowerCase().includes('health') ? 'https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=600&auto=format&fit=crop&q=80' :
+                (item.category || '').toLowerCase().includes('restaurant') || (item.category || '').toLowerCase().includes('food') ? 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&auto=format&fit=crop&q=80' :
+                'https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&auto=format&fit=crop&q=80'
+              );
+
+              return (
+                <div key={item.id} style={{
+                  backgroundColor: 'var(--bg-secondary)',
+                  borderRadius: '20px',
+                  border: '1px solid var(--border-color)',
+                  overflow: 'hidden',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05)',
+                  position: 'relative'
+                }}>
+                  {/* Top Banner Image with Badges */}
                   <div style={{
-                    position: 'absolute',
-                    top: '-10px',
-                    right: '15px',
-                    backgroundColor: '#fbbf24',
-                    color: '#0f172a',
-                    padding: '0.2rem 0.6rem',
-                    borderRadius: '10px',
-                    fontSize: '0.7rem',
-                    fontWeight: 800,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.25rem'
+                    position: 'relative',
+                    height: '135px',
+                    width: '100%',
+                    backgroundImage: `url(${bannerImg})`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center'
                   }}>
-                    <Pin size={12} /> SPONSORED
-                  </div>
-                )}
+                    <div style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.12)' }} />
+                    
+                    {/* Category Pill at Top Left */}
+                    <span style={{
+                      position: 'absolute',
+                      top: '12px',
+                      left: '12px',
+                      fontSize: '0.74rem',
+                      fontWeight: 800,
+                      padding: '0.25rem 0.75rem',
+                      borderRadius: '20px',
+                      backgroundColor: '#eff6ff',
+                      color: '#3b82f6',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
+                    }}>
+                      {item.category}
+                    </span>
 
-                <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.65rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                      <span style={{ fontSize: '0.75rem', fontWeight: 700, padding: '0.2rem 0.55rem', borderRadius: '6px', backgroundColor: 'rgba(99, 102, 241, 0.12)', color: '#6366f1' }}>
-                        {item.category}
-                      </span>
-                      {item.verified && (
-                        <span style={{ fontSize: '0.75rem', fontWeight: 700, padding: '0.2rem 0.55rem', borderRadius: '6px', backgroundColor: 'rgba(2, 132, 199, 0.12)', color: '#0284c7', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
-                          <ShieldCheck size={13} /> Verified
-                        </span>
-                      )}
-                    </div>
-
-                    <div 
+                    {/* Rating Pill at Top Right */}
+                    <div
                       onClick={() => {
                         const reviewsUrl = item.googleReviewsUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.businessName + ' ' + (item.address || 'Tirupati'))}`;
                         window.open(reviewsUrl, '_blank');
                       }}
-                      style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', backgroundColor: 'rgba(234, 179, 8, 0.15)', padding: '0.2rem 0.5rem', borderRadius: '6px', color: '#d97706', fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer' }}
-                      title="Click to view live Google Reviews"
-                    >
-                      <Star size={13} fill="#d97706" />
-                      {item.rating} ({item.reviewCount})
-                      <ExternalLink size={11} color="#d97706" />
-                    </div>
-                  </div>
-
-                  <h3
-                    onClick={() => {
-                      const manacityUrl = item.subdomain
-                        ? `https://${item.subdomain}.manacity.in`
-                        : `/site/${item.slug || 'kumar-shirts'}`;
-                      window.open(manacityUrl, '_blank');
-                    }}
-                    style={{ fontSize: '1.15rem', fontWeight: 800, marginBottom: '0.35rem', color: 'var(--text-primary)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
-                    title="Click to open business website"
-                  >
-                    {item.businessName}
-                    <span
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        const extUrl = item.websiteUrl || (item.subdomain
-                          ? `https://${item.subdomain}.manacity.in`
-                          : `/site/${item.slug || 'kumar-shirts'}`);
-                        window.open(extUrl, '_blank');
+                      style={{
+                        position: 'absolute',
+                        top: '12px',
+                        right: '12px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.25rem',
+                        backgroundColor: '#fff',
+                        padding: '0.25rem 0.65rem',
+                        borderRadius: '20px',
+                        color: '#d97706',
+                        fontSize: '0.78rem',
+                        fontWeight: 800,
+                        cursor: 'pointer',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
                       }}
-                      style={{ display: 'inline-flex', alignItems: 'center', cursor: 'pointer' }}
-                      title="Open external website"
                     >
-                      <ExternalLink size={14} color="#0284c7" />
-                    </span>
-                  </h3>
+                      <Star size={12} fill="#d97706" />
+                      {item.rating} ({item.reviewCount})
+                      <ExternalLink size={10} color="#d97706" />
+                    </div>
 
-                  <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.85rem' }}>
-                    <MapPin size={14} color="var(--text-muted)" />
-                    {item.address}
-                  </p>
+                    {/* Circular Logo Badge Overlapping Banner */}
+                    <div style={{
+                      position: 'absolute',
+                      bottom: '-24px',
+                      left: '20px',
+                      width: '62px',
+                      height: '62px',
+                      borderRadius: '50%',
+                      border: '3px solid #ffffff',
+                      boxShadow: '0 4px 14px rgba(0,0,0,0.18)',
+                      backgroundColor: '#ffffff',
+                      zIndex: 3
+                    }}>
+                      {item.logo || item.logoUrl || item.profilePicture ? (
+                        <img src={item.logo || item.logoUrl || item.profilePicture} alt={item.businessName} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+                      ) : (item.category || '').toLowerCase().includes('clinic') || (item.category || '').toLowerCase().includes('health') || (item.category || '').toLowerCase().includes('lab') ? (
+                        <div style={{ width: '100%', height: '100%', borderRadius: '50%', backgroundColor: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M12 2v20M2 12h20M7 7l10 10M17 7L7 17" />
+                          </svg>
+                        </div>
+                      ) : (
+                        <div style={{
+                          width: '100%',
+                          height: '100%',
+                          borderRadius: '50%',
+                          background: 'linear-gradient(135deg, #f0fdf4 0%, #e0f2fe 100%)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontWeight: 900,
+                          fontSize: '1.3rem',
+                          color: '#0d9488',
+                          letterSpacing: '-0.5px'
+                        }}>
+                          {(() => {
+                            const name = item.businessName || 'MC';
+                            const parts = name.trim().split(' ');
+                            if (parts.length >= 2) return (parts[0].charAt(0) + parts[1].charAt(0)).toUpperCase();
+                            return name.substring(0, 2).toUpperCase();
+                          })()}
+                        </div>
+                      )}
 
-                  <div style={{ marginBottom: '1.1rem' }}>
-                    <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.35rem', fontWeight: 600 }}>Products & Services:</span>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem' }}>
-                      {item.services && item.services.map((svc, idx) => (
-                        <span key={idx} style={{ fontSize: '0.74rem', backgroundColor: 'var(--bg-tertiary)', color: 'var(--text-primary)', padding: '0.2rem 0.5rem', borderRadius: '4px', border: '1px solid var(--border-color)' }}>
-                          {svc}
-                        </span>
-                      ))}
+                      {/* Green Verified Checkmark Badge */}
+                      <div style={{
+                        position: 'absolute',
+                        bottom: '0px',
+                        right: '0px',
+                        backgroundColor: '#10b981',
+                        borderRadius: '50%',
+                        width: '18px',
+                        height: '18px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        border: '2px solid #ffffff'
+                      }}>
+                        <Check size={10} color="#ffffff" strokeWidth={3.5} />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Card Content Body */}
+                  <div style={{ padding: '32px 1.25rem 1.25rem 1.25rem', display: 'flex', flexDirection: 'column', flexGrow: 1, justifyContent: 'space-between' }}>
+                    <div>
+                      <h3
+                        onClick={() => {
+                          const manacityUrl = item.subdomain
+                            ? `https://${item.subdomain}.manacity.in`
+                            : `/site/${item.slug || 'kumar-shirts'}`;
+                          window.open(manacityUrl, '_blank');
+                        }}
+                        style={{ fontSize: '1.15rem', fontWeight: 800, marginBottom: '0.4rem', color: 'var(--text-primary)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.4rem', lineHeight: 1.3 }}
+                      >
+                        {item.businessName}
+                        <ExternalLink size={14} color="#0284c7" />
+                      </h3>
+
+                      <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'flex-start', gap: '0.4rem', marginBottom: '0.9rem', lineHeight: 1.4 }}>
+                        <MapPin size={14} color="var(--text-muted)" style={{ flexShrink: 0, marginTop: '2px' }} />
+                        {item.address}
+                      </p>
+
+                      <div style={{ marginBottom: '1.1rem' }}>
+                        <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.35rem', fontWeight: 600 }}>Products & Services:</span>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem' }}>
+                          {item.services && item.services.map((svc, idx) => (
+                            <span key={idx} style={{ fontSize: '0.74rem', backgroundColor: 'var(--bg-tertiary)', color: 'var(--text-primary)', padding: '0.2rem 0.55rem', borderRadius: '6px', border: '1px solid var(--border-color)', fontWeight: 600 }}>
+                              {svc}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                        <button onClick={() => handleCallClick(item)} className="btn" style={{ backgroundColor: '#10b981', color: '#fff', fontSize: '0.82rem', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem', padding: '0.55rem', borderRadius: '10px', border: 'none', cursor: 'pointer' }}>
+                          <Phone size={14} /> Call Now
+                        </button>
+                        <button onClick={() => handleWhatsAppClick(item)} className="btn" style={{ backgroundColor: '#25d366', color: '#fff', fontSize: '0.82rem', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem', padding: '0.55rem', borderRadius: '10px', border: 'none', cursor: 'pointer' }}>
+                          <MessageSquare size={14} /> WhatsApp
+                        </button>
+                      </div>
+
+                      <button
+                        onClick={() => setSelectedLeadModal(item)}
+                        style={{
+                          width: '100%',
+                          padding: '0.65rem',
+                          borderRadius: '10px',
+                          backgroundColor: '#eef2ff',
+                          border: '1px solid #c7d2fe',
+                          color: '#4f46e5',
+                          fontSize: '0.88rem',
+                          fontWeight: 800,
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '0.4rem'
+                        }}
+                      >
+                        <Zap size={16} /> Get Best Quote
+                      </button>
                     </div>
                   </div>
                 </div>
-
-                <div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginBottom: '0.75rem' }}>
-                    <button onClick={() => handleCallClick(item)} className="btn" style={{ backgroundColor: '#10b981', color: '#fff', fontSize: '0.82rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem', padding: '0.5rem', borderRadius: '8px', border: 'none', cursor: 'pointer' }}>
-                      <Phone size={14} /> Call Now
-                    </button>
-                    <button onClick={() => handleWhatsAppClick(item)} className="btn" style={{ backgroundColor: '#25d366', color: '#fff', fontSize: '0.82rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem', padding: '0.5rem', borderRadius: '8px', border: 'none', cursor: 'pointer' }}>
-                      <MessageSquare size={14} /> WhatsApp
-                    </button>
-                  </div>
-
-                  <button
-                    onClick={() => setSelectedLeadModal(item)}
-                    style={{
-                      width: '100%',
-                      padding: '0.6rem',
-                      borderRadius: '8px',
-                      backgroundColor: 'rgba(99, 102, 241, 0.1)',
-                      border: '1px solid rgba(99, 102, 241, 0.35)',
-                      color: '#6366f1',
-                      fontSize: '0.88rem',
-                      fontWeight: 800,
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '0.4rem'
-                    }}
-                  >
-                    <Zap size={16} /> Get Best Quote
-                  </button>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </section>

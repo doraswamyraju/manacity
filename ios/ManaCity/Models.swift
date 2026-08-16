@@ -22,6 +22,8 @@ struct Business: Codable, Identifiable {
     var isVerified: Bool = true
     var isClaimed: Bool = true
     var description: String
+    var logoUrl: String? = nil
+    var coverImage: String? = nil
 }
 
 struct Lead: Codable, Identifiable {
