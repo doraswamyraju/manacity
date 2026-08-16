@@ -84,14 +84,16 @@ exports.searchDirectoryListings = async (req, res) => {
       category: l.category || 'General Business',
       city: l.city,
       slug: l.slug,
+      subdomain: l.businessGroup ? (l.businessGroup.subdomain || l.slug) : l.slug,
       rating: (l.reviews && l.reviews.rating) ? l.reviews.rating : (l.rating || 4.9),
       reviewCount: (l.reviews && l.reviews.reviewCount) ? l.reviews.reviewCount : (l.reviewCount || 63),
-
-
-      phone: l.contactPhone || '9876543210',
-      whatsApp: l.whatsAppNumber || '9876543210',
-      address: l.businessGroup ? l.businessGroup.address : 'Tirupati',
-      websiteUrl: l.websiteUrl || `https://${l.slug}.manacity.in`,
+      phone: l.contactPhone || (l.businessGroup ? l.businessGroup.mobileNumber : '9876543210'),
+      whatsApp: l.whatsAppNumber || (l.businessGroup ? l.businessGroup.whatsAppNumber : '9876543210'),
+      address: l.businessGroup ? (l.businessGroup.address || l.businessGroup.city) : 'Tirupati',
+      websiteUrl: l.websiteUrl || (l.businessGroup ? l.businessGroup.website : null),
+      logoUrl: l.businessGroup ? l.businessGroup.logoUrl : null,
+      coverImage: l.businessGroup ? l.businessGroup.coverImageUrl : null,
+      verified: l.businessGroup ? (l.businessGroup.isVerified !== false) : true,
       isOpenNow: true,
       services: l.businessGroup && l.businessGroup.services ? l.businessGroup.services.map(s => s.name) : ['SEO Optimization', 'Google Ads Management', 'GBP Optimization', 'Meta Ads']
     }));

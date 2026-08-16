@@ -777,14 +777,40 @@ export default function Home({
       </section>
 
       {/* 3. Top Verified Business Listings Grid (Moved right below Hero & above Categories) */}
+      {/* 3. Top Verified Listings Section (Horizontal Auto-Scroll Carousel) */}
       <section style={{ padding: '1.5rem 2rem 2.5rem 2rem', maxWidth: '1280px', margin: '0 auto', width: '100%' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
           <h2 style={{ fontSize: '1.35rem', fontWeight: 800, color: 'var(--text-primary)' }}>
             Top Verified Listings in <span style={{ color: 'var(--accent-primary)', textTransform: 'capitalize' }}>{selectedCity}</span>
           </h2>
-          <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-            Showing {listings.length} Results
-          </span>
+          
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+              Showing {listings.length} Results
+            </span>
+            <div style={{ display: 'flex', gap: '0.4rem' }}>
+              <button
+                onClick={() => {
+                  const el = document.getElementById('top-verified-carousel');
+                  if (el) el.scrollBy({ left: -340, behavior: 'smooth' });
+                }}
+                style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-primary)' }}
+                title="Scroll Left"
+              >
+                ◀
+              </button>
+              <button
+                onClick={() => {
+                  const el = document.getElementById('top-verified-carousel');
+                  if (el) el.scrollBy({ left: 340, behavior: 'smooth' });
+                }}
+                style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-primary)' }}
+                title="Scroll Right"
+              >
+                ▶
+              </button>
+            </div>
+          </div>
         </div>
 
         {loading ? (
@@ -797,27 +823,53 @@ export default function Home({
             <p style={{ color: 'var(--text-secondary)', marginTop: '0.5rem', fontSize: '0.9rem' }}>Try searching another category or city.</p>
           </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '1.25rem' }}>
+          <div
+            id="top-verified-carousel"
+            style={{
+              display: 'flex',
+              overflowX: 'auto',
+              gap: '1.25rem',
+              paddingBottom: '1rem',
+              scrollBehavior: 'smooth',
+              scrollbarWidth: 'none',
+              msOverflowStyle: 'none'
+            }}
+          >
             {listings.map(item => {
-              const bannerImg = item.coverImage || item.banner || (
+              const bannerImg = item.coverImage || item.banner || item.coverImageUrl || (
                 (item.category || '').toLowerCase().includes('digital') ? 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&auto=format&fit=crop&q=80' :
                 (item.category || '').toLowerCase().includes('clinic') || (item.category || '').toLowerCase().includes('health') ? 'https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=600&auto=format&fit=crop&q=80' :
                 (item.category || '').toLowerCase().includes('restaurant') || (item.category || '').toLowerCase().includes('food') ? 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&auto=format&fit=crop&q=80' :
                 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&auto=format&fit=crop&q=80'
               );
 
+              const manacityProfileUrl = item.subdomain
+                ? `https://${item.subdomain}.manacity.in`
+                : `/site/${item.slug || 'kumar-shirts'}`;
+
               return (
-                <div key={item.id} style={{
-                  backgroundColor: 'var(--bg-secondary)',
-                  borderRadius: '20px',
-                  border: '1px solid var(--border-color)',
-                  overflow: 'hidden',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'space-between',
-                  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05)',
-                  position: 'relative'
-                }}>
+                <div
+                  key={item.id}
+                  onClick={() => window.open(manacityProfileUrl, '_blank')}
+                  style={{
+                    minWidth: '340px',
+                    maxWidth: '340px',
+                    backgroundColor: 'var(--bg-secondary)',
+                    borderRadius: '20px',
+                    border: '1px solid var(--border-color)',
+                    overflow: 'hidden',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05)',
+                    position: 'relative',
+                    cursor: 'pointer',
+                    flexShrink: 0,
+                    transition: 'transform 0.2s ease, boxShadow 0.2s ease'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-4px)'}
+                  onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+                >
                   {/* Top Banner Image with Badges */}
                   <div style={{
                     position: 'relative',
@@ -829,25 +881,54 @@ export default function Home({
                   }}>
                     <div style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.12)' }} />
                     
-                    {/* Category Pill at Top Left */}
-                    <span style={{
-                      position: 'absolute',
-                      top: '12px',
-                      left: '12px',
-                      fontSize: '0.74rem',
-                      fontWeight: 800,
-                      padding: '0.25rem 0.75rem',
-                      borderRadius: '20px',
-                      backgroundColor: '#eff6ff',
-                      color: '#3b82f6',
-                      boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
-                    }}>
-                      {item.category}
-                    </span>
+                    {/* Category & Verified Badges at Top Left */}
+                    <div style={{ position: 'absolute', top: '12px', left: '12px', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                      <span style={{
+                        fontSize: '0.74rem',
+                        fontWeight: 800,
+                        padding: '0.25rem 0.75rem',
+                        borderRadius: '20px',
+                        backgroundColor: '#eff6ff',
+                        color: '#3b82f6',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
+                      }}>
+                        {item.category}
+                      </span>
+
+                      {item.verified !== false ? (
+                        <span style={{
+                          fontSize: '0.72rem',
+                          fontWeight: 800,
+                          padding: '0.25rem 0.65rem',
+                          borderRadius: '20px',
+                          backgroundColor: '#10b981',
+                          color: '#ffffff',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '0.2rem',
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
+                        }}>
+                          <ShieldCheck size={12} /> Verified
+                        </span>
+                      ) : (
+                        <span style={{
+                          fontSize: '0.72rem',
+                          fontWeight: 800,
+                          padding: '0.25rem 0.65rem',
+                          borderRadius: '20px',
+                          backgroundColor: '#f59e0b',
+                          color: '#ffffff',
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
+                        }}>
+                          Unverified
+                        </span>
+                      )}
+                    </div>
 
                     {/* Rating Pill at Top Right */}
                     <div
-                      onClick={() => {
+                      onClick={(e) => {
+                        e.stopPropagation();
                         const reviewsUrl = item.googleReviewsUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.businessName + ' ' + (item.address || 'Tirupati'))}`;
                         window.open(reviewsUrl, '_blank');
                       }}
@@ -918,38 +999,43 @@ export default function Home({
                       )}
 
                       {/* Green Verified Checkmark Badge */}
-                      <div style={{
-                        position: 'absolute',
-                        bottom: '0px',
-                        right: '0px',
-                        backgroundColor: '#10b981',
-                        borderRadius: '50%',
-                        width: '18px',
-                        height: '18px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        border: '2px solid #ffffff'
-                      }}>
-                        <Check size={10} color="#ffffff" strokeWidth={3.5} />
-                      </div>
+                      {item.verified !== false && (
+                        <div style={{
+                          position: 'absolute',
+                          bottom: '0px',
+                          right: '0px',
+                          backgroundColor: '#10b981',
+                          borderRadius: '50%',
+                          width: '18px',
+                          height: '18px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          border: '2px solid #ffffff'
+                        }}>
+                          <Check size={10} color="#ffffff" strokeWidth={3.5} />
+                        </div>
+                      )}
                     </div>
                   </div>
 
                   {/* Card Content Body */}
                   <div style={{ padding: '32px 1.25rem 1.25rem 1.25rem', display: 'flex', flexDirection: 'column', flexGrow: 1, justifyContent: 'space-between' }}>
                     <div>
-                      <h3
-                        onClick={() => {
-                          const manacityUrl = item.subdomain
-                            ? `https://${item.subdomain}.manacity.in`
-                            : `/site/${item.slug || 'kumar-shirts'}`;
-                          window.open(manacityUrl, '_blank');
-                        }}
-                        style={{ fontSize: '1.15rem', fontWeight: 800, marginBottom: '0.4rem', color: 'var(--text-primary)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.4rem', lineHeight: 1.3 }}
-                      >
+                      <h3 style={{ fontSize: '1.15rem', fontWeight: 800, marginBottom: '0.4rem', color: 'var(--text-primary)', display: 'inline-flex', alignItems: 'center', gap: '0.4rem', lineHeight: 1.3 }}>
                         {item.businessName}
-                        <ExternalLink size={14} color="#0284c7" />
+                        {item.websiteUrl && (
+                          <span
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              window.open(item.websiteUrl, '_blank');
+                            }}
+                            title="Open external website"
+                            style={{ display: 'inline-flex', cursor: 'pointer' }}
+                          >
+                            <ExternalLink size={14} color="#0284c7" />
+                          </span>
+                        )}
                       </h3>
 
                       <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'flex-start', gap: '0.4rem', marginBottom: '0.9rem', lineHeight: 1.4 }}>
@@ -970,7 +1056,7 @@ export default function Home({
                     </div>
 
                     {/* Action Buttons */}
-                    <div>
+                    <div onClick={(e) => e.stopPropagation()}>
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginBottom: '0.75rem' }}>
                         <button onClick={() => handleCallClick(item)} className="btn" style={{ backgroundColor: '#10b981', color: '#fff', fontSize: '0.82rem', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem', padding: '0.55rem', borderRadius: '10px', border: 'none', cursor: 'pointer' }}>
                           <Phone size={14} /> Call Now
