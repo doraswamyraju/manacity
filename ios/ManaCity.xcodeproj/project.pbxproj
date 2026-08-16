@@ -25,6 +25,7 @@
 		111111112222222233333346 /* ReviewManagementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 222222223333333344444456 /* ReviewManagementView.swift */; };
 		111111112222222233333347 /* WebsiteBuilderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 222222223333333344444457 /* WebsiteBuilderView.swift */; };
 		111111112222222233333348 /* LocationsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 222222223333333344444458 /* LocationsView.swift */; };
+		111111112222222233333353 /* ProductsAndServicesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 222222223333333344444463 /* ProductsAndServicesView.swift */; };
 		111111112222222233333349 /* PrivacyAndTermsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 222222223333333344444459 /* PrivacyAndTermsView.swift */; };
 		111111112222222233333360 /* CustomerDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 222222223333333344444470 /* CustomerDashboardView.swift */; };
 		111111112222222233333361 /* SuperAdminConsoleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 222222223333333344444471 /* SuperAdminConsoleView.swift */; };
@@ -50,6 +51,7 @@
 		222222223333333344444456 /* ReviewManagementView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewManagementView.swift; sourceTree = "<group>"; };
 		222222223333333344444457 /* WebsiteBuilderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebsiteBuilderView.swift; sourceTree = "<group>"; };
 		222222223333333344444458 /* LocationsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationsView.swift; sourceTree = "<group>"; };
+		222222223333333344444463 /* ProductsAndServicesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProductsAndServicesView.swift; sourceTree = "<group>"; };
 		222222223333333344444459 /* PrivacyAndTermsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyAndTermsView.swift; sourceTree = "<group>"; };
 		222222223333333344444470 /* CustomerDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomerDashboardView.swift; sourceTree = "<group>"; };
 		222222223333333344444471 /* SuperAdminConsoleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SuperAdminConsoleView.swift; sourceTree = "<group>"; };
@@ -96,6 +98,7 @@
 				222222223333333344444456 /* ReviewManagementView.swift */,
 				222222223333333344444457 /* WebsiteBuilderView.swift */,
 				222222223333333344444458 /* LocationsView.swift */,
+				222222223333333344444463 /* ProductsAndServicesView.swift */,
 				222222223333333344444459 /* PrivacyAndTermsView.swift */,
 				222222223333333344444470 /* CustomerDashboardView.swift */,
 				222222223333333344444471 /* SuperAdminConsoleView.swift */,
@@ -202,6 +205,7 @@
 				111111112222222233333346 /* ReviewManagementView.swift in Sources */,
 				111111112222222233333347 /* WebsiteBuilderView.swift in Sources */,
 				111111112222222233333348 /* LocationsView.swift in Sources */,
+				111111112222222233333353 /* ProductsAndServicesView.swift in Sources */,
 				111111112222222233333349 /* PrivacyAndTermsView.swift in Sources */,
 				111111112222222233333360 /* CustomerDashboardView.swift in Sources */,
 				111111112222222233333361 /* SuperAdminConsoleView.swift in Sources */,

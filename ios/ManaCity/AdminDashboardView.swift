@@ -31,7 +31,7 @@ struct AdminDashboardView: View {
     @State private var showTermsModal: Bool = false
     @State private var showDeleteAccountModal: Bool = false
 
-    let tabs = ["Overview", "Leads (LMS)", "Marketing", "Reviews & QR", "Website Builder", "Locations", "Referrals"]
+    let tabs = ["Overview", "Leads (LMS)", "Products & Services", "Marketing", "Reviews & QR", "Website Builder", "Locations", "Referrals"]
 
     @State private var leads: [Lead] = []
 
@@ -128,12 +128,14 @@ struct AdminDashboardView: View {
                         } else if selectedTab == 1 {
                             LmsSection(leads: $leads)
                         } else if selectedTab == 2 {
-                            MarketingSection()
+                            ProductsAndServicesView()
                         } else if selectedTab == 3 {
-                            ReviewManagementView()
+                            MarketingSection()
                         } else if selectedTab == 4 {
-                            WebsiteBuilderView()
+                            ReviewManagementView()
                         } else if selectedTab == 5 {
+                            WebsiteBuilderView()
+                        } else if selectedTab == 6 {
                             LocationsView()
                         } else {
                             ReferralSection(user: userProfile)
