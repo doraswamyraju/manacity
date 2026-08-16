@@ -83,19 +83,14 @@ struct PublicHomeView: View {
                         .overlay(RoundedRectangle(cornerRadius: 20).stroke(Color.manaBorder, lineWidth: 1))
                     }
 
-                    // Sign In Icon Button in Top Bar
+                    // Sign In Icon Button in Top Bar (Icon Only)
                     Button(action: onNavigateToLogin) {
-                        HStack(spacing: 4) {
-                            Image(systemName: "person.crop.circle.badge.plus")
-                                .font(.system(size: 16, weight: .semibold))
-                            Text("Sign In")
-                                .font(.system(size: 12, weight: .bold))
-                        }
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 6)
-                        .background(Color.manaViolet)
-                        .cornerRadius(16)
+                        Image(systemName: "person.crop.circle.badge.plus")
+                            .font(.system(size: 18, weight: .bold))
+                            .foregroundColor(.manaViolet)
+                            .padding(8)
+                            .background(Color.manaViolet.opacity(0.12))
+                            .clipShape(Circle())
                     }
                 }
                 .padding(.horizontal, 16)
@@ -108,106 +103,88 @@ struct PublicHomeView: View {
                     VStack(alignment: .leading, spacing: 18) {
                         // Hero Header
                         VStack(alignment: .leading, spacing: 4) {
-                            HStack(spacing: 6) {
-                                Text("Find everything")
-                                    .font(.system(size: 26, weight: .black))
-                                    .foregroundColor(.manaTextPrimary)
-                            }
-                            HStack(spacing: 6) {
-                                Text("near you in")
-                                    .font(.system(size: 26, weight: .black))
-                                    .foregroundColor(.manaTextPrimary)
-                                Text(selectedCity)
-                                    .font(.system(size: 26, weight: .black))
-                                    .foregroundColor(.red)
-                            }
-                            Text("Trusted local businesses, services & instant quotes in one place.")
-                                .font(.system(size: 13))
+                            Text("Find everything near you in")
+                                .font(.system(size: 14, weight: .medium))
                                 .foregroundColor(.manaTextSecondary)
+                            HStack(spacing: 6) {
+                                Text(selectedCity)
+                                    .font(.system(size: 24, weight: .black))
+                                    .foregroundColor(.manaViolet)
+                                Image(systemName: "chevron.down")
+                                    .font(.system(size: 14, weight: .bold))
+                                    .foregroundColor(.manaViolet)
+                            }
+                            .onTapGesture {
+                                showCityPicker = true
+                            }
                         }
                         .padding(.horizontal, 16)
-                        .padding(.top, 6)
 
                         // Search Bar
                         HStack(spacing: 10) {
                             Image(systemName: "magnifyingglass")
-                                .foregroundColor(.manaViolet)
-                                .font(.system(size: 16, weight: .bold))
-
-                            TextField("Search electricians, doctors, restaurants...", text: $searchQuery)
+                                .foregroundColor(.manaTextSecondary)
+                            TextField("Search restaurants, doctors, services...", text: $searchQuery)
                                 .font(.system(size: 14))
                                 .foregroundColor(.manaTextPrimary)
+                            if !searchQuery.isEmpty {
+                                Button(action: { searchQuery = "" }) {
+                                    Image(systemName: "xmark.circle.fill")
+                                        .foregroundColor(.manaTextSecondary)
+                                }
+                            }
                         }
                         .padding(.horizontal, 14)
                         .padding(.vertical, 12)
                         .background(Color.manaSurfaceDark)
                         .cornerRadius(14)
-                        .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.manaBorder, lineWidth: 1.5))
+                        .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.manaBorder, lineWidth: 1))
                         .padding(.horizontal, 16)
 
                         // Quick Categories Grid
-                        ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(spacing: 12) {
-                                ForEach(quickCategories, id: \.name) { cat in
-                                    Button(action: {
-                                        selectedCategory = cat.name
-                                        showServicesSheet = true
-                                    }) {
-                                        VStack(spacing: 6) {
-                                            ZStack {
-                                                Circle()
-                                                    .fill(cat.color.opacity(0.12))
-                                                    .frame(width: 48, height: 48)
-                                                Image(systemName: cat.icon)
-                                                    .font(.system(size: 20))
-                                                    .foregroundColor(cat.color)
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("Categories")
+                                .font(.system(size: 16, weight: .bold))
+                                .foregroundColor(.manaTextPrimary)
+
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                HStack(spacing: 12) {
+                                    ForEach(quickCategories, id: \.name) { cat in
+                                        Button(action: {
+                                            selectedCategory = (selectedCategory == cat.name) ? "All" : cat.name
+                                        }) {
+                                            VStack(spacing: 8) {
+                                                ZStack {
+                                                    Circle()
+                                                        .fill(cat.color.opacity(0.12))
+                                                        .frame(width: 48, height: 48)
+                                                    Image(systemName: cat.icon)
+                                                        .font(.system(size: 20))
+                                                        .foregroundColor(cat.color)
+                                                }
+                                                Text(cat.name)
+                                                    .font(.system(size: 11, weight: selectedCategory == cat.name ? .bold : .medium))
+                                                    .foregroundColor(selectedCategory == cat.name ? cat.color : .manaTextPrimary)
                                             }
-                                            Text(cat.name)
-                                                .font(.system(size: 11, weight: .semibold))
-                                                .foregroundColor(.manaTextPrimary)
+                                            .padding(.vertical, 8)
+                                            .padding(.horizontal, 10)
+                                            .background(selectedCategory == cat.name ? cat.color.opacity(0.1) : Color.manaSurfaceDark)
+                                            .cornerRadius(14)
+                                            .overlay(
+                                                RoundedRectangle(cornerRadius: 14)
+                                                    .stroke(selectedCategory == cat.name ? cat.color : Color.manaBorder, lineWidth: 1)
+                                            )
                                         }
-                                        .frame(width: 72)
                                     }
                                 }
                             }
-                            .padding(.horizontal, 16)
                         }
-
-                        // Banner Promotion Card
-                        HStack {
-                            VStack(alignment: .leading, spacing: 6) {
-                                Text("Grow Your Business 10x")
-                                    .font(.system(size: 16, weight: .bold))
-                                    .foregroundColor(.white)
-                                Text("Get verified leads & your own smart website in Tirupati.")
-                                    .font(.system(size: 12))
-                                    .foregroundColor(.white.opacity(0.85))
-
-                                Button(action: onNavigateToRegister) {
-                                    Text("List Your Business")
-                                        .font(.system(size: 12, weight: .black))
-                                        .foregroundColor(Color.manaViolet)
-                                        .padding(.horizontal, 14)
-                                        .padding(.vertical, 6)
-                                        .background(Color.white)
-                                        .cornerRadius(12)
-                                }
-                                .padding(.top, 4)
-                            }
-
-                            Spacer()
-
-                            ManaLogoView(type: .square, height: 60)
-                        }
-                        .padding(16)
-                        .background(LinearGradient(colors: [Color.manaViolet, Color.blue], startPoint: .topLeading, endPoint: .bottomTrailing))
-                        .cornerRadius(18)
                         .padding(.horizontal, 16)
 
-                        // Recommended Live Businesses List
+                        // Recommended Local Businesses Section (Horizontal Auto-Scroll Carousel)
                         VStack(alignment: .leading, spacing: 12) {
                             HStack {
-                                Text("Recommended Local Businesses")
+                                Text("Top Verified Listings")
                                     .font(.system(size: 16, weight: .bold))
                                     .foregroundColor(.manaTextPrimary)
                                 Spacer()
@@ -218,7 +195,6 @@ struct PublicHomeView: View {
                             }
                             .padding(.horizontal, 16)
 
-                            // Recommended Local Businesses Section (Horizontal Auto-Scroll Carousel)
                             ScrollViewReader { proxy in
                                 ScrollView(.horizontal, showsIndicators: false) {
                                     HStack(spacing: 16) {
@@ -226,14 +202,32 @@ struct PublicHomeView: View {
                                             VStack(alignment: .leading, spacing: 0) {
                                                 // Top Banner with Category, Rating, and Verified Badges
                                                 ZStack(alignment: .top) {
-                                                    ZStack {
-                                                        LinearGradient(colors: [Color.manaViolet.opacity(0.85), Color.blue.opacity(0.85)], startPoint: .topLeading, endPoint: .bottomTrailing)
-                                                        Image(systemName: b.category.contains("Clinic") ? "cross.case.fill" : b.category.contains("Digital") ? "laptopcomputer" : "building.2.fill")
-                                                            .font(.system(size: 45))
-                                                            .foregroundColor(.white.opacity(0.25))
+                                                    if let cover = b.coverImage, !cover.isEmpty, let url = URL(string: cover) {
+                                                        AsyncImage(url: url) { phase in
+                                                            switch phase {
+                                                            case .success(let img):
+                                                                img.resizable().aspectRatio(contentMode: .fill)
+                                                            default:
+                                                                ZStack {
+                                                                    LinearGradient(colors: [Color.manaViolet.opacity(0.85), Color.blue.opacity(0.85)], startPoint: .topLeading, endPoint: .bottomTrailing)
+                                                                    Image(systemName: b.category.contains("Clinic") ? "cross.case.fill" : b.category.contains("Digital") ? "laptopcomputer" : "building.2.fill")
+                                                                        .font(.system(size: 45))
+                                                                        .foregroundColor(.white.opacity(0.25))
+                                                                }
+                                                            }
+                                                        }
+                                                        .frame(width: 260, height: 115)
+                                                        .clipped()
+                                                    } else {
+                                                        ZStack {
+                                                            LinearGradient(colors: [Color.manaViolet.opacity(0.85), Color.blue.opacity(0.85)], startPoint: .topLeading, endPoint: .bottomTrailing)
+                                                            Image(systemName: b.category.contains("Clinic") ? "cross.case.fill" : b.category.contains("Digital") ? "laptopcomputer" : "building.2.fill")
+                                                                .font(.system(size: 45))
+                                                                .foregroundColor(.white.opacity(0.25))
+                                                        }
+                                                        .frame(width: 260, height: 115)
+                                                        .clipped()
                                                     }
-                                                    .frame(width: 260, height: 115)
-                                                    .clipped()
 
                                                     HStack {
                                                         Text(b.category)
@@ -267,16 +261,33 @@ struct PublicHomeView: View {
                                                 VStack(alignment: .leading, spacing: 10) {
                                                     HStack(alignment: .bottom) {
                                                         ZStack(alignment: .bottomTrailing) {
-                                                            Circle()
-                                                                .fill(LinearGradient(colors: [.manaTeal.opacity(0.2), .manaViolet.opacity(0.2)], startPoint: .topLeading, endPoint: .bottomTrailing))
+                                                            if let logo = b.logoUrl, !logo.isEmpty, let url = URL(string: logo) {
+                                                                AsyncImage(url: url) { phase in
+                                                                    switch phase {
+                                                                    case .success(let img):
+                                                                        img.resizable().aspectRatio(contentMode: .fill)
+                                                                    default:
+                                                                        Text(b.name.prefix(2).uppercased())
+                                                                            .font(.system(size: 18, weight: .black))
+                                                                            .foregroundColor(.manaTeal)
+                                                                    }
+                                                                }
                                                                 .frame(width: 52, height: 52)
-                                                                .overlay(
-                                                                    Text(b.name.prefix(2).uppercased())
-                                                                        .font(.system(size: 18, weight: .black))
-                                                                        .foregroundColor(.manaTeal)
-                                                                )
+                                                                .clipShape(Circle())
                                                                 .overlay(Circle().stroke(Color.white, lineWidth: 2.5))
                                                                 .shadow(color: Color.black.opacity(0.15), radius: 4, y: 2)
+                                                            } else {
+                                                                Circle()
+                                                                    .fill(LinearGradient(colors: [.manaTeal.opacity(0.2), .manaViolet.opacity(0.2)], startPoint: .topLeading, endPoint: .bottomTrailing))
+                                                                    .frame(width: 52, height: 52)
+                                                                    .overlay(
+                                                                        Text(b.name.prefix(2).uppercased())
+                                                                            .font(.system(size: 18, weight: .black))
+                                                                            .foregroundColor(.manaTeal)
+                                                                    )
+                                                                    .overlay(Circle().stroke(Color.white, lineWidth: 2.5))
+                                                                    .shadow(color: Color.black.opacity(0.15), radius: 4, y: 2)
+                                                            }
 
                                                             if b.isVerified {
                                                                 Image(systemName: "checkmark.seal.fill")
@@ -293,7 +304,7 @@ struct PublicHomeView: View {
                                                         // Verified / Unverified Badge
                                                         if b.isVerified {
                                                             HStack(spacing: 3) {
-                                                                Image(systemName: "shield.checkmark.fill")
+                                                                Image(systemName: "checkmark.shield.fill")
                                                                     .font(.system(size: 10))
                                                                 Text("Verified")
                                                                     .font(.system(size: 10, weight: .bold))
