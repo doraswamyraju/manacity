@@ -90,10 +90,49 @@ struct ContentView: View {
             default:
                 currentScreen = .adminDashboard
             }
+        } else {
+            GoogleSignInManager.shared.restorePreviousSignIn { result in
+                if case .success(let idToken) = result {
+                    performBackendAuth(idToken: idToken)
+                }
+            }
         }
     }
 
+    private func performBackendAuth(idToken: String) {
+        guard let url = URL(string: "https://manacity.in/api/auth/google") else { return }
+        var req = URLRequest(url: url)
+        req.httpMethod = "POST"
+        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        let body = ["idToken": idToken]
+        req.httpBody = try? JSONSerialization.data(withJSONObject: body)
+
+        URLSession.shared.dataTask(with: req) { data, response, error in
+            DispatchQueue.main.async {
+                guard let data = data,
+                      let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                      let userObj = json["user"] as? [String: Any],
+                      let role = userObj["role"] as? String else { return }
+
+                if let token = json["token"] as? String {
+                    UserDefaults.standard.set(token, forKey: "userToken")
+                }
+                UserDefaults.standard.set(userObj["email"] as? String ?? "", forKey: "userEmail")
+                UserDefaults.standard.set(userObj["name"] as? String ?? "", forKey: "userName")
+                UserDefaults.standard.set(role, forKey: "userRole")
+                UserDefaults.standard.set(userObj["businessName"] as? String ?? "\(userObj["name"] as? String ?? "User")'s Business", forKey: "userBusinessName")
+
+                switch role.uppercased() {
+                case "SUPER_ADMIN": currentScreen = .superAdminConsole
+                case "CUSTOMER": currentScreen = .customerDashboard
+                default: currentScreen = .adminDashboard
+                }
+            }
+        }.resume()
+    }
+
     private func clearSession() {
+        GoogleSignInManager.shared.signOut()
         UserDefaults.standard.removeObject(forKey: "userToken")
         UserDefaults.standard.removeObject(forKey: "userRole")
         UserDefaults.standard.removeObject(forKey: "userEmail")

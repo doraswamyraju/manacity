@@ -16,6 +16,7 @@
 		111111112222222233333337 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 222222223333333344444447 /* Theme.swift */; };
 		111111112222222233333338 /* AppleAuthHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 222222223333333344444448 /* AppleAuthHelper.swift */; };
 		111111112222222233333339 /* GoogleAuthHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 222222223333333344444449 /* GoogleAuthHelper.swift */; };
+		999999998888888877777772 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 999999998888888877777771 /* GoogleSignIn */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -30,6 +31,17 @@
 		222222223333333344444448 /* AppleAuthHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleAuthHelper.swift; sourceTree = "<group>"; };
 		222222223333333344444449 /* GoogleAuthHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoogleAuthHelper.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		666666667777777788888882 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				999999998888888877777772 /* GoogleSignIn in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
 		333333334444444455555551 = {
@@ -72,12 +84,16 @@
 			buildConfigurationList = 555555556666666677777771 /* Build configuration list for PBXNativeTarget "ManaCity" */;
 			buildPhases = (
 				666666667777777788888881 /* Sources */,
+				666666667777777788888882 /* Frameworks */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 			);
 			name = ManaCity;
+			packageProductDependencies = (
+				999999998888888877777771 /* GoogleSignIn */,
+			);
 			productName = ManaCity;
 			productReference = 000000000000000000000001 /* ManaCity.app */;
 			productType = "com.apple.product-type.application";
@@ -109,6 +125,9 @@
 			productRefGroup = 333333334444444455555553 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
+			packageReferences = (
+				888888887777777766666661 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
+			);
 			targets = (
 				444444445555555566666661 /* ManaCity */,
 			);
@@ -133,6 +152,24 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		888888887777777766666661 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/google/GoogleSignIn-iOS";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = "7.0.0";
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		999999998888888877777771 /* GoogleSignIn */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = GoogleSignIn;
+		};
+/* End XCSwiftPackageProductDependency section */
 
 /* Begin XCBuildConfiguration section */
 		777777778888888899999991 /* Debug */ = {
