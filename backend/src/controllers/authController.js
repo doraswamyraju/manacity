@@ -291,15 +291,90 @@ exports.googleAuthGet = (req, res) => {
   });
 };
 
-exports.googleAuthCallback = (req, res) => {
+exports.googleAuthWeb = (req, res) => {
+  const clientId = process.env.GOOGLE_CLIENT_ID || '101383899067-vcdeda4a4ajqcce8h5593htb34ksgdka.apps.googleusercontent.com';
   res.send(`
     <!DOCTYPE html>
     <html>
-      <head><title>Authenticating...</title></head>
-      <body style="font-family: sans-serif; text-align: center; padding-top: 50px; background-color: #090d16; color: white;">
-        <h2>Google Authentication Complete</h2>
-        <p>Closing window and returning to app...</p>
-      </body>
+    <head>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+      <title>Sign In with Google</title>
+      <script src="https://accounts.google.com/gsi/client" async defer></script>
+      <style>
+        body {
+          background-color: #090d16;
+          color: #ffffff;
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          min-height: 100vh;
+          margin: 0;
+          padding: 24px 16px;
+          box-sizing: border-box;
+        }
+        .card {
+          background: rgba(30, 41, 59, 0.7);
+          border: 1px solid rgba(255, 255, 255, 0.12);
+          border-radius: 20px;
+          padding: 36px 24px;
+          text-align: center;
+          max-width: 380px;
+          width: 100%;
+          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+          backdrop-filter: blur(16px);
+        }
+        h2 { margin: 0 0 8px 0; font-size: 22px; font-weight: 700; color: #f8fafc; }
+        p { font-size: 13px; color: #94a3b8; margin: 0 0 28px 0; line-height: 1.5; }
+        .g-container { display: flex; justify-content: center; width: 100%; }
+      </style>
+    </head>
+    <body>
+      <div class="card">
+        <h2>Sign In with Google</h2>
+        <p>Select your Google account below to authenticate securely with ManaCity</p>
+        <div class="g-container">
+          <div id="g_id_onload"
+             data-client_id="${clientId}"
+             data-callback="handleCredentialResponse"
+             data-auto_prompt="false">
+          </div>
+          <div class="g_id_signin"
+             data-type="standard"
+             data-shape="rectangular"
+             data-theme="filled_dark"
+             data-text="continue_with"
+             data-size="large"
+             data-logo_alignment="left"
+             data-width="300">
+          </div>
+        </div>
+      </div>
+
+      <script>
+        function handleCredentialResponse(response) {
+          if (response && response.credential) {
+            fetch('/api/auth/google', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ idToken: response.credential })
+            })
+            .then(function(res) { return res.json(); })
+            .then(function(data) {
+              if (data.token) {
+                window.location.href = '/api/auth/google-web?token=' + encodeURIComponent(data.token) + '&email=' + encodeURIComponent(data.user ? data.user.email : '');
+              } else {
+                alert(data.error || 'Google login failed.');
+              }
+            })
+            .catch(function(err) {
+              alert('Network error. Please try again.');
+            });
+          }
+        }
+      </script>
+    </body>
     </html>
   `);
 };
