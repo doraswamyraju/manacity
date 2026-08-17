@@ -134,7 +134,8 @@ exports.getMe = async (req, res) => {
             include: {
               locations: true,
               subscriptions: true,
-              website: true
+              websiteConfig: true
+
             }
           }
         }

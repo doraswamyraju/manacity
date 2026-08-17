@@ -86,20 +86,20 @@ async function getInstagramAnalytics(businessGroup) {
   }
 
   // Query Profile, Media, and Instagram Insights metrics individually so unsupported metrics don't break remaining metrics
-  const [profileResult, mediaResult, reachRes, impressionsRes, profileViewsRes, accountRes] = await Promise.allSettled([
+  const [profileResult, mediaResult, reachRes, viewsRes, profileViewsRes, accountRes] = await Promise.allSettled([
     axios.get(`https://graph.facebook.com/${GRAPH_API_VERSION}/${igId}?fields=id,username,name,profile_picture_url,followers_count,follows_count,media_count,website&access_token=${token}`),
     axios.get(`https://graph.facebook.com/${GRAPH_API_VERSION}/${igId}/media?fields=id,caption,media_type,media_url,thumbnail_url,permalink,timestamp,like_count,comments_count&limit=25&access_token=${token}`),
-    axios.get(`https://graph.facebook.com/${GRAPH_API_VERSION}/${igId}/insights?metric=reach&period=day&access_token=${token}`),
-    axios.get(`https://graph.facebook.com/${GRAPH_API_VERSION}/${igId}/insights?metric=impressions&period=day&access_token=${token}`),
-    axios.get(`https://graph.facebook.com/${GRAPH_API_VERSION}/${igId}/insights?metric=profile_views&period=day&access_token=${token}`),
-    axios.get(`https://graph.facebook.com/${GRAPH_API_VERSION}/${igId}/insights?metric=accounts_engaged&period=day&access_token=${token}`)
+    axios.get(`https://graph.facebook.com/${GRAPH_API_VERSION}/${igId}/insights?metric=reach&metric_type=total_value&period=day&access_token=${token}`),
+    axios.get(`https://graph.facebook.com/${GRAPH_API_VERSION}/${igId}/insights?metric=views&metric_type=total_value&period=day&access_token=${token}`),
+    axios.get(`https://graph.facebook.com/${GRAPH_API_VERSION}/${igId}/insights?metric=profile_views&metric_type=total_value&period=day&access_token=${token}`),
+    axios.get(`https://graph.facebook.com/${GRAPH_API_VERSION}/${igId}/insights?metric=accounts_engaged&metric_type=total_value&period=day&access_token=${token}`)
   ]);
 
   let reachVal = null;
   let reachError = null;
   if (reachRes.status === 'fulfilled') {
-    const vals = reachRes.value.data?.data?.[0]?.values || [];
-    reachVal = vals.reduce((acc, v) => acc + (v.value || 0), 0);
+    const vals = reachRes.value.data?.data?.[0]?.values || reachRes.value.data?.data?.[0]?.total_value?.value || [];
+    reachVal = Array.isArray(vals) ? vals.reduce((acc, v) => acc + (v.value || 0), 0) : (vals || 0);
   } else {
     reachError = reachRes.reason.response?.data?.error?.message || 'Reach metric unavailable or permission restricted';
     logMetaError(`GET /${igId}/insights?metric=reach`, reachRes.reason);
@@ -107,23 +107,24 @@ async function getInstagramAnalytics(businessGroup) {
 
   let impressionsVal = null;
   let impressionsError = null;
-  if (impressionsRes.status === 'fulfilled') {
-    const vals = impressionsRes.value.data?.data?.[0]?.values || [];
-    impressionsVal = vals.reduce((acc, v) => acc + (v.value || 0), 0);
+  if (viewsRes.status === 'fulfilled') {
+    const vals = viewsRes.value.data?.data?.[0]?.values || viewsRes.value.data?.data?.[0]?.total_value?.value || [];
+    impressionsVal = Array.isArray(vals) ? vals.reduce((acc, v) => acc + (v.value || 0), 0) : (vals || 0);
   } else {
-    impressionsError = impressionsRes.reason.response?.data?.error?.message || 'Impressions metric unavailable';
-    logMetaError(`GET /${igId}/insights?metric=impressions`, impressionsRes.reason);
+    impressionsError = viewsRes.reason.response?.data?.error?.message || 'Views metric unavailable';
+    logMetaError(`GET /${igId}/insights?metric=views`, viewsRes.reason);
   }
 
   let profileViewsVal = null;
   let profileViewsError = null;
   if (profileViewsRes.status === 'fulfilled') {
-    const vals = profileViewsRes.value.data?.data?.[0]?.values || [];
-    profileViewsVal = vals.reduce((acc, v) => acc + (v.value || 0), 0);
+    const vals = profileViewsRes.value.data?.data?.[0]?.values || profileViewsRes.value.data?.data?.[0]?.total_value?.value || [];
+    profileViewsVal = Array.isArray(vals) ? vals.reduce((acc, v) => acc + (v.value || 0), 0) : (vals || 0);
   } else {
     profileViewsError = profileViewsRes.reason.response?.data?.error?.message || 'Profile views metric unavailable';
     logMetaError(`GET /${igId}/insights?metric=profile_views`, profileViewsRes.reason);
   }
+
 
   // Profile data
   let profile = null;
