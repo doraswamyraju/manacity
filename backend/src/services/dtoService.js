@@ -115,8 +115,9 @@ function toPublicWebsiteDTO(website, businessGroup) {
       settings: sec.settings
     })) : [],
     businessGroup: toPublicBusinessDTO(businessGroup || website.businessGroup),
-    letsTrackWidgetId: (businessGroup || website.businessGroup)?.letsTrackApiKey || null
+    letsTrackWidgetId: (businessGroup || website.businessGroup)?.letsTrackApiKey || (businessGroup || website.businessGroup)?.letsTrackTenantId || (businessGroup || website.businessGroup)?.id || null
   };
+
 }
 
 module.exports = {
