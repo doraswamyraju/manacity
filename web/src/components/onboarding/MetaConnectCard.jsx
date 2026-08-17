@@ -101,6 +101,48 @@ export default function MetaConnectCard({ initialData, onMetaConnected }) {
     }, 500);
   };
 
+  const [showManualInput, setShowManualInput] = useState(false);
+  const [manualToken, setManualToken] = useState('');
+  const [verifyingManual, setVerifyingManual] = useState(false);
+
+  const handleManualTokenConnect = async () => {
+    if (!manualToken.trim()) {
+      setError('Please enter a Meta Access Token.');
+      return;
+    }
+    setVerifyingManual(true);
+    setError('');
+    try {
+      const res = await axios.post('/api/marketing/meta/connect', { accessToken: manualToken.trim() });
+      if (res.data && res.data.success) {
+        if (res.data.pages && res.data.pages.length > 1) {
+          setAvailablePages(res.data.pages);
+          setShowPageModal(true);
+          setMetaToken(manualToken.trim());
+        } else if (res.data.selectedPage) {
+          const sel = res.data.selectedPage;
+          setConnectedPage(sel.pageName);
+          setConnectedIg(sel.instagramHandle);
+          if (onMetaConnected) {
+            onMetaConnected({
+              metaPageId: sel.pageId,
+              metaPageName: sel.pageName,
+              socialFacebook: sel.facebookUrl,
+              socialInstagram: sel.instagramUrl,
+              metaAccessToken: manualToken.trim()
+            });
+          }
+        }
+      }
+    } catch (err) {
+      console.error('Manual Meta token error:', err);
+      const errMsg = err.response?.data?.error || 'Invalid or expired Meta Access Token.';
+      setError(errMsg);
+    } finally {
+      setVerifyingManual(false);
+    }
+  };
+
   return (
     <div style={{
       backgroundColor: 'rgba(24, 119, 242, 0.08)',
@@ -120,37 +162,81 @@ export default function MetaConnectCard({ initialData, onMetaConnected }) {
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={handleFacebookLogin}
-          disabled={connecting}
-          style={{
-            backgroundColor: '#1877f2',
-            color: '#fff',
-            border: 'none',
-            borderRadius: '8px',
-            padding: '0.65rem 1.25rem',
-            fontSize: '0.88rem',
-            fontWeight: 700,
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            boxShadow: '0 4px 14px rgba(24, 119, 242, 0.3)'
-          }}
-        >
-          {connecting ? (
-            <span>Connecting Meta Assets...</span>
-          ) : (
-            <>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="#fff">
-                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-              </svg>
-              {connectedPage ? '✓ Meta Connected' : 'Connect Facebook & Instagram'}
-            </>
-          )}
-        </button>
+        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            onClick={handleFacebookLogin}
+            disabled={connecting}
+            style={{
+              backgroundColor: '#1877f2',
+              color: '#fff',
+              border: 'none',
+              borderRadius: '8px',
+              padding: '0.65rem 1.25rem',
+              fontSize: '0.88rem',
+              fontWeight: 700,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              boxShadow: '0 4px 14px rgba(24, 119, 242, 0.3)'
+            }}
+          >
+            {connecting ? (
+              <span>Connecting Meta Assets...</span>
+            ) : (
+              <>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="#fff">
+                  <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                </svg>
+                {connectedPage ? '✓ Meta Connected' : 'Connect Facebook & Instagram'}
+              </>
+            )}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setShowManualInput(!showManualInput)}
+            style={{
+              backgroundColor: 'transparent',
+              color: '#1877f2',
+              border: '1px solid #1877f2',
+              borderRadius: '8px',
+              padding: '0.65rem 0.9rem',
+              fontSize: '0.82rem',
+              fontWeight: 700,
+              cursor: 'pointer'
+            }}
+          >
+            {showManualInput ? 'Hide Manual Token' : 'Paste Token / Key'}
+          </button>
+        </div>
       </div>
+
+      {showManualInput && (
+        <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid rgba(24, 119, 242, 0.2)', display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+          <label style={{ fontSize: '0.82rem', fontWeight: 700, color: '#1877f2' }}>
+            Paste Meta User / Page Access Token
+          </label>
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <input
+              type="text"
+              value={manualToken}
+              onChange={(e) => setManualToken(e.target.value)}
+              placeholder="EAAG..."
+              style={{ flex: 1, padding: '0.6rem 0.85rem', borderRadius: '6px', backgroundColor: 'var(--bg-secondary, #ffffff)', border: '1px solid #1877f2', color: 'var(--text-primary, #0f172a)', fontSize: '0.85rem' }}
+            />
+            <button
+              type="button"
+              onClick={handleManualTokenConnect}
+              disabled={verifyingManual}
+              style={{ padding: '0.6rem 1rem', borderRadius: '6px', border: 'none', backgroundColor: '#1877f2', color: '#fff', fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer' }}
+            >
+              {verifyingManual ? 'Verifying...' : 'Verify Token'}
+            </button>
+          </div>
+        </div>
+      )}
 
       {connectedPage && (
         <div style={{ marginTop: '1rem', paddingTop: '0.75rem', borderTop: '1px solid rgba(24, 119, 242, 0.2)', fontSize: '0.82rem', color: '#10b981', display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
