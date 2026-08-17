@@ -141,13 +141,40 @@ exports.subscribePageWebhooks = async (req, res) => {
       return res.status(400).json({ error: 'Meta Business Page connection is not active. Please connect your Facebook Page first.' });
     }
 
-    // Call Meta Graph API to subscribe Facebook Page to webhooks
+    let pageAccessToken = bg.metaAccessToken;
+
+    // Fetch exact Page Access Token for bg.metaPageId via Graph API
+    try {
+      const pageRes = await axios.get(`https://graph.facebook.com/v24.0/me/accounts?access_token=${bg.metaAccessToken}`);
+      if (pageRes.data && pageRes.data.data) {
+        const foundPage = pageRes.data.data.find(p => p.id === bg.metaPageId);
+        if (foundPage && foundPage.access_token) {
+          pageAccessToken = foundPage.access_token;
+          // Save valid Page Access Token back to BusinessGroup
+          await prisma.businessGroup.update({
+            where: { id: bg.id },
+            data: { metaAccessToken: pageAccessToken }
+          });
+        }
+      }
+    } catch (tokenErr) {
+      console.warn('[MetaWebhook] Could not fetch me/accounts Page token, trying direct page query:', tokenErr.message);
+      try {
+        const directRes = await axios.get(`https://graph.facebook.com/v24.0/${bg.metaPageId}?fields=access_token&access_token=${bg.metaAccessToken}`);
+        if (directRes.data && directRes.data.access_token) {
+          pageAccessToken = directRes.data.access_token;
+        }
+      } catch (dErr) {
+        // Fall back to original token
+      }
+    }
+
+    // Call Meta Graph API to subscribe Facebook Page to webhooks using Page Access Token
     const subUrl = `https://graph.facebook.com/v24.0/${bg.metaPageId}/subscribed_apps`;
     const response = await axios.post(subUrl, {
       subscribed_fields: ['messages', 'messaging_postbacks', 'feed', 'conversations', 'mention'],
-      access_token: bg.metaAccessToken
+      access_token: pageAccessToken
     });
-
 
     console.log(`[MetaWebhook] Successfully subscribed Page ${bg.metaPageId} to webhooks:`, response.data);
 
@@ -162,4 +189,5 @@ exports.subscribePageWebhooks = async (req, res) => {
     return res.status(400).json({ error: errDetail });
   }
 };
+
 
