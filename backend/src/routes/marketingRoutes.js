@@ -196,6 +196,8 @@ const metaWebhookController = require('../controllers/metaWebhookController');
 // 6. Meta Messaging & Events Webhook (LetsTrack Live Chat DM Sync)
 router.get('/meta/webhook', metaWebhookController.verifyWebhook);
 router.post('/meta/webhook', metaWebhookController.handleWebhookEvent);
+router.post('/meta/subscribe-webhooks', auth, metaWebhookController.subscribePageWebhooks);
+
 
 // 7. Post Scheduling & List Endpoints
 router.post('/meta/post/schedule', auth, async (req, res) => {

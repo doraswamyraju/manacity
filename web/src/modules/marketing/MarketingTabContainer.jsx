@@ -172,6 +172,23 @@ export default function MarketingTabContainer({ businessGroup, activeTabOverride
     setActiveTab('META_ADS');
   };
 
+  const [subscribingWebhook, setSubscribingWebhook] = useState(false);
+  const [webhookSuccessMsg, setWebhookSuccessMsg] = useState('');
+
+  const handleSubscribeWebhook = async () => {
+    setSubscribingWebhook(true);
+    setWebhookSuccessMsg('');
+    try {
+      const res = await axios.post('/api/marketing/meta/subscribe-webhooks');
+      setWebhookSuccessMsg(res.data?.message || '✓ Webhooks subscribed! Live Instagram DMs & Messenger are now active.');
+    } catch (err) {
+      alert(err.response?.data?.error || 'Failed to subscribe page webhooks.');
+    } finally {
+      setSubscribingWebhook(false);
+    }
+  };
+
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
       
@@ -361,11 +378,36 @@ export default function MarketingTabContainer({ businessGroup, activeTabOverride
                 {loadingIg ? 'Syncing...' : 'Refresh Meta Stats'}
               </button>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: 'rgba(16, 185, 129, 0.15)', border: '1px solid rgba(16, 185, 129, 0.3)', padding: '0.5rem 1rem', borderRadius: '20px', color: '#34d399', fontSize: '0.82rem', fontWeight: 800 }}>
-                <MessageSquare size={16} /> LetsTrack DM Sync: Active
-              </div>
+              <button
+                onClick={handleSubscribeWebhook}
+                disabled={subscribingWebhook}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.4rem',
+                  backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                  border: '1px solid #10b981',
+                  borderRadius: '10px',
+                  padding: '0.5rem 0.9rem',
+                  color: '#34d399',
+                  fontSize: '0.82rem',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 12px rgba(16, 185, 129, 0.2)'
+                }}
+              >
+                <Zap size={14} color="#34d399" />
+                {subscribingWebhook ? 'Subscribing...' : 'Subscribe DMs to LetsTrack'}
+              </button>
             </div>
           </div>
+
+          {webhookSuccessMsg && (
+            <div style={{ backgroundColor: 'rgba(16, 185, 129, 0.15)', border: '1px solid rgba(16, 185, 129, 0.3)', color: '#34d399', padding: '0.75rem 1rem', borderRadius: '10px', fontSize: '0.85rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <CheckCircle2 size={18} /> {webhookSuccessMsg}
+            </div>
+          )}
+
 
           {/* Meta API Diagnostics Section */}
           <details style={{ backgroundColor: '#0f172a', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.08)', padding: '0.75rem 1.25rem' }}>
