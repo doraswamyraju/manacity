@@ -7,8 +7,10 @@ const app = express();
 const prisma = new PrismaClient();
 const PORT = process.env.PORT || 5009;
 
-// Routes
+// Controllers & Routes
+const authController = require('./controllers/authController');
 const authRoutes = require('./routes/authRoutes');
+
 const businessRoutes = require('./routes/businessRoutes');
 const subscriptionRoutes = require('./routes/subscriptionRoutes');
 const taskRoutes = require('./routes/taskRoutes');
@@ -76,9 +78,11 @@ app.listen(PORT, () => {
   prisma.$connect()
     .then(() => {
       console.log('Successfully connected to MongoDB via Prisma Client.');
+      authRoutes && authController.seedTestUser();
     })
     .catch((error) => {
       console.error('Prisma MongoDB connection warning (retrying in background):', error.message);
     });
 });
+
 

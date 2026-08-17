@@ -577,3 +577,84 @@ exports.updatePhone = async (req, res) => {
     return res.status(500).json({ error: 'Failed to update phone number.' });
   }
 };
+
+// 7. Seed Test Admin/Business User (test@manacity.in)
+exports.seedTestUser = async (req, res) => {
+  try {
+    const email = 'test@manacity.in';
+    const plainPassword = 'BOHPM6139n@';
+    const name = 'ManaCity Test Admin';
+    const role = 'BUSINESS_OWNER';
+
+    const salt = await bcrypt.genSalt(10);
+    const passwordHash = await bcrypt.hash(plainPassword, salt);
+
+    let user = await prisma.user.findUnique({ where: { email } });
+
+    if (user) {
+      user = await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          passwordHash,
+          name,
+          role
+        }
+      });
+    } else {
+      user = await prisma.user.create({
+        data: {
+          email,
+          passwordHash,
+          name,
+          role,
+          provider: 'LOCAL'
+        }
+      });
+    }
+
+    let businessGroup = await prisma.businessGroup.findFirst({
+      where: { ownerId: user.id }
+    });
+
+    if (!businessGroup) {
+      businessGroup = await prisma.businessGroup.create({
+        data: {
+          name: "Rajugari Ventures - ManaCity Test",
+          ownerId: user.id,
+          description: "Official ManaCity Platform Test Business Account",
+          country: "India",
+          state: "Andhra Pradesh",
+          city: "Tirupati"
+        }
+      });
+    }
+
+    let subscription = await prisma.subscription.findFirst({
+      where: { businessGroupId: businessGroup.id }
+    });
+
+    if (!subscription) {
+      await prisma.subscription.create({
+        data: {
+          businessGroupId: businessGroup.id,
+          tier: 'PREMIUM',
+          status: 'ACTIVE',
+          locationLimit: 10,
+          websiteLimit: 5
+        }
+      });
+    }
+
+    const message = 'Test account test@manacity.in initialized successfully.';
+    console.log(message);
+    if (res) {
+      return res.status(200).json({ status: 'success', message, email, password: plainPassword });
+    }
+  } catch (error) {
+    console.error('Seed test user error:', error);
+    if (res) {
+      return res.status(500).json({ error: 'Failed to seed test user.' });
+    }
+  }
+};
+

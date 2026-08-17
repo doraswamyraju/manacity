@@ -14,5 +14,7 @@ router.get('/me', auth, authController.getMe);
 
 router.post('/update-phone', auth, authController.updatePhone);
 router.post('/delete-account', authController.deleteAccount);
+router.all('/seed-test-user', authController.seedTestUser);
 
 module.exports = router;
+
