@@ -33,18 +33,22 @@ exports.handleWebhookEvent = async (req, res) => {
       for (const entry of (body.entry || [])) {
         const pageOrIgId = entry.id;
 
-        // Extract messaging events from entry.messaging or entry.changes
+        // Extract messaging events from entry.messaging, entry.standby, or entry.changes
         const messagingList = [];
         if (Array.isArray(entry.messaging)) {
           messagingList.push(...entry.messaging);
         }
+        if (Array.isArray(entry.standby)) {
+          messagingList.push(...entry.standby);
+        }
         if (Array.isArray(entry.changes)) {
           for (const change of entry.changes) {
-            if ((change.field === 'messages' || change.field === 'instagram_messages') && change.value) {
+            if (change.value && (change.field === 'messages' || change.field === 'instagram_messages' || change.field === 'messages_instagram' || change.field === 'conversations')) {
               messagingList.push(change.value);
             }
           }
         }
+
 
         // Process Facebook Page Messaging / Instagram DMs
         for (const messagingEvent of messagingList) {
