@@ -166,7 +166,56 @@ exports.subscribePageWebhooks = async (req, res) => {
       // Use existing stored token smoothly
     }
 
-    // Try subscribing full fields list first, fallback gracefully if any scope is missing on token
+    // STEP 1: Provision / Register Let'sTrack Tenant FIRST
+    const letsTrackUrls = [
+      process.env.LETSTRACK_API_URL,
+      'http://127.0.0.1:5004',
+      'http://localhost:5004'
+    ].filter(Boolean);
+
+    let provisionSuccess = false;
+    let provisionedTenantId = null;
+
+    for (const letsTrackUrl of letsTrackUrls) {
+      try {
+        const provRes = await axios.post(`${letsTrackUrl}/api/internal/register-meta-integration`, {
+          manacityBusinessGroupId: bg.id,
+          businessName: bg.name,
+          ownerEmail: req.user.email,
+          ownerName: req.user.name,
+          metaPageId: bg.metaPageId,
+          metaPageName: bg.metaPageName,
+          metaInstagramAccountId: bg.metaInstagramId || undefined,
+          pageAccessToken
+        }, {
+          headers: { 'x-provision-secret': process.env.LETSTRACK_PROVISION_SECRET || 'letstrack_manacity_internal_secret_2026' },
+          timeout: 5000
+        });
+
+        if (provRes.data && provRes.data.success && provRes.data.tenantId && typeof provRes.data.tenantId === 'string' && provRes.data.tenantId.length === 24) {
+          provisionSuccess = true;
+          provisionedTenantId = provRes.data.tenantId;
+          console.log(`[MetaProvisioning] BusinessGroup: ${bg.id} Meta Page: ${bg.metaPageId} Let'sTrack Tenant: ${provisionedTenantId} Status: SUCCESS`);
+          
+          // Save letsTrackTenantId to BusinessGroup
+          await prisma.businessGroup.update({
+            where: { id: bg.id },
+            data: { letsTrackTenantId: provisionedTenantId }
+          });
+          break;
+        }
+      } catch (ltErr) {
+        console.warn(`[MetaProvisioning] Call to ${letsTrackUrl} warning:`, ltErr.response?.data || ltErr.message);
+      }
+    }
+
+    if (!provisionSuccess) {
+      return res.status(500).json({
+        error: 'Failed to provision Let\'sTrack multi-tenant inbox for your business. Webhook subscription deferred. Please retry.'
+      });
+    }
+
+    // STEP 2: Subscribe Connected Page to Meta Webhooks AFTER provisioning succeeds
     const fieldOptions = [
       ['messages', 'messaging_postbacks', 'feed', 'conversations', 'mention'],
       ['messages', 'messaging_postbacks', 'feed'],
@@ -194,47 +243,18 @@ exports.subscribePageWebhooks = async (req, res) => {
       }
     }
 
-
     if (response && response.data && response.data.success) {
-      // Automatically register / provision Let'sTrack Tenant for this BusinessGroup
-      const letsTrackUrls = [
-        process.env.LETSTRACK_API_URL,
-        'http://127.0.0.1:5004',
-        'http://localhost:5004'
-      ].filter(Boolean);
-
-      for (const letsTrackUrl of letsTrackUrls) {
-        try {
-          await axios.post(`${letsTrackUrl}/api/internal/register-meta-integration`, {
-            manacityBusinessGroupId: bg.id,
-            businessName: bg.name,
-            ownerEmail: req.user.email,
-            ownerName: req.user.name,
-            metaPageId: bg.metaPageId,
-            metaPageName: bg.metaPageName,
-            metaInstagramAccountId: bg.metaInstagramId || '',
-            pageAccessToken
-          }, {
-            headers: { 'x-provision-secret': 'letstrack_manacity_internal_secret_2026' },
-            timeout: 3000
-          });
-          console.log(`[MetaProvisioning] BusinessGroup: ${bg.id} Meta Page: ${bg.metaPageId} Action: PROVISION_CALL Status: SUCCESS`);
-          break;
-        } catch (ltErr) {
-          console.warn(`[MetaProvisioning] Call to ${letsTrackUrl} warning:`, ltErr.message);
-        }
-      }
-
       return res.status(200).json({
         success: true,
-        message: `Successfully subscribed ${bg.metaPageName || 'Facebook Page'} & Instagram DMs to Meta Webhooks & Let'sTrack Live Chat!`,
+        message: `Successfully provisioned Let'sTrack Tenant (${provisionedTenantId}) & subscribed ${bg.metaPageName || 'Facebook Page'} to Meta Webhooks!`,
         data: response.data
       });
-    }
- else {
+    } else {
+      console.warn(`[MetaWebhook] Webhook subscription failed for Page ${bg.metaPageId}, but Let'sTrack Tenant (${provisionedTenantId}) remains safely provisioned.`);
       const errDetail = lastErr?.response?.data?.error?.message || 'Failed to subscribe Page to Meta webhooks.';
-      return res.status(400).json({ error: errDetail });
+      return res.status(400).json({ error: errDetail, tenantId: provisionedTenantId });
     }
+
   } catch (error) {
     console.error('[MetaWebhook] Subscribe webhooks error:', error.response?.data || error.message);
     const errDetail = error.response?.data?.error?.message || 'Failed to subscribe Page to Meta webhooks.';
