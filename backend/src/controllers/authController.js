@@ -131,8 +131,8 @@ exports.getMe = async (req, res) => {
         businessGroups: {
           include: {
             locations: true,
-            subscription: true,
-            websites: true
+            subscriptions: true,
+            website: true
           }
         }
       }
