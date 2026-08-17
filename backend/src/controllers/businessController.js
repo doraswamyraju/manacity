@@ -313,156 +313,131 @@ exports.saveOnboardingStep = async (req, res) => {
     if (data.city !== undefined) updateData.city = data.city;
     if (data.state !== undefined) updateData.state = data.state;
     if (data.pinCode !== undefined) updateData.pinCode = data.pinCode;
+    if (data.country !== undefined) updateData.country = data.country;
+    if (data.areaLocality !== undefined) updateData.areaLocality = data.areaLocality;
+    if (data.googleMapsLink !== undefined) updateData.googleMapsLink = data.googleMapsLink;
     if (data.googleReviewUrl !== undefined) updateData.googleReviewUrl = data.googleReviewUrl;
+    if (data.googlePlaceId !== undefined) updateData.googlePlaceId = data.googlePlaceId;
     if (data.socialFacebook !== undefined) updateData.socialFacebook = data.socialFacebook;
     if (data.socialInstagram !== undefined) updateData.socialInstagram = data.socialInstagram;
     if (data.socialYouTube !== undefined) updateData.socialYouTube = data.socialYouTube;
     if (data.socialLinkedIn !== undefined) updateData.socialLinkedIn = data.socialLinkedIn;
     if (data.socialTwitter !== undefined) updateData.socialTwitter = data.socialTwitter;
+    if (data.metaAccessToken !== undefined) updateData.metaAccessToken = data.metaAccessToken;
+    if (data.metaPageId !== undefined) updateData.metaPageId = data.metaPageId;
+    if (data.metaPageName !== undefined) updateData.metaPageName = data.metaPageName;
 
-      if (data.category) {
-        // Also update Directory Listing category if present
-        await prisma.directoryListing.updateMany({
-          where: { businessGroupId },
-          data: { category: data.category }
-        });
-      }
-      if (data.primaryColor || data.secondaryColor) {
-        let sub = (data.name || businessGroup.name || 'my-business')
-          .toLowerCase()
-          .replace(/\s+/g, '-')
-          .replace(/[^\w\-]+/g, '')
-          .replace(/\-\-+/g, '-');
-        await prisma.website.upsert({
-          where: { businessGroupId },
-          update: {
-            primaryColor: data.primaryColor || undefined,
-            secondaryColor: data.secondaryColor || undefined
-          },
-          create: {
-            businessGroupId,
-            subdomain: sub || `biz-${Date.now()}`,
-            primaryColor: data.primaryColor || '#6366f1',
-            secondaryColor: data.secondaryColor || '#38bdf8'
-          }
-        });
-      }
-    } else if (stepSaved === 2) {
-      // Contact Info
-      updateData.mobileNumber = data.mobileNumber !== undefined ? data.mobileNumber : businessGroup.mobileNumber;
-      updateData.whatsAppNumber = data.whatsAppNumber !== undefined ? data.whatsAppNumber : businessGroup.whatsAppNumber;
-      updateData.email = data.email !== undefined ? data.email : businessGroup.email;
-      updateData.website = data.website !== undefined ? data.website : businessGroup.website;
-      updateData.supportEmail = data.supportEmail !== undefined ? data.supportEmail : businessGroup.supportEmail;
-    } else if (stepSaved === 3) {
-      // Address & Google Review Collection Link
-      updateData.country = data.country !== undefined ? data.country : businessGroup.country;
-      updateData.state = data.state !== undefined ? data.state : businessGroup.state;
-      updateData.city = data.city !== undefined ? data.city : businessGroup.city;
-      updateData.areaLocality = data.areaLocality !== undefined ? data.areaLocality : businessGroup.areaLocality;
-      updateData.address = data.address !== undefined ? data.address : businessGroup.address;
-      updateData.pinCode = data.pinCode !== undefined ? data.pinCode : businessGroup.pinCode;
-      updateData.googleMapsLink = data.googleMapsLink !== undefined ? data.googleMapsLink : businessGroup.googleMapsLink;
-      updateData.googleReviewUrl = data.googleReviewUrl !== undefined ? data.googleReviewUrl : businessGroup.googleReviewUrl;
-      updateData.googlePlaceId = data.googlePlaceId !== undefined ? data.googlePlaceId : businessGroup.googlePlaceId;
-    } else if (stepSaved === 4) {
-      // Save Working Days and Business Hours to the Location hours field
+    if (data.category) {
+      await prisma.directoryListing.updateMany({
+        where: { businessGroupId },
+        data: { category: data.category }
+      });
+    }
+
+    if (data.primaryColor || data.secondaryColor) {
+      let sub = (data.name || businessGroup.name || 'my-business')
+        .toLowerCase()
+        .replace(/\s+/g, '-')
+        .replace(/[^\w\-]+/g, '')
+        .replace(/\-\-+/g, '-');
+      await prisma.website.upsert({
+        where: { businessGroupId },
+        update: {
+          primaryColor: data.primaryColor || undefined,
+          secondaryColor: data.secondaryColor || undefined
+        },
+        create: {
+          businessGroupId,
+          subdomain: sub || `biz-${Date.now()}`,
+          primaryColor: data.primaryColor || '#6366f1',
+          secondaryColor: data.secondaryColor || '#38bdf8'
+        }
+      });
+    }
+
+    // Sync Working Days & Hours to Location record
+    if (data.workingDays || data.businessHours || data.socialFacebook || data.socialInstagram) {
       const existingLoc = await prisma.location.findFirst({ where: { businessGroupId } });
       if (existingLoc) {
         await prisma.location.update({
           where: { id: existingLoc.id },
           data: {
             hours: {
-              workingDays: data.workingDays || [],
-              businessHours: data.businessHours || { open: '09:00', close: '18:00' }
-            }
-          }
-        });
-      }
-
-      // Sync normalized languages
-      if (data.languagesSpoken) {
-        await prisma.businessLanguage.deleteMany({ where: { businessGroupId } });
-        if (data.languagesSpoken.length > 0) {
-          await prisma.businessLanguage.createMany({
-            data: data.languagesSpoken.map(lang => ({ businessGroupId, language: lang }))
-          });
-        }
-      }
-
-      // Sync normalized services
-      if (data.servicesOffered) {
-        await prisma.businessService.deleteMany({ where: { businessGroupId } });
-        if (data.servicesOffered.length > 0) {
-          await prisma.businessService.createMany({
-            data: data.servicesOffered.map(service => ({ businessGroupId, name: service }))
-          });
-        }
-      }
-
-      // Sync normalized products
-      if (data.productsOffered) {
-        await prisma.businessProduct.deleteMany({ where: { businessGroupId } });
-        if (data.productsOffered.length > 0) {
-          await prisma.businessProduct.createMany({
-            data: data.productsOffered.map(product => ({ businessGroupId, name: product }))
-          });
-        }
-      }
-
-      // Sync normalized payment methods
-      if (data.paymentMethods) {
-        await prisma.businessPaymentMethod.deleteMany({ where: { businessGroupId } });
-        if (data.paymentMethods.length > 0) {
-          await prisma.businessPaymentMethod.createMany({
-            data: data.paymentMethods.map(method => ({ businessGroupId, methodName: method }))
-          });
-        }
-      }
-
-      // Sync Documents (GST, Udyam, FSSAI, Shop License)
-      if (data.documents) {
-        for (const doc of data.documents) {
-          await prisma.businessDocument.upsert({
-            where: {
-              businessGroupId_type: {
-                businessGroupId,
-                type: doc.type
-              }
+              workingDays: data.workingDays || existingLoc.hours?.workingDays || [],
+              businessHours: data.businessHours || existingLoc.hours?.businessHours || { open: '09:00', close: '18:00' }
             },
-            update: { value: doc.value },
-            create: {
-              businessGroupId,
-              type: doc.type,
-              value: doc.value
-            }
-          });
-        }
-      }
-    } else if (stepSaved === 5) {
-      if (data.socialFacebook !== undefined) updateData.socialFacebook = data.socialFacebook;
-      if (data.socialInstagram !== undefined) updateData.socialInstagram = data.socialInstagram;
-      if (data.metaAccessToken !== undefined) updateData.metaAccessToken = data.metaAccessToken;
-      if (data.metaPageId !== undefined) updateData.metaPageId = data.metaPageId;
-      if (data.metaPageName !== undefined) updateData.metaPageName = data.metaPageName;
-
-      // Save Social Links to the Location socialLinks field
-      const existingLoc = await prisma.location.findFirst({ where: { businessGroupId } });
-      if (existingLoc) {
-        await prisma.location.update({
-          where: { id: existingLoc.id },
-          data: {
             socialLinks: {
-              facebook: data.socialFacebook || '',
-              instagram: data.socialInstagram || '',
-              youtube: data.socialYouTube || '',
-              linkedin: data.socialLinkedIn || '',
-              twitter: data.socialTwitter || ''
+              facebook: data.socialFacebook !== undefined ? data.socialFacebook : existingLoc.socialLinks?.facebook || '',
+              instagram: data.socialInstagram !== undefined ? data.socialInstagram : existingLoc.socialLinks?.instagram || '',
+              youtube: data.socialYouTube !== undefined ? data.socialYouTube : existingLoc.socialLinks?.youtube || '',
+              linkedin: data.socialLinkedIn !== undefined ? data.socialLinkedIn : existingLoc.socialLinks?.linkedin || '',
+              twitter: data.socialTwitter !== undefined ? data.socialTwitter : existingLoc.socialLinks?.twitter || ''
             }
           }
         });
       }
     }
+
+    // Sync normalized languages
+    if (data.languagesSpoken) {
+      await prisma.businessLanguage.deleteMany({ where: { businessGroupId } });
+      if (data.languagesSpoken.length > 0) {
+        await prisma.businessLanguage.createMany({
+          data: data.languagesSpoken.map(lang => ({ businessGroupId, language: lang }))
+        });
+      }
+    }
+
+    // Sync normalized services
+    if (data.servicesOffered) {
+      await prisma.businessService.deleteMany({ where: { businessGroupId } });
+      if (data.servicesOffered.length > 0) {
+        await prisma.businessService.createMany({
+          data: data.servicesOffered.map(service => ({ businessGroupId, name: service }))
+        });
+      }
+    }
+
+    // Sync normalized products
+    if (data.productsOffered) {
+      await prisma.businessProduct.deleteMany({ where: { businessGroupId } });
+      if (data.productsOffered.length > 0) {
+        await prisma.businessProduct.createMany({
+          data: data.productsOffered.map(product => ({ businessGroupId, name: product }))
+        });
+      }
+    }
+
+    // Sync normalized payment methods
+    if (data.paymentMethods) {
+      await prisma.businessPaymentMethod.deleteMany({ where: { businessGroupId } });
+      if (data.paymentMethods.length > 0) {
+        await prisma.businessPaymentMethod.createMany({
+          data: data.paymentMethods.map(method => ({ businessGroupId, methodName: method }))
+        });
+      }
+    }
+
+    // Sync Documents (GST, Udyam, FSSAI, Shop License)
+    if (data.documents) {
+      for (const doc of data.documents) {
+        await prisma.businessDocument.upsert({
+          where: {
+            businessGroupId_type: {
+              businessGroupId,
+              type: doc.type
+            }
+          },
+          update: { value: doc.value },
+          create: {
+            businessGroupId,
+            type: doc.type,
+            value: doc.value
+          }
+        });
+      }
+    }
+
 
     // Save update
     const updatedGroup = await prisma.businessGroup.update({
