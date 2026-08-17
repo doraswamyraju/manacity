@@ -38,7 +38,7 @@ export default function MetaConnectCard({ initialData, onMetaConnected }) {
     const appId = '1311990813621733';
     const redirectUri = encodeURIComponent('https://manacity.in/');
     const scope = encodeURIComponent('public_profile,email,pages_show_list,pages_read_engagement,pages_read_user_content,instagram_basic,business_management');
-    const authUrl = `https://www.facebook.com/v24.0/dialog/oauth?client_id=${appId}&redirect_uri=${redirectUri}&response_type=token&scope=${scope}`;
+    const authUrl = `https://www.facebook.com/dialog/oauth?client_id=${appId}&redirect_uri=${redirectUri}&response_type=token&scope=${scope}`;
 
     // Open real Meta Facebook OAuth popup window directly
     const width = 600;
