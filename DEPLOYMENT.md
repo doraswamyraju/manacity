@@ -11,7 +11,7 @@
 Run this command inside `root@147.93.107.21`:
 
 ```bash
-cd /var/www/manacity && git pull origin main && cd backend && npm install && pm2 restart all && cd ../web && npm install && npm run build && systemctl reload nginx
+cd /var/www/manacity && git pull origin main && cd backend && npm install && node src/seedAuditorCaLibrary.js && pm2 restart all && cd ../web && npm install && npm run build && systemctl reload nginx
 ```
 
 ---
@@ -25,9 +25,10 @@ cd /var/www/manacity
 # 2. Pull latest code from GitHub
 git pull origin main
 
-# 3. Update backend & restart PM2
+# 3. Update backend, run CA library seed & restart PM2
 cd /var/www/manacity/backend
 npm install
+node src/seedAuditorCaLibrary.js
 pm2 restart all
 pm2 status
 
