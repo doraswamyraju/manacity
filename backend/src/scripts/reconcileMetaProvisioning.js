@@ -51,10 +51,15 @@ async function reconcile() {
 
         if (res.data && res.data.success && res.data.tenantId) {
           console.log(`[ReconcileScript] Successfully provisioned Let'sTrack Tenant for ${bg.name}: Tenant ID ${res.data.tenantId}`);
+          const updateData = { letsTrackTenantId: res.data.tenantId };
+          if (res.data.apiKey) {
+            updateData.letsTrackApiKey = res.data.apiKey;
+          }
           await prisma.businessGroup.update({
             where: { id: bg.id },
-            data: { letsTrackTenantId: res.data.tenantId }
+            data: updateData
           });
+
         }
         break;
       } catch (err) {

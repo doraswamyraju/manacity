@@ -201,11 +201,16 @@ exports.subscribePageWebhooks = async (req, res) => {
           provisionedTenantId = provRes.data.tenantId;
           console.log(`[MetaProvisioning] BusinessGroup: ${bg.id} Meta Page: ${bg.metaPageId} Let'sTrack Tenant: ${provisionedTenantId} Status: SUCCESS`);
           
-          // Save letsTrackTenantId to BusinessGroup
+          // Save letsTrackTenantId and letsTrackApiKey to BusinessGroup
+          const updateData = { letsTrackTenantId: provisionedTenantId };
+          if (provRes.data.apiKey) {
+            updateData.letsTrackApiKey = provRes.data.apiKey;
+          }
           await prisma.businessGroup.update({
             where: { id: bg.id },
-            data: { letsTrackTenantId: provisionedTenantId }
+            data: updateData
           });
+
           break;
         }
       } catch (ltErr) {
