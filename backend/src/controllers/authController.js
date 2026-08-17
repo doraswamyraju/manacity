@@ -125,18 +125,27 @@ exports.login = async (req, res) => {
 // 3. Get Authenticated User Details (Token Verification)
 exports.getMe = async (req, res) => {
   try {
-    const user = await prisma.user.findUnique({
-      where: { id: req.user.id },
-      include: {
-        businessGroups: {
-          include: {
-            locations: true,
-            subscriptions: true,
-            website: true
+    let user;
+    try {
+      user = await prisma.user.findUnique({
+        where: { id: req.user.id },
+        include: {
+          businessGroups: {
+            include: {
+              locations: true,
+              subscriptions: true,
+              website: true
+            }
           }
         }
-      }
-    });
+      });
+    } catch (relErr) {
+      console.warn('getMe include relations error, falling back to basic query:', relErr.message);
+      user = await prisma.user.findUnique({
+        where: { id: req.user.id },
+        include: { businessGroups: true }
+      });
+    }
 
     if (!user) {
       return res.status(404).json({ error: 'User not found' });

@@ -11,7 +11,7 @@
 Run this command inside `root@147.93.107.21`:
 
 ```bash
-cd /var/www/manacity && git reset --hard origin/main && git pull origin main && cd backend && npm install && node src/seedAuditorCaLibrary.js && pm2 restart manacity-backend && cd ../web && npm install && npm run build && systemctl reload nginx
+cd /var/www/manacity && git reset --hard origin/main && git pull origin main && cd backend && npm install && npx prisma generate && node src/seedAuditorCaLibrary.js && pm2 restart manacity-backend && cd ../web && npm install && npm run build && systemctl reload nginx
 ```
 
 ---
@@ -26,9 +26,10 @@ cd /var/www/manacity
 git reset --hard origin/main
 git pull origin main
 
-# 3. Update backend, run CA library seed & restart PM2
+# 3. Update backend, generate Prisma client, run CA library seed & restart PM2
 cd /var/www/manacity/backend
 npm install
+npx prisma generate
 node src/seedAuditorCaLibrary.js
 pm2 restart manacity-backend
 pm2 status
