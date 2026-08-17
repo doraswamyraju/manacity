@@ -169,25 +169,50 @@ exports.subscribePageWebhooks = async (req, res) => {
       }
     }
 
-    // Call Meta Graph API to subscribe Facebook Page to webhooks using Page Access Token
-    const subUrl = `https://graph.facebook.com/v24.0/${bg.metaPageId}/subscribed_apps`;
-    const response = await axios.post(subUrl, {
-      subscribed_fields: ['messages', 'messaging_postbacks', 'feed', 'conversations', 'mention'],
-      access_token: pageAccessToken
-    });
+    // Try subscribing full fields list first, fallback gracefully if any scope is missing on token
+    const fieldOptions = [
+      ['messages', 'messaging_postbacks', 'feed', 'conversations', 'mention'],
+      ['messages', 'messaging_postbacks', 'feed'],
+      ['messages', 'messaging_postbacks'],
+      ['messages']
+    ];
 
-    console.log(`[MetaWebhook] Successfully subscribed Page ${bg.metaPageId} to webhooks:`, response.data);
+    let response = null;
+    let lastErr = null;
 
-    return res.status(200).json({
-      success: true,
-      message: `Successfully subscribed ${bg.metaPageName || 'Facebook Page'} & Instagram DMs to Meta Webhooks & Let'sTrack Live Chat!`,
-      data: response.data
-    });
+    for (const fields of fieldOptions) {
+      try {
+        const subUrl = `https://graph.facebook.com/v24.0/${bg.metaPageId}/subscribed_apps`;
+        response = await axios.post(subUrl, {
+          subscribed_fields: fields,
+          access_token: pageAccessToken
+        });
+        if (response.data && response.data.success) {
+          console.log(`[MetaWebhook] Successfully subscribed Page ${bg.metaPageId} with fields [${fields.join(', ')}]:`, response.data);
+          break;
+        }
+      } catch (err) {
+        lastErr = err;
+        console.warn(`[MetaWebhook] Fields [${fields.join(', ')}] subscription warning:`, err.response?.data?.error?.message || err.message);
+      }
+    }
+
+    if (response && response.data && response.data.success) {
+      return res.status(200).json({
+        success: true,
+        message: `Successfully subscribed ${bg.metaPageName || 'Facebook Page'} & Instagram DMs to Meta Webhooks & Let'sTrack Live Chat!`,
+        data: response.data
+      });
+    } else {
+      const errDetail = lastErr?.response?.data?.error?.message || 'Failed to subscribe Page to Meta webhooks.';
+      return res.status(400).json({ error: errDetail });
+    }
   } catch (error) {
     console.error('[MetaWebhook] Subscribe webhooks error:', error.response?.data || error.message);
     const errDetail = error.response?.data?.error?.message || 'Failed to subscribe Page to Meta webhooks.';
     return res.status(400).json({ error: errDetail });
   }
 };
+
 
 
