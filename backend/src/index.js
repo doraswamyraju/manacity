@@ -71,6 +71,8 @@ app.get('/', (req, res) => {
   });
 });
 
+const { startScheduledPostCron } = require('./services/scheduledPostWorker');
+
 // Database Connection & Server Start (Resilient & Non-Blocking)
 app.listen(PORT, () => {
   console.log(`ManaCity API Server is running cleanly on port ${PORT}`);
@@ -79,10 +81,12 @@ app.listen(PORT, () => {
     .then(() => {
       console.log('Successfully connected to MongoDB via Prisma Client.');
       authRoutes && authController.seedTestUser();
+      startScheduledPostCron(60000);
     })
     .catch((error) => {
       console.error('Prisma MongoDB connection warning (retrying in background):', error.message);
     });
 });
+
 
 

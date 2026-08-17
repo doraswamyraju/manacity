@@ -69,13 +69,53 @@ export default function MarketingTabContainer({ businessGroup, activeTabOverride
   const [loadingFb, setLoadingFb] = useState(false);
   const [fbData, setFbData] = useState(null);
 
+  // Comments & Reply State
+  const [comments, setComments] = useState([]);
+  const [loadingComments, setLoadingComments] = useState(false);
+  const [replyTextMap, setReplyTextMap] = useState({});
+  const [replyingId, setReplyingId] = useState(null);
+
   useEffect(() => {
     if (activeTab === 'INSTAGRAM') {
       fetchInstagramStats();
+      fetchMetaComments();
     } else if (activeTab === 'FACEBOOK') {
       fetchFacebookStats();
+      fetchMetaComments();
     }
   }, [activeTab]);
+
+  const fetchMetaComments = async () => {
+    setLoadingComments(true);
+    try {
+      const res = await axios.get('/api/marketing/meta/comments/list');
+      setComments(res.data.comments || []);
+    } catch (err) {
+      console.warn('Fetch comments warning:', err);
+    } finally {
+      setLoadingComments(false);
+    }
+  };
+
+  const handleReplyComment = async (commentId) => {
+    const text = replyTextMap[commentId];
+    if (!text || !text.trim()) return;
+    setReplyingId(commentId);
+    try {
+      await axios.post('/api/marketing/meta/comments/reply', {
+        commentId,
+        replyMessage: text
+      });
+      alert('✓ Reply posted successfully to comment!');
+      setReplyTextMap(prev => ({ ...prev, [commentId]: '' }));
+      fetchMetaComments();
+    } catch (err) {
+      alert(err.response?.data?.error || 'Failed to send reply to comment.');
+    } finally {
+      setReplyingId(null);
+    }
+  };
+
 
   const fetchInstagramStats = async () => {
     setLoadingIg(true);
@@ -517,7 +557,59 @@ export default function MarketingTabContainer({ businessGroup, activeTabOverride
 
           </div>
 
+          {/* Live Comments & Response Manager Card */}
+          <div style={{ backgroundColor: '#0f172a', borderRadius: '16px', padding: '1.5rem', border: '1px solid rgba(255,255,255,0.08)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+              <h4 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#fff', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <MessageSquare size={18} color="#34d399" /> Real-time Meta Post Comments & Response Console
+              </h4>
+              <button
+                onClick={fetchMetaComments}
+                disabled={loadingComments}
+                style={{ padding: '0.4rem 0.8rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', backgroundColor: '#1e293b', color: '#fff', fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer' }}
+              >
+                {loadingComments ? 'Refreshing...' : 'Refresh Comments'}
+              </button>
+            </div>
+
+            {comments.length === 0 ? (
+              <p style={{ fontSize: '0.85rem', color: '#94a3b8', margin: 0 }}>
+                No active post comments found. Connect your Facebook Page & Instagram account to view and reply to live user comments here.
+              </p>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                {comments.map(c => (
+                  <div key={c.commentId} style={{ backgroundColor: '#1e293b', borderRadius: '12px', padding: '1rem', border: '1px solid rgba(255,255,255,0.05)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.35rem' }}>
+                      <strong style={{ color: '#38bdf8', fontSize: '0.88rem' }}>{c.senderName}</strong>
+                      <span style={{ fontSize: '0.75rem', color: '#64748b' }}>{c.createdTime ? new Date(c.createdTime).toLocaleString() : ''}</span>
+                    </div>
+                    <p style={{ fontSize: '0.85rem', color: '#fff', margin: '0 0 0.75rem 0' }}>"{c.text}"</p>
+
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <input
+                        type="text"
+                        value={replyTextMap[c.commentId] || ''}
+                        onChange={(e) => setReplyTextMap({ ...replyTextMap, [c.commentId]: e.target.value })}
+                        placeholder="Write a public reply..."
+                        style={{ flex: 1, backgroundColor: '#0f172a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', padding: '0.5rem 0.75rem', color: '#fff', fontSize: '0.82rem', outline: 'none' }}
+                      />
+                      <button
+                        onClick={() => handleReplyComment(c.commentId)}
+                        disabled={replyingId === c.commentId}
+                        style={{ padding: '0.5rem 1rem', borderRadius: '8px', border: 'none', backgroundColor: '#10b981', color: '#fff', fontSize: '0.78rem', fontWeight: 800, cursor: 'pointer' }}
+                      >
+                        {replyingId === c.commentId ? 'Sending...' : 'Reply'}
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
         </div>
+
       )}
 
       {/* 2. FACEBOOK TAB */}

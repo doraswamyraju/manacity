@@ -191,29 +191,136 @@ router.post('/social/publish', auth, async (req, res) => {
   }
 });
 
-// 6. Meta Messaging Webhook (LetsTrack Live Chat DM Sync)
-router.get('/meta/webhook', (req, res) => {
-  const mode = req.query['hub.mode'];
-  const token = req.query['hub.verify_token'];
-  const challenge = req.query['hub.challenge'];
+const metaWebhookController = require('../controllers/metaWebhookController');
 
-  if (mode && token === (process.env.META_WEBHOOK_VERIFY_TOKEN || 'manacity_meta_secure_webhook')) {
-    return res.status(200).send(challenge);
+// 6. Meta Messaging & Events Webhook (LetsTrack Live Chat DM Sync)
+router.get('/meta/webhook', metaWebhookController.verifyWebhook);
+router.post('/meta/webhook', metaWebhookController.handleWebhookEvent);
+
+// 7. Post Scheduling & List Endpoints
+router.post('/meta/post/schedule', auth, async (req, res) => {
+  try {
+    const ownerId = req.user.id;
+    const { caption, mediaUrl, scheduledTime, targetPlatforms } = req.body;
+
+    if (!caption || !scheduledTime) {
+      return res.status(400).json({ error: 'Caption and scheduled time are required.' });
+    }
+
+    const bg = await prisma.businessGroup.findFirst({ where: { ownerId } });
+    if (!bg) {
+      return res.status(404).json({ error: 'Business Group not found.' });
+    }
+
+    const scheduledPost = await prisma.scheduledPost.create({
+      data: {
+        businessGroupId: bg.id,
+        caption,
+        mediaUrl: mediaUrl || null,
+        targetPlatforms: Array.isArray(targetPlatforms) && targetPlatforms.length > 0 ? targetPlatforms : ['FACEBOOK', 'INSTAGRAM'],
+        scheduledTime: new Date(scheduledTime),
+        status: 'PENDING'
+      }
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: `Post scheduled for ${new Date(scheduledTime).toLocaleString()}`,
+      scheduledPost
+    });
+  } catch (error) {
+    console.error('Schedule post error:', error);
+    return res.status(500).json({ error: 'Failed to schedule post.' });
   }
-  return res.sendStatus(403);
 });
 
-router.post('/meta/webhook', async (req, res) => {
+router.get('/meta/post/list', auth, async (req, res) => {
   try {
-    const body = req.body;
-    console.log('Incoming Meta Webhook DM:', JSON.stringify(body, null, 2));
+    const ownerId = req.user.id;
+    const bg = await prisma.businessGroup.findFirst({ where: { ownerId } });
+    if (!bg) return res.status(200).json({ posts: [] });
 
-    // Acknowledge Meta immediately
-    res.status(200).send('EVENT_RECEIVED');
-  } catch (err) {
-    console.error('Meta webhook error:', err);
-    res.sendStatus(500);
+    const posts = await prisma.scheduledPost.findMany({
+      where: { businessGroupId: bg.id },
+      orderBy: { scheduledTime: 'desc' }
+    });
+
+    return res.status(200).json({ posts });
+  } catch (error) {
+    console.error('List posts error:', error);
+    return res.status(500).json({ error: 'Failed to retrieve posts.' });
+  }
+});
+
+// 8. Comments List & Reply Endpoints
+router.get('/meta/comments/list', auth, async (req, res) => {
+  try {
+    const ownerId = req.user.id;
+    const bg = await prisma.businessGroup.findFirst({ where: { ownerId } });
+    if (!bg || !bg.metaAccessToken || !bg.metaPageId) {
+      return res.status(200).json({ comments: [] });
+    }
+
+    // Fetch comments from Facebook Page Feed using Meta Graph API
+    try {
+      const feedRes = await axios.get(`https://graph.facebook.com/v24.0/${bg.metaPageId}/feed?fields=id,message,comments{id,message,from,created_time}&access_token=${bg.metaAccessToken}`);
+      const comments = [];
+      if (feedRes.data && feedRes.data.data) {
+        for (const post of feedRes.data.data) {
+          if (post.comments && post.comments.data) {
+            for (const c of post.comments.data) {
+              comments.push({
+                commentId: c.id,
+                postId: post.id,
+                postText: post.message || 'Page Post',
+                senderName: c.from?.name || 'User',
+                text: c.message,
+                createdTime: c.created_time
+              });
+            }
+          }
+        }
+      }
+      return res.status(200).json({ comments });
+    } catch (graphErr) {
+      console.warn('Graph API comments list warning:', graphErr.response?.data || graphErr.message);
+      return res.status(200).json({ comments: [] });
+    }
+  } catch (error) {
+    console.error('Fetch comments error:', error);
+    return res.status(500).json({ error: 'Failed to fetch comments.' });
+  }
+});
+
+router.post('/meta/comments/reply', auth, async (req, res) => {
+  try {
+    const { commentId, replyMessage } = req.body;
+    const ownerId = req.user.id;
+    if (!commentId || !replyMessage) {
+      return res.status(400).json({ error: 'Comment ID and reply message are required.' });
+    }
+
+    const bg = await prisma.businessGroup.findFirst({ where: { ownerId } });
+    if (!bg || !bg.metaAccessToken) {
+      return res.status(400).json({ error: 'Meta connection not active on business profile.' });
+    }
+
+    // Reply to comment via Meta Graph API
+    const replyRes = await axios.post(`https://graph.facebook.com/v24.0/${commentId}/comments`, {
+      message: replyMessage,
+      access_token: bg.metaAccessToken
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: 'Reply posted successfully!',
+      replyId: replyRes.data?.id
+    });
+  } catch (error) {
+    console.error('Reply comment error:', error.response?.data || error.message);
+    return res.status(400).json({ error: error.response?.data?.error?.message || 'Failed to post reply to comment.' });
   }
 });
 
 module.exports = router;
+

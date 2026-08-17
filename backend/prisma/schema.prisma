@@ -117,7 +117,9 @@ model BusinessGroup {
   metaAdCampaigns MetaAdCampaign[]
   metaDailySnapshots MetaDailySnapshot[]
   metaSyncedMessages MetaSyncedMessage[]
+  scheduledPosts  ScheduledPost[]
 }
+
 
 model BusinessService {
   id              String                @id @default(auto()) @map("_id") @db.ObjectId
@@ -647,6 +649,23 @@ model MetaSyncedMessage {
   status          String        @default("SYNCED") // SYNCED, REPLIED, FAILED
   createdAt       DateTime      @default(now())
 }
+
+model ScheduledPost {
+  id              String        @id @default(auto()) @map("_id") @db.ObjectId
+  businessGroupId String        @db.ObjectId
+  businessGroup   BusinessGroup @relation(fields: [businessGroupId], references: [id], onDelete: Cascade)
+  caption         String
+  mediaUrl        String?
+  mediaType       String        @default("IMAGE") // IMAGE, VIDEO, CAROUSEL
+  targetPlatforms String[]      // ["FACEBOOK", "INSTAGRAM"]
+  scheduledTime   DateTime
+  status          String        @default("PENDING") // PENDING, PUBLISHED, FAILED
+  errorMessage    String?
+  publishedPostId String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+}
+
 
 model LetsTrackVisitor {
   id              String        @id @default(auto()) @map("_id") @db.ObjectId
