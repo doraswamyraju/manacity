@@ -88,10 +88,11 @@ export default function BusinessProfileSettings({ theme, businessGroup: initialB
         socialFacebook, socialInstagram, socialYouTube, socialLinkedIn, socialTwitter
       };
 
-      const res = await axios.post('/api/business/save-step', { step: 1, stepData: payload });
+      const res = await axios.post('/api/business/save-step', { step: 1, data: payload });
       if (res.data) {
         setMessage('✓ Business profile details updated successfully!');
       }
+
     } catch (err) {
       console.warn('Profile save warning:', err);
       setMessage('✓ Business profile details updated successfully!');

@@ -276,10 +276,11 @@ exports.getOnboardingState = async (req, res) => {
 exports.saveOnboardingStep = async (req, res) => {
   try {
     const ownerId = req.user.id;
-    const { step, data } = req.body;
+    const step = req.body.step || req.params.stepNumber || 1;
+    const data = req.body.data || req.body.stepData || req.body;
 
-    if (!step || !data) {
-      return res.status(400).json({ error: 'Step and data are required.' });
+    if (!data || Object.keys(data).length === 0) {
+      return res.status(400).json({ error: 'Profile data is required.' });
     }
 
     // Find the business group
@@ -289,7 +290,7 @@ exports.saveOnboardingStep = async (req, res) => {
 
     if (!businessGroup) {
       businessGroup = await prisma.businessGroup.create({
-        data: { name: `${req.user.name}'s Business`, ownerId }
+        data: { name: data.name || `${req.user.name}'s Business`, ownerId }
       });
     }
 
@@ -297,13 +298,28 @@ exports.saveOnboardingStep = async (req, res) => {
     let updateData = { setupStep: Number(step) };
     const stepSaved = Number(step) - 1;
 
-    if (stepSaved === 1) {
-      // Business Info
-      updateData.name = data.name || businessGroup.name;
-      updateData.description = data.description !== undefined ? data.description : businessGroup.description;
-      updateData.yearStarted = data.yearStarted !== undefined && data.yearStarted !== '' ? Number(data.yearStarted) : null;
-      updateData.logoUrl = data.logoUrl !== undefined ? data.logoUrl : businessGroup.logoUrl;
-      updateData.coverImageUrl = data.coverImageUrl !== undefined ? data.coverImageUrl : businessGroup.coverImageUrl;
+    // Apply all general profile fields if present in data
+    if (data.name) updateData.name = data.name;
+    if (data.description !== undefined) updateData.description = data.description;
+    if (data.yearStarted !== undefined && data.yearStarted !== '') updateData.yearStarted = Number(data.yearStarted) || null;
+    if (data.logoUrl !== undefined) updateData.logoUrl = data.logoUrl;
+    if (data.coverImageUrl !== undefined) updateData.coverImageUrl = data.coverImageUrl;
+    if (data.mobileNumber !== undefined) updateData.mobileNumber = data.mobileNumber;
+    if (data.whatsAppNumber !== undefined) updateData.whatsAppNumber = data.whatsAppNumber;
+    if (data.email !== undefined) updateData.email = data.email;
+    if (data.website !== undefined) updateData.website = data.website;
+    if (data.supportEmail !== undefined) updateData.supportEmail = data.supportEmail;
+    if (data.address !== undefined) updateData.address = data.address;
+    if (data.city !== undefined) updateData.city = data.city;
+    if (data.state !== undefined) updateData.state = data.state;
+    if (data.pinCode !== undefined) updateData.pinCode = data.pinCode;
+    if (data.googleReviewUrl !== undefined) updateData.googleReviewUrl = data.googleReviewUrl;
+    if (data.socialFacebook !== undefined) updateData.socialFacebook = data.socialFacebook;
+    if (data.socialInstagram !== undefined) updateData.socialInstagram = data.socialInstagram;
+    if (data.socialYouTube !== undefined) updateData.socialYouTube = data.socialYouTube;
+    if (data.socialLinkedIn !== undefined) updateData.socialLinkedIn = data.socialLinkedIn;
+    if (data.socialTwitter !== undefined) updateData.socialTwitter = data.socialTwitter;
+
       if (data.category) {
         // Also update Directory Listing category if present
         await prisma.directoryListing.updateMany({
