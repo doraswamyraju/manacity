@@ -149,14 +149,13 @@ exports.subscribePageWebhooks = async (req, res) => {
 
     let pageAccessToken = bg.metaAccessToken;
 
-    // Fetch exact Page Access Token for bg.metaPageId via Graph API
+    // Optional: Refresh Page Access Token if User Access Token was stored
     try {
-      const pageRes = await axios.get(`https://graph.facebook.com/v24.0/me/accounts?access_token=${bg.metaAccessToken}`);
+      const pageRes = await axios.get(`https://graph.facebook.com/v26.0/me/accounts?access_token=${bg.metaAccessToken}`);
       if (pageRes.data && pageRes.data.data) {
         const foundPage = pageRes.data.data.find(p => p.id === bg.metaPageId);
         if (foundPage && foundPage.access_token) {
           pageAccessToken = foundPage.access_token;
-          // Save valid Page Access Token back to BusinessGroup
           await prisma.businessGroup.update({
             where: { id: bg.id },
             data: { metaAccessToken: pageAccessToken }
@@ -164,15 +163,7 @@ exports.subscribePageWebhooks = async (req, res) => {
         }
       }
     } catch (tokenErr) {
-      console.warn('[MetaWebhook] Could not fetch me/accounts Page token, trying direct page query:', tokenErr.message);
-      try {
-        const directRes = await axios.get(`https://graph.facebook.com/v24.0/${bg.metaPageId}?fields=access_token&access_token=${bg.metaAccessToken}`);
-        if (directRes.data && directRes.data.access_token) {
-          pageAccessToken = directRes.data.access_token;
-        }
-      } catch (dErr) {
-        // Fall back to original token
-      }
+      // Use existing stored token smoothly
     }
 
     // Try subscribing full fields list first, fallback gracefully if any scope is missing on token
@@ -188,7 +179,7 @@ exports.subscribePageWebhooks = async (req, res) => {
 
     for (const fields of fieldOptions) {
       try {
-        const subUrl = `https://graph.facebook.com/v24.0/${bg.metaPageId}/subscribed_apps`;
+        const subUrl = `https://graph.facebook.com/v26.0/${bg.metaPageId}/subscribed_apps`;
         response = await axios.post(subUrl, {
           subscribed_fields: fields,
           access_token: pageAccessToken
@@ -202,6 +193,7 @@ exports.subscribePageWebhooks = async (req, res) => {
         console.warn(`[MetaWebhook] Fields [${fields.join(', ')}] subscription warning:`, err.response?.data?.error?.message || err.message);
       }
     }
+
 
     if (response && response.data && response.data.success) {
       // Automatically register / provision Let'sTrack Tenant for this BusinessGroup

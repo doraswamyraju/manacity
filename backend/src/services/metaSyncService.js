@@ -2,7 +2,25 @@ const axios = require('axios');
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
-const GRAPH_API_VERSION = 'v24.0';
+const GRAPH_API_VERSION = 'v26.0';
+
+const STANDARD_METRICS = [
+  'reach',
+  'follower_count',
+  'website_clicks',
+  'accounts_engaged',
+  'total_interactions',
+  'likes',
+  'comments',
+  'shares',
+  'saves',
+  'replies'
+];
+
+const TOTAL_VALUE_METRICS = [
+  'profile_views',
+  'views'
+];
 
 /**
  * Normalized Metric Builder Helper
