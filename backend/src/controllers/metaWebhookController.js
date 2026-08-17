@@ -144,9 +144,10 @@ exports.subscribePageWebhooks = async (req, res) => {
     // Call Meta Graph API to subscribe Facebook Page to webhooks
     const subUrl = `https://graph.facebook.com/v24.0/${bg.metaPageId}/subscribed_apps`;
     const response = await axios.post(subUrl, {
-      subscribed_fields: ['messages', 'messaging_postbacks', 'feed', 'comments', 'mention'],
+      subscribed_fields: ['messages', 'messaging_postbacks', 'feed', 'conversations', 'mention'],
       access_token: bg.metaAccessToken
     });
+
 
     console.log(`[MetaWebhook] Successfully subscribed Page ${bg.metaPageId} to webhooks:`, response.data);
 
