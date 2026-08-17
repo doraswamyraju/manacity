@@ -53,6 +53,7 @@ function CatalogTab({
 
   // Categories list
   const categoriesList = [
+    'Auditor / CA / Tax Consultant',
     'Digital Marketing',
     'Web Development',
     'Creative & Design',

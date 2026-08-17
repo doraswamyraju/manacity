@@ -223,6 +223,7 @@ function ServicesLibraryTab({ catalog = [], theme, handleCreateCatalogItem, hand
   ];
 
   const categoriesList = [
+    'Auditor / CA / Tax Consultant',
     'Digital Marketing',
     'Web Development',
     'Design & Branding',

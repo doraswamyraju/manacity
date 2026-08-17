@@ -282,7 +282,12 @@ export default function WebsiteBuilder({ onBack }) {
               <select value={theme} onChange={async (e) => {
                 const newTheme = e.target.value;
                 setTheme(newTheme);
-                const colors = { 'modern-corporate': '#6366f1', 'light-minimal': '#0ea5e9' };
+                const colors = {
+                  'ca-corporate-elite': '#0f2b48',
+                  'ca-modern-trust': '#059669',
+                  'modern-corporate': '#6366f1',
+                  'light-minimal': '#0ea5e9'
+                };
                 const pColor = colors[newTheme] || primaryColor;
                 if (colors[newTheme]) setPrimaryColor(colors[newTheme]);
                 // Immediate auto-save so live iframe updates theme instantly
@@ -290,24 +295,35 @@ export default function WebsiteBuilder({ onBack }) {
                   await axios.post('/api/website/save', { theme: newTheme, primaryColor: pColor });
                 } catch (err) {}
               }} style={{ ...inputStyle, fontWeight: 700, backgroundColor: '#0f172a' }}>
-                <option value="modern-corporate">1. Dark Mode Template (Sleek Dark & Glass)</option>
-                <option value="light-minimal">2. Light Mode Template (Clean White & Vibrant)</option>
+                <option value="ca-corporate-elite">🏛️ 1. CA Template A: Elite Corporate CA & Audit Firm (Navy & Gold)</option>
+                <option value="ca-modern-trust">⚡ 2. CA Template B: Modern Digital CA & Tax Advisory (Emerald Tech)</option>
+                <option value="modern-corporate">3. Dark Mode Template (Sleek Dark & Glass)</option>
+                <option value="light-minimal">4. Light Mode Template (Clean White & Vibrant)</option>
               </select>
 
               {/* Visual Template Cards */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.75rem', marginTop: '0.5rem' }}>
                 {[
-                  { id: 'modern-corporate', name: 'Dark Mode Template', color: '#6366f1' },
-                  { id: 'light-minimal', name: 'Light Mode Template', color: '#0ea5e9' }
+                  { id: 'ca-corporate-elite', name: 'Elite Corporate CA', color: '#d97706', desc: 'Navy & Gold Audit Firm' },
+                  { id: 'ca-modern-trust', name: 'Modern Digital CA', color: '#10b981', desc: 'Emerald Tax Advisory' },
+                  { id: 'modern-corporate', name: 'Dark Mode Template', color: '#6366f1', desc: 'Glass Dark' },
+                  { id: 'light-minimal', name: 'Light Mode Template', color: '#0ea5e9', desc: 'Clean Light' }
                 ].map(tmpl => (
                   <div
                     key={tmpl.id}
                     onClick={async () => {
                       setTheme(tmpl.id);
-                      setPrimaryColor(tmpl.color);
+                      const colors = {
+                        'ca-corporate-elite': '#0f2b48',
+                        'ca-modern-trust': '#059669',
+                        'modern-corporate': '#6366f1',
+                        'light-minimal': '#0ea5e9'
+                      };
+                      const targetColor = colors[tmpl.id] || tmpl.color;
+                      setPrimaryColor(targetColor);
                       // Immediate auto-save so live iframe updates theme instantly
                       try {
-                        await axios.post('/api/website/save', { theme: tmpl.id, primaryColor: tmpl.color });
+                        await axios.post('/api/website/save', { theme: tmpl.id, primaryColor: targetColor });
                       } catch (err) {}
                     }}
                     style={{
@@ -323,7 +339,8 @@ export default function WebsiteBuilder({ onBack }) {
                     }}
                   >
                     <div style={{ width: '100%', height: '4px', backgroundColor: tmpl.color, borderRadius: '2px', marginBottom: '0.35rem' }} />
-                    {tmpl.name}
+                    <div>{tmpl.name}</div>
+                    <div style={{ fontSize: '0.68rem', color: tmpl.color, opacity: 0.9, marginTop: '0.15rem' }}>{tmpl.desc}</div>
                   </div>
                 ))}
               </div>

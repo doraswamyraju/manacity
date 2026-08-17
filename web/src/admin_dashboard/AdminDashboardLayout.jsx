@@ -409,7 +409,7 @@ function AdminDashboardLayout({ user, businessGroup, onLogout, setView }) {
 
           {/* OTHER MODULE TABS */}
           {activeTab === 'profile-settings' && <BusinessProfileSettings theme={theme} businessGroup={businessGroup} />}
-          {activeTab === 'locations' && <Locations onBack={() => setActiveTab('overview')} onNavigateToOnboarding={() => window.location.href = '/onboarding'} />}
+          {activeTab === 'locations' && <Locations onBack={() => setActiveTab('overview')} onNavigateToOnboarding={() => setView ? setView('onboarding') : (window.location.href = '/onboarding')} />}
 
           {activeTab === 'catalog-library' && <BusinessLibraryTab theme={theme} />}
           {activeTab === 'website-builder' && <WebsiteBuilder onBack={() => setActiveTab('overview')} />}

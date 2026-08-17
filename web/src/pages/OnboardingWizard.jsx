@@ -240,8 +240,8 @@ function StepBusinessInfo({ initialData, onNext, onAutoFill }) {
       <h3 style={{ fontSize: '1.35rem', fontWeight: 800, color: 'var(--text-primary, #0f172a)' }}>Step 1: Business Information & Google Places Import</h3>
       
       {/* Google Places 1-Click Auto Import Box */}
-      <div style={{ backgroundColor: 'rgba(2, 132, 199, 0.08)', border: '1.5px solid rgba(2, 132, 199, 0.35)', padding: '1.15rem', borderRadius: '12px', marginBottom: '0.5rem' }}>
-        <label style={{ fontSize: '0.85rem', fontWeight: 700, color: '#0284c7', display: 'block', marginBottom: '0.5rem' }}>
+      <div style={{ backgroundColor: 'rgba(99, 102, 241, 0.08)', border: '1.5px solid #6366f1', padding: '1rem', borderRadius: '10px', marginBottom: '0.5rem' }}>
+        <label style={{ fontSize: '0.85rem', fontWeight: 700, color: '#6366f1', display: 'block', marginBottom: '0.4rem' }}>
           ⚡ 1-Click Import from Google Places API
         </label>
         <div style={{ display: 'flex', gap: '0.5rem', position: 'relative' }}>
@@ -258,14 +258,14 @@ function StepBusinessInfo({ initialData, onNext, onAutoFill }) {
             }}
             onFocus={() => { if (placesQuery.trim().length >= 2) setShowDropdown(true); }}
             onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleGooglePlacesImport(); } }}
-            style={{ flex: 1, padding: '0.7rem 1rem', borderRadius: '8px', backgroundColor: 'var(--bg-primary, #ffffff)', border: '1.5px solid var(--border-color, #cbd5e1)', color: 'var(--text-primary, #0f172a)', fontSize: '0.9rem', outline: 'none' }}
+            style={{ flex: 1, padding: '0.65rem 1rem', borderRadius: '6px', backgroundColor: 'var(--bg-secondary, #ffffff)', border: '1.5px solid #6366f1', color: 'var(--text-primary, #0f172a)', fontSize: '0.9rem', outline: 'none' }}
           />
           <button
             type="button"
             className="btn btn-primary"
             onClick={handleGooglePlacesImport}
             disabled={importing}
-            style={{ backgroundColor: '#0284c7', color: '#fff', fontSize: '0.85rem', padding: '0.7rem 1.25rem', borderRadius: '8px', fontWeight: 800, border: 'none', cursor: 'pointer' }}
+            style={{ backgroundColor: '#6366f1', fontSize: '0.85rem', padding: '0.6rem 1rem', color: '#ffffff', fontWeight: 700 }}
           >
             {importing ? 'Importing...' : 'Auto-Import'}
           </button>
@@ -278,16 +278,16 @@ function StepBusinessInfo({ initialData, onNext, onAutoFill }) {
               left: 0,
               right: 0,
               backgroundColor: 'var(--bg-secondary, #ffffff)',
-              border: '1.5px solid var(--border-color, #cbd5e1)',
+              border: '2px solid #6366f1',
               borderRadius: '8px',
-              boxShadow: '0 12px 30px rgba(0,0,0,0.15)',
+              boxShadow: '0 12px 30px rgba(0,0,0,0.18)',
               zIndex: 9999,
               marginTop: '6px',
               maxHeight: '250px',
               overflowY: 'auto'
             }}>
               {searchingPredictions && (
-                <div style={{ padding: '0.6rem 0.8rem', fontSize: '0.8rem', color: '#818cf8' }}>
+                <div style={{ padding: '0.6rem 0.8rem', fontSize: '0.8rem', color: '#6366f1', fontWeight: 700 }}>
                   🔍 Searching Google Places matching profiles...
                 </div>
               )}
@@ -297,16 +297,16 @@ function StepBusinessInfo({ initialData, onNext, onAutoFill }) {
                   onClick={() => handleSelectPrediction(p)}
                   style={{
                     padding: '0.65rem 0.85rem',
-                    borderBottom: '1px solid rgba(255,255,255,0.08)',
+                    borderBottom: '1px solid var(--border-color, #e2e8f0)',
                     cursor: 'pointer',
                     fontSize: '0.85rem',
                     textAlign: 'left'
                   }}
-                  onMouseEnter={e => e.currentTarget.style.backgroundColor = 'rgba(99, 102, 241, 0.25)'}
+                  onMouseEnter={e => e.currentTarget.style.backgroundColor = 'rgba(99, 102, 241, 0.12)'}
                   onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
                 >
-                  <strong style={{ color: '#fff', display: 'block', fontSize: '0.9rem' }}>{p.name}</strong>
-                  <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>{p.description}</span>
+                  <strong style={{ color: 'var(--text-primary, #0f172a)', display: 'block', fontSize: '0.9rem', fontWeight: 700 }}>{p.name}</strong>
+                  <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary, #475569)', lineHeight: 1.4 }}>{p.description}</span>
                 </div>
               ))}
             </div>
@@ -340,6 +340,7 @@ function StepBusinessInfo({ initialData, onNext, onAutoFill }) {
           onChange={(e) => setCategory(e.target.value)} 
           style={selectStyle}
         >
+          <option value="Auditor / CA / Tax Consultant">Auditor / CA / Tax Consultant</option>
           <option value="Digital Marketing">Digital Marketing</option>
           <option value="Rice Mill">Rice Mill</option>
           <option value="Clinics & Health">Clinics & Health</option>
@@ -718,7 +719,7 @@ function StepBusinessDetails({ initialData, onNext, onBack }) {
       {error && <div style={{ color: 'var(--accent-error)', fontSize: '0.9rem' }}>{error}</div>}
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-        <label style={{ fontSize: '0.9rem', fontWeight: 500 }}>Working Days *</label>
+        <label style={{ fontSize: '0.9rem', fontWeight: 600 }}>Working Days *</label>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
           {daysOfWeek.map(day => {
             const selected = workingDays.includes(day);
@@ -728,11 +729,12 @@ function StepBusinessDetails({ initialData, onNext, onBack }) {
                 type="button"
                 onClick={() => handleDayToggle(day)}
                 style={{
-                  padding: '0.4rem 0.8rem',
-                  borderRadius: 'var(--radius-sm)',
-                  border: '1px solid var(--border-color)',
-                  backgroundColor: selected ? 'var(--accent-primary)' : 'rgba(255, 255, 255, 0.03)',
-                  color: '#fff',
+                  padding: '0.45rem 0.85rem',
+                  borderRadius: 'var(--radius-sm, 8px)',
+                  border: selected ? '1.5px solid #6366f1' : '1px solid var(--border-color, #cbd5e1)',
+                  backgroundColor: selected ? '#6366f1' : 'var(--bg-secondary, #ffffff)',
+                  color: selected ? '#ffffff' : 'var(--text-primary, #0f172a)',
+                  fontWeight: selected ? 700 : 500,
                   cursor: 'pointer',
                   fontSize: '0.85rem'
                 }}
@@ -746,17 +748,17 @@ function StepBusinessDetails({ initialData, onNext, onBack }) {
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-          <label style={{ fontSize: '0.9rem', fontWeight: 500 }}>Opening Time</label>
+          <label style={{ fontSize: '0.9rem', fontWeight: 600 }}>Opening Time</label>
           <input type="time" value={businessHours.open} onChange={(e) => setBusinessHours({ ...businessHours, open: e.target.value })} style={inputStyle} />
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-          <label style={{ fontSize: '0.9rem', fontWeight: 500 }}>Closing Time</label>
+          <label style={{ fontSize: '0.9rem', fontWeight: 600 }}>Closing Time</label>
           <input type="time" value={businessHours.close} onChange={(e) => setBusinessHours({ ...businessHours, close: e.target.value })} style={inputStyle} />
         </div>
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-        <label style={{ fontSize: '0.9rem', fontWeight: 500 }}>Languages Spoken</label>
+        <label style={{ fontSize: '0.9rem', fontWeight: 600 }}>Languages Spoken</label>
         <div style={{ display: 'flex', gap: '0.5rem' }}>
           <input type="text" value={newLanguage} onChange={(e) => setNewLanguage(e.target.value)} placeholder="e.g. English" style={inputStyle} />
           <button type="button" className="btn btn-secondary" onClick={handleAddLanguage}>Add</button>
@@ -769,11 +771,11 @@ function StepBusinessDetails({ initialData, onNext, onBack }) {
       </div>
 
       {/* Category Master Product & Service Library Recommendations */}
-      <div style={{ backgroundColor: 'rgba(99, 102, 241, 0.08)', border: '1px solid #6366f1', padding: '1rem', borderRadius: '10px' }}>
-        <h4 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#818cf8', marginBottom: '0.4rem' }}>
+      <div style={{ backgroundColor: 'rgba(99, 102, 241, 0.08)', border: '1.5px solid #6366f1', padding: '1rem', borderRadius: '10px' }}>
+        <h4 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#4f46e5', marginBottom: '0.4rem' }}>
           ⚡ Recommended Master Catalog Items ({initialData.category || 'General Business'})
         </h4>
-        <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.75rem' }}>
+        <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary, #475569)', marginBottom: '0.75rem' }}>
           Click <strong>+ Add</strong> on any item to attach it directly to your business profile catalog.
         </p>
 
@@ -793,15 +795,15 @@ function StepBusinessDetails({ initialData, onNext, onBack }) {
                     justifyContent: 'space-between',
                     alignItems: 'center',
                     padding: '0.5rem 0.75rem',
-                    backgroundColor: isAdded ? 'rgba(16, 185, 129, 0.1)' : '#0f172a',
-                    border: isAdded ? '1px solid #10b981' : '1px solid rgba(255,255,255,0.1)',
+                    backgroundColor: isAdded ? 'rgba(16, 185, 129, 0.12)' : 'var(--bg-secondary, #ffffff)',
+                    border: isAdded ? '1.5px solid #10b981' : '1px solid var(--border-color, #cbd5e1)',
                     borderRadius: '6px',
                     fontSize: '0.82rem'
                   }}
                 >
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.1rem', overflow: 'hidden' }}>
-                    <span style={{ color: '#fff', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.name}</span>
-                    <span style={{ fontSize: '0.72rem', color: 'var(--text-secondary)' }}>
+                    <span style={{ color: 'var(--text-primary, #0f172a)', fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.name}</span>
+                    <span style={{ fontSize: '0.72rem', color: 'var(--text-secondary, #475569)', fontWeight: 500 }}>
                       {item.type} {item.price ? `| ₹${item.price}` : ''}
                     </span>
                   </div>
@@ -1289,9 +1291,9 @@ export default function OnboardingWizard({ onCompleteOnboarding, onCancel }) {
 // Styling Constants
 const inputStyle = {
   padding: '0.75rem 1rem',
-  backgroundColor: 'var(--bg-primary, #ffffff)',
+  backgroundColor: 'var(--bg-secondary, #ffffff)',
   border: '1.5px solid var(--border-color, #cbd5e1)',
-  borderRadius: '8px',
+  borderRadius: 'var(--radius-sm, 8px)',
   color: 'var(--text-primary, #0f172a)',
   fontSize: '0.95rem',
   outline: 'none',
@@ -1303,19 +1305,20 @@ const inputStyle = {
 const selectStyle = {
   ...inputStyle,
   cursor: 'pointer',
-  backgroundColor: 'var(--bg-primary, #ffffff)',
+  backgroundColor: 'var(--bg-secondary, #ffffff)',
   color: 'var(--text-primary, #0f172a)'
 };
 
 const chipStyle = {
-  backgroundColor: 'rgba(25, 118, 210, 0.1)',
-  border: '1px solid var(--border-color)',
-  color: 'var(--accent-secondary)',
-  padding: '0.25rem 0.5rem',
+  backgroundColor: 'rgba(99, 102, 241, 0.12)',
+  border: '1px solid var(--border-color, #a5b4fc)',
+  color: 'var(--accent-primary, #4f46e5)',
+  padding: '0.3rem 0.65rem',
   borderRadius: '12px',
-  fontSize: '0.8rem',
+  fontSize: '0.82rem',
+  fontWeight: 700,
   cursor: 'pointer',
   display: 'inline-flex',
   alignItems: 'center',
-  gap: '0.25rem'
+  gap: '0.3rem'
 };

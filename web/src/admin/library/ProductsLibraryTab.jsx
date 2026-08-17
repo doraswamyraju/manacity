@@ -43,6 +43,7 @@ function ProductsLibraryTab({ catalog = [], theme, handleCreateCatalogItem, hand
   const [editingItem, setEditingItem] = useState(null);
 
   const categoriesList = [
+    'Auditor / CA / Tax Consultant',
     'Digital Marketing',
     'Web Development',
     'Design & Branding',

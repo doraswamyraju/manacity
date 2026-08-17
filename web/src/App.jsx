@@ -81,8 +81,10 @@ function App() {
             localStorage.setItem('user', JSON.stringify(res.data.user));
           }
         })
-        .catch(() => {
-          handleLogout();
+        .catch((err) => {
+          if (err.response && err.response.status === 401) {
+            handleLogout();
+          }
         })
         .finally(() => {
           setLoading(false);

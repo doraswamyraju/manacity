@@ -185,16 +185,20 @@ export default function PublicBusinessWebsite() {
   return (
     <div style={{ minHeight: '100vh', backgroundColor: theme === 'light-minimal' ? '#ffffff' : '#090d16', color: theme === 'light-minimal' ? '#0f172a' : '#f8fafc', fontFamily: `${font}, sans-serif`, ...themeVars }}>
       
-      {/* Top Notification Bar if Clinic or Restaurant */}
-      {theme === 'clinic-healthcare' && (
-        <div style={{ backgroundColor: '#ef4444', color: '#fff', padding: '0.4rem 1rem', textAlign: 'center', fontSize: '0.82rem', fontWeight: 800, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem' }}>
-          <HeartPulse size={16} /> 24/7 Emergency Helpline: Call <a href={`tel:${bg.mobileNumber}`} style={{ color: '#fff', textDecoration: 'underline' }}>{bg.mobileNumber}</a>
+      {/* Top Notification Bar for CA Website Templates */}
+      {theme === 'ca-corporate-elite' && (
+        <div style={{ backgroundColor: '#0f2b48', color: '#f59e0b', borderBottom: '1px solid rgba(217, 119, 6, 0.3)', padding: '0.45rem 1rem', textAlign: 'center', fontSize: '0.82rem', fontWeight: 800, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+          <span>🛡️ ICAI UDIN Verified Chartered Accountants & Statutory Audit Firm</span>
+          <span style={{ color: 'rgba(255,255,255,0.4)' }}>|</span>
+          <span style={{ color: '#f8fafc' }}>⚡ Urgent Tax Notice & ITR Helpline: Call <a href={`tel:${bg.mobileNumber}`} style={{ color: '#f59e0b', textDecoration: 'underline' }}>{bg.mobileNumber}</a></span>
         </div>
       )}
 
-      {theme === 'restaurant-menu' && (
-        <div style={{ backgroundColor: '#f43f5e', color: '#fff', padding: '0.4rem 1rem', textAlign: 'center', fontSize: '0.82rem', fontWeight: 800, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem' }}>
-          <Utensils size={16} /> Fresh & Hygienic Dining • Dine-in & Takeaway Orders Available
+      {theme === 'ca-modern-trust' && (
+        <div style={{ backgroundColor: '#059669', color: '#ffffff', padding: '0.45rem 1rem', textAlign: 'center', fontSize: '0.82rem', fontWeight: 800, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+          <span>🎁 Free 15-Min Tax Savings & Regime Optimization Session</span>
+          <span style={{ color: 'rgba(255,255,255,0.4)' }}>|</span>
+          <span>💬 Instant CA Support: <a href={`https://wa.me/${(bg.whatsAppNumber || bg.mobileNumber || '').replace(/[^0-9]/g, '')}`} target="_blank" rel="noreferrer" style={{ color: '#ffffff', textDecoration: 'underline' }}>Chat on WhatsApp</a></span>
         </div>
       )}
 

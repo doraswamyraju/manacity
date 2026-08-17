@@ -11,6 +11,7 @@ function CategoriesTab({ theme }) {
   const inputBorder = isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid #cbd5e1';
 
   const [categories, setCategories] = useState([
+    { id: 'cat-0', name: 'Auditor / CA / Tax Consultant', slug: 'auditor-ca-tax-consultant', count: 22, subcategories: ['ITR Filing', 'GST Return', 'Statutory Audit', 'Tax Audit 44AB', 'ROC Compliance', 'CMA Report', 'TDS Return', 'Class 3 DSC'], status: 'Active' },
     { id: 'cat-1', name: 'Digital Marketing', slug: 'digital-marketing', count: 856, subcategories: ['Local SEO', 'Google Ads', 'Social Media', 'ORM'], status: 'Active' },
     { id: 'cat-2', name: 'Web Development', slug: 'web-development', count: 542, subcategories: ['React / Vite', 'WordPress', 'Shopify', 'Laravel'], status: 'Active' },
     { id: 'cat-3', name: 'Design & Branding', slug: 'design-branding', count: 321, subcategories: ['Logo Design', 'UI/UX', 'Print Banners'], status: 'Active' },

@@ -24,8 +24,80 @@ import {
   ExternalLink,
   ShoppingCart,
   Info,
-  Sun
+  Sun,
+  FileText,
+  Shield,
+  Calculator,
+  Lock,
+  Check,
+  FileCheck
 } from 'lucide-react';
+
+// CA Authority Accreditation Bar Helper
+export function CaAuthorityBar({ isLight }) {
+  const authorities = [
+    { name: 'Income Tax Department', logo: 'https://upload.wikimedia.org/wikipedia/commons/e/e4/Income_Tax_Department_India_logo.png' },
+    { name: 'GST Portal (GSTN)', logo: 'https://www.gst.gov.in/img/logo.png' },
+    { name: 'ICAI (Chartered Accountants)', logo: 'https://upload.wikimedia.org/wikipedia/en/thumb/8/82/ICAI_Logo.svg/1200px-ICAI_Logo.svg.png' },
+    { name: 'MCA (Corporate Affairs)', logo: 'https://www.mca.gov.in/content/dam/mca/mca-logo.png' },
+    { name: 'TRACES (TDS Portal)', logo: 'https://contents.tin.nsdl.com/tin/images/tin_logo.gif' },
+    { name: 'Tally Solutions', logo: 'https://tallysolutions.com/wp-content/themes/tally/assets/images/tally-logo.svg' },
+    { name: 'Zoho Books', logo: 'https://www.zoho.com/books/images/zoho-books-logo.png' }
+  ];
+
+  return (
+    <div style={{
+      marginTop: '2.5rem',
+      padding: '1.25rem 1.5rem',
+      borderRadius: '16px',
+      backgroundColor: isLight ? 'rgba(241, 245, 249, 0.8)' : 'rgba(15, 23, 42, 0.75)',
+      border: `1px solid ${isLight ? '#cbd5e1' : 'rgba(255,255,255,0.1)'}`,
+      backdropFilter: 'blur(8px)'
+    }}>
+      <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#d97706', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.75rem', textAlign: 'center' }}>
+        🏛️ Accredited & Integrations: Income Tax, GSTN, MCA, TRACES, ICAI & Accounting Platforms
+      </div>
+      <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap' }}>
+        {authorities.map((auth, i) => (
+          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', backgroundColor: isLight ? '#ffffff' : 'rgba(255,255,255,0.06)', padding: '0.35rem 0.75rem', borderRadius: '8px', border: `1px solid ${isLight ? '#e2e8f0' : 'rgba(255,255,255,0.08)'}` }}>
+            <img src={auth.logo} alt={auth.name} style={{ height: '20px', maxWidth: '80px', objectFit: 'contain' }} onError={(e) => { e.target.style.display = 'none'; }} />
+            <span style={{ fontSize: '0.74rem', fontWeight: 700, color: isLight ? '#334155' : '#cbd5e1' }}>{auth.name}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// CA Key Stats Counter Helper
+export function CaStatsCounterRow({ isLight, accentColor = '#d97706' }) {
+  const stats = [
+    { number: '15+ Years', label: 'Chartered Practice Experience' },
+    { number: '5,000+', label: 'ITR Returns & Tax Audits' },
+    { number: '100%', label: 'ICAI UDIN Verification Guarantee' },
+    { number: '₹500 Cr+', label: 'Bank Loans Financed via CMA Reports' }
+  ];
+
+  return (
+    <div style={{
+      display: 'grid',
+      gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+      gap: '1rem',
+      marginTop: '2rem',
+      padding: '1.25rem',
+      borderRadius: '14px',
+      backgroundColor: isLight ? '#f8fafc' : 'rgba(30, 41, 59, 0.8)',
+      border: `1px solid ${isLight ? '#e2e8f0' : 'rgba(255,255,255,0.08)'}`
+    }}>
+      {stats.map((st, i) => (
+        <div key={i} style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: '1.4rem', fontWeight: 900, color: accentColor }}>{st.number}</div>
+          <div style={{ fontSize: '0.74rem', fontWeight: 700, color: isLight ? '#64748b' : '#94a3b8', textTransform: 'uppercase', marginTop: '0.15rem' }}>{st.label}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 // Helper to compute actual rating and reviews array from businessGroup locations
 export function getRatingAndReviews(businessGroup) {
@@ -389,9 +461,15 @@ export function HeaderSection({ businessGroup, settings, theme }) {
 // --- 2. Hero Banner Component ---
 export function HeroSection({ businessGroup, settings, theme }) {
   const isLight = themeIsLight(theme);
+  const isCaElite = theme === 'ca-corporate-elite';
+  const isCaModern = theme === 'ca-modern-trust';
+  const isCaTheme = isCaElite || isCaModern;
+
   const { avgRating, reviewCount } = getRatingAndReviews(businessGroup);
 
   const headline = settings?.headline || (
+    isCaElite ? `${businessGroup?.name || 'Chartered Accountant Firm'} - Statutory Audit & Tax Advisory` :
+    isCaModern ? `${businessGroup?.name || 'Digital CA Firm'} - Fast Tax Return & Advisory` :
     theme === 'e-commerce' ? `Online Product Storefront - ${businessGroup?.name || 'Business'}` :
     theme === 'service-booking' ? `Book Services & Consultations - ${businessGroup?.name || 'Business'}` :
     theme === 'restaurant-menu' ? `Delicious Dining & Culinary Menu - ${businessGroup?.name || 'Business'}` :
@@ -399,8 +477,15 @@ export function HeroSection({ businessGroup, settings, theme }) {
     `Welcome to ${businessGroup?.name || 'Our Commercial Business'}`
   );
 
-  const subheadline = settings?.subheadline || businessGroup?.description || 'Serving our customers with top-tier commercial solutions, verified quality, and exceptional customer support.';
+  const subheadline = settings?.subheadline || (
+    isCaElite ? 'ICAI Registered Chartered Accountants providing Statutory Audit under Companies Act 2013, Tax Audit Sec 44AB, GST Filings, Faceless Notice Representation & UDIN Certificates.' :
+    isCaModern ? 'Fast ITR filing for salaried & business professionals, monthly GST returns, company incorporation, and Class 3 Digital Signatures with 100% tax notice protection.' :
+    businessGroup?.description || 'Serving our customers with top-tier commercial solutions, verified quality, and exceptional customer support.'
+  );
+
   const ctaText = settings?.ctaText || (
+    isCaElite ? 'Schedule CA Consultation' :
+    isCaModern ? 'Enquire via WhatsApp' :
     theme === 'e-commerce' ? 'Explore Storefront' :
     theme === 'service-booking' ? 'Book Appointment' :
     theme === 'restaurant-menu' ? 'View Menu & Order' :
@@ -408,25 +493,31 @@ export function HeroSection({ businessGroup, settings, theme }) {
     'Get In Touch'
   );
 
-  const coverUrl = businessGroup?.coverImageUrl || 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=1200';
+  const coverUrl = businessGroup?.coverImageUrl || 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?q=80&w=1200';
 
-  const bgOverlay = isLight
+  const bgOverlay = isCaElite
+    ? `linear-gradient(135deg, rgba(11, 25, 44, 0.94) 0%, rgba(30, 27, 75, 0.9) 100%), url('${coverUrl}') center/cover no-repeat`
+    : isCaModern
+    ? `linear-gradient(135deg, rgba(6, 78, 59, 0.92) 0%, rgba(15, 23, 42, 0.88) 100%), url('${coverUrl}') center/cover no-repeat`
+    : isLight
     ? `linear-gradient(135deg, rgba(255, 255, 255, 0.92) 0%, rgba(248, 250, 252, 0.88) 100%), url('${coverUrl}') center/cover no-repeat`
     : `linear-gradient(135deg, rgba(15, 23, 42, 0.88) 0%, rgba(15, 23, 42, 0.78) 100%), url('${coverUrl}') center/cover no-repeat`;
+
+  const primaryBtnColor = isCaElite ? '#d97706' : (isCaModern ? '#059669' : 'var(--primary-color, #6366f1)');
 
   return (
     <section style={{
       position: 'relative',
-      minHeight: '60vh',
+      minHeight: isCaTheme ? '75vh' : '60vh',
       display: 'flex',
       alignItems: 'center',
       justify: 'center',
-      color: isLight ? '#0f172a' : '#fff',
+      color: '#fff',
       background: bgOverlay,
       textAlign: 'center',
-      padding: '4rem 6%'
+      padding: '4.5rem 6%'
     }}>
-      <div style={{ maxWidth: '800px', zIndex: 2 }}>
+      <div style={{ maxWidth: '950px', zIndex: 2, width: '100%' }}>
         
         {/* Industry Pill Badge & Dynamic Rating Badge */}
         <div style={{ display: 'flex', justifyContent: 'center', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '1.25rem' }}>
@@ -436,21 +527,38 @@ export function HeroSection({ businessGroup, settings, theme }) {
             gap: '0.45rem',
             padding: '0.4rem 1rem',
             borderRadius: '30px',
-            backgroundColor: 'var(--primary-color, #6366f1)',
+            backgroundColor: primaryBtnColor,
             color: '#fff',
             fontSize: '0.78rem',
             fontWeight: 800,
             textTransform: 'uppercase',
             letterSpacing: '0.05em',
-            boxShadow: '0 4px 14px rgba(99, 102, 241, 0.35)'
+            boxShadow: `0 4px 14px ${primaryBtnColor}55`
           }}>
+            {isCaTheme && <ShieldCheck size={14} />}
             {theme === 'clinic-healthcare' && <Stethoscope size={14} />}
             {theme === 'restaurant-menu' && <Utensils size={14} />}
             {theme === 'e-commerce' && <ShoppingBag size={14} />}
             {theme === 'service-booking' && <Calendar size={14} />}
             {theme === 'modern-corporate' && <Building2 size={14} />}
             {theme === 'light-minimal' && <Sun size={14} />}
-            <span>{(theme || 'Commercial Business').replace('-', ' ')}</span>
+            <span>{isCaElite ? 'Chartered Accountant & Audit Firm' : (isCaModern ? 'Digital CA & Tax Advisory' : (theme || 'Commercial Business').replace('-', ' '))}</span>
+          </div>
+
+          <div style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.35rem',
+            padding: '0.4rem 0.9rem',
+            borderRadius: '30px',
+            backgroundColor: 'rgba(255, 255, 255, 0.12)',
+            border: '1px solid rgba(255, 255, 255, 0.25)',
+            fontSize: '0.8rem',
+            fontWeight: 800,
+            color: '#f59e0b'
+          }}>
+            <Shield size={14} color="#f59e0b" />
+            <span>100% ICAI UDIN Verified Reports</span>
           </div>
 
           {reviewCount > 0 && (
@@ -460,8 +568,8 @@ export function HeroSection({ businessGroup, settings, theme }) {
               gap: '0.35rem',
               padding: '0.4rem 0.9rem',
               borderRadius: '30px',
-              backgroundColor: isLight ? 'rgba(0, 0, 0, 0.05)' : 'rgba(255, 255, 255, 0.1)',
-              border: `1px solid ${isLight ? '#cbd5e1' : 'rgba(255, 255, 255, 0.2)'}`,
+              backgroundColor: 'rgba(255, 255, 255, 0.12)',
+              border: '1px solid rgba(255, 255, 255, 0.25)',
               fontSize: '0.8rem',
               fontWeight: 800,
               color: '#f59e0b'
@@ -472,18 +580,51 @@ export function HeroSection({ businessGroup, settings, theme }) {
           )}
         </div>
 
-        <h1 style={{ fontSize: '2.8rem', fontWeight: 900, marginBottom: '1rem', lineHeight: 1.18, letterSpacing: '-0.03em', color: isLight ? '#0f172a' : '#fff' }}>
+        <h1 style={{ fontSize: isCaTheme ? '3rem' : '2.8rem', fontWeight: 900, marginBottom: '1rem', lineHeight: 1.18, letterSpacing: '-0.03em', color: '#fff' }}>
           {headline}
         </h1>
-        <p style={{ fontSize: '1.1rem', marginBottom: '2rem', color: isLight ? '#475569' : '#cbd5e1', lineHeight: 1.6, maxWidth: '700px', margin: '0 auto 2rem' }}>
+        <p style={{ fontSize: '1.12rem', marginBottom: '2rem', color: '#cbd5e1', lineHeight: 1.65, maxWidth: '780px', margin: '0 auto 2rem' }}>
           {subheadline}
         </p>
 
+        {/* Quick Service Pills Bar for Modern Digital CA */}
+        {isCaModern && (
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '0.6rem', flexWrap: 'wrap', marginBottom: '2rem' }}>
+            {[
+              '📄 Salaried ITR (₹1,499)',
+              '💼 Business Tax 44ADA (₹3,999)',
+              '📊 GST Monthly Filing (₹2,499)',
+              '🏛️ Pvt Ltd Incorporation (₹8,999)',
+              '📜 CA Net Worth Cert (₹2,500)',
+              '🏦 CMA Loan Report (₹12,000)'
+            ].map((pill, idx) => (
+              <a
+                key={idx}
+                href="#services"
+                style={{
+                  fontSize: '0.78rem',
+                  fontWeight: 700,
+                  backgroundColor: 'rgba(255,255,255,0.12)',
+                  color: '#f8fafc',
+                  padding: '0.35rem 0.85rem',
+                  borderRadius: '20px',
+                  border: '1px solid rgba(255,255,255,0.2)',
+                  textDecoration: 'none'
+                }}
+              >
+                {pill}
+              </a>
+            ))}
+          </div>
+        )}
+
         <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
           <a
-            href="#contact"
+            href={isCaModern && businessGroup?.whatsAppNumber ? `https://wa.me/${businessGroup.whatsAppNumber.replace(/[^0-9]/g, '')}?text=${encodeURIComponent('Hi CA Team, I need assistance with Income Tax / GST / Audit services.')}` : '#contact'}
+            target={isCaModern && businessGroup?.whatsAppNumber ? '_blank' : '_self'}
+            rel="noreferrer"
             style={{
-              backgroundColor: 'var(--primary-color, #6366f1)',
+              backgroundColor: primaryBtnColor,
               color: '#fff',
               padding: '0.85rem 2.2rem',
               textDecoration: 'none',
@@ -493,9 +634,10 @@ export function HeroSection({ businessGroup, settings, theme }) {
               alignItems: 'center',
               gap: '0.5rem',
               fontSize: '0.95rem',
-              boxShadow: '0 4px 15px rgba(99, 102, 241, 0.4)'
+              boxShadow: `0 4px 15px ${primaryBtnColor}66`
             }}
           >
+            {isCaModern && <MessageSquare size={18} />}
             <span>{ctaText}</span>
             <ArrowRight size={18} />
           </a>
@@ -503,20 +645,25 @@ export function HeroSection({ businessGroup, settings, theme }) {
           <a
             href="#services"
             style={{
-              backgroundColor: isLight ? '#ffffff' : 'rgba(255, 255, 255, 0.08)',
-              color: isLight ? '#0f172a' : '#fff',
-              border: `1px solid ${isLight ? '#cbd5e1' : 'rgba(255, 255, 255, 0.2)'}`,
+              backgroundColor: 'rgba(255, 255, 255, 0.1)',
+              color: '#fff',
+              border: '1px solid rgba(255, 255, 255, 0.25)',
               padding: '0.85rem 2rem',
               textDecoration: 'none',
               borderRadius: '8px',
               fontWeight: 700,
-              fontSize: '0.95rem',
-              boxShadow: isLight ? '0 2px 8px rgba(0,0,0,0.06)' : 'none'
+              fontSize: '0.95rem'
             }}
           >
-            Explore Offerings
+            Explore CA Packages
           </a>
         </div>
+
+        {/* Dynamic CA Stats Counter Row */}
+        {isCaTheme && <CaStatsCounterRow isLight={false} accentColor={primaryBtnColor} />}
+
+        {/* Dynamic Authority Accreditation Bar */}
+        {isCaTheme && <CaAuthorityBar isLight={false} />}
       </div>
     </section>
   );
@@ -525,9 +672,18 @@ export function HeroSection({ businessGroup, settings, theme }) {
 // --- 3. Features / Why Choose Us Component ---
 export function FeaturesSection({ businessGroup, settings, theme }) {
   const isLight = themeIsLight(theme);
-  const title = settings?.title || 'Why Choose Us';
+  const isCaElite = theme === 'ca-corporate-elite';
+  const isCaModern = theme === 'ca-modern-trust';
+  const isCaTheme = isCaElite || isCaModern;
+
+  const title = settings?.title || (isCaTheme ? 'Core CA Practice Pillars & Authority' : 'Why Choose Us');
   
-  const features = [
+  const features = isCaTheme ? [
+    { icon: <ShieldCheck size={28} color={isCaElite ? '#d97706' : '#10b981'} />, title: '100% UDIN Verified Reports', desc: 'Every audit report, financial statement, and Net Worth certificate is generated with unique ICAI UDIN for bank & government authenticity.' },
+    { icon: <FileCheck size={28} color={isCaElite ? '#d97706' : '#10b981'} />, title: 'Faceless Tax Notice Protection', desc: 'Specialized legal representation for Income Tax Notices Sec 142(1), 143(1), 148, defective returns Sec 139(9), and CIT(A) Appeals.' },
+    { icon: <Building2 size={28} color={isCaElite ? '#d97706' : '#10b981'} />, title: 'Statutory & Tax Audit Sec 44AB', desc: 'In-depth statutory audit under Companies Act 2013 and Section 44AB tax audit with zero compliance gaps.' },
+    { icon: <Calculator size={28} color={isCaElite ? '#d97706' : '#10b981'} />, title: 'CMA Data & Bank Loan DPR', desc: 'Certified Credit Monitoring Arrangement statements and detailed project reports for CC/OD limits & corporate loan approvals.' }
+  ] : [
     { icon: <ShieldCheck size={28} color="var(--primary-color, #38bdf8)" />, title: 'Verified Quality', desc: '100% committed to high standard product and service execution.' },
     { icon: <Sparkles size={28} color="var(--primary-color, #38bdf8)" />, title: 'Professional Staff', desc: 'Experienced professionals ensuring seamless customer experience.' },
     { icon: <Clock size={28} color="var(--primary-color, #38bdf8)" />, title: 'Fast Turnaround', desc: 'Quick response time, prompt delivery, and 24/7 dedicated support.' },
@@ -538,7 +694,9 @@ export function FeaturesSection({ businessGroup, settings, theme }) {
     <section id="features" style={{ padding: '4rem 6%', backgroundColor: isLight ? '#f8fafc' : 'rgba(255, 255, 255, 0.015)', borderBottom: `1px solid ${isLight ? '#e2e8f0' : 'rgba(255,255,255,0.05)'}` }}>
       <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
         <h2 style={{ fontSize: '1.8rem', fontWeight: 800, color: isLight ? '#0f172a' : '#fff', marginBottom: '0.5rem' }}>{title}</h2>
-        <p style={{ color: isLight ? '#64748b' : '#94a3b8', fontSize: '0.95rem' }}>Built on trust, speed, and uncompromising standards</p>
+        <p style={{ color: isLight ? '#64748b' : '#94a3b8', fontSize: '0.95rem' }}>
+          {isCaTheme ? 'Uncompromising standards of audit integrity, regulatory compliance, and tax litigation defense' : 'Built on trust, speed, and uncompromising standards'}
+        </p>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.5rem' }}>
@@ -967,14 +1125,28 @@ export function ReviewsSection({ businessGroup, settings, theme }) {
 // --- 9. FAQ Accordion Component ---
 export function FaqSection({ businessGroup, settings, theme }) {
   const isLight = themeIsLight(theme);
+  const isCaElite = theme === 'ca-corporate-elite';
+  const isCaModern = theme === 'ca-modern-trust';
+  const isCaTheme = isCaElite || isCaModern;
+
   const [openIdx, setOpenIdx] = useState(0);
 
-  const faqs = [
+  const defaultFaqs = [
     { q: 'What services or products do you specialize in?', a: `We specialize in providing high quality commercial offerings tailored for ${businessGroup?.name || 'our clients'} in ${businessGroup?.city || 'Tirupati'}.` },
     { q: 'What payment methods do you accept?', a: 'We accept UPI, cash, credit/debit cards, net banking, and official invoices.' },
     { q: 'How can I book an appointment or place an inquiry?', a: 'You can submit your details in the contact form below or reach us directly via WhatsApp / phone call.' },
     { q: 'Where is your business located?', a: `We are located at ${businessGroup?.address || businessGroup?.city || 'Tirupati, Andhra Pradesh'}.` }
   ];
+
+  const caFaqs = [
+    { q: 'What is UDIN and why is it mandatory for CA certificates?', a: 'Unique Document Identification Number (UDIN) is an 18-digit code mandated by ICAI for all certified documents, financial statements, and audit reports issued by practicing Chartered Accountants. It allows banks, tax authorities, and government portals to verify document authenticity online.' },
+    { q: 'Who is required to get a Tax Audit under Section 44AB?', a: 'Tax audit under Section 44AB is mandatory for businesses with turnover exceeding ₹1 Crore (or ₹10 Crore if cash transactions are within 5%) and professionals with gross receipts exceeding ₹50 Lakhs.' },
+    { q: 'What is Section 44ADA Presumptive Taxation for Professionals?', a: 'Section 44ADA allows eligible professionals (IT consultants, freelancers, doctors, engineers, legal advisors) with gross receipts up to ₹75 Lakhs (with 95% digital receipts) to declare 50% as net taxable profit without maintaining detailed books of accounts.' },
+    { q: 'How quickly can a CA Net Worth Certificate be issued for VISA processing?', a: 'Upon submitting verified bank statements, property valuation reports, and investment proof, we issue the official UDIN-certified CA Net Worth Certificate within 24 to 48 hours.' },
+    { q: 'What documents are required for GSTR-1 and GSTR-3B monthly filings?', a: 'For GSTR-1, sales invoices, debit/credit notes, and B2C summary are needed. For GSTR-3B, purchase invoices (reconciled with GSTR-2B ITC) and tax payment challans are required.' }
+  ];
+
+  const faqs = isCaTheme ? caFaqs : defaultFaqs;
 
   return (
     <section id="faq" style={{ padding: '4rem 6%', backgroundColor: isLight ? '#f8fafc' : 'rgba(255, 255, 255, 0.015)', borderBottom: `1px solid ${isLight ? '#e2e8f0' : 'rgba(255,255,255,0.05)'}` }}>

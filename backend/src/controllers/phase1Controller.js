@@ -6,6 +6,7 @@ const { provisionLetsTrackTenant } = require('../services/letsTrackService');
 // Helper Functions
 const mapGoogleTypeToCategory = (types = []) => {
   const tStr = types.join(' ').toLowerCase();
+  if (tStr.includes('audit') || tStr.includes('tax') || tStr.includes('accounting') || tStr.includes('accountant') || tStr.includes('finance') || tStr.includes('ca')) return 'Auditor / CA / Tax Consultant';
   if (tStr.includes('marketing') || tStr.includes('advertising') || tStr.includes('consultant')) return 'Digital Marketing';
   if (tStr.includes('rice') || tStr.includes('mill') || tStr.includes('grain')) return 'Rice Mill';
   if (tStr.includes('health') || tStr.includes('doctor') || tStr.includes('hospital') || tStr.includes('clinic') || tStr.includes('dentist')) return 'Clinics & Health';

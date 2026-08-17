@@ -424,6 +424,12 @@ exports.saveOnboardingStep = async (req, res) => {
         }
       }
     } else if (stepSaved === 5) {
+      if (data.socialFacebook !== undefined) updateData.socialFacebook = data.socialFacebook;
+      if (data.socialInstagram !== undefined) updateData.socialInstagram = data.socialInstagram;
+      if (data.metaAccessToken !== undefined) updateData.metaAccessToken = data.metaAccessToken;
+      if (data.metaPageId !== undefined) updateData.metaPageId = data.metaPageId;
+      if (data.metaPageName !== undefined) updateData.metaPageName = data.metaPageName;
+
       // Save Social Links to the Location socialLinks field
       const existingLoc = await prisma.location.findFirst({ where: { businessGroupId } });
       if (existingLoc) {
