@@ -81,7 +81,7 @@ exports.handleWebhookEvent = async (req, res) => {
                     pageViewed: `Message from ${senderId}: "${messageText.slice(0, 50)}"`
                   }
                 });
-                // Forward message payload to Let'sTrack backend service if active
+                // Forward raw webhook payload directly to Let'sTrack backend service (/api/webhooks/meta)
                 const letsTrackUrls = [
                   process.env.LETSTRACK_API_URL,
                   'http://127.0.0.1:5004',
@@ -90,20 +90,14 @@ exports.handleWebhookEvent = async (req, res) => {
 
                 for (const letsTrackUrl of letsTrackUrls) {
                   try {
-                    await axios.post(`${letsTrackUrl}/api/external/chat-message`, {
-                      tenantApiKey: bg.letsTrackApiKey || undefined,
-                      tenantId: bg.letsTrackTenantId || undefined,
-                      senderId,
-                      senderName: `Social User (${body.object})`,
-                      source: body.object === 'instagram' ? 'INSTAGRAM_DM' : 'FACEBOOK_MESSENGER',
-                      message: messageText
-                    }, { timeout: 3000 });
-                    console.log(`[MetaWebhook] Forwarded DM to Let'sTrack livechat at ${letsTrackUrl}`);
+                    await axios.post(`${letsTrackUrl}/api/webhooks/meta`, body, { timeout: 3000 });
+                    console.log(`[MetaWebhook] Forwarded raw webhook payload to Let'sTrack at ${letsTrackUrl}/api/webhooks/meta`);
                     break;
                   } catch (ltErr) {
-                    // Ignore fallback connection warnings
+                    // Ignore connection fallback error
                   }
                 }
+
 
                 console.log(`[MetaWebhook] Synced ${body.object} DM to Let'sTrack Unified Inbox for Business: ${bg.name}`);
               }
