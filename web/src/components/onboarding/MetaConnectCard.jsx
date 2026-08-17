@@ -214,7 +214,19 @@ export default function MetaConnectCard({ initialData, onMetaConnected }) {
       </div>
 
       {showManualInput && (
-        <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid rgba(24, 119, 242, 0.2)', display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+        <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid rgba(24, 119, 242, 0.2)', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+          <div style={{ backgroundColor: 'rgba(24, 119, 242, 0.06)', border: '1px solid rgba(24, 119, 242, 0.2)', padding: '0.75rem 1rem', borderRadius: '8px', fontSize: '0.8rem', color: 'var(--text-primary)' }}>
+            <strong>💡 Why Meta Popup shows "Feature unavailable"?</strong>
+            <p style={{ margin: '0.25rem 0 0 0', color: 'var(--text-secondary)', lineHeight: 1.4 }}>
+              Meta Business App <code>1311990813621733</code> restricts 1-click popups to registered Meta Developer accounts.
+              To connect instantly:
+              <br />
+              1. Click <a href="https://developers.facebook.com/tools/explorer/" target="_blank" rel="noreferrer" style={{ color: '#1877f2', fontWeight: 700 }}>Meta Graph Explorer</a> to generate a 1-click Page Access Token.
+              <br />
+              2. Or add your Facebook Account email to <a href="https://developers.facebook.com/apps/1311990813621733/roles/" target="_blank" rel="noreferrer" style={{ color: '#1877f2', fontWeight: 700 }}>Meta App Roles &gt; Add Developers</a>.
+            </p>
+          </div>
+
           <label style={{ fontSize: '0.82rem', fontWeight: 700, color: '#1877f2' }}>
             Paste Meta User / Page Access Token
           </label>
@@ -223,7 +235,7 @@ export default function MetaConnectCard({ initialData, onMetaConnected }) {
               type="text"
               value={manualToken}
               onChange={(e) => setManualToken(e.target.value)}
-              placeholder="EAAG..."
+              placeholder="Paste EAAG... Meta Access Token"
               style={{ flex: 1, padding: '0.6rem 0.85rem', borderRadius: '6px', backgroundColor: 'var(--bg-secondary, #ffffff)', border: '1px solid #1877f2', color: 'var(--text-primary, #0f172a)', fontSize: '0.85rem' }}
             />
             <button
