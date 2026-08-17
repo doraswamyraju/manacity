@@ -33,77 +33,89 @@ exports.handleWebhookEvent = async (req, res) => {
       for (const entry of (body.entry || [])) {
         const pageOrIgId = entry.id;
 
-        // A. Facebook Page Messaging / Instagram DMs
-        if (entry.messaging) {
-          for (const messagingEvent of entry.messaging) {
-            const senderId = messagingEvent.sender?.id;
-            const messageText = messagingEvent.message?.text;
-            const messageId = messagingEvent.message?.mid || `msg_${Date.now()}`;
-
-            if (senderId && messageText) {
-              // Find matching BusinessGroup by metaPageId or metaInstagramId
-              const bg = await prisma.businessGroup.findFirst({
-                where: {
-                  OR: [
-                    { metaPageId: pageOrIgId },
-                    { metaInstagramId: pageOrIgId }
-                  ]
-                }
-              });
-
-              if (bg) {
-                // Upsert MetaSyncedMessage for Unified Inbox
-                await prisma.metaSyncedMessage.upsert({
-                  where: { metaMessageId: messageId },
-                  update: {
-                    messageText,
-                    timestamp: new Date(),
-                    status: 'SYNCED'
-                  },
-                  create: {
-                    businessGroupId: bg.id,
-                    metaMessageId: messageId,
-                    senderId,
-                    senderName: `User_${senderId.slice(-4)}`,
-                    source: body.object === 'instagram' ? 'INSTAGRAM' : 'FACEBOOK',
-                    messageText,
-                    status: 'SYNCED'
-                  }
-                });
-
-                // Also record lead/visitor entry in Let'sTrack Unified Inbox
-                await prisma.letsTrackVisitor.create({
-                  data: {
-                    businessGroupId: bg.id,
-                    visitorIp: 'META_API',
-                    locationCity: 'Social Message',
-                    deviceType: body.object.toUpperCase(),
-                    pageViewed: `Message from ${senderId}: "${messageText.slice(0, 50)}"`
-                  }
-                });
-                // Forward raw webhook payload directly to Let'sTrack backend service (/api/webhooks/meta)
-                const letsTrackUrls = [
-                  process.env.LETSTRACK_API_URL,
-                  'http://127.0.0.1:5004',
-                  'http://localhost:5004'
-                ].filter(Boolean);
-
-                for (const letsTrackUrl of letsTrackUrls) {
-                  try {
-                    await axios.post(`${letsTrackUrl}/api/webhooks/meta`, body, { timeout: 3000 });
-                    console.log(`[MetaWebhook] Forwarded raw webhook payload to Let'sTrack at ${letsTrackUrl}/api/webhooks/meta`);
-                    break;
-                  } catch (ltErr) {
-                    // Ignore connection fallback error
-                  }
-                }
-
-
-                console.log(`[MetaWebhook] Synced ${body.object} DM to Let'sTrack Unified Inbox for Business: ${bg.name}`);
-              }
+        // Extract messaging events from entry.messaging or entry.changes
+        const messagingList = [];
+        if (Array.isArray(entry.messaging)) {
+          messagingList.push(...entry.messaging);
+        }
+        if (Array.isArray(entry.changes)) {
+          for (const change of entry.changes) {
+            if ((change.field === 'messages' || change.field === 'instagram_messages') && change.value) {
+              messagingList.push(change.value);
             }
           }
         }
+
+        // Process Facebook Page Messaging / Instagram DMs
+        for (const messagingEvent of messagingList) {
+          const senderId = messagingEvent.sender?.id || messagingEvent.from?.id || messagingEvent.from;
+          const messageText = messagingEvent.message?.text || messagingEvent.text?.body || (typeof messagingEvent.message === 'string' ? messagingEvent.message : null);
+          const messageId = messagingEvent.message?.mid || messagingEvent.id || `msg_${Date.now()}`;
+
+          if (senderId && messageText) {
+            // Find matching BusinessGroup by metaPageId or metaInstagramId
+            const bg = await prisma.businessGroup.findFirst({
+              where: {
+                OR: [
+                  { metaPageId: pageOrIgId },
+                  { metaInstagramId: pageOrIgId }
+                ]
+              }
+            });
+
+            if (bg) {
+              // Upsert MetaSyncedMessage for Unified Inbox
+              await prisma.metaSyncedMessage.upsert({
+                where: { metaMessageId: String(messageId) },
+                update: {
+                  messageText: String(messageText),
+                  timestamp: new Date(),
+                  status: 'SYNCED'
+                },
+                create: {
+                  businessGroupId: bg.id,
+                  metaMessageId: String(messageId),
+                  senderId: String(senderId),
+                  senderName: `User_${String(senderId).slice(-4)}`,
+                  source: body.object === 'instagram' ? 'INSTAGRAM' : 'FACEBOOK',
+                  messageText: String(messageText),
+                  status: 'SYNCED'
+                }
+              });
+
+              // Also record lead/visitor entry in Let'sTrack Unified Inbox
+              await prisma.letsTrackVisitor.create({
+                data: {
+                  businessGroupId: bg.id,
+                  visitorIp: 'META_API',
+                  locationCity: 'Social Message',
+                  deviceType: body.object.toUpperCase(),
+                  pageViewed: `Message from ${senderId}: "${String(messageText).slice(0, 50)}"`
+                }
+              });
+
+              console.log(`[MetaWebhook] Synced ${body.object} DM to Let'sTrack Unified Inbox for Business: ${bg.name}`);
+            }
+          }
+        }
+
+        // Forward raw webhook payload directly to Let'sTrack backend service (/api/webhooks/meta)
+        const letsTrackUrls = [
+          process.env.LETSTRACK_API_URL,
+          'http://127.0.0.1:5004',
+          'http://localhost:5004'
+        ].filter(Boolean);
+
+        for (const letsTrackUrl of letsTrackUrls) {
+          try {
+            await axios.post(`${letsTrackUrl}/api/webhooks/meta`, body, { timeout: 3000 });
+            console.log(`[MetaWebhook] Forwarded raw webhook payload to Let'sTrack at ${letsTrackUrl}/api/webhooks/meta`);
+            break;
+          } catch (ltErr) {
+            // Ignore connection fallback error
+          }
+        }
+
 
         // B. Page Changes (Comments, Likes, Feed updates)
         if (entry.changes) {
