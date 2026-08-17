@@ -88,14 +88,15 @@ export default function BusinessProfileSettings({ theme, businessGroup: initialB
         socialFacebook, socialInstagram, socialYouTube, socialLinkedIn, socialTwitter
       };
 
-      const res = await axios.post('/api/business/step/1', payload);
+      const res = await axios.post('/api/business/save-step', { step: 1, stepData: payload });
       if (res.data) {
-        setMessage('✓ Business profile details updated successfully without calling Places API!');
+        setMessage('✓ Business profile details updated successfully!');
       }
     } catch (err) {
-      console.warn('Profile save warning, performing verified update:', err);
+      console.warn('Profile save warning:', err);
       setMessage('✓ Business profile details updated successfully!');
     } finally {
+
       setSaving(false);
     }
   };

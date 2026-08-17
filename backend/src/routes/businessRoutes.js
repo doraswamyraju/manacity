@@ -10,6 +10,8 @@ router.get('/', auth, businessController.getLocations);
 router.get('/performance', auth, businessController.getPerformanceMetrics);
 router.get('/onboarding-state', auth, businessController.getOnboardingState);
 router.post('/save-step', auth, businessController.saveOnboardingStep);
+router.post('/step/:stepNumber', auth, businessController.saveOnboardingStep);
+
 router.post('/complete-onboarding', auth, businessController.completeOnboarding);
 router.post('/', auth, checkSubscriptionLimit('location'), businessController.createLocation);
 router.put('/:id', auth, businessController.updateLocation);
