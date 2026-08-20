@@ -15,19 +15,8 @@ async function createTestUser() {
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(plainPassword, salt);
 
-    let user = await prisma.user.findUnique({ where: { email } });
-
-    if (user) {
-      user = await prisma.user.update({
-        where: { id: user.id },
-        data: {
-          passwordHash,
-          name,
-          role
-        }
-      });
-      console.log(`Updated existing user: ${user.email} (ID: ${user.id})`);
-    } else {
+    let user = await prisma.user.findFirst({ where: { email } });
+    if (!user) {
       user = await prisma.user.create({
         data: {
           email,
@@ -37,7 +26,9 @@ async function createTestUser() {
           provider: 'LOCAL'
         }
       });
-      console.log(`Created new user: ${user.email} (ID: ${user.id})`);
+      console.log(`Created user: ${user.email}`);
+    } else {
+      console.log(`Found existing user: ${user.email}`);
     }
 
     // Ensure BusinessGroup exists

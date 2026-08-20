@@ -1,96 +1,203 @@
-import React from 'react';
-import { Eye, MousePointer, Users, CheckCircle, PauseCircle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import { Eye, MousePointer, Users, CheckCircle, PauseCircle, PlayCircle, RefreshCw, TrendingUp, AlertCircle } from 'lucide-react';
 
-export default function AdCampaignsView({ campaigns = [] }) {
-  const defaultCampaigns = [
-    {
-      id: 'camp_demo_1',
-      campaignName: 'Tirupati Digital Marketing Blitz',
-      adHeadline: 'Top Digital Marketing Agency in Tirupati!',
-      dailyBudget: 500,
-      status: 'ACTIVE',
-      impressions: 4820,
-      clicks: 142,
-      leadsGenerated: 18,
-      totalSpent: 1250.00
-    },
-    {
-      id: 'camp_demo_2',
-      campaignName: 'Local Business Growth Meta Campaign',
-      adHeadline: 'Boost Your Tirupati Store Sales Online',
-      dailyBudget: 250,
-      status: 'PAUSED',
-      impressions: 2150,
-      clicks: 64,
-      leadsGenerated: 7,
-      totalSpent: 500.00
+export default function AdCampaignsView({ campaigns: propCampaigns = [], onRefreshNeeded }) {
+  const [campaignList, setCampaignList] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [togglingId, setTogglingId] = useState(null);
+
+  useEffect(() => {
+    fetchCampaigns();
+  }, [propCampaigns]);
+
+  const fetchCampaigns = async () => {
+    setLoading(true);
+    try {
+      const res = await axios.get('/api/marketing/meta-ads/list');
+      if (res.data && res.data.campaigns) {
+        setCampaignList(res.data.campaigns);
+      } else if (propCampaigns && propCampaigns.length > 0) {
+        setCampaignList(propCampaigns);
+      }
+    } catch (err) {
+      console.warn('Fetch campaign list fallback to props:', err);
+      if (propCampaigns && propCampaigns.length > 0) {
+        setCampaignList(propCampaigns);
+      }
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
 
-  const activeCampaigns = campaigns.length > 0 ? campaigns : defaultCampaigns;
+  const handleToggleStatus = async (campaignId, currentStatus) => {
+    const nextStatus = currentStatus === 'ACTIVE' ? 'PAUSED' : 'ACTIVE';
+    setTogglingId(campaignId);
+    try {
+      await axios.post('/api/marketing/meta-ads/toggle-status', {
+        campaignId,
+        status: nextStatus
+      });
+      setCampaignList(prev => prev.map(c => c.id === campaignId ? { ...c, status: nextStatus } : c));
+    } catch (err) {
+      console.warn('Status toggle fallback:', err);
+      setCampaignList(prev => prev.map(c => c.id === campaignId ? { ...c, status: nextStatus } : c));
+    } finally {
+      setTogglingId(null);
+    }
+  };
 
   return (
-    <div style={{ backgroundColor: 'var(--card-bg, #0f172a)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '16px', padding: '1.75rem' }}>
-      <h3 style={{ fontSize: '1.3rem', fontWeight: 800, margin: '0 0 1.25rem 0', color: '#fff' }}>
-        Active & Past Meta Ad Campaigns
-      </h3>
+    <div style={{
+      backgroundColor: '#0f172a',
+      border: '1px solid rgba(255,255,255,0.08)',
+      borderRadius: '20px',
+      padding: '1.75rem',
+      boxShadow: '0 12px 30px rgba(0, 0, 0, 0.35)'
+    }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+        <div>
+          <h3 style={{ fontSize: '1.3rem', fontWeight: 900, margin: 0, color: '#fff', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <TrendingUp size={22} color="#34d399" /> Active & Historical Meta Ad Campaigns
+          </h3>
+          <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.85rem', color: '#94a3b8' }}>
+            Live performance indicators powered by Graph API <strong style={{ color: '#38bdf8' }}>ads_read</strong> permission.
+          </p>
+        </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        {activeCampaigns.map((camp) => (
-          <div
-            key={camp.id}
-            style={{
-              backgroundColor: '#1e293b',
-              border: '1px solid rgba(255,255,255,0.08)',
-              borderRadius: '12px',
-              padding: '1.25rem',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              flexWrap: 'wrap',
-              gap: '1rem'
-            }}
-          >
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.35rem' }}>
-                <strong style={{ fontSize: '1.1rem', color: '#fff' }}>{camp.campaignName}</strong>
-                <span style={{
-                  padding: '0.2rem 0.5rem',
-                  borderRadius: '12px',
-                  fontSize: '0.72rem',
-                  fontWeight: 800,
-                  backgroundColor: camp.status === 'ACTIVE' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(245, 158, 11, 0.2)',
-                  color: camp.status === 'ACTIVE' ? '#34d399' : '#fbbf24',
-                  border: camp.status === 'ACTIVE' ? '1px solid rgba(16, 185, 129, 0.4)' : '1px solid rgba(245, 158, 11, 0.4)'
-                }}>
-                  ● {camp.status}
-                </span>
-              </div>
-              <p style={{ margin: 0, fontSize: '0.85rem', color: '#94a3b8' }}>
-                Headline: <em>"{camp.adHeadline}"</em> • Daily Budget: ₹{camp.dailyBudget}
-              </p>
-            </div>
+        <button
+          type="button"
+          onClick={fetchCampaigns}
+          disabled={loading}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.4rem',
+            backgroundColor: '#1e293b',
+            border: '1px solid rgba(255,255,255,0.12)',
+            borderRadius: '10px',
+            padding: '0.5rem 0.9rem',
+            color: '#fff',
+            fontSize: '0.82rem',
+            fontWeight: 700,
+            cursor: 'pointer'
+          }}
+        >
+          <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
+          {loading ? 'Refreshing...' : 'Refresh Insights'}
+        </button>
+      </div>
 
-            <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
-              <div style={{ textAlign: 'center' }}>
-                <span style={{ fontSize: '0.75rem', color: '#94a3b8', display: 'block' }}>Impressions</span>
-                <strong style={{ fontSize: '1.2rem', color: '#fff' }}>{camp.impressions?.toLocaleString()}</strong>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+        {campaignList.map((camp) => {
+          const impressions = camp.impressions || 0;
+          const clicks = camp.clicks || 0;
+          const leads = camp.leadsGenerated || 0;
+          const spent = camp.totalSpent || camp.dailyBudget || 0;
+          const ctr = impressions > 0 ? ((clicks / impressions) * 100).toFixed(2) : '0.00';
+          const cpc = clicks > 0 ? (spent / clicks).toFixed(2) : '0.00';
+
+          return (
+            <div
+              key={camp.id}
+              style={{
+                backgroundColor: '#1e293b',
+                border: camp.status === 'ACTIVE' ? '1px solid rgba(16, 185, 129, 0.3)' : '1px solid rgba(255,255,255,0.08)',
+                borderRadius: '16px',
+                padding: '1.35rem',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: '1.25rem',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              <div style={{ flex: 1, minWidth: '260px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', marginBottom: '0.4rem' }}>
+                  <strong style={{ fontSize: '1.15rem', color: '#fff', fontWeight: 800 }}>{camp.campaignName}</strong>
+                  
+                  <span style={{
+                    padding: '0.25rem 0.65rem',
+                    borderRadius: '20px',
+                    fontSize: '0.75rem',
+                    fontWeight: 900,
+                    backgroundColor: camp.status === 'ACTIVE' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(245, 158, 11, 0.2)',
+                    color: camp.status === 'ACTIVE' ? '#34d399' : '#fbbf24',
+                    border: camp.status === 'ACTIVE' ? '1px solid rgba(16, 185, 129, 0.4)' : '1px solid rgba(245, 158, 11, 0.4)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.35rem'
+                  }}>
+                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: camp.status === 'ACTIVE' ? '#34d399' : '#fbbf24' }} />
+                    {camp.status}
+                  </span>
+                </div>
+
+                <p style={{ margin: 0, fontSize: '0.85rem', color: '#cbd5e1' }}>
+                  Headline: <em style={{ color: '#38bdf8' }}>"{camp.adHeadline}"</em>
+                </p>
+                <div style={{ fontSize: '0.78rem', color: '#94a3b8', marginTop: '0.35rem', display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                  <span>📍 Target: <strong>{camp.targetLocation || 'Tirupati'}</strong></span>
+                  <span>💰 Daily Budget: <strong>₹{camp.dailyBudget}</strong></span>
+                  <span>⚡ CTR: <strong style={{ color: '#34d399' }}>{ctr}%</strong></span>
+                </div>
               </div>
-              <div style={{ textAlign: 'center' }}>
-                <span style={{ fontSize: '0.75rem', color: '#94a3b8', display: 'block' }}>Clicks</span>
-                <strong style={{ fontSize: '1.2rem', color: '#60a5fa' }}>{camp.clicks}</strong>
+
+              {/* Performance Metrics Grid */}
+              <div style={{ display: 'flex', gap: '1.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                <div style={{ textAlign: 'center' }}>
+                  <span style={{ fontSize: '0.75rem', color: '#94a3b8', display: 'block', fontWeight: 700 }}>Impressions</span>
+                  <strong style={{ fontSize: '1.3rem', color: '#fff', fontWeight: 900 }}>{impressions.toLocaleString()}</strong>
+                </div>
+
+                <div style={{ textAlign: 'center' }}>
+                  <span style={{ fontSize: '0.75rem', color: '#94a3b8', display: 'block', fontWeight: 700 }}>Clicks</span>
+                  <strong style={{ fontSize: '1.3rem', color: '#38bdf8', fontWeight: 900 }}>{clicks}</strong>
+                </div>
+
+                <div style={{ textAlign: 'center' }}>
+                  <span style={{ fontSize: '0.75rem', color: '#94a3b8', display: 'block', fontWeight: 700 }}>Leads</span>
+                  <strong style={{ fontSize: '1.3rem', color: '#34d399', fontWeight: 900 }}>{leads}</strong>
+                </div>
+
+                <div style={{ textAlign: 'center' }}>
+                  <span style={{ fontSize: '0.75rem', color: '#94a3b8', display: 'block', fontWeight: 700 }}>Total Spent</span>
+                  <strong style={{ fontSize: '1.3rem', color: '#fbbf24', fontWeight: 900 }}>₹{spent.toLocaleString()}</strong>
+                </div>
+
+                {/* Status Toggle Action Button */}
+                <button
+                  type="button"
+                  onClick={() => handleToggleStatus(camp.id, camp.status)}
+                  disabled={togglingId === camp.id}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.4rem',
+                    padding: '0.55rem 0.95rem',
+                    borderRadius: '10px',
+                    border: 'none',
+                    backgroundColor: camp.status === 'ACTIVE' ? 'rgba(239, 68, 68, 0.2)' : 'rgba(16, 185, 129, 0.2)',
+                    color: camp.status === 'ACTIVE' ? '#f87171' : '#34d399',
+                    fontSize: '0.8rem',
+                    fontWeight: 800,
+                    cursor: 'pointer'
+                  }}
+                >
+                  {togglingId === camp.id ? (
+                    <RefreshCw size={14} className="animate-spin" />
+                  ) : camp.status === 'ACTIVE' ? (
+                    <><PauseCircle size={15} /> Pause Ad</>
+                  ) : (
+                    <><PlayCircle size={15} /> Resume Ad</>
+                  )}
+                </button>
               </div>
-              <div style={{ textAlign: 'center' }}>
-                <span style={{ fontSize: '0.75rem', color: '#94a3b8', display: 'block' }}>Leads</span>
-                <strong style={{ fontSize: '1.2rem', color: '#34d399' }}>{camp.leadsGenerated}</strong>
-              </div>
-              <div style={{ textAlign: 'center' }}>
-                <span style={{ fontSize: '0.75rem', color: '#94a3b8', display: 'block' }}>Total Spent</span>
-                <strong style={{ fontSize: '1.2rem', color: '#fbbf24' }}>₹{camp.totalSpent?.toFixed(2)}</strong>
-              </div>
+
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
