@@ -53,19 +53,30 @@ exports.handleWebhookEvent = async (req, res) => {
         // Process Facebook Page Messaging / Instagram DMs
         for (const messagingEvent of messagingList) {
           const senderId = messagingEvent.sender?.id || messagingEvent.from?.id || messagingEvent.from;
+          const recipientId = messagingEvent.recipient?.id || pageOrIgId;
           const messageText = messagingEvent.message?.text || messagingEvent.text?.body || (typeof messagingEvent.message === 'string' ? messagingEvent.message : null);
           const messageId = messagingEvent.message?.mid || messagingEvent.id || `msg_${Date.now()}`;
 
           if (senderId && messageText) {
-            // Find matching BusinessGroup by metaPageId or metaInstagramId
-            const bg = await prisma.businessGroup.findFirst({
+            // Find matching BusinessGroup by recipientId, pageOrIgId, metaPageId or metaInstagramId
+            let bg = await prisma.businessGroup.findFirst({
               where: {
                 OR: [
-                  { metaPageId: pageOrIgId },
-                  { metaInstagramId: pageOrIgId }
+                  { metaPageId: String(recipientId) },
+                  { metaInstagramId: String(recipientId) },
+                  { metaPageId: String(pageOrIgId) },
+                  { metaInstagramId: String(pageOrIgId) }
                 ]
               }
             });
+
+            // Fallback: If no exact ID match, pick the most recently connected Meta BusinessGroup
+            if (!bg) {
+              bg = await prisma.businessGroup.findFirst({
+                where: { metaPageId: { not: null } },
+                orderBy: { updatedAt: 'desc' }
+              });
+            }
 
             if (bg) {
               // Upsert MetaSyncedMessage for Unified Inbox
@@ -80,7 +91,7 @@ exports.handleWebhookEvent = async (req, res) => {
                   businessGroupId: bg.id,
                   metaMessageId: String(messageId),
                   senderId: String(senderId),
-                  senderName: `User_${String(senderId).slice(-4)}`,
+                  senderName: messagingEvent.sender?.name || `User_${String(senderId).slice(-4)}`,
                   source: body.object === 'instagram' ? 'INSTAGRAM' : 'FACEBOOK',
                   messageText: String(messageText),
                   status: 'SYNCED'
@@ -98,23 +109,23 @@ exports.handleWebhookEvent = async (req, res) => {
                 }
               });
 
-              console.log(`[MetaWebhook] Synced ${body.object} DM to Let'sTrack Unified Inbox for Business: ${bg.name}`);
+              console.log(`[MetaWebhook] Synced ${body.object} DM to Let'sTrack Unified Inbox for Business: ${bg.name} (Tenant: ${bg.letsTrackTenantId})`);
             }
           }
         }
 
         // Forward raw webhook payload directly to Let'sTrack backend service (/api/webhooks/meta)
-        const letsTrackUrls = [
+        const letsTrackUrls = Array.from(new Set([
           process.env.LETSTRACK_API_URL,
           'http://127.0.0.1:5004',
-          'http://localhost:5004'
-        ].filter(Boolean);
+          'http://localhost:5004',
+          'https://letstrack.manacity.in'
+        ].filter(Boolean)));
 
         for (const letsTrackUrl of letsTrackUrls) {
           try {
-            await axios.post(`${letsTrackUrl}/api/webhooks/meta`, body, { timeout: 3000 });
+            await axios.post(`${letsTrackUrl}/api/webhooks/meta`, body, { timeout: 4000 });
             console.log(`[MetaWebhook] Forwarded raw webhook payload to Let'sTrack at ${letsTrackUrl}/api/webhooks/meta`);
-            break;
           } catch (ltErr) {
             // Ignore connection fallback error
           }
