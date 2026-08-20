@@ -357,6 +357,29 @@ router.get('/meta/post/list', auth, async (req, res) => {
   }
 });
 
+// Helper to resolve canonical Page Access Token from User Access Token
+async function getPageAccessToken(bg) {
+  if (!bg || !bg.metaAccessToken) return null;
+  let token = bg.metaAccessToken;
+
+  try {
+    const accRes = await axios.get(`https://graph.facebook.com/v24.0/me/accounts?access_token=${token}`);
+    if (accRes.data && accRes.data.data && accRes.data.data.length > 0) {
+      const targetPage = accRes.data.data.find(p => p.id === bg.metaPageId) || accRes.data.data[0];
+      if (targetPage && targetPage.access_token) {
+        token = targetPage.access_token;
+        await prisma.businessGroup.update({
+          where: { id: bg.id },
+          data: { metaAccessToken: token }
+        }).catch(() => {});
+      }
+    }
+  } catch (err) {
+    // Keep stored token fallback smoothly
+  }
+  return token;
+}
+
 // 8. Comments List & Reply Endpoints
 router.get('/meta/comments/list', auth, async (req, res) => {
   try {
@@ -366,9 +389,11 @@ router.get('/meta/comments/list', auth, async (req, res) => {
       return res.status(200).json({ comments: [] });
     }
 
-    // Fetch comments from Facebook Page Feed using Meta Graph API
+    const pageToken = await getPageAccessToken(bg) || bg.metaAccessToken;
+
+    // Fetch comments from Facebook Page Feed using Meta Graph API with Page Access Token
     try {
-      const feedRes = await axios.get(`https://graph.facebook.com/v24.0/${bg.metaPageId}/feed?fields=id,message,comments{id,message,from,created_time}&access_token=${bg.metaAccessToken}`);
+      const feedRes = await axios.get(`https://graph.facebook.com/v24.0/${bg.metaPageId}/feed?fields=id,message,comments{id,message,from,created_time}&access_token=${pageToken}`);
       const comments = [];
       if (feedRes.data && feedRes.data.data) {
         for (const post of feedRes.data.data) {
@@ -410,10 +435,12 @@ router.post('/meta/comments/reply', auth, async (req, res) => {
       return res.status(400).json({ error: 'Meta connection not active on business profile.' });
     }
 
-    // Reply to comment via Meta Graph API
+    const pageToken = await getPageAccessToken(bg) || bg.metaAccessToken;
+
+    // Reply to comment via Meta Graph API with Page Access Token
     const replyRes = await axios.post(`https://graph.facebook.com/v24.0/${commentId}/comments`, {
       message: replyMessage,
-      access_token: bg.metaAccessToken
+      access_token: pageToken
     });
 
     return res.status(200).json({
