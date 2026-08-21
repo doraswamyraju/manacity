@@ -2,7 +2,14 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Eye, MousePointer, Users, CheckCircle, PauseCircle, PlayCircle, RefreshCw, TrendingUp, AlertCircle } from 'lucide-react';
 
-export default function AdCampaignsView({ campaigns: propCampaigns = [], onRefreshNeeded }) {
+export default function AdCampaignsView({ campaigns: propCampaigns = [], onRefreshNeeded, theme }) {
+  const isDark = theme === 'dark' || (theme === undefined && document.documentElement.getAttribute('data-theme') !== 'light' && !document.body.classList.contains('light-mode'));
+  const cardBg = isDark ? '#0f172a' : '#ffffff';
+  const innerCardBg = isDark ? '#1e293b' : '#f8fafc';
+  const cardBorder = isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid #cbd5e1';
+  const textMain = isDark ? '#f8fafc' : '#0f172a';
+  const textMuted = isDark ? '#94a3b8' : '#64748b';
+
   const [campaignList, setCampaignList] = useState([]);
   const [loading, setLoading] = useState(false);
   const [togglingId, setTogglingId] = useState(null);
@@ -49,19 +56,19 @@ export default function AdCampaignsView({ campaigns: propCampaigns = [], onRefre
 
   return (
     <div style={{
-      backgroundColor: '#0f172a',
-      border: '1px solid rgba(255,255,255,0.08)',
+      backgroundColor: cardBg,
+      border: cardBorder,
       borderRadius: '20px',
       padding: '1.75rem',
-      boxShadow: '0 12px 30px rgba(0, 0, 0, 0.35)'
+      boxShadow: isDark ? '0 12px 30px rgba(0, 0, 0, 0.35)' : '0 4px 20px rgba(0, 0, 0, 0.04)'
     }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
-          <h3 style={{ fontSize: '1.3rem', fontWeight: 900, margin: 0, color: '#fff', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <h3 style={{ fontSize: '1.3rem', fontWeight: 900, margin: 0, color: textMain, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <TrendingUp size={22} color="#34d399" /> Active & Historical Meta Ad Campaigns
           </h3>
-          <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.85rem', color: '#94a3b8' }}>
-            Live performance indicators powered by Graph API <strong style={{ color: '#38bdf8' }}>ads_read</strong> permission.
+          <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.85rem', color: textMuted }}>
+            Live performance indicators powered by Graph API <strong style={{ color: '#0284c7' }}>ads_read</strong> permission.
           </p>
         </div>
 
@@ -73,11 +80,11 @@ export default function AdCampaignsView({ campaigns: propCampaigns = [], onRefre
             display: 'flex',
             alignItems: 'center',
             gap: '0.4rem',
-            backgroundColor: '#1e293b',
-            border: '1px solid rgba(255,255,255,0.12)',
+            backgroundColor: innerCardBg,
+            border: cardBorder,
             borderRadius: '10px',
             padding: '0.5rem 0.9rem',
-            color: '#fff',
+            color: textMain,
             fontSize: '0.82rem',
             fontWeight: 700,
             cursor: 'pointer'
@@ -101,8 +108,8 @@ export default function AdCampaignsView({ campaigns: propCampaigns = [], onRefre
             <div
               key={camp.id}
               style={{
-                backgroundColor: '#1e293b',
-                border: camp.status === 'ACTIVE' ? '1px solid rgba(16, 185, 129, 0.3)' : '1px solid rgba(255,255,255,0.08)',
+                backgroundColor: innerCardBg,
+                border: camp.status === 'ACTIVE' ? '1px solid rgba(16, 185, 129, 0.4)' : cardBorder,
                 borderRadius: '16px',
                 padding: '1.35rem',
                 display: 'flex',
@@ -115,55 +122,55 @@ export default function AdCampaignsView({ campaigns: propCampaigns = [], onRefre
             >
               <div style={{ flex: 1, minWidth: '260px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', marginBottom: '0.4rem' }}>
-                  <strong style={{ fontSize: '1.15rem', color: '#fff', fontWeight: 800 }}>{camp.campaignName}</strong>
+                  <strong style={{ fontSize: '1.15rem', color: textMain, fontWeight: 800 }}>{camp.campaignName}</strong>
                   
                   <span style={{
                     padding: '0.25rem 0.65rem',
                     borderRadius: '20px',
                     fontSize: '0.75rem',
                     fontWeight: 900,
-                    backgroundColor: camp.status === 'ACTIVE' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(245, 158, 11, 0.2)',
-                    color: camp.status === 'ACTIVE' ? '#34d399' : '#fbbf24',
+                    backgroundColor: camp.status === 'ACTIVE' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(245, 158, 11, 0.15)',
+                    color: camp.status === 'ACTIVE' ? '#10b981' : '#d97706',
                     border: camp.status === 'ACTIVE' ? '1px solid rgba(16, 185, 129, 0.4)' : '1px solid rgba(245, 158, 11, 0.4)',
                     display: 'flex',
                     alignItems: 'center',
                     gap: '0.35rem'
                   }}>
-                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: camp.status === 'ACTIVE' ? '#34d399' : '#fbbf24' }} />
+                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: camp.status === 'ACTIVE' ? '#10b981' : '#f59e0b' }} />
                     {camp.status}
                   </span>
                 </div>
 
-                <p style={{ margin: 0, fontSize: '0.85rem', color: '#cbd5e1' }}>
-                  Headline: <em style={{ color: '#38bdf8' }}>"{camp.adHeadline}"</em>
+                <p style={{ margin: 0, fontSize: '0.85rem', color: textMuted }}>
+                  Headline: <em style={{ color: '#0284c7' }}>"{camp.adHeadline}"</em>
                 </p>
-                <div style={{ fontSize: '0.78rem', color: '#94a3b8', marginTop: '0.35rem', display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                <div style={{ fontSize: '0.78rem', color: textMuted, marginTop: '0.35rem', display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
                   <span>📍 Target: <strong>{camp.targetLocation || 'Tirupati'}</strong></span>
                   <span>💰 Daily Budget: <strong>₹{camp.dailyBudget}</strong></span>
-                  <span>⚡ CTR: <strong style={{ color: '#34d399' }}>{ctr}%</strong></span>
+                  <span>⚡ CTR: <strong style={{ color: '#10b981' }}>{ctr}%</strong></span>
                 </div>
               </div>
 
               {/* Performance Metrics Grid */}
               <div style={{ display: 'flex', gap: '1.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
                 <div style={{ textAlign: 'center' }}>
-                  <span style={{ fontSize: '0.75rem', color: '#94a3b8', display: 'block', fontWeight: 700 }}>Impressions</span>
-                  <strong style={{ fontSize: '1.3rem', color: '#fff', fontWeight: 900 }}>{impressions.toLocaleString()}</strong>
+                  <span style={{ fontSize: '0.75rem', color: textMuted, display: 'block', fontWeight: 700 }}>Impressions</span>
+                  <strong style={{ fontSize: '1.3rem', color: textMain, fontWeight: 900 }}>{impressions.toLocaleString()}</strong>
                 </div>
 
                 <div style={{ textAlign: 'center' }}>
-                  <span style={{ fontSize: '0.75rem', color: '#94a3b8', display: 'block', fontWeight: 700 }}>Clicks</span>
-                  <strong style={{ fontSize: '1.3rem', color: '#38bdf8', fontWeight: 900 }}>{clicks}</strong>
+                  <span style={{ fontSize: '0.75rem', color: textMuted, display: 'block', fontWeight: 700 }}>Clicks</span>
+                  <strong style={{ fontSize: '1.3rem', color: '#0284c7', fontWeight: 900 }}>{clicks}</strong>
                 </div>
 
                 <div style={{ textAlign: 'center' }}>
-                  <span style={{ fontSize: '0.75rem', color: '#94a3b8', display: 'block', fontWeight: 700 }}>Leads</span>
-                  <strong style={{ fontSize: '1.3rem', color: '#34d399', fontWeight: 900 }}>{leads}</strong>
+                  <span style={{ fontSize: '0.75rem', color: textMuted, display: 'block', fontWeight: 700 }}>Leads</span>
+                  <strong style={{ fontSize: '1.3rem', color: '#10b981', fontWeight: 900 }}>{leads}</strong>
                 </div>
 
                 <div style={{ textAlign: 'center' }}>
-                  <span style={{ fontSize: '0.75rem', color: '#94a3b8', display: 'block', fontWeight: 700 }}>Total Spent</span>
-                  <strong style={{ fontSize: '1.3rem', color: '#fbbf24', fontWeight: 900 }}>₹{spent.toLocaleString()}</strong>
+                  <span style={{ fontSize: '0.75rem', color: textMuted, display: 'block', fontWeight 700 }}>Total Spent</span>
+                  <strong style={{ fontSize: '1.3rem', color: '#f59e0b', fontWeight: 900 }}>₹{spent.toLocaleString()}</strong>
                 </div>
 
                 {/* Status Toggle Action Button */}
@@ -178,8 +185,8 @@ export default function AdCampaignsView({ campaigns: propCampaigns = [], onRefre
                     padding: '0.55rem 0.95rem',
                     borderRadius: '10px',
                     border: 'none',
-                    backgroundColor: camp.status === 'ACTIVE' ? 'rgba(239, 68, 68, 0.2)' : 'rgba(16, 185, 129, 0.2)',
-                    color: camp.status === 'ACTIVE' ? '#f87171' : '#34d399',
+                    backgroundColor: camp.status === 'ACTIVE' ? 'rgba(239, 68, 68, 0.15)' : 'rgba(16, 185, 129, 0.15)',
+                    color: camp.status === 'ACTIVE' ? '#ef4444' : '#10b981',
                     fontSize: '0.8rem',
                     fontWeight: 800,
                     cursor: 'pointer'

@@ -4,6 +4,26 @@ import MetaConnectCard from '../../components/onboarding/MetaConnectCard';
 import { Building2, Phone, MapPin, Globe, Share2, FileText, CheckCircle2 } from 'lucide-react';
 
 export default function BusinessProfileSettings({ theme, businessGroup: initialBg }) {
+  const isDark = theme === 'dark' || (theme === undefined && document.documentElement.getAttribute('data-theme') !== 'light' && !document.body.classList.contains('light-mode'));
+  const cardBg = isDark ? '#0f172a' : '#ffffff';
+  const innerCardBg = isDark ? '#1e293b' : '#f8fafc';
+  const cardBorder = isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid #cbd5e1';
+  const textMain = isDark ? '#f8fafc' : '#0f172a';
+  const textMuted = isDark ? '#94a3b8' : '#64748b';
+  const inputBg = isDark ? '#0f172a' : '#ffffff';
+  const inputBorder = isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid #cbd5e1';
+
+  const dynamicInputStyle = {
+    width: '100%',
+    padding: '0.6rem 0.75rem',
+    borderRadius: '8px',
+    backgroundColor: inputBg,
+    border: inputBorder,
+    color: textMain,
+    fontSize: '0.88rem',
+    outline: 'none'
+  };
+
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
@@ -108,13 +128,13 @@ export default function BusinessProfileSettings({ theme, businessGroup: initialB
   };
 
   return (
-    <div style={{ backgroundColor: 'var(--card-bg, #0f172a)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '16px', padding: '1.75rem' }}>
+    <div style={{ backgroundColor: cardBg, border: cardBorder, borderRadius: '16px', padding: '1.75rem', boxShadow: isDark ? '0 8px 32px rgba(0,0,0,0.2)' : '0 4px 20px rgba(0,0,0,0.04)' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
-          <h3 style={{ fontSize: '1.38rem', fontWeight: 800, color: '#fff', margin: 0, display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+          <h3 style={{ fontSize: '1.38rem', fontWeight: 800, color: textMain, margin: 0, display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
             <Building2 size={24} color="#818cf8" /> Business Profile & Settings
           </h3>
-          <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.85rem', color: '#94a3b8' }}>
+          <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.85rem', color: textMuted }}>
             Edit your business information, contact info, social handles, and Meta page connections directly without re-importing from Places API.
           </p>
         </div>
@@ -159,19 +179,19 @@ export default function BusinessProfileSettings({ theme, businessGroup: initialB
 
       <form onSubmit={handleSaveProfile} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginTop: '1.5rem' }}>
         {/* Basic Business Info */}
-        <div style={{ backgroundColor: '#1e293b', padding: '1.25rem', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.06)', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <div style={{ backgroundColor: innerCardBg, padding: '1.25rem', borderRadius: '12px', border: inputBorder, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <h4 style={{ margin: 0, color: '#818cf8', fontSize: '1rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <Building2 size={18} /> Basic Business Information
           </h4>
 
           <div>
-            <label style={{ fontSize: '0.85rem', color: '#cbd5e1', fontWeight: 600, display: 'block', marginBottom: '0.35rem' }}>Business Name *</label>
-            <input type="text" value={name} onChange={e => setName(e.target.value)} required style={inputStyle} />
+            <label style={{ fontSize: '0.85rem', color: textMuted, fontWeight: 600, display: 'block', marginBottom: '0.35rem' }}>Business Name *</label>
+            <input type="text" value={name} onChange={e => setName(e.target.value)} required style={dynamicInputStyle} />
           </div>
 
           <div>
-            <label style={{ fontSize: '0.85rem', color: '#cbd5e1', fontWeight: 600, display: 'block', marginBottom: '0.35rem' }}>Category</label>
-            <select value={category} onChange={e => setCategory(e.target.value)} style={inputStyle}>
+            <label style={{ fontSize: '0.85rem', color: textMuted, fontWeight: 600, display: 'block', marginBottom: '0.35rem' }}>Category</label>
+            <select value={category} onChange={e => setCategory(e.target.value)} style={dynamicInputStyle}>
               <option value="Digital Marketing">Digital Marketing</option>
               <option value="Rice Mill">Rice Mill</option>
               <option value="Clinics & Health">Clinics & Health</option>
@@ -182,100 +202,100 @@ export default function BusinessProfileSettings({ theme, businessGroup: initialB
           </div>
 
           <div>
-            <label style={{ fontSize: '0.85rem', color: '#cbd5e1', fontWeight: 600, display: 'block', marginBottom: '0.35rem' }}>Business Description</label>
-            <textarea value={description} onChange={e => setDescription(e.target.value)} rows="3" style={{ ...inputStyle, resize: 'vertical' }} />
+            <label style={{ fontSize: '0.85rem', color: textMuted, fontWeight: 600, display: 'block', marginBottom: '0.35rem' }}>Business Description</label>
+            <textarea value={description} onChange={e => setDescription(e.target.value)} rows="3" style={{ ...dynamicInputStyle, resize: 'vertical' }} />
           </div>
 
           <div>
-            <label style={{ fontSize: '0.85rem', color: '#cbd5e1', fontWeight: 600, display: 'block', marginBottom: '0.35rem' }}>Year Started</label>
-            <input type="number" value={yearStarted} onChange={e => setYearStarted(e.target.value)} style={inputStyle} />
+            <label style={{ fontSize: '0.85rem', color: textMuted, fontWeight: 600, display: 'block', marginBottom: '0.35rem' }}>Year Started</label>
+            <input type="number" value={yearStarted} onChange={e => setYearStarted(e.target.value)} style={dynamicInputStyle} />
           </div>
         </div>
 
         {/* Contact Info & Review Link */}
-        <div style={{ backgroundColor: '#1e293b', padding: '1.25rem', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.06)', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <div style={{ backgroundColor: innerCardBg, padding: '1.25rem', borderRadius: '12px', border: inputBorder, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <h4 style={{ margin: 0, color: '#38bdf8', fontSize: '1rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <Phone size={18} /> Contact & Google Review Link
           </h4>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
             <div>
-              <label style={{ fontSize: '0.85rem', color: '#cbd5e1', fontWeight: 600, display: 'block', marginBottom: '0.35rem' }}>Mobile Number</label>
-              <input type="text" value={mobileNumber} onChange={e => setMobileNumber(e.target.value)} style={inputStyle} />
+              <label style={{ fontSize: '0.85rem', color: textMuted, fontWeight: 600, display: 'block', marginBottom: '0.35rem' }}>Mobile Number</label>
+              <input type="text" value={mobileNumber} onChange={e => setMobileNumber(e.target.value)} style={dynamicInputStyle} />
             </div>
             <div>
-              <label style={{ fontSize: '0.85rem', color: '#cbd5e1', fontWeight: 600, display: 'block', marginBottom: '0.35rem' }}>WhatsApp Number</label>
-              <input type="text" value={whatsAppNumber} onChange={e => setWhatsAppNumber(e.target.value)} style={inputStyle} />
+              <label style={{ fontSize: '0.85rem', color: textMuted, fontWeight: 600, display: 'block', marginBottom: '0.35rem' }}>WhatsApp Number</label>
+              <input type="text" value={whatsAppNumber} onChange={e => setWhatsAppNumber(e.target.value)} style={dynamicInputStyle} />
             </div>
           </div>
 
           <div>
-            <label style={{ fontSize: '0.85rem', color: '#cbd5e1', fontWeight: 600, display: 'block', marginBottom: '0.35rem' }}>Business Email</label>
-            <input type="email" value={email} onChange={e => setEmail(e.target.value)} style={inputStyle} />
+            <label style={{ fontSize: '0.85rem', color: textMuted, fontWeight: 600, display: 'block', marginBottom: '0.35rem' }}>Business Email</label>
+            <input type="email" value={email} onChange={e => setEmail(e.target.value)} style={dynamicInputStyle} />
           </div>
 
           <div>
-            <label style={{ fontSize: '0.85rem', color: '#cbd5e1', fontWeight: 600, display: 'block', marginBottom: '0.35rem' }}>Website URL</label>
-            <input type="text" value={website} onChange={e => setWebsite(e.target.value)} style={inputStyle} />
+            <label style={{ fontSize: '0.85rem', color: textMuted, fontWeight: 600, display: 'block', marginBottom: '0.35rem' }}>Website URL</label>
+            <input type="text" value={website} onChange={e => setWebsite(e.target.value)} style={dynamicInputStyle} />
           </div>
 
           <div>
-            <label style={{ fontSize: '0.85rem', color: '#cbd5e1', fontWeight: 600, display: 'block', marginBottom: '0.35rem' }}>Google Review Collection URL</label>
-            <input type="text" value={googleReviewUrl} onChange={e => setGoogleReviewUrl(e.target.value)} placeholder="https://search.google.com/local/writereview?placeid=..." style={inputStyle} />
+            <label style={{ fontSize: '0.85rem', color: textMuted, fontWeight: 600, display: 'block', marginBottom: '0.35rem' }}>Google Review Collection URL</label>
+            <input type="text" value={googleReviewUrl} onChange={e => setGoogleReviewUrl(e.target.value)} placeholder="https://search.google.com/local/writereview?placeid=..." style={dynamicInputStyle} />
           </div>
         </div>
 
         {/* Address Details */}
-        <div style={{ backgroundColor: '#1e293b', padding: '1.25rem', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.06)', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <div style={{ backgroundColor: innerCardBg, padding: '1.25rem', borderRadius: '12px', border: inputBorder, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <h4 style={{ margin: 0, color: '#34d399', fontSize: '1rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <MapPin size={18} /> Location & Address
           </h4>
 
           <div>
-            <label style={{ fontSize: '0.85rem', color: '#cbd5e1', fontWeight: 600, display: 'block', marginBottom: '0.35rem' }}>Street Address</label>
-            <input type="text" value={address} onChange={e => setAddress(e.target.value)} style={inputStyle} />
+            <label style={{ fontSize: '0.85rem', color: textMuted, fontWeight: 600, display: 'block', marginBottom: '0.35rem' }}>Street Address</label>
+            <input type="text" value={address} onChange={e => setAddress(e.target.value)} style={dynamicInputStyle} />
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.75rem' }}>
             <div>
-              <label style={{ fontSize: '0.85rem', color: '#cbd5e1', fontWeight: 600, display: 'block', marginBottom: '0.35rem' }}>City</label>
-              <input type="text" value={city} onChange={e => setCity(e.target.value)} style={inputStyle} />
+              <label style={{ fontSize: '0.85rem', color: textMuted, fontWeight: 600, display: 'block', marginBottom: '0.35rem' }}>City</label>
+              <input type="text" value={city} onChange={e => setCity(e.target.value)} style={dynamicInputStyle} />
             </div>
             <div>
-              <label style={{ fontSize: '0.85rem', color: '#cbd5e1', fontWeight: 600, display: 'block', marginBottom: '0.35rem' }}>State</label>
-              <input type="text" value={state} onChange={e => setState(e.target.value)} style={inputStyle} />
+              <label style={{ fontSize: '0.85rem', color: textMuted, fontWeight: 600, display: 'block', marginBottom: '0.35rem' }}>State</label>
+              <input type="text" value={state} onChange={e => setState(e.target.value)} style={dynamicInputStyle} />
             </div>
             <div>
-              <label style={{ fontSize: '0.85rem', color: '#cbd5e1', fontWeight: 600, display: 'block', marginBottom: '0.35rem' }}>PIN Code</label>
-              <input type="text" value={pinCode} onChange={e => setPinCode(e.target.value)} style={inputStyle} />
+              <label style={{ fontSize: '0.85rem', color: textMuted, fontWeight: 600, display: 'block', marginBottom: '0.35rem' }}>PIN Code</label>
+              <input type="text" value={pinCode} onChange={e => setPinCode(e.target.value)} style={dynamicInputStyle} />
             </div>
           </div>
         </div>
 
         {/* Social Media Links */}
-        <div style={{ backgroundColor: '#1e293b', padding: '1.25rem', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.06)', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <div style={{ backgroundColor: innerCardBg, padding: '1.25rem', borderRadius: '12px', border: inputBorder, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <h4 style={{ margin: 0, color: '#fbbf24', fontSize: '1rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <Share2 size={18} /> Social Media Links
           </h4>
 
           <div>
-            <label style={{ fontSize: '0.85rem', color: '#cbd5e1', fontWeight: 600, display: 'block', marginBottom: '0.35rem' }}>Facebook URL</label>
-            <input type="text" value={socialFacebook} onChange={e => setSocialFacebook(e.target.value)} style={inputStyle} />
+            <label style={{ fontSize: '0.85rem', color: textMuted, fontWeight: 600, display: 'block', marginBottom: '0.35rem' }}>Facebook URL</label>
+            <input type="text" value={socialFacebook} onChange={e => setSocialFacebook(e.target.value)} style={dynamicInputStyle} />
           </div>
 
           <div>
-            <label style={{ fontSize: '0.85rem', color: '#cbd5e1', fontWeight: 600, display: 'block', marginBottom: '0.35rem' }}>Instagram URL</label>
-            <input type="text" value={socialInstagram} onChange={e => setSocialInstagram(e.target.value)} style={inputStyle} />
+            <label style={{ fontSize: '0.85rem', color: textMuted, fontWeight: 600, display: 'block', marginBottom: '0.35rem' }}>Instagram URL</label>
+            <input type="text" value={socialInstagram} onChange={e => setSocialInstagram(e.target.value)} style={dynamicInputStyle} />
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
             <div>
-              <label style={{ fontSize: '0.85rem', color: '#cbd5e1', fontWeight: 600, display: 'block', marginBottom: '0.35rem' }}>YouTube URL</label>
-              <input type="text" value={socialYouTube} onChange={e => setSocialYouTube(e.target.value)} style={inputStyle} />
+              <label style={{ fontSize: '0.85rem', color: textMuted, fontWeight: 600, display: 'block', marginBottom: '0.35rem' }}>YouTube URL</label>
+              <input type="text" value={socialYouTube} onChange={e => setSocialYouTube(e.target.value)} style={dynamicInputStyle} />
             </div>
             <div>
-              <label style={{ fontSize: '0.85rem', color: '#cbd5e1', fontWeight: 600, display: 'block', marginBottom: '0.35rem' }}>LinkedIn URL</label>
-              <input type="text" value={socialLinkedIn} onChange={e => setSocialLinkedIn(e.target.value)} style={inputStyle} />
+              <label style={{ fontSize: '0.85rem', color: textMuted, fontWeight: 600, display: 'block', marginBottom: '0.35rem' }}>LinkedIn URL</label>
+              <input type="text" value={socialLinkedIn} onChange={e => setSocialLinkedIn(e.target.value)} style={dynamicInputStyle} />
             </div>
           </div>
         </div>
@@ -283,13 +303,3 @@ export default function BusinessProfileSettings({ theme, businessGroup: initialB
     </div>
   );
 }
-
-const inputStyle = {
-  width: '100%',
-  padding: '0.6rem 0.75rem',
-  borderRadius: '8px',
-  backgroundColor: '#0f172a',
-  border: '1px solid rgba(255,255,255,0.1)',
-  color: '#fff',
-  fontSize: '0.88rem'
-};
