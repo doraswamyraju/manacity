@@ -686,11 +686,12 @@ exports.getBusinessCatalog = async (req, res) => {
       ];
 
       for (const item of defaultItems) {
-        await prisma.productServiceLibrary.upsert({
-          where: { slug: item.slug },
-          update: {},
-          create: item
+        const existing = await prisma.productServiceLibrary.findFirst({
+          where: { name: item.name }
         });
+        if (!existing) {
+          await prisma.productServiceLibrary.create({ data: item });
+        }
       }
 
       masterLibrary = await prisma.productServiceLibrary.findMany({
