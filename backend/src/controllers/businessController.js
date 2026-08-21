@@ -665,11 +665,39 @@ exports.getBusinessCatalog = async (req, res) => {
       });
     }
 
-    // Fetch Super Admin Master Library Items (Database Only)
-    const masterLibrary = await prisma.productServiceLibrary.findMany({
+    // Fetch Super Admin Master Library Items (Auto-seed if empty or missing CA category)
+    let masterLibrary = await prisma.productServiceLibrary.findMany({
       where: { status: 'APPROVED' },
       orderBy: { createdAt: 'desc' }
     });
+
+    const hasCaItems = masterLibrary.some(item => item.category === 'Auditor / CA / Tax Consultant');
+    if (!hasCaItems || masterLibrary.length < 5) {
+      const defaultItems = [
+        { name: 'Income Tax Return (ITR) Filing', slug: 'income-tax-return-itr-filing', type: 'SERVICE', category: 'Auditor / CA / Tax Consultant', defaultPrice: 1499, description: 'Expert CA filing for Salaried, Business (44ADA), Capital Gains, and NRI Income Tax Returns.', status: 'APPROVED' },
+        { name: 'GST Monthly Return Filing (GSTR 1 & 3B)', slug: 'gst-monthly-return-filing', type: 'SERVICE', category: 'Auditor / CA / Tax Consultant', defaultPrice: 2499, description: 'Monthly GSTR-1, GSTR-3B reconciliation, ITC 2B validation, and E-Way bill compliance.', status: 'APPROVED' },
+        { name: 'Statutory & Tax Audit Sec 44AB', slug: 'statutory-tax-audit-sec-44ab', type: 'SERVICE', category: 'Auditor / CA / Tax Consultant', defaultPrice: 15000, description: 'Comprehensive Chartered Accountant Tax Audit, UDIN certificate generation, and Form 3CD submission.', status: 'APPROVED' },
+        { name: 'Pvt Ltd Company Incorporation & ROC', slug: 'pvt-ltd-company-incorporation', type: 'SERVICE', category: 'Auditor / CA / Tax Consultant', defaultPrice: 8999, description: 'Complete MCA SPICe+ company registration, Name Approval, DIN, PAN, TAN, and MOA/AOA drafting.', status: 'APPROVED' },
+        { name: 'CMA Project Report for Bank Loans', slug: 'cma-project-report-for-bank-loans', type: 'SERVICE', category: 'Auditor / CA / Tax Consultant', defaultPrice: 12000, description: 'Credit Monitoring Arrangement (CMA) report preparation for CC limit, Term loans, and Mudra loans.', status: 'APPROVED' },
+        { name: 'Class 3 Digital Signature Certificate (DSC)', slug: 'class-3-digital-signature-certificate', type: 'PRODUCT', category: 'Auditor / CA / Tax Consultant', defaultPrice: 1999, description: '2-Year validity USB Token Class 3 Digital Signature Certificate for GST, MCA, and E-Tendering.', status: 'APPROVED' },
+        { name: 'CA Net Worth Certificate for VISA', slug: 'ca-net-worth-certificate-for-visa', type: 'SERVICE', category: 'Auditor / CA / Tax Consultant', defaultPrice: 2500, description: 'UDIN-certified CA Net Worth Statement for Foreign VISA applications, Higher Education, and Bank Solvency.', status: 'APPROVED' },
+        { name: 'Local SEO & Google Business Profile Optimization', slug: 'local-seo-google-business-profile-optimization', type: 'SERVICE', category: 'Digital Marketing', defaultPrice: 6999, description: 'Rank #1 on Google Local Pack in Tirupati with localized citations, GMB optimization, and review booster.', status: 'APPROVED' },
+        { name: 'Social Media Marketing & Ad Campaigns', slug: 'social-media-marketing-ad-campaigns', type: 'SERVICE', category: 'Digital Marketing', defaultPrice: 7999, description: 'Targeted Meta (Facebook/Instagram) & Google Pay-Per-Click Ad campaigns for high-converting local leads.', status: 'APPROVED' }
+      ];
+
+      for (const item of defaultItems) {
+        await prisma.productServiceLibrary.upsert({
+          where: { slug: item.slug },
+          update: {},
+          create: item
+        });
+      }
+
+      masterLibrary = await prisma.productServiceLibrary.findMany({
+        where: { status: 'APPROVED' },
+        orderBy: { createdAt: 'desc' }
+      });
+    }
 
     const validMasterItemIds = new Set(masterLibrary.map(item => item.id));
 

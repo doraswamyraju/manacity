@@ -545,21 +545,23 @@ export function HeroSection({ businessGroup, settings, theme }) {
             <span>{isCaElite ? 'Chartered Accountant & Audit Firm' : (isCaModern ? 'Digital CA & Tax Advisory' : (theme || 'Commercial Business').replace('-', ' '))}</span>
           </div>
 
-          <div style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '0.35rem',
-            padding: '0.4rem 0.9rem',
-            borderRadius: '30px',
-            backgroundColor: isLight ? 'rgba(15, 23, 42, 0.06)' : 'rgba(255, 255, 255, 0.12)',
-            border: isLight ? '1px solid rgba(15, 23, 42, 0.15)' : '1px solid rgba(255, 255, 255, 0.25)',
-            fontSize: '0.8rem',
-            fontWeight: 800,
-            color: '#d97706'
-          }}>
-            <Shield size={14} color="#d97706" />
-            <span>100% ICAI UDIN Verified Reports</span>
-          </div>
+          {isCaTheme && (
+            <div style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.35rem',
+              padding: '0.4rem 0.9rem',
+              borderRadius: '30px',
+              backgroundColor: isLight ? 'rgba(15, 23, 42, 0.06)' : 'rgba(255, 255, 255, 0.12)',
+              border: isLight ? '1px solid rgba(15, 23, 42, 0.15)' : '1px solid rgba(255, 255, 255, 0.25)',
+              fontSize: '0.8rem',
+              fontWeight: 800,
+              color: '#d97706'
+            }}>
+              <Shield size={14} color="#d97706" />
+              <span>100% ICAI UDIN Verified Reports</span>
+            </div>
+          )}
 
           {reviewCount > 0 && (
             <div style={{
@@ -655,7 +657,7 @@ export function HeroSection({ businessGroup, settings, theme }) {
               fontSize: '0.95rem'
             }}
           >
-            Explore CA Packages
+            {isCaTheme ? 'Explore CA Packages' : 'Explore Offerings'}
           </a>
         </div>
 
@@ -1312,29 +1314,124 @@ export function ContactSection({ businessGroup, settings, theme }) {
   );
 }
 
-// --- 12. Footer Component ---
+// --- 12. Premium Redesigned Footer Component ---
 export function FooterSection({ businessGroup, settings, theme }) {
   const isLight = themeIsLight(theme);
   const name = businessGroup?.name || 'Business Name';
+  const logo = businessGroup?.logoUrl;
+  const phone = businessGroup?.mobileNumber;
+  const whatsapp = businessGroup?.whatsAppNumber;
+  const address = businessGroup?.address || (businessGroup?.city ? `${businessGroup.city}, Andhra Pradesh` : 'Tirupati, Andhra Pradesh');
 
   return (
-    <footer style={{ padding: '3rem 6% 2rem', backgroundColor: isLight ? '#f1f5f9' : '#0b1120', color: isLight ? '#64748b' : '#64748b', fontSize: '0.85rem', borderTop: `1px solid ${isLight ? '#e2e8f0' : 'rgba(255,255,255,0.06)'}` }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1.5rem', marginBottom: '1.5rem' }}>
+    <footer style={{
+      backgroundColor: isLight ? '#0f172a' : '#030712',
+      color: '#94a3b8',
+      fontSize: '0.88rem',
+      borderTop: `1px solid ${isLight ? '#1e293b' : 'rgba(255,255,255,0.08)'}`,
+      padding: '4rem 6% 2rem'
+    }}>
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+        gap: '2.5rem',
+        marginBottom: '3rem'
+      }}>
+        {/* Column 1: Brand Info */}
         <div>
-          <h3 style={{ color: isLight ? '#0f172a' : '#fff', fontSize: '1.1rem', fontWeight: 800, margin: '0 0 0.4rem' }}>{name}</h3>
-          <p style={{ color: isLight ? '#64748b' : '#64748b', margin: 0, fontSize: '0.82rem' }}>Commercial Business Website • Powered by ManaCity</p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
+            {logo ? (
+              <img src={logo} alt={name} style={{ width: '40px', height: '40px', borderRadius: '10px', objectFit: 'cover' }} />
+            ) : (
+              <div style={{ width: '40px', height: '40px', borderRadius: '10px', backgroundColor: 'var(--primary-color, #6366f1)', color: '#fff', fontWeight: 900, fontSize: '1.2rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                {name.charAt(0)}
+              </div>
+            )}
+            <h3 style={{ color: '#ffffff', fontSize: '1.15rem', fontWeight: 800, margin: 0 }}>{name}</h3>
+          </div>
+
+          <p style={{ color: '#94a3b8', fontSize: '0.85rem', lineHeight: 1.6, marginBottom: '1.25rem' }}>
+            {businessGroup?.description
+              ? (businessGroup.description.length > 120 ? businessGroup.description.substring(0, 118) + '...' : businessGroup.description)
+              : `Official storefront for ${name}. Providing top-tier verified services & offerings in ${businessGroup?.city || 'Tirupati'}.`}
+          </p>
+
+          <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#38bdf8', backgroundColor: 'rgba(56, 189, 248, 0.12)', padding: '0.35rem 0.75rem', borderRadius: '20px', border: '1px solid rgba(56, 189, 248, 0.25)' }}>
+            ✓ ManaCity Verified Directory Member
+          </span>
         </div>
 
-        <div style={{ display: 'flex', gap: '1.25rem' }}>
-          <a href="#about" style={{ color: isLight ? '#475569' : '#94a3b8', textDecoration: 'none' }}>About</a>
-          <a href="#services" style={{ color: isLight ? '#475569' : '#94a3b8', textDecoration: 'none' }}>Services</a>
-          <a href="#products" style={{ color: isLight ? '#475569' : '#94a3b8', textDecoration: 'none' }}>Products</a>
-          <a href="#contact" style={{ color: isLight ? '#475569' : '#94a3b8', textDecoration: 'none' }}>Contact</a>
+        {/* Column 2: Quick Navigation Links */}
+        <div>
+          <h4 style={{ color: '#ffffff', fontSize: '0.95rem', fontWeight: 800, marginBottom: '1.2rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Quick Navigation</h4>
+          <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+            <li><a href="#about" style={{ color: '#cbd5e1', textDecoration: 'none', transition: 'color 0.2s' }}>• About Us</a></li>
+            <li><a href="#services" style={{ color: '#cbd5e1', textDecoration: 'none', transition: 'color 0.2s' }}>• Services & Solutions</a></li>
+            <li><a href="#products" style={{ color: '#cbd5e1', textDecoration: 'none', transition: 'color 0.2s' }}>• Products & Offerings</a></li>
+            <li><a href="#reviews" style={{ color: '#cbd5e1', textDecoration: 'none', transition: 'color 0.2s' }}>• Customer Reviews</a></li>
+            <li><a href="#faq" style={{ color: '#cbd5e1', textDecoration: 'none', transition: 'color 0.2s' }}>• Frequently Asked Questions</a></li>
+            <li><a href="#contact" style={{ color: '#cbd5e1', textDecoration: 'none', transition: 'color 0.2s' }}>• Contact & Location</a></li>
+          </ul>
+        </div>
+
+        {/* Column 3: Contact Info */}
+        <div>
+          <h4 style={{ color: '#ffffff', fontSize: '0.95rem', fontWeight: 800, marginBottom: '1.2rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Direct Contact</h4>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.6rem' }}>
+              <MapPin size={16} color="#38bdf8" style={{ marginTop: '3px', flexShrink: 0 }} />
+              <span style={{ color: '#cbd5e1', fontSize: '0.85rem' }}>{address}</span>
+            </div>
+
+            {phone && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                <Phone size={16} color="#10b981" style={{ flexShrink: 0 }} />
+                <a href={`tel:${phone}`} style={{ color: '#10b981', fontWeight: 700, textDecoration: 'none' }}>{phone}</a>
+              </div>
+            )}
+
+            {whatsapp && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                <MessageSquare size={16} color="#25d366" style={{ flexShrink: 0 }} />
+                <a href={`https://wa.me/${whatsapp.replace(/[^0-9]/g, '')}`} target="_blank" rel="noreferrer" style={{ color: '#25d366', fontWeight: 700, textDecoration: 'none' }}>WhatsApp Support</a>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Column 4: Hours & SLA SLA Assurance */}
+        <div>
+          <h4 style={{ color: '#ffffff', fontSize: '0.95rem', fontWeight: 800, marginBottom: '1.2rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Operating Hours & SLA</h4>
+          <p style={{ color: '#cbd5e1', fontSize: '0.85rem', margin: '0 0 0.75rem 0', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+            <Clock size={15} color="#fbbf24" /> Mon - Sat: 9:00 AM - 8:00 PM
+          </p>
+          <div style={{ backgroundColor: 'rgba(15, 23, 42, 0.8)', border: '1px solid rgba(255,255,255,0.1)', padding: '0.85rem', borderRadius: '10px' }}>
+            <div style={{ fontSize: '0.78rem', color: '#f59e0b', fontWeight: 800, marginBottom: '0.2rem' }}>⚡ 24-Hour SLA Response Guarantee</div>
+            <div style={{ fontSize: '0.74rem', color: '#94a3b8' }}>Enquiries submitted on this website are tracked with instant mobile push & email notifications.</div>
+          </div>
         </div>
       </div>
 
-      <div style={{ borderTop: `1px solid ${isLight ? '#cbd5e1' : 'rgba(255,255,255,0.05)'}`, paddingTop: '1.25rem', textAlign: 'center', color: isLight ? '#94a3b8' : '#475569', fontSize: '0.8rem' }}>
-        © {new Date().getFullYear()} {name}. All rights reserved.
+      {/* Bottom Copyright & Accreditation Bar */}
+      <div style={{
+        borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+        paddingTop: '1.5rem',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        flexWrap: 'wrap',
+        gap: '1rem',
+        fontSize: '0.8rem',
+        color: '#64748b'
+      }}>
+        <div>
+          © {new Date().getFullYear()} <strong>{name}</strong>. All rights reserved.
+        </div>
+        <div style={{ display: 'flex', gap: '1.5rem' }}>
+          <a href="/privacy" style={{ color: '#64748b', textDecoration: 'none' }}>Privacy Policy</a>
+          <a href="/terms" style={{ color: '#64748b', textDecoration: 'none' }}>Terms of Service</a>
+          <span style={{ color: '#94a3b8', fontWeight: 700 }}>Powered by ManaCity.in</span>
+        </div>
       </div>
     </footer>
   );
