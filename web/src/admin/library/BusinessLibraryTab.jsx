@@ -307,7 +307,7 @@ export default function BusinessLibraryTab({ theme }) {
               borderRadius: '10px',
               border: activeTab === 'EXPLORE' ? '2px solid #6366f1' : (isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid #cbd5e1'),
               backgroundColor: activeTab === 'EXPLORE' ? '#6366f1' : cardBg,
-              color: '#fff',
+              color: activeTab === 'EXPLORE' ? '#fff' : textMain,
               fontWeight: 800,
               fontSize: '0.85rem',
               cursor: 'pointer'
@@ -323,7 +323,7 @@ export default function BusinessLibraryTab({ theme }) {
               borderRadius: '10px',
               border: activeTab === 'MY_ITEMS' ? '2px solid #10b981' : (isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid #cbd5e1'),
               backgroundColor: activeTab === 'MY_ITEMS' ? '#10b981' : cardBg,
-              color: '#fff',
+              color: activeTab === 'MY_ITEMS' ? '#fff' : textMain,
               fontWeight: 800,
               fontSize: '0.85rem',
               cursor: 'pointer'
