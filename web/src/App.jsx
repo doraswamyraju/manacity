@@ -18,6 +18,7 @@ import ReviewManagement from './pages/ReviewManagement';
 import PublicReviewLanding from './pages/PublicReviewLanding';
 import ReviewPosterPrint from './pages/ReviewPosterPrint';
 import PublicBusinessWebsite from './pages/PublicBusinessWebsite';
+import ServiceDetailsPage from './pages/ServiceDetailsPage';
 import SuperAdminDashboardLayout from './superadmin/SuperAdminDashboardLayout';
 import AdminDashboardLayout from './admin_dashboard/AdminDashboardLayout';
 import CustomerDashboardLayout from './customer_dashboard/CustomerDashboardLayout';
@@ -159,6 +160,8 @@ function App() {
       {/* Public Aggregator Directory & Storefront Routes */}
       <Route path="/" element={isSubdomain ? <PublicBusinessWebsite /> : <Home onNavigateToLogin={() => navigate('/login')} onNavigateToRegister={() => navigate('/register')} user={user} />} />
       <Route path="/:city" element={<Home onNavigateToLogin={() => navigate('/login')} onNavigateToRegister={() => navigate('/register')} user={user} />} />
+      <Route path="/:city/service/:slug" element={<ServiceDetailsPage user={user} />} />
+      <Route path="/service/:slug" element={<ServiceDetailsPage user={user} />} />
       <Route path="/:city/:category" element={<Home onNavigateToLogin={() => navigate('/login')} onNavigateToRegister={() => navigate('/register')} user={user} />} />
       <Route path="/biz/:slug" element={<PublicBusinessWebsite />} />
       <Route path="/site/:subdomain" element={<PublicBusinessWebsite />} />

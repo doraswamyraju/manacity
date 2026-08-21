@@ -649,7 +649,8 @@ export default function Home({
                         key={`m-${mIdx}`}
                         onClick={() => {
                           setShowSuggestions(false);
-                          setSelectedServiceVendorsModal(mItem);
+                          const targetSlug = mItem.slug || mItem.name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+                          window.location.href = `/${selectedCity}/service/${targetSlug}`;
                         }}
                         style={{
                           padding: '8px 10px',

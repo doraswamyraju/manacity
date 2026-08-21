@@ -365,3 +365,103 @@ exports.recordUnmatchedSearch = async (req, res) => {
     return res.status(500).json({ error: 'Failed to record unmatched search query' });
   }
 };
+
+// Get Service Details & All Verified Vendors for Dedicated Product/Service Page
+exports.getServiceDetails = async (req, res) => {
+  try {
+    const { slug, city } = req.params;
+    const cityStr = (city || 'tirupati').toLowerCase();
+
+    // Find master product/service in library
+    let masterItem = await prisma.productServiceLibrary.findFirst({
+      where: {
+        OR: [
+          { slug: slug.toLowerCase() },
+          { id: slug }
+        ]
+      }
+    });
+
+    if (!masterItem) {
+      // Fallback matching by name slugification
+      const allItems = await prisma.productServiceLibrary.findMany({ where: { status: 'APPROVED' } });
+      masterItem = allItems.find(i => (i.slug && i.slug.toLowerCase() === slug.toLowerCase()) || (i.name && i.name.toLowerCase().replace(/[^a-z0-9]+/g, '-') === slug.toLowerCase()));
+    }
+
+    if (!masterItem) {
+      return res.status(404).json({ error: 'Service/Product offering not found' });
+    }
+
+    // Find all services/products linked to this master item
+    const services = await prisma.businessService.findMany({
+      where: { libraryItemId: masterItem.id },
+      include: {
+        businessGroup: {
+          include: {
+            directoryListing: true,
+            locations: true
+          }
+        }
+      }
+    });
+
+    const products = await prisma.businessProduct.findMany({
+      where: { libraryItemId: masterItem.id },
+      include: {
+        businessGroup: {
+          include: {
+            directoryListing: true,
+            locations: true
+          }
+        }
+      }
+    });
+
+    const rawVendors = [...services.map(s => ({ bg: s.businessGroup, itemPrice: s.price })), ...products.map(p => ({ bg: p.businessGroup, itemPrice: p.price }))].filter(v => v.bg);
+    const vendors = [];
+    const seenBg = new Set();
+
+    rawVendors.forEach(({ bg, itemPrice }) => {
+      if (!seenBg.has(bg.id) && bg.status !== 'DISABLED') {
+        seenBg.add(bg.id);
+        const listing = bg.directoryListing;
+        vendors.push({
+          id: bg.id,
+          name: bg.name,
+          slug: listing ? listing.slug : bg.subdomain,
+          subdomain: bg.subdomain,
+          city: bg.city || cityStr,
+          phone: bg.mobileNumber || bg.whatsAppNumber,
+          whatsApp: bg.whatsAppNumber || bg.mobileNumber,
+          rating: bg.googleRating || bg.rating || 4.9,
+          reviewCount: bg.googleReviewCount || bg.reviewCount || 63,
+          logoUrl: bg.logoUrl,
+          coverImageUrl: bg.coverImageUrl,
+          address: bg.address || 'Tirupati, Andhra Pradesh',
+          price: itemPrice || masterItem.defaultPrice
+        });
+      }
+    });
+
+    // Fetch related services in the same category
+    const relatedItems = await prisma.productServiceLibrary.findMany({
+      where: {
+        category: masterItem.category,
+        id: { not: masterItem.id },
+        status: 'APPROVED'
+      },
+      take: 4
+    });
+
+    return res.status(200).json({
+      service: masterItem,
+      city: cityStr,
+      vendorCount: vendors.length,
+      vendors,
+      relatedServices: relatedItems
+    });
+  } catch (error) {
+    console.error('Error fetching service details:', error);
+    return res.status(500).json({ error: 'Failed to fetch service details' });
+  }
+};
