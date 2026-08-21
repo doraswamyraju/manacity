@@ -30,6 +30,16 @@ function App() {
   const [businessGroup, setBusinessGroup] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  const [portalMode, setPortalMode] = useState(() => {
+    return localStorage.getItem('portal_mode') || 'admin';
+  });
+
+  const handleTogglePortalMode = (mode) => {
+    const nextMode = mode || (portalMode === 'admin' ? 'customer' : 'admin');
+    setPortalMode(nextMode);
+    localStorage.setItem('portal_mode', nextMode);
+  };
+
   const fetchOnboardingState = () => {
     axios.get('/api/business/onboarding-state')
       .then((res) => {
@@ -142,16 +152,6 @@ function App() {
 
   const hostname = typeof window !== 'undefined' ? window.location.hostname : '';
   const isSubdomain = hostname.endsWith('.manacity.in') && hostname !== 'manacity.in' && hostname !== 'www.manacity.in';
-
-  const [portalMode, setPortalMode] = useState(() => {
-    return localStorage.getItem('portal_mode') || 'admin';
-  });
-
-  const handleTogglePortalMode = (mode) => {
-    const nextMode = mode || (portalMode === 'admin' ? 'customer' : 'admin');
-    setPortalMode(nextMode);
-    localStorage.setItem('portal_mode', nextMode);
-  };
 
   /* Business Dashboard Routes */
   return (
