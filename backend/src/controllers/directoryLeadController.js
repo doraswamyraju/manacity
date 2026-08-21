@@ -239,7 +239,7 @@ exports.searchUnified = async (req, res) => {
         include: {
           businessGroup: {
             include: {
-              directoryListings: true,
+              directoryListing: true,
               locations: true
             }
           }
@@ -250,7 +250,7 @@ exports.searchUnified = async (req, res) => {
         include: {
           businessGroup: {
             include: {
-              directoryListings: true,
+              directoryListing: true,
               locations: true
             }
           }
@@ -264,7 +264,7 @@ exports.searchUnified = async (req, res) => {
       rawVendors.forEach(bg => {
         if (!seenBg.has(bg.id) && bg.status !== 'DISABLED') {
           seenBg.add(bg.id);
-          const listing = bg.directoryListings && bg.directoryListings[0];
+          const listing = bg.directoryListing;
           vendors.push({
             id: bg.id,
             name: bg.name,
