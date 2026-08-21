@@ -1,7 +1,7 @@
 import React from 'react';
-import { RefreshCw, LogOut, Sparkles, Sun, Moon, Building } from 'lucide-react';
+import { RefreshCw, LogOut, Sparkles, Sun, Moon, Building, User, ArrowRightLeft } from 'lucide-react';
 
-function AdminTopbar({ user, businessGroup, onRefresh, onLogout, theme, toggleTheme }) {
+function AdminTopbar({ user, businessGroup, onRefresh, onLogout, theme, toggleTheme, onSwitchPortal }) {
   const isDark = theme === 'dark';
 
   return (
@@ -10,8 +10,8 @@ function AdminTopbar({ user, businessGroup, onRefresh, onLogout, theme, toggleTh
       backgroundColor: isDark ? 'rgba(15, 23, 42, 0.85)' : 'rgba(255, 255, 255, 0.85)',
       borderBottom: isDark ? '1px solid rgba(255, 255, 255, 0.07)' : '1px solid #e2e8f0'
     }}>
-      {/* Business Brand Chip */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+      {/* Business Brand Chip & Segmented Dashboard Switcher */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
         <div style={{
           padding: '0.45rem 0.85rem',
           background: isDark
@@ -29,6 +29,59 @@ function AdminTopbar({ user, businessGroup, onRefresh, onLogout, theme, toggleTh
             {businessGroup?.name || 'My Business'} <span style={{ color: isDark ? '#34d399' : '#059669', fontWeight: 700 }}>PORTAL</span>
           </span>
         </div>
+
+        {/* Dashboard Role Toggle Segmented Control */}
+        {onSwitchPortal && (
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            backgroundColor: isDark ? 'rgba(255, 255, 255, 0.06)' : '#e2e8f0',
+            borderRadius: '20px',
+            padding: '3px',
+            border: isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid #cbd5e1'
+          }}>
+            <button
+              type="button"
+              style={{
+                padding: '0.35rem 0.8rem',
+                borderRadius: '16px',
+                border: 'none',
+                backgroundColor: isDark ? '#10b981' : '#059669',
+                color: '#fff',
+                fontSize: '0.78rem',
+                fontWeight: 800,
+                cursor: 'default',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.35rem',
+                boxShadow: '0 2px 8px rgba(16, 185, 129, 0.4)'
+              }}
+            >
+              <Building size={13} /> Business (Admin)
+            </button>
+            <button
+              type="button"
+              onClick={onSwitchPortal}
+              title="Switch to Customer/User View"
+              style={{
+                padding: '0.35rem 0.8rem',
+                borderRadius: '16px',
+                border: 'none',
+                backgroundColor: 'transparent',
+                color: isDark ? '#94a3b8' : '#64748b',
+                fontSize: '0.78rem',
+                fontWeight: 700,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.35rem',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              <User size={13} /> Customer View &rarr;
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Right Controls & Profile */}

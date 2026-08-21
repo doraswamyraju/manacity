@@ -143,6 +143,17 @@ function App() {
   const hostname = typeof window !== 'undefined' ? window.location.hostname : '';
   const isSubdomain = hostname.endsWith('.manacity.in') && hostname !== 'manacity.in' && hostname !== 'www.manacity.in';
 
+  const [portalMode, setPortalMode] = useState(() => {
+    return localStorage.getItem('portal_mode') || 'admin';
+  });
+
+  const handleTogglePortalMode = (mode) => {
+    const nextMode = mode || (portalMode === 'admin' ? 'customer' : 'admin');
+    setPortalMode(nextMode);
+    localStorage.setItem('portal_mode', nextMode);
+  };
+
+  /* Business Dashboard Routes */
   return (
     <Routes>
       {/* Public Aggregator Directory & Storefront Routes */}
@@ -179,15 +190,17 @@ function App() {
         } 
       />
 
-      {/* Business Dashboard Routes */}
+      {/* Dashboard Routes with Admin / Customer Portal Mode Toggle */}
       <Route 
         path="/dashboard/*" 
         element={
           user ? (
             user.role === 'CUSTOMER' ? (
               <CustomerDashboardLayout user={user} onLogout={handleLogout} />
+            ) : portalMode === 'customer' ? (
+              <CustomerDashboardLayout user={user} onLogout={handleLogout} isOwner={true} onSwitchPortal={() => handleTogglePortalMode('admin')} />
             ) : (
-              <AdminDashboardLayout user={user} businessGroup={businessGroup} onLogout={handleLogout} setView={(v) => navigate(`/${v}`)} />
+              <AdminDashboardLayout user={user} businessGroup={businessGroup} onLogout={handleLogout} setView={(v) => navigate(`/${v}`)} onSwitchPortal={() => handleTogglePortalMode('customer')} />
             )
           ) : (
             <Navigate to="/login" replace />

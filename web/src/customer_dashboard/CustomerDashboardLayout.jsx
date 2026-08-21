@@ -8,7 +8,7 @@ import MyEnquiriesTab from './MyEnquiriesTab';
 import SavedPlacesTab from './SavedPlacesTab';
 import MyReviewsTab from './MyReviewsTab';
 
-function CustomerDashboardLayout({ user, onLogout }) {
+function CustomerDashboardLayout({ user, onLogout, isOwner, onSwitchPortal }) {
   // Persist active tab in localStorage
   const [activeTab, setActiveTabState] = useState(() => {
     return localStorage.getItem('customer_activetab') || 'overview';
@@ -78,7 +78,45 @@ function CustomerDashboardLayout({ user, onLogout }) {
           onLogout={onLogout}
           theme={theme}
           toggleTheme={toggleTheme}
+          isOwner={isOwner}
+          onSwitchPortal={onSwitchPortal}
         />
+
+        {/* Owner Preview Banner */}
+        {isOwner && (
+          <div style={{
+            backgroundColor: isDark ? 'rgba(236, 72, 153, 0.15)' : 'rgba(236, 72, 153, 0.1)',
+            borderBottom: '1px solid rgba(236, 72, 153, 0.3)',
+            padding: '0.65rem 1.5rem',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '1rem',
+            fontSize: '0.85rem',
+            color: isDark ? '#f472b6' : '#be185d'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 700 }}>
+              <Sparkles size={16} /> You are currently viewing ManaCity in <strong>Customer (User) Mode</strong>.
+            </div>
+            <button
+              type="button"
+              onClick={onSwitchPortal}
+              style={{
+                backgroundColor: isDark ? '#10b981' : '#059669',
+                color: '#fff',
+                border: 'none',
+                borderRadius: '8px',
+                padding: '0.35rem 0.85rem',
+                fontSize: '0.8rem',
+                fontWeight: 800,
+                cursor: 'pointer',
+                boxShadow: '0 2px 8px rgba(16, 185, 129, 0.3)'
+              }}
+            >
+              &larr; Return to Business Owner Console
+            </button>
+          </div>
+        )}
 
         {/* 3. SPA Content View */}
         <main style={{ flex: 1, padding: '2rem', maxWidth: '1200px', width: '100%', margin: '0 auto' }}>

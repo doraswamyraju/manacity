@@ -34,7 +34,7 @@ import MarketingTabContainer from '../modules/marketing/MarketingTabContainer';
 import LeadsTableView from '../modules/lms/LeadsTableView';
 import BusinessProfileSettings from '../modules/profile/BusinessProfileSettings';
 
-function AdminDashboardLayout({ user, businessGroup, onLogout, setView }) {
+function AdminDashboardLayout({ user, businessGroup, onLogout, setView, onSwitchPortal }) {
   // Persist active tab in localStorage
   const [activeTab, setActiveTabState] = useState(() => {
     return localStorage.getItem('admin_activetab') || 'overview';
@@ -129,6 +129,7 @@ function AdminDashboardLayout({ user, businessGroup, onLogout, setView }) {
           onLogout={onLogout}
           theme={theme}
           toggleTheme={toggleTheme}
+          onSwitchPortal={onSwitchPortal}
         />
 
         {/* 3. SPA Content View */}

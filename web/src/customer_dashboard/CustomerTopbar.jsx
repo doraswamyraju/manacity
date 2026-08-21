@@ -1,7 +1,7 @@
 import React from 'react';
-import { RefreshCw, LogOut, UserCheck, Sun, Moon, Heart, Sparkles } from 'lucide-react';
+import { RefreshCw, LogOut, UserCheck, Sun, Moon, Heart, Sparkles, Building, User } from 'lucide-react';
 
-function CustomerTopbar({ user, onRefresh, onLogout, theme, toggleTheme }) {
+function CustomerTopbar({ user, onRefresh, onLogout, theme, toggleTheme, isOwner, onSwitchPortal }) {
   const isDark = theme === 'dark';
 
   return (
@@ -10,8 +10,8 @@ function CustomerTopbar({ user, onRefresh, onLogout, theme, toggleTheme }) {
       backgroundColor: isDark ? 'rgba(15, 23, 42, 0.85)' : 'rgba(255, 255, 255, 0.85)',
       borderBottom: isDark ? '1px solid rgba(255, 255, 255, 0.07)' : '1px solid #e2e8f0'
     }}>
-      {/* Customer Brand Chip */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+      {/* Customer Brand Chip & Segmented Control */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
         <div style={{
           padding: '0.45rem 0.85rem',
           background: isDark
@@ -29,6 +29,59 @@ function CustomerTopbar({ user, onRefresh, onLogout, theme, toggleTheme }) {
             MANACITY <span style={{ color: isDark ? '#f472b6' : '#db2777', fontWeight: 700 }}>CUSTOMER HUB</span>
           </span>
         </div>
+
+        {/* Dashboard Role Toggle Segmented Control (When Owner previews Customer Portal) */}
+        {isOwner && onSwitchPortal && (
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            backgroundColor: isDark ? 'rgba(255, 255, 255, 0.06)' : '#e2e8f0',
+            borderRadius: '20px',
+            padding: '3px',
+            border: isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid #cbd5e1'
+          }}>
+            <button
+              type="button"
+              onClick={onSwitchPortal}
+              title="Return to Business Owner Console"
+              style={{
+                padding: '0.35rem 0.8rem',
+                borderRadius: '16px',
+                border: 'none',
+                backgroundColor: 'transparent',
+                color: isDark ? '#94a3b8' : '#64748b',
+                fontSize: '0.78rem',
+                fontWeight: 700,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.35rem',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              &larr; <Building size={13} /> Business (Admin)
+            </button>
+            <button
+              type="button"
+              style={{
+                padding: '0.35rem 0.8rem',
+                borderRadius: '16px',
+                border: 'none',
+                backgroundColor: isDark ? '#ec4899' : '#db2777',
+                color: '#fff',
+                fontSize: '0.78rem',
+                fontWeight: 800,
+                cursor: 'default',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.35rem',
+                boxShadow: '0 2px 8px rgba(236, 72, 153, 0.4)'
+              }}
+            >
+              <User size={13} /> Customer View
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Right Controls & Profile */}
