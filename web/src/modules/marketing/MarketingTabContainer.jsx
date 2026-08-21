@@ -30,7 +30,18 @@ import MetaAdsManager from './MetaAdsManager';
 import AdCampaignsView from './AdCampaignsView';
 import MarketingAnalytics from './MarketingAnalytics';
 
-export default function MarketingTabContainer({ businessGroup, activeTabOverride }) {
+export default function MarketingTabContainer({ businessGroup, activeTabOverride, theme }) {
+  const isDark = theme === 'dark' || (theme === undefined && document.documentElement.getAttribute('data-theme') !== 'light' && !document.body.classList.contains('light-mode'));
+  const cardBg = isDark ? '#0f172a' : '#ffffff';
+  const innerCardBg = isDark ? '#1e293b' : '#f8fafc';
+  const cardBorder = isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid #cbd5e1';
+  const textMain = isDark ? '#f8fafc' : '#0f172a';
+  const textMuted = isDark ? '#94a3b8' : '#64748b';
+  const inputBg = isDark ? '#1e293b' : '#ffffff';
+  const inputBorder = isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid #cbd5e1';
+  const navBtnBg = isDark ? '#0f172a' : '#ffffff';
+  const navBtnBorder = isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid #cbd5e1';
+
   const mapOverrideToTab = (override) => {
     if (!override) return 'INSTAGRAM';
     if (override === 'marketing-facebook') return 'FACEBOOK';
@@ -218,9 +229,9 @@ export default function MarketingTabContainer({ businessGroup, activeTabOverride
                 gap: '0.55rem',
                 padding: '0.65rem 1.15rem',
                 borderRadius: '12px',
-                border: isActive ? `1px solid ${sub.color}` : '1px solid rgba(255,255,255,0.08)',
-                backgroundColor: isActive ? `${sub.color}20` : '#0f172a',
-                color: isActive ? '#fff' : '#94a3b8',
+                border: isActive ? `1px solid ${sub.color}` : navBtnBorder,
+                backgroundColor: isActive ? `${sub.color}20` : navBtnBg,
+                color: isActive ? (isDark ? '#fff' : sub.color) : textMuted,
                 fontSize: '0.88rem',
                 fontWeight: 800,
                 cursor: 'pointer',
@@ -250,9 +261,9 @@ export default function MarketingTabContainer({ businessGroup, activeTabOverride
                 gap: '0.55rem',
                 padding: '0.65rem 1.15rem',
                 borderRadius: '12px',
-                border: isActive ? `1px solid ${sub.color}` : '1px solid rgba(255,255,255,0.08)',
-                backgroundColor: isActive ? `${sub.color}20` : '#0f172a',
-                color: isActive ? '#fff' : '#94a3b8',
+                border: isActive ? `1px solid ${sub.color}` : navBtnBorder,
+                backgroundColor: isActive ? `${sub.color}20` : navBtnBg,
+                color: isActive ? (isDark ? '#fff' : sub.color) : textMuted,
                 fontSize: '0.88rem',
                 fontWeight: 800,
                 cursor: 'pointer',
@@ -282,9 +293,9 @@ export default function MarketingTabContainer({ businessGroup, activeTabOverride
                 gap: '0.55rem',
                 padding: '0.65rem 1.15rem',
                 borderRadius: '12px',
-                border: isActive ? `1px solid ${sub.color}` : '1px solid rgba(255,255,255,0.08)',
-                backgroundColor: isActive ? `${sub.color}20` : '#0f172a',
-                color: isActive ? '#fff' : '#94a3b8',
+                border: isActive ? `1px solid ${sub.color}` : navBtnBorder,
+                backgroundColor: isActive ? `${sub.color}20` : navBtnBg,
+                color: isActive ? (isDark ? '#fff' : sub.color) : textMuted,
                 fontSize: '0.88rem',
                 fontWeight: 800,
                 cursor: 'pointer',
@@ -298,13 +309,13 @@ export default function MarketingTabContainer({ businessGroup, activeTabOverride
         })}
 
         {activeTab === 'LIBRARY' && (
-          <div style={{ fontSize: '0.95rem', fontWeight: 800, color: '#fff', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <div style={{ fontSize: '0.95rem', fontWeight: 800, color: textMain, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <ImageIcon size={20} color="#a855f7" /> Central Marketing Asset Library & Brand Flyers
           </div>
         )}
 
         {activeTab === 'META_ADS' && (
-          <div style={{ fontSize: '0.95rem', fontWeight: 800, color: '#fff', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <div style={{ fontSize: '0.95rem', fontWeight: 800, color: textMain, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <Megaphone size={20} color="#38bdf8" /> Meta Ad Campaign Builder & Target Insights
           </div>
         )}
@@ -316,10 +327,10 @@ export default function MarketingTabContainer({ businessGroup, activeTabOverride
           
           {/* Header Banner & Live Sync Status */}
           <div style={{
-            backgroundColor: '#0f172a',
+            backgroundColor: cardBg,
             borderRadius: '16px',
             padding: '1.5rem',
-            border: '1px solid rgba(225, 48, 108, 0.3)',
+            border: `1px solid ${isDark ? 'rgba(225, 48, 108, 0.3)' : '#cbd5e1'}`,
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
@@ -331,10 +342,10 @@ export default function MarketingTabContainer({ businessGroup, activeTabOverride
                 <Instagram size={28} />
               </div>
               <div>
-                <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#fff', margin: 0 }}>
+                <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: textMain, margin: 0 }}>
                   Instagram Business Hub {igData?.account?.username && <span style={{ color: '#e1306c', fontSize: '0.95rem' }}>({igData.account.username})</span>}
                 </h3>
-                <p style={{ fontSize: '0.85rem', color: '#94a3b8', margin: '0.2rem 0 0 0' }}>
+                <p style={{ fontSize: '0.85rem', color: textMuted, margin: '0.2rem 0 0 0' }}>
                   Manage posts, view live Graph API insights & auto-sync DMs directly to LetsTrack live chat.
                 </p>
               </div>
@@ -408,13 +419,12 @@ export default function MarketingTabContainer({ businessGroup, activeTabOverride
             </div>
           )}
 
-
           {/* Meta API Diagnostics Section */}
-          <details style={{ backgroundColor: '#0f172a', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.08)', padding: '0.75rem 1.25rem' }}>
-            <summary style={{ color: '#94a3b8', fontSize: '0.85rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <details style={{ backgroundColor: cardBg, borderRadius: '12px', border: cardBorder, padding: '0.75rem 1.25rem' }}>
+            <summary style={{ color: textMuted, fontSize: '0.85rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <AlertCircle size={16} color="#e1306c" /> Meta API Diagnostics & Connection Details (Developer Mode)
             </summary>
-            <div style={{ marginTop: '0.75rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem', fontSize: '0.8rem', color: '#cbd5e1' }}>
+            <div style={{ marginTop: '0.75rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem', fontSize: '0.8rem', color: textMuted }}>
               <div><strong>Graph API Version:</strong> {igData?.diagnostics?.apiVersion || 'v24.0'}</div>
               <div><strong>Page ID (Masked):</strong> {igData?.diagnostics?.pageIdMasked || 'N/A'}</div>
               <div><strong>Instagram Account ID (Masked):</strong> {igData?.diagnostics?.instagramIdMasked || 'N/A'}</div>
@@ -429,65 +439,65 @@ export default function MarketingTabContainer({ businessGroup, activeTabOverride
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.25rem' }}>
               
               {/* Followers */}
-              <div style={{ backgroundColor: '#0f172a', padding: '1.25rem', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.06)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#94a3b8', fontSize: '0.82rem', marginBottom: '0.5rem' }}>
+              <div style={{ backgroundColor: cardBg, padding: '1.25rem', borderRadius: '14px', border: cardBorder }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', color: textMuted, fontSize: '0.82rem', marginBottom: '0.5rem' }}>
                   <span>Followers Count</span>
                   <Users size={18} color="#e1306c" />
                 </div>
-                <strong style={{ fontSize: '1.7rem', fontWeight: 900, color: '#fff' }}>
+                <strong style={{ fontSize: '1.7rem', fontWeight: 900, color: textMain }}>
                   {igData?.metrics?.followers?.available && igData.metrics.followers.value !== null 
                     ? igData.metrics.followers.value.toLocaleString() 
                     : 'N/A'}
                 </strong>
-                <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.25rem' }}>
+                <div style={{ fontSize: '0.75rem', color: textMuted, marginTop: '0.25rem' }}>
                   {igData?.metrics?.followers?.reason || 'Instagram followers'}
                 </div>
               </div>
 
               {/* Impressions */}
-              <div style={{ backgroundColor: '#0f172a', padding: '1.25rem', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.06)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#94a3b8', fontSize: '0.82rem', marginBottom: '0.5rem' }}>
+              <div style={{ backgroundColor: cardBg, padding: '1.25rem', borderRadius: '14px', border: cardBorder }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', color: textMuted, fontSize: '0.82rem', marginBottom: '0.5rem' }}>
                   <span>Account Impressions</span>
                   <Eye size={18} color="#818cf8" />
                 </div>
-                <strong style={{ fontSize: '1.7rem', fontWeight: 900, color: '#fff' }}>
+                <strong style={{ fontSize: '1.7rem', fontWeight: 900, color: textMain }}>
                   {igData?.metrics?.views?.available && igData.metrics.views.value !== null 
                     ? igData.metrics.views.value.toLocaleString() 
                     : 'N/A'}
                 </strong>
-                <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.25rem' }}>
+                <div style={{ fontSize: '0.75rem', color: textMuted, marginTop: '0.25rem' }}>
                   {igData?.metrics?.views?.reason || 'Account daily impressions'}
                 </div>
               </div>
 
               {/* Account Reach */}
-              <div style={{ backgroundColor: '#0f172a', padding: '1.25rem', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.06)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#94a3b8', fontSize: '0.82rem', marginBottom: '0.5rem' }}>
+              <div style={{ backgroundColor: cardBg, padding: '1.25rem', borderRadius: '14px', border: cardBorder }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', color: textMuted, fontSize: '0.82rem', marginBottom: '0.5rem' }}>
                   <span>Account Reach</span>
                   <TrendingUp size={18} color="#38bdf8" />
                 </div>
-                <strong style={{ fontSize: '1.7rem', fontWeight: 900, color: '#fff' }}>
+                <strong style={{ fontSize: '1.7rem', fontWeight: 900, color: textMain }}>
                   {igData?.metrics?.reach?.available && igData.metrics.reach.value !== null 
                     ? igData.metrics.reach.value.toLocaleString() 
                     : 'N/A'}
                 </strong>
-                <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.25rem' }}>
+                <div style={{ fontSize: '0.75rem', color: textMuted, marginTop: '0.25rem' }}>
                   {igData?.metrics?.reach?.reason || 'Unique accounts reached'}
                 </div>
               </div>
 
               {/* Profile Visits */}
-              <div style={{ backgroundColor: '#0f172a', padding: '1.25rem', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.06)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#94a3b8', fontSize: '0.82rem', marginBottom: '0.5rem' }}>
+              <div style={{ backgroundColor: cardBg, padding: '1.25rem', borderRadius: '14px', border: cardBorder }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', color: textMuted, fontSize: '0.82rem', marginBottom: '0.5rem' }}>
                   <span>Profile Visits</span>
                   <Globe size={18} color="#f59e0b" />
                 </div>
-                <strong style={{ fontSize: '1.7rem', fontWeight: 900, color: '#fff' }}>
+                <strong style={{ fontSize: '1.7rem', fontWeight: 900, color: textMain }}>
                   {igData?.metrics?.profileViews?.available && igData.metrics.profileViews.value !== null 
                     ? igData.metrics.profileViews.value.toLocaleString() 
                     : 'N/A'}
                 </strong>
-                <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.25rem' }}>
+                <div style={{ fontSize: '0.75rem', color: textMuted, marginTop: '0.25rem' }}>
                   {igData?.metrics?.profileViews?.reason || 'Profile visits'}
                 </div>
               </div>
@@ -499,8 +509,8 @@ export default function MarketingTabContainer({ businessGroup, activeTabOverride
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr', gap: '1.5rem' }}>
             
             {/* Create / Schedule Post Card */}
-            <div style={{ backgroundColor: '#0f172a', borderRadius: '16px', padding: '1.5rem', border: '1px solid rgba(255,255,255,0.08)' }}>
-              <h4 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#fff', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <div style={{ backgroundColor: cardBg, borderRadius: '16px', padding: '1.5rem', border: cardBorder }}>
+              <h4 style={{ fontSize: '1.1rem', fontWeight: 800, color: textMain, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <Send size={18} color="#e1306c" /> Create & Schedule Instagram Post
               </h4>
 
@@ -512,34 +522,34 @@ export default function MarketingTabContainer({ businessGroup, activeTabOverride
 
               <form onSubmit={handlePublishPost} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 <div>
-                  <label style={{ fontSize: '0.82rem', fontWeight: 700, color: '#94a3b8', display: 'block', marginBottom: '0.35rem' }}>Post Caption</label>
+                  <label style={{ fontSize: '0.82rem', fontWeight: 700, color: textMuted, display: 'block', marginBottom: '0.35rem' }}>Post Caption</label>
                   <textarea
                     rows={4}
                     value={newCaption}
                     onChange={(e) => setNewCaption(e.target.value)}
                     placeholder="Write an engaging caption for your Instagram followers..."
-                    style={{ width: '100%', backgroundColor: '#1e293b', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', padding: '0.75rem', color: '#fff', fontSize: '0.88rem', outline: 'none', resize: 'vertical' }}
+                    style={{ width: '100%', backgroundColor: inputBg, border: inputBorder, borderRadius: '10px', padding: '0.75rem', color: textMain, fontSize: '0.88rem', outline: 'none', resize: 'vertical' }}
                   />
                 </div>
 
                 <div>
-                  <label style={{ fontSize: '0.82rem', fontWeight: 700, color: '#94a3b8', display: 'block', marginBottom: '0.35rem' }}>Image / Video URL</label>
+                  <label style={{ fontSize: '0.82rem', fontWeight: 700, color: textMuted, display: 'block', marginBottom: '0.35rem' }}>Image / Video URL</label>
                   <input
                     type="url"
                     value={mediaUrl}
                     onChange={(e) => setMediaUrl(e.target.value)}
                     placeholder="https://images.unsplash.com/..."
-                    style={{ width: '100%', backgroundColor: '#1e293b', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', padding: '0.65rem', color: '#fff', fontSize: '0.88rem', outline: 'none' }}
+                    style={{ width: '100%', backgroundColor: inputBg, border: inputBorder, borderRadius: '10px', padding: '0.65rem', color: textMain, fontSize: '0.88rem', outline: 'none' }}
                   />
                 </div>
 
                 <div>
-                  <label style={{ fontSize: '0.82rem', fontWeight: 700, color: '#94a3b8', display: 'block', marginBottom: '0.35rem' }}>Schedule Post (Optional - Leave blank for instant publish)</label>
+                  <label style={{ fontSize: '0.82rem', fontWeight: 700, color: textMuted, display: 'block', marginBottom: '0.35rem' }}>Schedule Post (Optional - Leave blank for instant publish)</label>
                   <input
                     type="datetime-local"
                     value={scheduledDate}
                     onChange={(e) => setScheduledDate(e.target.value)}
-                    style={{ width: '100%', backgroundColor: '#1e293b', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', padding: '0.65rem', color: '#fff', fontSize: '0.88rem', outline: 'none' }}
+                    style={{ width: '100%', backgroundColor: inputBg, border: inputBorder, borderRadius: '10px', padding: '0.65rem', color: textMain, fontSize: '0.88rem', outline: 'none' }}
                   />
                 </div>
 
@@ -568,21 +578,21 @@ export default function MarketingTabContainer({ businessGroup, activeTabOverride
             </div>
 
             {/* Existing Posts Feed Grid */}
-            <div style={{ backgroundColor: '#0f172a', borderRadius: '16px', padding: '1.5rem', border: '1px solid rgba(255,255,255,0.08)' }}>
-              <h4 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#fff', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <div style={{ backgroundColor: cardBg, borderRadius: '16px', padding: '1.5rem', border: cardBorder }}>
+              <h4 style={{ fontSize: '1.1rem', fontWeight: 800, color: textMain, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <Instagram size={18} color="#e1306c" /> Recent Published Media & Activity
               </h4>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 {[...(igData?.content?.posts || []), ...(igData?.content?.reels || [])].map(post => (
-                  <div key={post.id} style={{ display: 'flex', gap: '1rem', backgroundColor: '#1e293b', borderRadius: '12px', padding: '0.85rem', border: '1px solid rgba(255,255,255,0.05)' }}>
+                  <div key={post.id} style={{ display: 'flex', gap: '1rem', backgroundColor: innerCardBg, borderRadius: '12px', padding: '0.85rem', border: inputBorder }}>
                     <img src={post.mediaUrl} alt="IG Post" style={{ width: '80px', height: '80px', borderRadius: '8px', objectFit: 'cover' }} />
                     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                      <p style={{ fontSize: '0.85rem', color: '#f8fafc', margin: 0, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', lineHeight: 1.4 }}>
+                      <p style={{ fontSize: '0.85rem', color: textMain, margin: 0, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', lineHeight: 1.4 }}>
                         {post.caption}
                       </p>
 
-                      <div style={{ display: 'flex', gap: '1.25rem', color: '#94a3b8', fontSize: '0.78rem', fontWeight: 700, marginTop: '0.5rem' }}>
+                      <div style={{ display: 'flex', gap: '1.25rem', color: textMuted, fontSize: '0.78rem', fontWeight: 700, marginTop: '0.5rem' }}>
                         <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', color: '#f43f5e' }}>
                           <Heart size={14} /> {post.metrics?.likes?.value !== undefined && post.metrics?.likes?.value !== null ? post.metrics.likes.value : 0} Likes
                         </span>
@@ -600,33 +610,33 @@ export default function MarketingTabContainer({ businessGroup, activeTabOverride
           </div>
 
           {/* Live Comments & Response Manager Card */}
-          <div style={{ backgroundColor: '#0f172a', borderRadius: '16px', padding: '1.5rem', border: '1px solid rgba(255,255,255,0.08)' }}>
+          <div style={{ backgroundColor: cardBg, borderRadius: '16px', padding: '1.5rem', border: cardBorder }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-              <h4 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#fff', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <h4 style={{ fontSize: '1.1rem', fontWeight: 800, color: textMain, margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <MessageSquare size={18} color="#34d399" /> Real-time Meta Post Comments & Response Console
               </h4>
               <button
                 onClick={fetchMetaComments}
                 disabled={loadingComments}
-                style={{ padding: '0.4rem 0.8rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', backgroundColor: '#1e293b', color: '#fff', fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer' }}
+                style={{ padding: '0.4rem 0.8rem', borderRadius: '8px', border: inputBorder, backgroundColor: innerCardBg, color: textMain, fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer' }}
               >
                 {loadingComments ? 'Refreshing...' : 'Refresh Comments'}
               </button>
             </div>
 
             {comments.length === 0 ? (
-              <p style={{ fontSize: '0.85rem', color: '#94a3b8', margin: 0 }}>
+              <p style={{ fontSize: '0.85rem', color: textMuted, margin: 0 }}>
                 No active post comments found. Connect your Facebook Page & Instagram account to view and reply to live user comments here.
               </p>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 {comments.map(c => (
-                  <div key={c.commentId} style={{ backgroundColor: '#1e293b', borderRadius: '12px', padding: '1rem', border: '1px solid rgba(255,255,255,0.05)' }}>
+                  <div key={c.commentId} style={{ backgroundColor: innerCardBg, borderRadius: '12px', padding: '1rem', border: inputBorder }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.35rem' }}>
                       <strong style={{ color: '#38bdf8', fontSize: '0.88rem' }}>{c.senderName}</strong>
-                      <span style={{ fontSize: '0.75rem', color: '#64748b' }}>{c.createdTime ? new Date(c.createdTime).toLocaleString() : ''}</span>
+                      <span style={{ fontSize: '0.75rem', color: textMuted }}>{c.createdTime ? new Date(c.createdTime).toLocaleString() : ''}</span>
                     </div>
-                    <p style={{ fontSize: '0.85rem', color: '#fff', margin: '0 0 0.75rem 0' }}>"{c.text}"</p>
+                    <p style={{ fontSize: '0.85rem', color: textMain, margin: '0 0 0.75rem 0' }}>"{c.text}"</p>
 
                     <div style={{ display: 'flex', gap: '0.5rem' }}>
                       <input
@@ -634,7 +644,7 @@ export default function MarketingTabContainer({ businessGroup, activeTabOverride
                         value={replyTextMap[c.commentId] || ''}
                         onChange={(e) => setReplyTextMap({ ...replyTextMap, [c.commentId]: e.target.value })}
                         placeholder="Write a public reply..."
-                        style={{ flex: 1, backgroundColor: '#0f172a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', padding: '0.5rem 0.75rem', color: '#fff', fontSize: '0.82rem', outline: 'none' }}
+                        style={{ flex: 1, backgroundColor: inputBg, border: inputBorder, borderRadius: '8px', padding: '0.5rem 0.75rem', color: textMain, fontSize: '0.82rem', outline: 'none' }}
                       />
                       <button
                         onClick={() => handleReplyComment(c.commentId)}
@@ -657,16 +667,16 @@ export default function MarketingTabContainer({ businessGroup, activeTabOverride
       {/* 2. FACEBOOK TAB */}
       {activeTab === 'FACEBOOK' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-          <div style={{ backgroundColor: '#0f172a', borderRadius: '16px', padding: '1.5rem', border: '1px solid rgba(24, 119, 242, 0.3)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+          <div style={{ backgroundColor: cardBg, borderRadius: '16px', padding: '1.5rem', border: `1px solid ${isDark ? 'rgba(24, 119, 242, 0.3)' : '#cbd5e1'}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
               <Facebook size={36} color="#1877f2" />
               <div>
-                <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#fff', margin: 0 }}>
+                <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: textMain, margin: 0 }}>
                   Facebook Business Page & Messenger {fbData?.page?.name && <span style={{ color: '#1877f2', fontSize: '0.95rem' }}>({fbData.page.name})</span>}
                 </h3>
-                <p style={{ fontSize: '0.85rem', color: '#94a3b8', margin: '0.2rem 0 0 0' }}>
+                <p style={{ fontSize: '0.85rem', color: textMuted, margin: '0.2rem 0 0 0' }}>
                   Auto-post to Facebook Page feed & receive customer Messenger DMs directly in LetsTrack console.
-                  {fbData?.lastUpdated && <span style={{ marginLeft: '0.75rem', color: '#64748b' }}>Last synced: {new Date(fbData.lastUpdated).toLocaleTimeString()}</span>}
+                  {fbData?.lastUpdated && <span style={{ marginLeft: '0.75rem', color: textMuted }}>Last synced: {new Date(fbData.lastUpdated).toLocaleTimeString()}</span>}
                 </p>
               </div>
             </div>
@@ -696,10 +706,10 @@ export default function MarketingTabContainer({ businessGroup, activeTabOverride
                   alignItems: 'center',
                   gap: '0.4rem',
                   backgroundColor: 'rgba(255,255,255,0.08)',
-                  border: '1px solid rgba(255,255,255,0.15)',
+                  border: inputBorder,
                   borderRadius: '10px',
                   padding: '0.5rem 0.85rem',
-                  color: '#fff',
+                  color: textMain,
                   fontSize: '0.82rem',
                   fontWeight: 700,
                   cursor: 'pointer'
@@ -716,11 +726,11 @@ export default function MarketingTabContainer({ businessGroup, activeTabOverride
           </div>
 
           {/* Meta API Diagnostics Section */}
-          <details style={{ backgroundColor: '#0f172a', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.08)', padding: '0.75rem 1.25rem' }}>
-            <summary style={{ color: '#94a3b8', fontSize: '0.85rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <details style={{ backgroundColor: cardBg, borderRadius: '12px', border: cardBorder, padding: '0.75rem 1.25rem' }}>
+            <summary style={{ color: textMuted, fontSize: '0.85rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <AlertCircle size={16} color="#1877f2" /> Meta API Diagnostics & Connection Details (Developer Mode)
             </summary>
-            <div style={{ marginTop: '0.75rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem', fontSize: '0.8rem', color: '#cbd5e1' }}>
+            <div style={{ marginTop: '0.75rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem', fontSize: '0.8rem', color: textMuted }}>
               <div><strong>Graph API Version:</strong> {fbData?.diagnostics?.apiVersion || 'v24.0'}</div>
               <div><strong>Page ID (Masked):</strong> {fbData?.diagnostics?.pageIdMasked || 'N/A'}</div>
               <div><strong>Sync Status:</strong> <span style={{ color: fbData?.syncStatus === 'LIVE' ? '#34d399' : '#fbbf24' }}>{fbData?.syncStatus || 'N/A'}</span></div>
@@ -730,10 +740,10 @@ export default function MarketingTabContainer({ businessGroup, activeTabOverride
           </details>
 
           {!fbData?.connected ? (
-            <div style={{ backgroundColor: '#0f172a', borderRadius: '16px', padding: '2.5rem', textAlign: 'center', border: '1px solid rgba(255,255,255,0.08)' }}>
+            <div style={{ backgroundColor: cardBg, borderRadius: '16px', padding: '2.5rem', textAlign: 'center', border: cardBorder }}>
               <AlertCircle size={40} color="#1877f2" style={{ margin: '0 auto 0.75rem auto' }} />
-              <h4 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#fff', margin: 0 }}>Facebook Business Page Not Linked</h4>
-              <p style={{ fontSize: '0.85rem', color: '#94a3b8', maxWidth: '480px', margin: '0.5rem auto 1.25rem auto' }}>
+              <h4 style={{ fontSize: '1.1rem', fontWeight: 800, color: textMain, margin: 0 }}>Facebook Business Page Not Linked</h4>
+              <p style={{ fontSize: '0.85rem', color: textMuted, maxWidth: '480px', margin: '0.5rem auto 1.25rem auto' }}>
                 Connect your Facebook Business Page in Profile Settings to view real Graph API analytics, post directly to your Page feed, and auto-sync Messenger DMs to LetsTrack.
               </p>
             </div>
@@ -741,39 +751,39 @@ export default function MarketingTabContainer({ businessGroup, activeTabOverride
             /* Facebook Real Graph API Metrics Grid */
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.25rem' }}>
               {/* Followers */}
-              <div style={{ backgroundColor: '#0f172a', padding: '1.25rem', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.06)' }}>
-                <span style={{ fontSize: '0.82rem', color: '#94a3b8', display: 'block', marginBottom: '0.35rem' }}>Page Followers</span>
-                <strong style={{ fontSize: '1.6rem', fontWeight: 900, color: '#fff' }}>
+              <div style={{ backgroundColor: cardBg, padding: '1.25rem', borderRadius: '14px', border: cardBorder }}>
+                <span style={{ fontSize: '0.82rem', color: textMuted, display: 'block', marginBottom: '0.35rem' }}>Page Followers</span>
+                <strong style={{ fontSize: '1.6rem', fontWeight: 900, color: textMain }}>
                   {fbData.metrics?.followers?.available && fbData.metrics.followers.value !== null ? fbData.metrics.followers.value.toLocaleString() : 'N/A'}
                 </strong>
-                <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.25rem' }}>Verified Page Followers</div>
+                <div style={{ fontSize: '0.75rem', color: textMuted, marginTop: '0.25rem' }}>Verified Page Followers</div>
               </div>
 
               {/* Page Likes */}
-              <div style={{ backgroundColor: '#0f172a', padding: '1.25rem', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.06)' }}>
-                <span style={{ fontSize: '0.82rem', color: '#94a3b8', display: 'block', marginBottom: '0.35rem' }}>Page Likes</span>
-                <strong style={{ fontSize: '1.6rem', fontWeight: 900, color: '#fff' }}>
+              <div style={{ backgroundColor: cardBg, padding: '1.25rem', borderRadius: '14px', border: cardBorder }}>
+                <span style={{ fontSize: '0.82rem', color: textMuted, display: 'block', marginBottom: '0.35rem' }}>Page Likes</span>
+                <strong style={{ fontSize: '1.6rem', fontWeight: 900, color: textMain }}>
                   {fbData.metrics?.likes?.available && fbData.metrics.likes.value !== null ? fbData.metrics.likes.value.toLocaleString() : 'N/A'}
                 </strong>
-                <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.25rem' }}>Fan Count</div>
+                <div style={{ fontSize: '0.75rem', color: textMuted, marginTop: '0.25rem' }}>Fan Count</div>
               </div>
 
               {/* People Talking About This */}
-              <div style={{ backgroundColor: '#0f172a', padding: '1.25rem', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.06)' }}>
-                <span style={{ fontSize: '0.82rem', color: '#94a3b8', display: 'block', marginBottom: '0.35rem' }}>People Talking About This</span>
-                <strong style={{ fontSize: '1.6rem', fontWeight: 900, color: '#fff' }}>
+              <div style={{ backgroundColor: cardBg, padding: '1.25rem', borderRadius: '14px', border: cardBorder }}>
+                <span style={{ fontSize: '0.82rem', color: textMuted, display: 'block', marginBottom: '0.35rem' }}>People Talking About This</span>
+                <strong style={{ fontSize: '1.6rem', fontWeight: 900, color: textMain }}>
                   {fbData.metrics?.talkingAbout?.available && fbData.metrics.talkingAbout.value !== null ? fbData.metrics.talkingAbout.value.toLocaleString() : 'N/A'}
                 </strong>
-                <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.25rem' }}>Page Story Engagements</div>
+                <div style={{ fontSize: '0.75rem', color: textMuted, marginTop: '0.25rem' }}>Page Story Engagements</div>
               </div>
 
               {/* Unique Page Reach */}
-              <div style={{ backgroundColor: '#0f172a', padding: '1.25rem', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.06)' }}>
-                <span style={{ fontSize: '0.82rem', color: '#94a3b8', display: 'block', marginBottom: '0.35rem' }}>28-Day Unique Page Reach</span>
-                <strong style={{ fontSize: '1.6rem', fontWeight: 900, color: '#fff' }}>
+              <div style={{ backgroundColor: cardBg, padding: '1.25rem', borderRadius: '14px', border: cardBorder }}>
+                <span style={{ fontSize: '0.82rem', color: textMuted, display: 'block', marginBottom: '0.35rem' }}>28-Day Unique Page Reach</span>
+                <strong style={{ fontSize: '1.6rem', fontWeight: 900, color: textMain }}>
                   {fbData.metrics?.pageReach?.available && fbData.metrics.pageReach.value !== null ? fbData.metrics.pageReach.value.toLocaleString() : 'N/A'}
                 </strong>
-                <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.25rem' }}>
+                <div style={{ fontSize: '0.75rem', color: textMuted, marginTop: '0.25rem' }}>
                   {fbData.metrics?.pageReach?.reason || 'Page impressions unique'}
                 </div>
               </div>
@@ -785,12 +795,12 @@ export default function MarketingTabContainer({ businessGroup, activeTabOverride
       {/* 3. GOOGLE TAB */}
       {activeTab === 'GOOGLE' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-          <div style={{ backgroundColor: '#0f172a', borderRadius: '16px', padding: '1.5rem', border: '1px solid rgba(234, 67, 53, 0.3)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ backgroundColor: cardBg, borderRadius: '16px', padding: '1.5rem', border: `1px solid ${isDark ? 'rgba(234, 67, 53, 0.3)' : '#cbd5e1'}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
               <Search size={36} color="#ea4335" />
               <div>
-                <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#fff', margin: 0 }}>Google Business Profile (GBP) & Local SEO</h3>
-                <p style={{ fontSize: '0.85rem', color: '#94a3b8', margin: '0.2rem 0 0 0' }}>Track local search rankings, phone calls, and review booster QR standees.</p>
+                <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: textMain, margin: 0 }}>Google Business Profile (GBP) & Local SEO</h3>
+                <p style={{ fontSize: '0.85rem', color: textMuted, margin: '0.2rem 0 0 0' }}>Track local search rankings, phone calls, and review booster QR standees.</p>
               </div>
             </div>
           </div>
@@ -800,11 +810,11 @@ export default function MarketingTabContainer({ businessGroup, activeTabOverride
       {/* 4. MARKETING ASSET LIBRARY */}
       {activeTab === 'LIBRARY' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-          <div style={{ backgroundColor: '#0f172a', borderRadius: '16px', padding: '1.5rem', border: '1px solid rgba(168, 85, 247, 0.3)' }}>
-            <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#fff', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <div style={{ backgroundColor: cardBg, borderRadius: '16px', padding: '1.5rem', border: `1px solid ${isDark ? 'rgba(168, 85, 247, 0.3)' : '#cbd5e1'}` }}>
+            <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: textMain, margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <ImageIcon size={22} color="#a855f7" /> Central Marketing Asset Library
             </h3>
-            <p style={{ fontSize: '0.85rem', color: '#94a3b8', margin: '0.35rem 0 1rem 0' }}>Promotional banners, social media flyers, and verified brand graphics ready for 1-click posting.</p>
+            <p style={{ fontSize: '0.85rem', color: textMuted, margin: '0.35rem 0 1rem 0' }}>Promotional banners, social media flyers, and verified brand graphics ready for 1-click posting.</p>
             
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '1.25rem' }}>
               {[
@@ -812,10 +822,10 @@ export default function MarketingTabContainer({ businessGroup, activeTabOverride
                 { name: 'Corporate Branding Banner', url: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=600' },
                 { name: 'Digital Services Showcase', url: 'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?q=80&w=600' }
               ].map((asset, aIdx) => (
-                <div key={aIdx} style={{ backgroundColor: '#1e293b', borderRadius: '12px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.06)' }}>
+                <div key={aIdx} style={{ backgroundColor: innerCardBg, borderRadius: '12px', overflow: 'hidden', border: inputBorder }}>
                   <img src={asset.url} alt={asset.name} style={{ width: '100%', height: '140px', objectFit: 'cover' }} />
                   <div style={{ padding: '0.85rem' }}>
-                    <strong style={{ fontSize: '0.88rem', color: '#fff', display: 'block', marginBottom: '0.5rem' }}>{asset.name}</strong>
+                    <strong style={{ fontSize: '0.88rem', color: textMain, display: 'block', marginBottom: '0.5rem' }}>{asset.name}</strong>
                     <button
                       onClick={() => {
                         setMediaUrl(asset.url);
@@ -835,11 +845,7 @@ export default function MarketingTabContainer({ businessGroup, activeTabOverride
 
       {/* 5. META ADS MANAGER TAB */}
       {activeTab === 'META_ADS' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-          <MetaAdsManager businessGroup={businessGroup} onCampaignCreated={handleCampaignCreated} />
-          <AdCampaignsView campaigns={campaigns} />
-          <MarketingAnalytics />
-        </div>
+        <MetaAdsManager theme={theme} businessGroup={businessGroup} onCampaignCreated={(newCamp) => setCampaigns([newCamp, ...campaigns])} />
       )}
 
     </div>

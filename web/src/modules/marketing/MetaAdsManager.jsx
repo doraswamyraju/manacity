@@ -2,7 +2,16 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { Megaphone, Target, DollarSign, MapPin, Sparkles, CheckCircle2, Zap, AlertCircle, RefreshCw } from 'lucide-react';
 
-export default function MetaAdsManager({ businessGroup, onCampaignCreated }) {
+export default function MetaAdsManager({ businessGroup, onCampaignCreated, theme }) {
+  const isDark = theme === 'dark' || (theme === undefined && document.documentElement.getAttribute('data-theme') !== 'light' && !document.body.classList.contains('light-mode'));
+  const cardBg = isDark ? '#0f172a' : '#ffffff';
+  const innerCardBg = isDark ? '#1e293b' : '#f8fafc';
+  const cardBorder = isDark ? '1px solid rgba(56, 189, 248, 0.25)' : '1px solid #cbd5e1';
+  const textMain = isDark ? '#ffffff' : '#0f172a';
+  const textMuted = isDark ? '#94a3b8' : '#64748b';
+  const inputBg = isDark ? '#1e293b' : '#ffffff';
+  const inputBorder = isDark ? '1px solid rgba(255,255,255,0.12)' : '1px solid #cbd5e1';
+
   const [campaignName, setCampaignName] = useState(`${businessGroup?.name || 'Local Business'} Meta Promotion`);
   const [adHeadline, setAdHeadline] = useState(`Best ${businessGroup?.category || 'Services'} in Tirupati!`);
   const [adDescription, setAdDescription] = useState(businessGroup?.description || 'Contact us today for exclusive local offers & fast appointments.');
@@ -78,11 +87,11 @@ export default function MetaAdsManager({ businessGroup, onCampaignCreated }) {
 
   return (
     <div style={{
-      backgroundColor: '#0f172a',
-      border: '1px solid rgba(56, 189, 248, 0.25)',
+      backgroundColor: cardBg,
+      border: cardBorder,
       borderRadius: '20px',
       padding: '1.75rem',
-      boxShadow: '0 12px 30px rgba(0, 0, 0, 0.35)',
+      boxShadow: isDark ? '0 12px 30px rgba(0, 0, 0, 0.35)' : '0 4px 20px rgba(0, 0, 0, 0.05)',
       backdropFilter: 'blur(16px)'
     }}>
       {/* Title & Connection Header */}
@@ -92,11 +101,11 @@ export default function MetaAdsManager({ businessGroup, onCampaignCreated }) {
             <div style={{ padding: '0.5rem', borderRadius: '12px', backgroundColor: 'rgba(24, 119, 242, 0.2)', border: '1px solid #1877f2' }}>
               <Megaphone size={22} color="#38bdf8" />
             </div>
-            <h3 style={{ fontSize: '1.3rem', fontWeight: 900, margin: 0, color: '#fff' }}>
+            <h3 style={{ fontSize: '1.3rem', fontWeight: 900, margin: 0, color: textMain }}>
               Create & Publish Meta Ads <span style={{ color: '#38bdf8', fontSize: '0.9rem' }}>(Facebook & Instagram)</span>
             </h3>
           </div>
-          <p style={{ margin: '0.35rem 0 0 0', fontSize: '0.85rem', color: '#94a3b8' }}>
+          <p style={{ margin: '0.35rem 0 0 0', fontSize: '0.85rem', color: textMuted }}>
             Target local customers across Tirupati radius. All generated leads auto-sync to <strong>My Leads (LMS)</strong>.
           </p>
         </div>
@@ -121,29 +130,29 @@ export default function MetaAdsManager({ businessGroup, onCampaignCreated }) {
       </div>
 
       {/* Preset Quick Template Selector */}
-      <div style={{ marginBottom: '1.5rem', backgroundColor: '#1e293b', padding: '1rem', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.06)' }}>
-        <div style={{ fontSize: '0.8rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '0.65rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+      <div style={{ marginBottom: '1.5rem', backgroundColor: innerCardBg, padding: '1rem', borderRadius: '14px', border: inputBorder }}>
+        <div style={{ fontSize: '0.8rem', fontWeight: 800, color: textMuted, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '0.65rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
           <Sparkles size={14} color="#fbbf24" /> 1-Click Recommended Campaign Presets:
         </div>
         <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
           <button
             type="button"
             onClick={() => applyTemplate('LEAD_GEN')}
-            style={{ padding: '0.5rem 0.85rem', borderRadius: '10px', backgroundColor: 'rgba(56, 189, 248, 0.15)', border: '1px solid #38bdf8', color: '#fff', fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer' }}
+            style={{ padding: '0.5rem 0.85rem', borderRadius: '10px', backgroundColor: 'rgba(56, 189, 248, 0.15)', border: '1px solid #38bdf8', color: isDark ? '#fff' : '#0284c7', fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer' }}
           >
             🎯 Lead Generation Form
           </button>
           <button
             type="button"
             onClick={() => applyTemplate('STORE_TRAFFIC')}
-            style={{ padding: '0.5rem 0.85rem', borderRadius: '10px', backgroundColor: 'rgba(16, 185, 129, 0.15)', border: '1px solid #10b981', color: '#fff', fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer' }}
+            style={{ padding: '0.5rem 0.85rem', borderRadius: '10px', backgroundColor: 'rgba(16, 185, 129, 0.15)', border: '1px solid #10b981', color: isDark ? '#fff' : '#059669', fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer' }}
           >
             📍 Store Foot-Traffic
           </button>
           <button
             type="button"
             onClick={() => applyTemplate('WHATSAPP')}
-            style={{ padding: '0.5rem 0.85rem', borderRadius: '10px', backgroundColor: 'rgba(245, 158, 11, 0.15)', border: '1px solid #f59e0b', color: '#fff', fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer' }}
+            style={{ padding: '0.5rem 0.85rem', borderRadius: '10px', backgroundColor: 'rgba(245, 158, 11, 0.15)', border: '1px solid #f59e0b', color: isDark ? '#fff' : '#d97706', fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer' }}
           >
             💬 WhatsApp Direct Inquiry
           </button>
@@ -163,35 +172,35 @@ export default function MetaAdsManager({ businessGroup, onCampaignCreated }) {
         {/* Left Column */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <div>
-            <label style={{ fontSize: '0.82rem', fontWeight: 800, color: '#cbd5e1', display: 'block', marginBottom: '0.4rem' }}>Campaign Name *</label>
+            <label style={{ fontSize: '0.82rem', fontWeight: 800, color: textMuted, display: 'block', marginBottom: '0.4rem' }}>Campaign Name *</label>
             <input
               type="text"
               value={campaignName}
               onChange={(e) => setCampaignName(e.target.value)}
               required
-              style={{ width: '100%', padding: '0.75rem', borderRadius: '10px', backgroundColor: '#1e293b', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', fontSize: '0.9rem', outline: 'none' }}
+              style={{ width: '100%', padding: '0.75rem', borderRadius: '10px', backgroundColor: inputBg, border: inputBorder, color: textMain, fontSize: '0.9rem', outline: 'none' }}
             />
           </div>
 
           <div>
-            <label style={{ fontSize: '0.82rem', fontWeight: 800, color: '#cbd5e1', display: 'block', marginBottom: '0.4rem' }}>Ad Headline *</label>
+            <label style={{ fontSize: '0.82rem', fontWeight: 800, color: textMuted, display: 'block', marginBottom: '0.4rem' }}>Ad Headline *</label>
             <input
               type="text"
               value={adHeadline}
               onChange={(e) => setAdHeadline(e.target.value)}
               required
-              style={{ width: '100%', padding: '0.75rem', borderRadius: '10px', backgroundColor: '#1e293b', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', fontSize: '0.9rem', outline: 'none' }}
+              style={{ width: '100%', padding: '0.75rem', borderRadius: '10px', backgroundColor: inputBg, border: inputBorder, color: textMain, fontSize: '0.9rem', outline: 'none' }}
             />
           </div>
 
           <div>
-            <label style={{ fontSize: '0.82rem', fontWeight: 800, color: '#cbd5e1', display: 'block', marginBottom: '0.4rem' }}>Ad Description / Call To Action *</label>
+            <label style={{ fontSize: '0.82rem', fontWeight: 800, color: textMuted, display: 'block', marginBottom: '0.4rem' }}>Ad Description / Call To Action *</label>
             <textarea
               value={adDescription}
               onChange={(e) => setAdDescription(e.target.value)}
               rows={3}
               required
-              style={{ width: '100%', padding: '0.75rem', borderRadius: '10px', backgroundColor: '#1e293b', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', fontSize: '0.88rem', outline: 'none', resize: 'vertical' }}
+              style={{ width: '100%', padding: '0.75rem', borderRadius: '10px', backgroundColor: inputBg, border: inputBorder, color: textMain, fontSize: '0.88rem', outline: 'none', resize: 'vertical' }}
             />
           </div>
         </div>
@@ -199,11 +208,11 @@ export default function MetaAdsManager({ businessGroup, onCampaignCreated }) {
         {/* Right Column */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <div>
-            <label style={{ fontSize: '0.82rem', fontWeight: 800, color: '#cbd5e1', display: 'block', marginBottom: '0.4rem' }}>Target Location / City Radius *</label>
+            <label style={{ fontSize: '0.82rem', fontWeight: 800, color: textMuted, display: 'block', marginBottom: '0.4rem' }}>Target Location / City Radius *</label>
             <select
               value={targetLocation}
               onChange={(e) => setTargetLocation(e.target.value)}
-              style={{ width: '100%', padding: '0.75rem', borderRadius: '10px', backgroundColor: '#1e293b', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', fontSize: '0.9rem', outline: 'none' }}
+              style={{ width: '100%', padding: '0.75rem', borderRadius: '10px', backgroundColor: inputBg, border: inputBorder, color: textMain, fontSize: '0.9rem', outline: 'none' }}
             >
               <option value="Tirupati (Within 25km)">Tirupati (Within 25km Radius)</option>
               <option value="Tirupati + Chandragiri">Tirupati + Chandragiri</option>
@@ -213,7 +222,7 @@ export default function MetaAdsManager({ businessGroup, onCampaignCreated }) {
           </div>
 
           <div>
-            <label style={{ fontSize: '0.82rem', fontWeight: 800, color: '#cbd5e1', display: 'block', marginBottom: '0.4rem' }}>Daily Ad Budget (₹ INR) *</label>
+            <label style={{ fontSize: '0.82rem', fontWeight: 800, color: textMuted, display: 'block', marginBottom: '0.4rem' }}>Daily Ad Budget (₹ INR) *</label>
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
               <input
                 type="range"
@@ -231,10 +240,10 @@ export default function MetaAdsManager({ businessGroup, onCampaignCreated }) {
                 value={dailyBudget}
                 onChange={(e) => setDailyBudget(Number(e.target.value))}
                 required
-                style={{ width: '110px', padding: '0.6rem', borderRadius: '8px', backgroundColor: '#1e293b', border: '1px solid rgba(255,255,255,0.12)', color: '#fbbf24', fontSize: '1rem', fontWeight: 900, textAlign: 'center' }}
+                style={{ width: '110px', padding: '0.6rem', borderRadius: '8px', backgroundColor: inputBg, border: inputBorder, color: '#f59e0b', fontSize: '1rem', fontWeight: 900, textAlign: 'center' }}
               />
             </div>
-            <div style={{ fontSize: '0.78rem', color: '#34d399', marginTop: '0.35rem', fontWeight: 700 }}>
+            <div style={{ fontSize: '0.78rem', color: '#10b981', marginTop: '0.35rem', fontWeight: 700 }}>
               ⚡ Estimated Reach: ~{estimatedReachMin} to {estimatedReachMax} local customers per day
             </div>
           </div>

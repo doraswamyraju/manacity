@@ -423,7 +423,7 @@ function AdminDashboardLayout({ user, businessGroup, onLogout, setView }) {
           {activeTab === 'catalog-library' && <BusinessLibraryTab theme={theme} />}
           {activeTab === 'website-builder' && <WebsiteBuilder theme={theme} onBack={() => setActiveTab('overview')} />}
           {(activeTab === 'marketing' || activeTab.startsWith('marketing-')) && (
-            <MarketingTabContainer businessGroup={businessGroup} activeTabOverride={activeTab} />
+            <MarketingTabContainer theme={theme} businessGroup={businessGroup} activeTabOverride={activeTab} />
           )}
           {activeTab === 'referrals' && <UserReferralDashboard theme={theme} />}
           {activeTab === 'reviews' && <ReviewManagement onBack={() => setActiveTab('overview')} />}
