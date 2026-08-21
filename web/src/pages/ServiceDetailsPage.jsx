@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
-import LeadCaptureModal from '../components/LeadCaptureModal';
 import {
   Sparkles,
   Building2,
@@ -15,7 +14,8 @@ import {
   Zap,
   Globe,
   ExternalLink,
-  ChevronRight
+  ChevronRight,
+  X
 } from 'lucide-react';
 
 export default function ServiceDetailsPage({ user }) {
@@ -27,6 +27,9 @@ export default function ServiceDetailsPage({ user }) {
   const [error, setError] = useState(null);
 
   const [selectedVendorForLead, setSelectedVendorForLead] = useState(null);
+  const [leadForm, setLeadForm] = useState({ name: user?.name || '', phone: user?.phone || '', email: user?.email || '', message: '' });
+  const [leadSubmitted, setLeadSubmitted] = useState(false);
+  const [submittingLead, setSubmittingLead] = useState(false);
 
   const citySlug = (city || 'tirupati').toLowerCase();
   const serviceSlug = slug;
@@ -46,6 +49,35 @@ export default function ServiceDetailsPage({ user }) {
     }
     fetchDetails();
   }, [citySlug, serviceSlug]);
+
+  const handleLeadSubmit = async (e) => {
+    e.preventDefault();
+    if (!selectedVendorForLead) return;
+
+    setSubmittingLead(true);
+    try {
+      await axios.post('/api/phase1/lead', {
+        businessGroupId: selectedVendorForLead.id,
+        channel: 'INQUIRY_FORM',
+        contactName: leadForm.name,
+        contactPhone: leadForm.phone,
+        contactEmail: leadForm.email,
+        message: leadForm.message || `Inquiry for ${data?.service?.name || 'Service'}`,
+        visitorLocation: data?.city || 'Tirupati',
+        viewedServices: [data?.service?.name || 'Service']
+      });
+      setLeadSubmitted(true);
+      setTimeout(() => {
+        setLeadSubmitted(false);
+        setSelectedVendorForLead(null);
+        setLeadForm({ name: user?.name || '', phone: user?.phone || '', email: user?.email || '', message: '' });
+      }, 2500);
+    } catch (err) {
+      alert('Failed to submit quote inquiry. Please try again.');
+    } finally {
+      setSubmittingLead(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -153,7 +185,7 @@ export default function ServiceDetailsPage({ user }) {
             {service.description || `Explore verified local providers offering ${service.name} in ${data.city}. Connect directly with high-rated vendors for fast quotes, pricing, and execution.`}
           </p>
 
-          <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap', pt: '1rem', borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '1.25rem' }}>
+          <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap', borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '1.25rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#94a3b8', fontSize: '0.9rem' }}>
               <CheckCircle2 size={18} color="#10b981" /> 100% Verified Local Providers
             </div>
@@ -336,19 +368,75 @@ export default function ServiceDetailsPage({ user }) {
 
       </main>
 
-      {/* Lead Capture Modal */}
+      {/* Inquiry Lead Capture Modal */}
       {selectedVendorForLead && (
-        <LeadCaptureModal
-          isOpen={!!selectedVendorForLead}
-          onClose={() => setSelectedVendorForLead(null)}
-          listing={{
-            id: selectedVendorForLead.id,
-            businessGroupId: selectedVendorForLead.id,
-            businessName: selectedVendorForLead.name,
-            contactPhone: selectedVendorForLead.phone
-          }}
-          user={user}
-        />
+        <div style={{
+          position: 'fixed',
+          top: 0, left: 0, right: 0, bottom: 0,
+          backgroundColor: 'rgba(0,0,0,0.85)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          zIndex: 1000, padding: '1rem'
+        }}>
+          <div style={{ backgroundColor: '#1e293b', borderRadius: '16px', padding: '1.75rem', maxWidth: '450px', width: '100%', border: '1px solid rgba(255,255,255,0.1)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+              <h3 style={{ fontSize: '1.2rem', fontWeight: 800, margin: 0 }}>
+                Get Best Quote from <span style={{ color: '#38bdf8' }}>{selectedVendorForLead.name}</span>
+              </h3>
+              <button onClick={() => setSelectedVendorForLead(null)} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }}>
+                <X size={20} />
+              </button>
+            </div>
+            <p style={{ fontSize: '0.84rem', color: '#94a3b8', marginBottom: '1.25rem' }}>
+              Submit your inquiry for {service.name} and receive instant price quotes directly.
+            </p>
+
+            {leadSubmitted ? (
+              <div style={{ backgroundColor: 'rgba(16, 185, 129, 0.15)', border: '1px solid #10b981', color: '#10b981', padding: '1rem', borderRadius: '8px', textAlign: 'center', fontWeight: 700 }}>
+                ✓ Inquiry Sent Successfully! The business will contact you shortly.
+              </div>
+            ) : (
+              <form onSubmit={handleLeadSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                <input
+                  type="text"
+                  placeholder="Your Name"
+                  required
+                  value={leadForm.name}
+                  onChange={e => setLeadForm({ ...leadForm, name: e.target.value })}
+                  style={{ width: '100%', padding: '0.7rem', borderRadius: '8px', backgroundColor: '#0f172a', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}
+                />
+                <input
+                  type="tel"
+                  placeholder="Your Mobile Number"
+                  required
+                  value={leadForm.phone}
+                  onChange={e => setLeadForm({ ...leadForm, phone: e.target.value })}
+                  style={{ width: '100%', padding: '0.7rem', borderRadius: '8px', backgroundColor: '#0f172a', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}
+                />
+                <input
+                  type="email"
+                  placeholder="Your Email Address"
+                  value={leadForm.email}
+                  onChange={e => setLeadForm({ ...leadForm, email: e.target.value })}
+                  style={{ width: '100%', padding: '0.7rem', borderRadius: '8px', backgroundColor: '#0f172a', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}
+                />
+                <textarea
+                  placeholder={`Requirements for ${service.name}...`}
+                  rows={3}
+                  value={leadForm.message}
+                  onChange={e => setLeadForm({ ...leadForm, message: e.target.value })}
+                  style={{ width: '100%', padding: '0.7rem', borderRadius: '8px', backgroundColor: '#0f172a', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}
+                />
+                <button
+                  type="submit"
+                  disabled={submittingLead}
+                  style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', backgroundColor: '#38bdf8', color: '#0f172a', fontWeight: 800, border: 'none', cursor: 'pointer', marginTop: '0.5rem' }}
+                >
+                  {submittingLead ? 'Sending...' : 'Submit Quote Request'}
+                </button>
+              </form>
+            )}
+          </div>
+        </div>
       )}
 
       {/* Footer */}
