@@ -219,18 +219,18 @@ exports.searchUnified = async (req, res) => {
     const q = query.trim().toLowerCase();
     const cityStr = (city || 'tirupati').toLowerCase();
 
-    // 1. Search Master Library Products & Services
-    const masterItems = await prisma.productServiceLibrary.findMany({
-      where: {
-        status: 'APPROVED',
-        OR: [
-          { name: { contains: q, mode: 'insensitive' } },
-          { category: { contains: q, mode: 'insensitive' } },
-          { description: { contains: q, mode: 'insensitive' } }
-        ]
-      },
-      take: 6
+    // 1. Search Master Library Products & Services (Safe JS filter for MongoDB compatibility)
+    const allMasterItems = await prisma.productServiceLibrary.findMany({
+      where: { status: 'APPROVED' },
+      take: 100
     });
+
+    const masterItems = allMasterItems.filter(item => {
+      const nameMatch = item.name && item.name.toLowerCase().includes(q);
+      const catMatch = item.category && item.category.toLowerCase().includes(q);
+      const descMatch = item.description && item.description.toLowerCase().includes(q);
+      return nameMatch || catMatch || descMatch;
+    }).slice(0, 6);
 
     // For each master item, find matching business vendors in city
     const masterItemsWithVendors = await Promise.all(masterItems.map(async (item) => {
