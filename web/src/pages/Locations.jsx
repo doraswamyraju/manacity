@@ -286,7 +286,7 @@ function Locations({ onBack, onNavigateToOnboarding }) {
         <div>
           <div style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <div>
-              <h2 style={{ fontSize: '2rem', fontWeight: 800, color: '#fff' }}>
+              <h2 style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--text-primary)' }}>
                 Manage Location: <span className="gradient-text">{selectedLoc.name}</span>
               </h2>
               <p style={{ color: 'var(--text-secondary)' }}>Configure layouts, optimization tasks, and CRM leads</p>
@@ -303,7 +303,7 @@ function Locations({ onBack, onNavigateToOnboarding }) {
                     borderRadius: 'var(--radius-sm)',
                     border: 'none',
                     backgroundColor: activeTab === tabName ? 'var(--accent-primary)' : 'transparent',
-                    color: '#fff',
+                    color: activeTab === tabName ? '#fff' : 'var(--text-primary)',
                     fontWeight: 600,
                     cursor: 'pointer',
                     fontSize: '0.8rem',
@@ -341,7 +341,7 @@ function Locations({ onBack, onNavigateToOnboarding }) {
                       />
                     </svg>
                     <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', textAlign: 'center' }}>
-                      <span style={{ fontSize: '1.8rem', fontWeight: 800, color: '#fff' }}>{taskData.score}%</span>
+                      <span style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--text-primary)' }}>{taskData.score}%</span>
                       <span style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-muted)' }}>Score</span>
                     </div>
                   </div>
@@ -408,7 +408,7 @@ function Locations({ onBack, onNavigateToOnboarding }) {
                           <Circle size={20} style={{ color: 'var(--text-muted)', marginTop: '0.1rem' }} />
                         )}
                         <div>
-                          <h4 style={{ fontWeight: 600, fontSize: '0.95rem', color: task.completed ? 'var(--text-muted)' : '#fff', textDecoration: task.completed ? 'line-through' : 'none' }}>
+                          <h4 style={{ fontWeight: 600, fontSize: '0.95rem', color: task.completed ? 'var(--text-muted)' : 'var(--text-primary)', textDecoration: task.completed ? 'line-through' : 'none' }}>
                             {task.title}
                           </h4>
                           <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{task.description}</p>
@@ -585,7 +585,7 @@ function Locations({ onBack, onNavigateToOnboarding }) {
                           <div key={rev.id} style={{ padding: '1rem', backgroundColor: 'rgba(255,255,255,0.01)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)' }}>
                             <div style={{ display: 'flex', justifyContext: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
                               <div>
-                                <strong style={{ color: '#fff', fontSize: '0.95rem' }}>{rev.authorName}</strong>
+                                <strong style={{ color: 'var(--text-primary)', fontSize: '0.95rem' }}>{rev.authorName}</strong>
                                 <span style={{
                                   fontSize: '0.7rem',
                                   marginLeft: '0.5rem',
@@ -685,7 +685,7 @@ function Locations({ onBack, onNavigateToOnboarding }) {
                         <div key={lead.id} style={{ padding: '1rem', backgroundColor: 'rgba(255,255,255,0.01)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)' }}>
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
                             <div>
-                              <strong style={{ color: '#fff', fontSize: '1rem', display: 'block' }}>{lead.name}</strong>
+                              <strong style={{ color: 'var(--text-primary)', fontSize: '1rem', display: 'block' }}>{lead.name}</strong>
                               <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
                                 {lead.email} {lead.phone ? ` | ${lead.phone}` : ''}
                               </span>
@@ -702,7 +702,7 @@ function Locations({ onBack, onNavigateToOnboarding }) {
                                 borderRadius: '4px',
                                 backgroundColor: 'var(--bg-secondary)',
                                 border: '1px solid var(--border-color)',
-                                color: lead.pipeline === 'CONVERTED' ? 'var(--accent-success)' : lead.pipeline === 'LOST' ? 'var(--accent-error)' : '#fff',
+                                color: lead.pipeline === 'CONVERTED' ? 'var(--accent-success)' : lead.pipeline === 'LOST' ? 'var(--accent-error)' : 'var(--text-primary)',
                                 cursor: 'pointer',
                                 outline: 'none'
                               }}
@@ -738,7 +738,7 @@ function Locations({ onBack, onNavigateToOnboarding }) {
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
             <div>
-              <h2 style={{ fontSize: '2rem', fontWeight: 700, color: '#fff' }}>Business Locations</h2>
+              <h2 style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--text-primary)' }}>Business Locations</h2>
               <p style={{ color: 'var(--text-secondary)' }}>Manage your branches and view optimization rankings</p>
             </div>
             <button className="btn btn-primary" onClick={() => onNavigateToOnboarding ? onNavigateToOnboarding() : setShowWizard(true)}>
@@ -763,7 +763,7 @@ function Locations({ onBack, onNavigateToOnboarding }) {
                 <div key={loc.id} className="glass-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
-                      <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#fff' }}>{loc.name}</h3>
+                      <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-primary)' }}>{loc.name}</h3>
                       <span style={{
                         fontSize: '0.75rem',
                         backgroundColor: 'rgba(25, 118, 210, 0.15)',
@@ -936,7 +936,7 @@ function Locations({ onBack, onNavigateToOnboarding }) {
                       onChange={() => handleHourToggle(day)} 
                       style={{ cursor: 'pointer' }}
                     />
-                    <span style={{ fontWeight: 500, color: hours[day].active ? '#fff' : 'var(--text-muted)' }}>{day}</span>
+                    <span style={{ fontWeight: 500, color: hours[day].active ? 'var(--text-primary)' : 'var(--text-muted)' }}>{day}</span>
                   </div>
 
                   {hours[day].active ? (
@@ -987,10 +987,10 @@ const backBtnStyle = {
 
 const inputStyle = {
   padding: '0.75rem 1rem',
-  backgroundColor: 'rgba(255, 255, 255, 0.03)',
+  backgroundColor: 'var(--bg-secondary)',
   border: '1px solid var(--border-color)',
   borderRadius: 'var(--radius-sm)',
-  color: '#fff',
+  color: 'var(--text-primary)',
   fontSize: '0.95rem',
   outline: 'none',
   fontFamily: 'var(--font-sans)',
@@ -1000,16 +1000,16 @@ const inputStyle = {
 
 const selectStyle = {
   ...inputStyle,
-  colorScheme: 'dark',
+  colorScheme: 'auto',
   cursor: 'pointer'
 };
 
 const timeInputStyle = {
   padding: '0.4rem 0.6rem',
-  backgroundColor: 'rgba(255, 255, 255, 0.05)',
+  backgroundColor: 'var(--bg-secondary)',
   border: '1px solid var(--border-color)',
   borderRadius: 'var(--radius-sm)',
-  color: '#fff',
+  color: 'var(--text-primary)',
   fontSize: '0.9rem',
   outline: 'none',
   fontFamily: 'var(--font-sans)',
