@@ -206,3 +206,162 @@ exports.letsTrackTelemetry = async (req, res) => {
     return res.status(500).json({ error: "Failed to record Let's Track telemetry" });
   }
 };
+
+// Unified Live Search: Master Catalog Items + ManaCity Verified Businesses
+exports.searchUnified = async (req, res) => {
+  try {
+    const { city, query } = req.query;
+
+    if (!query || query.trim().length < 2) {
+      return res.status(200).json({ masterItems: [], businesses: [], hasResults: false });
+    }
+
+    const q = query.trim().toLowerCase();
+    const cityStr = (city || 'tirupati').toLowerCase();
+
+    // 1. Search Master Library Products & Services
+    const masterItems = await prisma.productServiceLibrary.findMany({
+      where: {
+        status: 'APPROVED',
+        OR: [
+          { name: { contains: q, mode: 'insensitive' } },
+          { category: { contains: q, mode: 'insensitive' } },
+          { description: { contains: q, mode: 'insensitive' } }
+        ]
+      },
+      take: 6
+    });
+
+    // For each master item, find matching business vendors in city
+    const masterItemsWithVendors = await Promise.all(masterItems.map(async (item) => {
+      const services = await prisma.businessService.findMany({
+        where: { libraryItemId: item.id },
+        include: {
+          businessGroup: {
+            include: {
+              directoryListings: true,
+              locations: true
+            }
+          }
+        }
+      });
+      const products = await prisma.businessProduct.findMany({
+        where: { libraryItemId: item.id },
+        include: {
+          businessGroup: {
+            include: {
+              directoryListings: true,
+              locations: true
+            }
+          }
+        }
+      });
+
+      const rawVendors = [...services.map(s => s.businessGroup), ...products.map(p => p.businessGroup)].filter(Boolean);
+      const vendors = [];
+      const seenBg = new Set();
+
+      rawVendors.forEach(bg => {
+        if (!seenBg.has(bg.id) && bg.status !== 'DISABLED') {
+          seenBg.add(bg.id);
+          const listing = bg.directoryListings && bg.directoryListings[0];
+          vendors.push({
+            id: bg.id,
+            name: bg.name,
+            slug: listing ? listing.slug : bg.subdomain,
+            city: bg.city || cityStr,
+            phone: bg.mobileNumber || bg.whatsAppNumber,
+            rating: bg.googleRating || bg.rating || 4.9,
+            reviewCount: bg.googleReviewCount || bg.reviewCount || 63,
+            logoUrl: bg.logoUrl
+          });
+        }
+      });
+
+      return {
+        id: item.id,
+        name: item.name,
+        slug: item.slug,
+        type: item.type,
+        category: item.category,
+        defaultPrice: item.defaultPrice,
+        description: item.description,
+        vendorCount: vendors.length,
+        vendors
+      };
+    }));
+
+    // 2. Search Registered ManaCity Businesses
+    let listings = await prisma.directoryListing.findMany({
+      where: cityStr !== 'all' ? { city: cityStr } : {},
+      include: {
+        businessGroup: {
+          include: { locations: true }
+        }
+      }
+    });
+
+    listings = listings.filter(l => l.businessGroup && l.businessGroup.status !== 'DISABLED');
+    const matchingListings = listings.filter(l =>
+      (l.businessGroup && l.businessGroup.name.toLowerCase().includes(q)) ||
+      (l.category && l.category.toLowerCase().includes(q))
+    ).slice(0, 4).map(l => ({
+      id: l.id,
+      businessName: l.businessGroup ? l.businessGroup.name : 'Local Business',
+      category: l.category || 'General Business',
+      city: l.city,
+      slug: l.slug,
+      rating: l.rating || 4.9,
+      reviewCount: l.reviewCount || 63,
+      phone: l.contactPhone || (l.businessGroup ? l.businessGroup.mobileNumber : ''),
+      address: l.businessGroup ? l.businessGroup.address : l.city,
+      isVerifiedManaCity: true
+    }));
+
+    const hasResults = masterItemsWithVendors.length > 0 || matchingListings.length > 0;
+
+    return res.status(200).json({
+      masterItems: masterItemsWithVendors,
+      businesses: matchingListings,
+      hasResults
+    });
+  } catch (error) {
+    console.error('Error in unified search:', error);
+    return res.status(500).json({ error: 'Failed to perform unified search' });
+  }
+};
+
+// Record Unmatched Search Query for Super Admin Team
+exports.recordUnmatchedSearch = async (req, res) => {
+  try {
+    const { searchQuery, city, customerName, customerPhone, customerEmail, notes } = req.body;
+
+    if (!searchQuery) {
+      return res.status(400).json({ error: 'Search query is required' });
+    }
+
+    const logEntry = await prisma.auditLog.create({
+      data: {
+        action: 'UNMATCHED_SEARCH_QUERY',
+        target: searchQuery,
+        metadata: JSON.stringify({
+          city: city || 'Tirupati',
+          customerName: customerName || 'Anonymous Visitor',
+          customerPhone: customerPhone || '',
+          customerEmail: customerEmail || '',
+          notes: notes || 'Product/Service not found in system. Requested provider onboarding.',
+          status: 'PENDING_ADMIN_REVIEW'
+        })
+      }
+    });
+
+    return res.status(200).json({
+      status: 'success',
+      message: 'Unmatched search request submitted to ManaCity Super Admin team successfully!',
+      requestId: logEntry.id
+    });
+  } catch (error) {
+    console.error('Error recording unmatched search query:', error);
+    return res.status(500).json({ error: 'Failed to record unmatched search query' });
+  }
+};

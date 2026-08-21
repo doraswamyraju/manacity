@@ -157,9 +157,15 @@ export default function Home({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
+  const [masterSuggestions, setMasterSuggestions] = useState([]);
+  const [selectedServiceVendorsModal, setSelectedServiceVendorsModal] = useState(null);
+  const [unmatchedSearchQueryText, setUnmatchedSearchQueryText] = useState('');
+  const [unmatchedSubmittedMessage, setUnmatchedSubmittedMessage] = useState('');
+
   useEffect(() => {
     if (!query || query.trim().length < 2) {
       setSuggestions([]);
+      setMasterSuggestions([]);
       setShowSuggestions(false);
       return;
     }
@@ -167,12 +173,15 @@ export default function Home({
     const timer = setTimeout(async () => {
       setSearchingSuggestions(true);
       try {
-        // 1. Internal DB search
-        const dbRes = await axios.get(`/api/phase1/directory/${selectedCity}/all?query=${encodeURIComponent(query)}&category=${encodeURIComponent(selectedCategory)}`);
-        const dbItems = (dbRes.data?.listings || []).slice(0, 4).map(item => ({
+        // 1. Internal Unified search (Master Items + Businesses)
+        const unifiedRes = await axios.get(`/api/phase1/search-unified?city=${encodeURIComponent(selectedCity)}&query=${encodeURIComponent(query)}`);
+        const mItems = unifiedRes.data?.masterItems || [];
+        const dbItems = (unifiedRes.data?.businesses || []).map(item => ({
           ...item,
           isVerifiedManaCity: true
         }));
+
+        setMasterSuggestions(mItems);
 
         // 2. Google Places Autocomplete search
         let googleItems = [];
@@ -181,7 +190,7 @@ export default function Home({
           const headers = token ? { Authorization: `Bearer ${token}` } : {};
           const gRes = await axios.get(`/api/phase1/google-places/autocomplete?input=${encodeURIComponent(query)}`, { headers });
           if (gRes.data?.predictions) {
-            googleItems = gRes.data.predictions.slice(0, 4).map(p => ({
+            googleItems = gRes.data.predictions.slice(0, 3).map(p => ({
               id: p.placeId || p.place_id,
               businessName: p.name || p.description,
               address: p.description,
@@ -194,7 +203,7 @@ export default function Home({
           console.warn('Google places autocomplete fallback:', e);
         }
 
-        // Deduplicate: Filter out Google Places if business name or place_id matches an existing verified DB listing
+        // Deduplicate Google Places
         const filteredGoogleItems = googleItems.filter(g => {
           const gNameLower = (g.businessName || '').toLowerCase().trim();
           return !dbItems.some(db => {
@@ -206,7 +215,7 @@ export default function Home({
 
         const combined = [...dbItems, ...filteredGoogleItems];
         setSuggestions(combined);
-        setShowSuggestions(combined.length > 0);
+        setShowSuggestions(mItems.length > 0 || combined.length > 0 || query.trim().length >= 2);
       } catch (err) {
         console.error('Fetch suggestions error:', err);
       } finally {
@@ -622,81 +631,176 @@ export default function Home({
                 marginTop: '8px',
                 backgroundColor: '#1e293b',
                 border: '1px solid #334155',
-                borderRadius: '8px',
-                boxShadow: '0 10px 25px rgba(0,0,0,0.6)',
+                borderRadius: '12px',
+                boxShadow: '0 12px 30px rgba(0,0,0,0.7)',
                 zIndex: 1000,
-                maxHeight: '280px',
+                maxHeight: '360px',
                 overflowY: 'auto'
               }}>
-                {suggestions.map((item, idx) => (
-                  <div
-                    key={idx}
-                    onClick={() => {
-                      setShowSuggestions(false);
-                      if (item.isVerifiedManaCity) {
-                        const url = item.subdomain
-                          ? `https://${item.subdomain}.manacity.in`
-                          : `/site/${item.slug || 'kumar-shirts'}`;
-                        window.open(url, '_blank');
-                      } else {
-                        setUnonboardedTargetBusiness(item);
-                      }
-                    }}
-                    style={{
-                      padding: '10px 14px',
-                      borderBottom: '1px solid rgba(255,255,255,0.05)',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between'
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#0f172a'}
-                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                  >
-                    <div>
-                      <div style={{ fontSize: '13px', fontWeight: '700', color: '#fff' }}>{item.businessName}</div>
-                      <div style={{ fontSize: '11px', color: '#94a3b8' }}>{item.address || item.category}</div>
+
+                {/* 1. MASTER PRODUCTS & SERVICES SECTION */}
+                {masterSuggestions.length > 0 && (
+                  <div style={{ padding: '0.65rem 0.85rem', backgroundColor: 'rgba(99, 102, 241, 0.12)', borderBottom: '1px solid rgba(99, 102, 241, 0.2)' }}>
+                    <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#818cf8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                      📦 Products & Services Catalog
                     </div>
-                    {item.isVerifiedManaCity ? (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <span
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setShowSuggestions(false);
+                    {masterSuggestions.map((mItem, mIdx) => (
+                      <div
+                        key={`m-${mIdx}`}
+                        onClick={() => {
+                          setShowSuggestions(false);
+                          setSelectedServiceVendorsModal(mItem);
+                        }}
+                        style={{
+                          padding: '8px 10px',
+                          marginTop: '4px',
+                          borderRadius: '6px',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          backgroundColor: 'rgba(255,255,255,0.03)',
+                          transition: 'backgroundColor 0.2s'
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#0f172a'}
+                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.03)'}
+                      >
+                        <div>
+                          <div style={{ fontSize: '13px', fontWeight: 800, color: '#fff' }}>{mItem.name}</div>
+                          <div style={{ fontSize: '11px', color: '#94a3b8' }}>
+                            Category: {mItem.category} • {mItem.defaultPrice ? `₹${mItem.defaultPrice.toLocaleString('en-IN')}` : 'Custom Pricing'}
+                          </div>
+                        </div>
+                        <span style={{ fontSize: '10px', fontWeight: 800, color: '#10b981', backgroundColor: 'rgba(16,185,129,0.15)', padding: '3px 8px', borderRadius: '6px' }}>
+                          {mItem.vendorCount > 0 ? `${mItem.vendorCount} Vendor(s) Available` : 'Explore Providers'}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* 2. LOCAL BUSINESS DIRECTORY RESULTS */}
+                {suggestions.length > 0 && (
+                  <div>
+                    <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', padding: '0.5rem 0.85rem 0.25rem' }}>
+                      🏢 Registered Businesses & Providers
+                    </div>
+                    {suggestions.map((item, idx) => (
+                      <div
+                        key={idx}
+                        onClick={() => {
+                          setShowSuggestions(false);
+                          if (item.isVerifiedManaCity) {
                             const url = item.subdomain
                               ? `https://${item.subdomain}.manacity.in`
                               : `/site/${item.slug || 'kumar-shirts'}`;
                             window.open(url, '_blank');
-                          }}
-                          style={{ fontSize: '10px', fontWeight: '700', color: '#38bdf8', backgroundColor: 'rgba(56,189,248,0.15)', padding: '3px 8px', borderRadius: '4px', cursor: 'pointer' }}
-                        >
-                          Verified Page
-                        </span>
-                        <span
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setShowSuggestions(false);
-                            setSelectedLeadModal(item);
-                          }}
-                          style={{ fontSize: '10px', fontWeight: '700', color: '#10b981', backgroundColor: 'rgba(16,185,129,0.15)', padding: '3px 8px', borderRadius: '4px', cursor: 'pointer' }}
-                        >
-                          Enquire
-                        </span>
-                      </div>
-                    ) : (
-                      <span
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setShowSuggestions(false);
-                          setUnonboardedTargetBusiness(item);
+                          } else {
+                            setUnonboardedTargetBusiness(item);
+                          }
                         }}
-                        style={{ fontSize: '10px', fontWeight: '700', color: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.15)', padding: '3px 8px', borderRadius: '4px', cursor: 'pointer' }}
+                        style={{
+                          padding: '10px 14px',
+                          borderBottom: '1px solid rgba(255,255,255,0.05)',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between'
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#0f172a'}
+                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                       >
-                        Enquire
-                      </span>
-                    )}
+                        <div>
+                          <div style={{ fontSize: '13px', fontWeight: '700', color: '#fff' }}>{item.businessName}</div>
+                          <div style={{ fontSize: '11px', color: '#94a3b8' }}>{item.address || item.category}</div>
+                        </div>
+                        {item.isVerifiedManaCity ? (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <span
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setShowSuggestions(false);
+                                const url = item.subdomain
+                                  ? `https://${item.subdomain}.manacity.in`
+                                  : `/site/${item.slug || 'kumar-shirts'}`;
+                                window.open(url, '_blank');
+                              }}
+                              style={{ fontSize: '10px', fontWeight: '700', color: '#38bdf8', backgroundColor: 'rgba(56,189,248,0.15)', padding: '3px 8px', borderRadius: '4px', cursor: 'pointer' }}
+                            >
+                              Verified Page
+                            </span>
+                            <span
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setShowSuggestions(false);
+                                setSelectedLeadModal(item);
+                              }}
+                              style={{ fontSize: '10px', fontWeight: '700', color: '#10b981', backgroundColor: 'rgba(16,185,129,0.15)', padding: '3px 8px', borderRadius: '4px', cursor: 'pointer' }}
+                            >
+                              Enquire
+                            </span>
+                          </div>
+                        ) : (
+                          <span
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setShowSuggestions(false);
+                              setUnonboardedTargetBusiness(item);
+                            }}
+                            style={{ fontSize: '10px', fontWeight: '700', color: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.15)', padding: '3px 8px', borderRadius: '4px', cursor: 'pointer' }}
+                          >
+                            Enquire
+                          </span>
+                        )}
+                      </div>
+                    ))}
                   </div>
-                ))}
+                )}
+
+                {/* 3. UNMATCHED SEARCH QUERY CARD (IF FEW OR NO RESULTS FOUND) */}
+                {query.trim().length >= 2 && (
+                  <div style={{ padding: '0.85rem', backgroundColor: 'rgba(245, 158, 11, 0.1)', borderTop: '1px solid rgba(245, 158, 11, 0.25)', textAlign: 'left' }}>
+                    <div style={{ fontSize: '0.82rem', fontWeight: 800, color: '#fbbf24', marginBottom: '0.2rem' }}>
+                      🔍 Didn't find exact provider for "{query}"?
+                    </div>
+                    <div style={{ fontSize: '0.75rem', color: '#cbd5e1', marginBottom: '0.5rem' }}>
+                      Submit an Unmatched Search Request. Our ManaCity Super Admin team will verify and onboard top local providers for you in {selectedCity}!
+                    </div>
+                    <button
+                      type="button"
+                      onClick={async (e) => {
+                        e.stopPropagation();
+                        try {
+                          await axios.post('/api/phase1/unmatched-query', {
+                            searchQuery: query,
+                            city: selectedCity,
+                            customerName: user?.name || 'Visitor User',
+                            customerPhone: user?.phone || '',
+                            customerEmail: user?.email || ''
+                          });
+                          alert(`Request for "${query}" submitted to ManaCity Super Admin team! We will notify you once providers are onboarded.`);
+                          setShowSuggestions(false);
+                        } catch (err) {
+                          alert('Failed to submit request to Super Admin.');
+                        }
+                      }}
+                      style={{
+                        backgroundColor: '#f59e0b',
+                        color: '#0f172a',
+                        border: 'none',
+                        borderRadius: '6px',
+                        padding: '0.4rem 0.85rem',
+                        fontSize: '0.78rem',
+                        fontWeight: 800,
+                        cursor: 'pointer',
+                        boxShadow: '0 2px 8px rgba(245, 158, 11, 0.3)'
+                      }}
+                    >
+                      🚀 Request Super Admin to Onboard Providers
+                    </button>
+                  </div>
+                )}
+
               </div>
             )}
           </div>
@@ -1657,6 +1761,140 @@ export default function Home({
             ) : (
               <div style={{ textAlign: 'center', padding: '2rem 1rem', color: '#94a3b8', fontSize: '0.9rem' }}>
                 Type a business name or service category to search across {selectedCity}.
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Service / Product Vendors Modal */}
+      {selectedServiceVendorsModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0, left: 0, right: 0, bottom: 0,
+          backgroundColor: 'rgba(15, 23, 42, 0.85)',
+          backdropFilter: 'blur(8px)',
+          zIndex: 10000,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '1.5rem'
+        }} onClick={() => setSelectedServiceVendorsModal(null)}>
+          <div style={{
+            backgroundColor: '#1e293b',
+            color: '#ffffff',
+            border: '1px solid rgba(255,255,255,0.1)',
+            borderRadius: '16px',
+            maxWidth: '650px',
+            width: '100%',
+            maxHeight: '90vh',
+            overflowY: 'auto',
+            padding: '2rem',
+            boxShadow: '0 20px 40px rgba(0,0,0,0.5)',
+            position: 'relative'
+          }} onClick={(e) => e.stopPropagation()}>
+            <button
+              onClick={() => setSelectedServiceVendorsModal(null)}
+              style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }}
+            >
+              <X size={24} />
+            </button>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.4rem' }}>
+              <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#818cf8', textTransform: 'uppercase', letterSpacing: '0.05em', backgroundColor: 'rgba(129, 140, 248, 0.15)', padding: '0.25rem 0.65rem', borderRadius: '12px' }}>
+                📦 {selectedServiceVendorsModal.category || 'Master Offering'}
+              </span>
+              <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#10b981', backgroundColor: 'rgba(16, 185, 129, 0.15)', padding: '0.25rem 0.65rem', borderRadius: '12px' }}>
+                {selectedServiceVendorsModal.defaultPrice ? `Est. ₹${selectedServiceVendorsModal.defaultPrice.toLocaleString('en-IN')}` : 'Custom Pricing'}
+              </span>
+            </div>
+
+            <h2 style={{ fontSize: '1.5rem', fontWeight: 900, margin: '0 0 0.5rem 0', color: '#fff' }}>
+              {selectedServiceVendorsModal.name}
+            </h2>
+            <p style={{ fontSize: '0.88rem', color: '#cbd5e1', lineHeight: 1.5, marginBottom: '1.5rem' }}>
+              {selectedServiceVendorsModal.description}
+            </p>
+
+            <h4 style={{ fontSize: '1rem', fontWeight: 800, color: '#38bdf8', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+              <Building2 size={18} /> Verified Vendors Offering This Service in {selectedCity} ({selectedServiceVendorsModal.vendors?.length || 0})
+            </h4>
+
+            {selectedServiceVendorsModal.vendors && selectedServiceVendorsModal.vendors.length > 0 ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+                {selectedServiceVendorsModal.vendors.map((vendor) => (
+                  <div
+                    key={vendor.id}
+                    style={{
+                      backgroundColor: '#0f172a',
+                      border: '1px solid rgba(255,255,255,0.08)',
+                      borderRadius: '12px',
+                      padding: '1.1rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      flexWrap: 'wrap',
+                      gap: '0.85rem'
+                    }}
+                  >
+                    <div>
+                      <h4 style={{ fontSize: '1.05rem', fontWeight: 800, color: '#fff', margin: 0 }}>{vendor.name}</h4>
+                      <span style={{ fontSize: '0.8rem', color: '#94a3b8', marginTop: '2px', display: 'block' }}>
+                        ★ {vendor.rating} ({vendor.reviewCount} reviews) • {vendor.city || selectedCity}
+                      </span>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <button
+                        onClick={() => {
+                          const url = `https://${vendor.slug}.manacity.in`;
+                          window.open(url, '_blank');
+                        }}
+                        style={{ backgroundColor: '#3b82f6', color: '#fff', border: 'none', borderRadius: '8px', padding: '0.45rem 0.85rem', fontSize: '0.8rem', fontWeight: 800, cursor: 'pointer' }}
+                      >
+                        View Storefront
+                      </button>
+                      <button
+                        onClick={() => {
+                          setSelectedServiceVendorsModal(null);
+                          setSelectedLeadModal(vendor);
+                        }}
+                        style={{ backgroundColor: '#10b981', color: '#fff', border: 'none', borderRadius: '8px', padding: '0.45rem 0.85rem', fontSize: '0.8rem', fontWeight: 800, cursor: 'pointer' }}
+                      >
+                        Get Quote
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div style={{ backgroundColor: 'rgba(245, 158, 11, 0.1)', border: '1px solid rgba(245, 158, 11, 0.3)', borderRadius: '12px', padding: '1.5rem', textAlign: 'center' }}>
+                <Zap size={32} color="#fbbf24" style={{ margin: '0 auto 0.5rem auto' }} />
+                <h4 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#fff', margin: 0 }}>No providers onboarded in {selectedCity} yet</h4>
+                <p style={{ fontSize: '0.85rem', color: '#cbd5e1', marginTop: '0.35rem' }}>
+                  Submit an onboarding request to ManaCity Super Admin team. We will verify and onboard providers for "{selectedServiceVendorsModal.name}"!
+                </p>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    try {
+                      await axios.post('/api/phase1/unmatched-query', {
+                        searchQuery: selectedServiceVendorsModal.name,
+                        city: selectedCity,
+                        customerName: user?.name || 'Visitor User',
+                        customerPhone: user?.phone || '',
+                        customerEmail: user?.email || ''
+                      });
+                      alert(`Request for "${selectedServiceVendorsModal.name}" submitted to Super Admin! We will notify you once providers are onboarded.`);
+                      setSelectedServiceVendorsModal(null);
+                    } catch (err) {
+                      alert('Failed to submit request.');
+                    }
+                  }}
+                  style={{ backgroundColor: '#f59e0b', color: '#0f172a', border: 'none', borderRadius: '8px', padding: '0.6rem 1.2rem', fontSize: '0.85rem', fontWeight: 800, cursor: 'pointer', marginTop: '0.75rem' }}
+                >
+                  🚀 Request Super Admin to Onboard Vendors
+                </button>
               </div>
             )}
           </div>

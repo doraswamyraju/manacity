@@ -5,6 +5,10 @@ const directoryLeadController = require('../controllers/directoryLeadController'
 
 const auth = require('../middleware/auth');
 
+// ManaCity Unified Search & Unmatched Inquiry
+router.get('/search-unified', directoryLeadController.searchUnified);
+router.post('/unmatched-query', directoryLeadController.recordUnmatchedSearch);
+
 // Google Places Onboarding & central library
 router.get('/google-places/autocomplete', phase1Controller.autocompleteGooglePlaces);
 router.post('/google-places/import', auth, phase1Controller.importGooglePlaces);
