@@ -3,13 +3,16 @@ import axios from 'axios';
 import * as Sections from './WebsiteSections';
 import { extractColorsFromLogo } from './OnboardingWizard';
 
-export default function WebsiteBuilder({ onBack }) {
+export default function WebsiteBuilder({ onBack, theme: appTheme }) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [publishing, setPublishing] = useState(false);
   const [extractingColors, setExtractingColors] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+
+  // Determine whether current dashboard environment is in dark mode
+  const isAppDark = appTheme ? appTheme === 'dark' : (typeof document !== 'undefined' && document.documentElement.getAttribute('data-theme') !== 'light');
 
   // Core configurations
   const [website, setWebsite] = useState(null);
@@ -237,12 +240,38 @@ export default function WebsiteBuilder({ onBack }) {
     );
   }
 
-  // Active theme engine variables
-  const themeVars = {
-    '--primary-color': primaryColor,
-    '--secondary-color': secondaryColor,
-    '--font-primary': font,
-    fontFamily: font
+  // Dynamic input and button style generators matching dashboard theme
+  const dynamicInputStyle = {
+    padding: '0.65rem 0.85rem',
+    backgroundColor: isAppDark ? 'rgba(255, 255, 255, 0.03)' : '#ffffff',
+    border: `1px solid ${isAppDark ? 'var(--border-color)' : '#cbd5e1'}`,
+    borderRadius: 'var(--radius-sm)',
+    color: isAppDark ? '#ffffff' : '#0f172a',
+    fontSize: '0.9rem',
+    outline: 'none',
+    fontFamily: 'var(--font-sans)',
+    width: '100%',
+    boxSizing: 'border-box'
+  };
+
+  const dynamicIconBtnStyle = {
+    padding: '0.2rem 0.4rem',
+    fontSize: '0.75rem',
+    backgroundColor: isAppDark ? 'rgba(255,255,255,0.03)' : '#f1f5f9',
+    border: `1px solid ${isAppDark ? 'var(--border-color)' : '#cbd5e1'}`,
+    color: isAppDark ? '#fff' : '#0f172a',
+    borderRadius: '4px',
+    cursor: 'pointer'
+  };
+
+  const dynamicDeviceBtnStyle = {
+    padding: '0.3rem 0.65rem',
+    fontSize: '0.75rem',
+    fontWeight: 700,
+    border: isAppDark ? '1px solid rgba(255,255,255,0.15)' : '1px solid #cbd5e1',
+    borderRadius: '6px',
+    cursor: 'pointer',
+    transition: 'all 0.2s ease'
   };
 
   return (
@@ -267,7 +296,7 @@ export default function WebsiteBuilder({ onBack }) {
               value={subdomain} 
               onChange={(e) => setSubdomain(e.target.value)} 
               placeholder="subdomain"
-              style={inputStyle}
+              style={dynamicInputStyle}
             />
             <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>.manacity.in</span>
           </div>
@@ -278,7 +307,7 @@ export default function WebsiteBuilder({ onBack }) {
           <h3 style={editorHeaderStyle}>Theme & Colors</h3>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', gridColumn: '1 / -1' }}>
-              <label style={{ fontSize: '0.85rem', fontWeight: 700, color: '#38bdf8' }}>Select Website Template</label>
+              <label style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--accent-primary, #0284c7)' }}>Select Website Template</label>
               <select value={theme} onChange={async (e) => {
                 const newTheme = e.target.value;
                 setTheme(newTheme);
@@ -294,7 +323,7 @@ export default function WebsiteBuilder({ onBack }) {
                 try {
                   await axios.post('/api/website/save', { theme: newTheme, primaryColor: pColor });
                 } catch (err) {}
-              }} style={{ ...inputStyle, fontWeight: 700, backgroundColor: '#0f172a' }}>
+              }} style={{ ...dynamicInputStyle, fontWeight: 700, backgroundColor: isAppDark ? '#0f172a' : '#ffffff', color: isAppDark ? '#ffffff' : '#0f172a' }}>
                 <option value="ca-corporate-elite">🏛️ 1. CA Template A: Elite Corporate CA & Audit Firm (Navy & Gold)</option>
                 <option value="ca-modern-trust">⚡ 2. CA Template B: Modern Digital CA & Tax Advisory (Emerald Tech)</option>
                 <option value="modern-corporate">3. Dark Mode Template (Sleek Dark & Glass)</option>
@@ -327,15 +356,15 @@ export default function WebsiteBuilder({ onBack }) {
                       } catch (err) {}
                     }}
                     style={{
-                      border: theme === tmpl.id ? `2px solid ${tmpl.color}` : '1px solid rgba(255,255,255,0.1)',
-                      backgroundColor: theme === tmpl.id ? `${tmpl.color}20` : '#0f172a',
+                      border: theme === tmpl.id ? `2px solid ${tmpl.color}` : (isAppDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid #cbd5e1'),
+                      backgroundColor: theme === tmpl.id ? `${tmpl.color}20` : (isAppDark ? '#0f172a' : '#f8fafc'),
                       borderRadius: '8px',
                       padding: '0.65rem 0.5rem',
                       textAlign: 'center',
                       cursor: 'pointer',
                       fontSize: '0.8rem',
                       fontWeight: 700,
-                      color: theme === tmpl.id ? '#fff' : '#94a3b8'
+                      color: theme === tmpl.id ? (isAppDark ? '#fff' : tmpl.color) : (isAppDark ? '#94a3b8' : '#334155')
                     }}
                   >
                     <div style={{ width: '100%', height: '4px', backgroundColor: tmpl.color, borderRadius: '2px', marginBottom: '0.35rem' }} />
@@ -348,7 +377,7 @@ export default function WebsiteBuilder({ onBack }) {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', marginTop: '0.5rem' }}>
               <label style={{ fontSize: '0.85rem' }}>Primary Font</label>
-              <select value={font} onChange={(e) => setFont(e.target.value)} style={inputStyle}>
+              <select value={font} onChange={(e) => setFont(e.target.value)} style={dynamicInputStyle}>
                 <option value="Outfit">Outfit</option>
                 <option value="sans-serif">Sans-Serif</option>
                 <option value="Georgia">Serif</option>
@@ -359,16 +388,16 @@ export default function WebsiteBuilder({ onBack }) {
           </div>
 
           {/* Logo & Brand Color Palette Auto-Extractor Box */}
-          <div style={{ backgroundColor: 'rgba(99, 102, 241, 0.08)', border: '1px solid rgba(99, 102, 241, 0.25)', padding: '1rem', borderRadius: '8px', marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            <label style={{ fontSize: '0.85rem', fontWeight: 700, color: '#38bdf8' }}>Logo & Auto Color Palette</label>
+          <div style={{ backgroundColor: isAppDark ? 'rgba(99, 102, 241, 0.08)' : 'rgba(99, 102, 241, 0.05)', border: '1px solid rgba(99, 102, 241, 0.25)', padding: '1rem', borderRadius: '8px', marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            <label style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--accent-primary, #0284c7)' }}>Logo & Auto Color Palette</label>
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
               {logoUrl ? (
                 <img src={logoUrl} alt="Business Logo" style={{ width: '48px', height: '48px', borderRadius: '8px', objectFit: 'cover', border: '1.5px solid var(--primary-color)' }} />
               ) : (
-                <div style={{ width: '48px', height: '48px', borderRadius: '8px', backgroundColor: '#1e293b', border: '1px border-dashed #64748b', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', color: '#94a3b8' }}>No Logo</div>
+                <div style={{ width: '48px', height: '48px', borderRadius: '8px', backgroundColor: isAppDark ? '#1e293b' : '#f1f5f9', border: '1px border-dashed #64748b', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', color: isAppDark ? '#94a3b8' : '#64748b' }}>No Logo</div>
               )}
               <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-                <input type="file" onChange={handleLogoFileUpload} accept="image/*" style={{ fontSize: '0.8rem', color: '#cbd5e1' }} />
+                <input type="file" onChange={handleLogoFileUpload} accept="image/*" style={{ fontSize: '0.8rem', color: isAppDark ? '#cbd5e1' : '#334155' }} />
                 <button
                   type="button"
                   onClick={() => handleLogoExtractColors()}
@@ -394,11 +423,11 @@ export default function WebsiteBuilder({ onBack }) {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '1rem' }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
               <label style={{ fontSize: '0.85rem' }}>Primary Color</label>
-              <input type="color" value={primaryColor} onChange={(e) => setPrimaryColor(e.target.value)} style={{ ...inputStyle, padding: '0.2rem' }} />
+              <input type="color" value={primaryColor} onChange={(e) => setPrimaryColor(e.target.value)} style={{ ...dynamicInputStyle, padding: '0.2rem' }} />
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
               <label style={{ fontSize: '0.85rem' }}>Secondary Color</label>
-              <input type="color" value={secondaryColor} onChange={(e) => setSecondaryColor(e.target.value)} style={{ ...inputStyle, padding: '0.2rem' }} />
+              <input type="color" value={secondaryColor} onChange={(e) => setSecondaryColor(e.target.value)} style={{ ...dynamicInputStyle, padding: '0.2rem' }} />
             </div>
           </div>
         </div>
@@ -407,20 +436,20 @@ export default function WebsiteBuilder({ onBack }) {
         <div style={editorSectionStyle}>
           <h3 style={editorHeaderStyle}>SEO Settings</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            <input type="text" value={metaTitle} onChange={(e) => setMetaTitle(e.target.value)} placeholder="Meta Title" style={inputStyle} />
-            <input type="text" value={metaDescription} onChange={(e) => setMetaDescription(e.target.value)} placeholder="Meta Description" style={inputStyle} />
-            <input type="text" value={keywords} onChange={(e) => setKeywords(e.target.value)} placeholder="Keywords (comma separated)" style={inputStyle} />
+            <input type="text" value={metaTitle} onChange={(e) => setMetaTitle(e.target.value)} placeholder="Meta Title" style={dynamicInputStyle} />
+            <input type="text" value={metaDescription} onChange={(e) => setMetaDescription(e.target.value)} placeholder="Meta Description" style={dynamicInputStyle} />
+            <input type="text" value={keywords} onChange={(e) => setKeywords(e.target.value)} placeholder="Keywords (comma separated)" style={dynamicInputStyle} />
           </div>
         </div>
 
-        {/* Analytics Configurations (Configuration Placeholders) */}
+        {/* Analytics Configurations */}
         <div style={editorSectionStyle}>
           <h3 style={editorHeaderStyle}>Analytics Integrations (Optional)</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            <input type="text" value={googleAnalyticsId} onChange={(e) => setGoogleAnalyticsId(e.target.value)} placeholder="Google Analytics Tag (e.g. G-XXXXX)" style={inputStyle} />
-            <input type="text" value={searchConsoleId} onChange={(e) => setSearchConsoleId(e.target.value)} placeholder="Google Search Console verification ID" style={inputStyle} />
-            <input type="text" value={metaPixelId} onChange={(e) => setMetaPixelId(e.target.value)} placeholder="Meta Pixel ID" style={inputStyle} />
-            <input type="text" value={clarityId} onChange={(e) => setClarityId(e.target.value)} placeholder="Microsoft Clarity ID" style={inputStyle} />
+            <input type="text" value={googleAnalyticsId} onChange={(e) => setGoogleAnalyticsId(e.target.value)} placeholder="Google Analytics Tag (e.g. G-XXXXX)" style={dynamicInputStyle} />
+            <input type="text" value={searchConsoleId} onChange={(e) => setSearchConsoleId(e.target.value)} placeholder="Google Search Console verification ID" style={dynamicInputStyle} />
+            <input type="text" value={metaPixelId} onChange={(e) => setMetaPixelId(e.target.value)} placeholder="Meta Pixel ID" style={dynamicInputStyle} />
+            <input type="text" value={clarityId} onChange={(e) => setClarityId(e.target.value)} placeholder="Microsoft Clarity ID" style={dynamicInputStyle} />
           </div>
         </div>
 
@@ -458,9 +487,10 @@ export default function WebsiteBuilder({ onBack }) {
                   alignItems: 'center', 
                   justifyContent: 'space-between', 
                   padding: '0.65rem 1rem', 
-                  backgroundColor: sec.enabled ? 'rgba(255, 255, 255, 0.02)' : 'rgba(255,255,255,0.01)', 
-                  border: '1px solid var(--border-color)',
+                  backgroundColor: sec.enabled ? (isAppDark ? 'rgba(255, 255, 255, 0.02)' : '#ffffff') : (isAppDark ? 'rgba(255,255,255,0.01)' : '#f8fafc'), 
+                  border: `1px solid ${isAppDark ? 'var(--border-color)' : '#cbd5e1'}`,
                   borderRadius: 'var(--radius-sm)',
+                  color: isAppDark ? '#fff' : '#0f172a',
                   opacity: sec.enabled ? 1 : 0.5
                 }}
               >
@@ -470,12 +500,12 @@ export default function WebsiteBuilder({ onBack }) {
                     checked={sec.enabled} 
                     onChange={() => handleSectionToggle(sec.type)} 
                   />
-                  <span style={{ fontSize: '0.9rem', fontWeight: 600 }}>{sec.type}</span>
+                  <span style={{ fontSize: '0.9rem', fontWeight: 600, color: isAppDark ? '#fff' : '#0f172a' }}>{sec.type}</span>
                 </div>
                 
                 <div style={{ display: 'flex', gap: '0.25rem' }}>
-                  <button type="button" onClick={() => handleMoveSection(idx, 'up')} disabled={idx === 0} style={iconBtnStyle}>▲</button>
-                  <button type="button" onClick={() => handleMoveSection(idx, 'down')} disabled={idx === sections.length - 1} style={iconBtnStyle}>▼</button>
+                  <button type="button" onClick={() => handleMoveSection(idx, 'up')} disabled={idx === 0} style={dynamicIconBtnStyle}>▲</button>
+                  <button type="button" onClick={() => handleMoveSection(idx, 'down')} disabled={idx === sections.length - 1} style={dynamicIconBtnStyle}>▼</button>
                 </div>
               </div>
             ))}
@@ -489,23 +519,23 @@ export default function WebsiteBuilder({ onBack }) {
       {/* Live Preview Panel (Right) - Rendering 100% Live Website via iframe */}
       <div 
         style={{ 
-          backgroundColor: theme === 'light-minimal' ? '#ffffff' : '#0f172a', 
-          border: '3px solid var(--border-color)', 
+          backgroundColor: theme === 'light-minimal' ? '#ffffff' : (isAppDark ? '#0f172a' : '#ffffff'), 
+          border: `3px solid ${isAppDark ? 'var(--border-color)' : '#cbd5e1'}`, 
           borderRadius: 'var(--radius-sm)',
           height: '82vh',
-          color: theme === 'light-minimal' ? '#0f172a' : '#fff',
+          color: theme === 'light-minimal' ? '#0f172a' : (isAppDark ? '#fff' : '#0f172a'),
           boxSizing: 'border-box',
           display: 'flex',
           flexDirection: 'column',
           overflow: 'hidden'
         }}
       >
-        <div style={{ padding: '0.55rem 1rem', borderBottom: '1px solid var(--border-color)', backgroundColor: 'rgba(0,0,0,0.2)', textAlign: 'left', fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem', flexShrink: 0 }}>
+        <div style={{ padding: '0.55rem 1rem', borderBottom: `1px solid ${isAppDark ? 'var(--border-color)' : '#cbd5e1'}`, backgroundColor: isAppDark ? 'rgba(0,0,0,0.2)' : '#f1f5f9', textAlign: 'left', fontSize: '0.85rem', color: isAppDark ? 'var(--text-secondary)' : '#334155', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem', flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <span style={{ fontWeight: 600 }}>Preview Viewport:</span>
-            <button type="button" onClick={() => setPreviewDevice('desktop')} style={{ ...deviceBtnStyle, backgroundColor: previewDevice === 'desktop' ? '#38bdf8' : 'transparent', color: previewDevice === 'desktop' ? '#0f172a' : '#cbd5e1' }}>💻 Desktop</button>
-            <button type="button" onClick={() => setPreviewDevice('tablet')} style={{ ...deviceBtnStyle, backgroundColor: previewDevice === 'tablet' ? '#38bdf8' : 'transparent', color: previewDevice === 'tablet' ? '#0f172a' : '#cbd5e1' }}>📱 Tablet</button>
-            <button type="button" onClick={() => setPreviewDevice('mobile')} style={{ ...deviceBtnStyle, backgroundColor: previewDevice === 'mobile' ? '#38bdf8' : 'transparent', color: previewDevice === 'mobile' ? '#0f172a' : '#cbd5e1' }}>📲 Mobile</button>
+            <button type="button" onClick={() => setPreviewDevice('desktop')} style={{ ...dynamicDeviceBtnStyle, backgroundColor: previewDevice === 'desktop' ? '#0284c7' : 'transparent', color: previewDevice === 'desktop' ? '#ffffff' : (isAppDark ? '#cbd5e1' : '#334155') }}>💻 Desktop</button>
+            <button type="button" onClick={() => setPreviewDevice('tablet')} style={{ ...dynamicDeviceBtnStyle, backgroundColor: previewDevice === 'tablet' ? '#0284c7' : 'transparent', color: previewDevice === 'tablet' ? '#ffffff' : (isAppDark ? '#cbd5e1' : '#334155') }}>📱 Tablet</button>
+            <button type="button" onClick={() => setPreviewDevice('mobile')} style={{ ...dynamicDeviceBtnStyle, backgroundColor: previewDevice === 'mobile' ? '#0284c7' : 'transparent', color: previewDevice === 'mobile' ? '#ffffff' : (isAppDark ? '#cbd5e1' : '#334155') }}>📲 Mobile</button>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
@@ -515,7 +545,7 @@ export default function WebsiteBuilder({ onBack }) {
                 href={subdomain ? `https://${subdomain}.manacity.in` : 'https://manacity.in'}
                 target="_blank"
                 rel="noreferrer"
-                style={{ color: '#38bdf8', fontWeight: 700, textDecoration: 'underline' }}
+                style={{ color: 'var(--accent-primary, #0284c7)', fontWeight: 700, textDecoration: 'underline' }}
               >
                 {subdomain ? `${subdomain}.manacity.in` : 'manacity.in'}
               </a>
@@ -529,7 +559,7 @@ export default function WebsiteBuilder({ onBack }) {
           flex: 1,
           width: '100%',
           overflowY: 'auto',
-          backgroundColor: '#020617',
+          backgroundColor: isAppDark ? '#020617' : '#e2e8f0',
           display: 'flex',
           justifyContent: 'center',
           padding: previewDevice === 'desktop' ? '0' : '1rem 0'
@@ -542,10 +572,10 @@ export default function WebsiteBuilder({ onBack }) {
               width: previewDevice === 'mobile' ? '375px' : previewDevice === 'tablet' ? '768px' : '100%',
               height: '100%',
               minHeight: '650px',
-              border: previewDevice === 'desktop' ? 'none' : '2px solid rgba(255,255,255,0.2)',
+              border: previewDevice === 'desktop' ? 'none' : (isAppDark ? '2px solid rgba(255,255,255,0.2)' : '2px solid #cbd5e1'),
               borderRadius: previewDevice === 'desktop' ? '0' : '12px',
               backgroundColor: theme === 'light-minimal' ? '#ffffff' : '#0f172a',
-              boxShadow: previewDevice === 'desktop' ? 'none' : '0 20px 40px rgba(0,0,0,0.8)',
+              boxShadow: previewDevice === 'desktop' ? 'none' : '0 20px 40px rgba(0,0,0,0.2)',
               transition: 'width 0.3s ease'
             }}
           />
@@ -569,6 +599,7 @@ const editorHeaderStyle = {
   paddingBottom: '0.25rem',
   marginBottom: '0.5rem'
 };
+
 
 const inputStyle = {
   padding: '0.65rem 0.85rem',

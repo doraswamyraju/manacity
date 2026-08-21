@@ -52,6 +52,15 @@ function SuperAdminDashboardLayout({ user, onLogout }) {
     return localStorage.getItem('superadmin_theme') || 'dark';
   });
 
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    if (theme === 'dark') {
+      document.body.classList.add('dark-mode');
+    } else {
+      document.body.classList.remove('dark-mode');
+    }
+  }, [theme]);
+
   const toggleTheme = () => {
     setTheme(prev => {
       const nextTheme = prev === 'dark' ? 'light' : 'dark';

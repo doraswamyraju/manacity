@@ -131,9 +131,21 @@ export default function PublicBusinessWebsite() {
     };
   };
 
+  const bg = {
+    ...(businessData?.businessGroup || {}),
+    services: businessData?.services || businessData?.businessGroup?.services || [],
+    products: businessData?.products || businessData?.businessGroup?.products || []
+  };
+  const theme = websiteConfig?.theme || 'modern-corporate';
+  const isLightSite = theme === 'light-minimal' || theme === 'light';
+  const primaryColor = websiteConfig?.primaryColor || '#6366f1';
+  const secondaryColor = websiteConfig?.secondaryColor || '#a855f7';
+  const font = websiteConfig?.font || 'Outfit';
+  const { avgRating, reviewCount } = Sections.getRatingAndReviews(bg);
+
   if (loading) {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#090d16', color: '#94a3b8' }}>
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: isLightSite ? '#f8fafc' : '#090d16', color: isLightSite ? '#0f172a' : '#94a3b8' }}>
         <h2>Loading Business Website...</h2>
       </div>
     );
@@ -141,13 +153,13 @@ export default function PublicBusinessWebsite() {
 
   if (error) {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', backgroundColor: '#090d16', color: '#f8fafc', fontFamily: 'Outfit, sans-serif', padding: '2rem', textAlign: 'center' }}>
-        <div style={{ maxWidth: '500px', backgroundColor: '#0f172a', padding: '3rem', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.08)', boxShadow: '0 10px 30px rgba(0,0,0,0.5)' }}>
+      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', backgroundColor: isLightSite ? '#f8fafc' : '#090d16', color: isLightSite ? '#0f172a' : '#f8fafc', fontFamily: 'Outfit, sans-serif', padding: '2rem', textAlign: 'center' }}>
+        <div style={{ maxWidth: '500px', backgroundColor: isLightSite ? '#ffffff' : '#0f172a', padding: '3rem', borderRadius: '16px', border: `1px solid ${isLightSite ? '#cbd5e1' : 'rgba(255,255,255,0.08)'}`, boxShadow: isLightSite ? '0 10px 30px rgba(0,0,0,0.05)' : '0 10px 30px rgba(0,0,0,0.5)' }}>
           <Building2 size={64} color="#6366f1" style={{ marginBottom: '1.5rem', marginLeft: 'auto', marginRight: 'auto' }} />
           <h1 style={{ fontSize: '2rem', fontWeight: 800, marginBottom: '1rem', background: 'linear-gradient(to right, #6366f1, #a855f7)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
             Site Not Found
           </h1>
-          <p style={{ color: '#94a3b8', fontSize: '1.05rem', lineHeight: '1.6', marginBottom: '2rem' }}>
+          <p style={{ color: isLightSite ? '#64748b' : '#94a3b8', fontSize: '1.05rem', lineHeight: '1.6', marginBottom: '2rem' }}>
             The website you are looking for does not exist, has been unpublished, or is currently unavailable.
           </p>
           <a href="https://manacity.in" style={{ display: 'inline-block', backgroundColor: '#6366f1', color: '#fff', padding: '0.8rem 2rem', borderRadius: '8px', fontSize: '1rem', fontWeight: 700, textDecoration: 'none', transition: 'background 0.2s' }}>
@@ -157,17 +169,6 @@ export default function PublicBusinessWebsite() {
       </div>
     );
   }
-
-  const bg = {
-    ...(businessData.businessGroup || {}),
-    services: businessData.services || businessData.businessGroup?.services || [],
-    products: businessData.products || businessData.businessGroup?.products || []
-  };
-  const theme = websiteConfig?.theme || 'modern-corporate';
-  const primaryColor = websiteConfig?.primaryColor || '#6366f1';
-  const secondaryColor = websiteConfig?.secondaryColor || '#a855f7';
-  const font = websiteConfig?.font || 'Outfit';
-  const { avgRating, reviewCount } = Sections.getRatingAndReviews(bg);
 
   const themeVars = {
     '--primary-color': primaryColor,
@@ -183,7 +184,7 @@ export default function PublicBusinessWebsite() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: theme === 'light-minimal' ? '#ffffff' : '#090d16', color: theme === 'light-minimal' ? '#0f172a' : '#f8fafc', fontFamily: `${font}, sans-serif`, ...themeVars }}>
+    <div style={{ minHeight: '100vh', backgroundColor: isLightSite ? '#ffffff' : '#090d16', color: isLightSite ? '#0f172a' : '#f8fafc', fontFamily: `${font}, sans-serif`, ...themeVars }}>
       
       {/* Top Notification Bar for CA Website Templates */}
       {theme === 'ca-corporate-elite' && (

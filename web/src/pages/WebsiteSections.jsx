@@ -512,7 +512,7 @@ export function HeroSection({ businessGroup, settings, theme }) {
       display: 'flex',
       alignItems: 'center',
       justify: 'center',
-      color: '#fff',
+      color: isLight ? '#0f172a' : '#fff',
       background: bgOverlay,
       textAlign: 'center',
       padding: '4.5rem 6%'
@@ -551,13 +551,13 @@ export function HeroSection({ businessGroup, settings, theme }) {
             gap: '0.35rem',
             padding: '0.4rem 0.9rem',
             borderRadius: '30px',
-            backgroundColor: 'rgba(255, 255, 255, 0.12)',
-            border: '1px solid rgba(255, 255, 255, 0.25)',
+            backgroundColor: isLight ? 'rgba(15, 23, 42, 0.06)' : 'rgba(255, 255, 255, 0.12)',
+            border: isLight ? '1px solid rgba(15, 23, 42, 0.15)' : '1px solid rgba(255, 255, 255, 0.25)',
             fontSize: '0.8rem',
             fontWeight: 800,
-            color: '#f59e0b'
+            color: '#d97706'
           }}>
-            <Shield size={14} color="#f59e0b" />
+            <Shield size={14} color="#d97706" />
             <span>100% ICAI UDIN Verified Reports</span>
           </div>
 
@@ -568,22 +568,22 @@ export function HeroSection({ businessGroup, settings, theme }) {
               gap: '0.35rem',
               padding: '0.4rem 0.9rem',
               borderRadius: '30px',
-              backgroundColor: 'rgba(255, 255, 255, 0.12)',
-              border: '1px solid rgba(255, 255, 255, 0.25)',
+              backgroundColor: isLight ? 'rgba(15, 23, 42, 0.06)' : 'rgba(255, 255, 255, 0.12)',
+              border: isLight ? '1px solid rgba(15, 23, 42, 0.15)' : '1px solid rgba(255, 255, 255, 0.25)',
               fontSize: '0.8rem',
               fontWeight: 800,
-              color: '#f59e0b'
+              color: '#d97706'
             }}>
-              <Star size={14} fill="#f59e0b" color="#f59e0b" />
+              <Star size={14} fill="#d97706" color="#d97706" />
               <span>{avgRating} Rating ({reviewCount} Reviews)</span>
             </div>
           )}
         </div>
 
-        <h1 style={{ fontSize: isCaTheme ? '3rem' : '2.8rem', fontWeight: 900, marginBottom: '1rem', lineHeight: 1.18, letterSpacing: '-0.03em', color: '#fff' }}>
+        <h1 style={{ fontSize: isCaTheme ? '3rem' : '2.8rem', fontWeight: 900, marginBottom: '1rem', lineHeight: 1.18, letterSpacing: '-0.03em', color: isLight ? '#0f172a' : '#fff' }}>
           {headline}
         </h1>
-        <p style={{ fontSize: '1.12rem', marginBottom: '2rem', color: '#cbd5e1', lineHeight: 1.65, maxWidth: '780px', margin: '0 auto 2rem' }}>
+        <p style={{ fontSize: '1.12rem', marginBottom: '2rem', color: isLight ? '#475569' : '#cbd5e1', lineHeight: 1.65, maxWidth: '780px', margin: '0 auto 2rem' }}>
           {subheadline}
         </p>
 
@@ -604,11 +604,11 @@ export function HeroSection({ businessGroup, settings, theme }) {
                 style={{
                   fontSize: '0.78rem',
                   fontWeight: 700,
-                  backgroundColor: 'rgba(255,255,255,0.12)',
-                  color: '#f8fafc',
+                  backgroundColor: isLight ? '#f1f5f9' : 'rgba(255,255,255,0.12)',
+                  color: isLight ? '#0f172a' : '#f8fafc',
                   padding: '0.35rem 0.85rem',
                   borderRadius: '20px',
-                  border: '1px solid rgba(255,255,255,0.2)',
+                  border: isLight ? '1px solid #cbd5e1' : '1px solid rgba(255,255,255,0.2)',
                   textDecoration: 'none'
                 }}
               >
@@ -645,9 +645,9 @@ export function HeroSection({ businessGroup, settings, theme }) {
           <a
             href="#services"
             style={{
-              backgroundColor: 'rgba(255, 255, 255, 0.1)',
-              color: '#fff',
-              border: '1px solid rgba(255, 255, 255, 0.25)',
+              backgroundColor: isLight ? '#e2e8f0' : 'rgba(255, 255, 255, 0.1)',
+              color: isLight ? '#0f172a' : '#fff',
+              border: isLight ? '1px solid #cbd5e1' : '1px solid rgba(255, 255, 255, 0.25)',
               padding: '0.85rem 2rem',
               textDecoration: 'none',
               borderRadius: '8px',
@@ -660,10 +660,10 @@ export function HeroSection({ businessGroup, settings, theme }) {
         </div>
 
         {/* Dynamic CA Stats Counter Row */}
-        {isCaTheme && <CaStatsCounterRow isLight={false} accentColor={primaryBtnColor} />}
+        {isCaTheme && <CaStatsCounterRow isLight={isLight} accentColor={primaryBtnColor} />}
 
         {/* Dynamic Authority Accreditation Bar */}
-        {isCaTheme && <CaAuthorityBar isLight={false} />}
+        {isCaTheme && <CaAuthorityBar isLight={isLight} />}
       </div>
     </section>
   );

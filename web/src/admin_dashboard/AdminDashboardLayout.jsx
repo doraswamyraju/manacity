@@ -54,6 +54,15 @@ function AdminDashboardLayout({ user, businessGroup, onLogout, setView }) {
     return localStorage.getItem('admin_theme') || 'dark';
   });
 
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    if (theme === 'dark') {
+      document.body.classList.add('dark-mode');
+    } else {
+      document.body.classList.remove('dark-mode');
+    }
+  }, [theme]);
+
   const toggleTheme = () => {
     setTheme(prev => {
       const nextTheme = prev === 'dark' ? 'light' : 'dark';
@@ -412,7 +421,7 @@ function AdminDashboardLayout({ user, businessGroup, onLogout, setView }) {
           {activeTab === 'locations' && <Locations onBack={() => setActiveTab('overview')} onNavigateToOnboarding={() => setView ? setView('onboarding') : (window.location.href = '/onboarding')} />}
 
           {activeTab === 'catalog-library' && <BusinessLibraryTab theme={theme} />}
-          {activeTab === 'website-builder' && <WebsiteBuilder onBack={() => setActiveTab('overview')} />}
+          {activeTab === 'website-builder' && <WebsiteBuilder theme={theme} onBack={() => setActiveTab('overview')} />}
           {(activeTab === 'marketing' || activeTab.startsWith('marketing-')) && (
             <MarketingTabContainer businessGroup={businessGroup} activeTabOverride={activeTab} />
           )}
