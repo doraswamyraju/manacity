@@ -398,9 +398,9 @@ export default function ReviewManagement({ onBack }) {
                               const y = 150 - (data.cumulativeCount / maxVal) * 120;
                               return (
                                 <g key={idx} cursor="pointer" onClick={() => { setActiveTab('inbox'); setFilterStatus(''); }}>
-                                  <circle cx={x} cy={y} r="4" fill="#fff" stroke="var(--accent-secondary)" strokeWidth="2" />
+                                  <circle cx={x} cy={y} r="4" fill="var(--bg-primary)" stroke="var(--accent-secondary)" strokeWidth="2" />
                                   <text x={x} y="175" fill="var(--text-secondary)" fontSize="9" textAnchor="middle">{data.bucket}</text>
-                                  <text x={x} y={y - 8} fill="#fff" fontSize="9" textAnchor="middle" fontWeight="bold">{data.cumulativeCount}</text>
+                                  <text x={x} y={y - 8} fill="var(--text-primary)" fontSize="9" textAnchor="middle" fontWeight="bold">{data.cumulativeCount}</text>
                                 </g>
                               );
                             })}
@@ -936,15 +936,15 @@ const widgetLabelStyle = {
 const widgetValStyle = {
   fontSize: '1.5rem',
   fontWeight: 700,
-  color: '#fff'
+  color: 'var(--text-primary)'
 };
 
 const selectStyle = {
   padding: '0.5rem 0.75rem',
-  backgroundColor: 'rgba(255, 255, 255, 0.03)',
+  backgroundColor: 'var(--bg-secondary)',
   border: '1px solid var(--border-color)',
   borderRadius: 'var(--radius-sm)',
-  color: '#fff',
+  color: 'var(--text-primary)',
   fontSize: '0.9rem',
   outline: 'none',
   fontFamily: 'var(--font-sans)',
@@ -953,10 +953,10 @@ const selectStyle = {
 
 const inputStyle = {
   padding: '0.65rem 0.85rem',
-  backgroundColor: 'rgba(255, 255, 255, 0.03)',
+  backgroundColor: 'var(--bg-secondary)',
   border: '1px solid var(--border-color)',
   borderRadius: 'var(--radius-sm)',
-  color: '#fff',
+  color: 'var(--text-primary)',
   fontSize: '0.9rem',
   outline: 'none',
   fontFamily: 'var(--font-sans)',
