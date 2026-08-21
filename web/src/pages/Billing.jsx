@@ -85,7 +85,7 @@ function Billing({ onBack }) {
       <div className="glass-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2.5rem', borderLeft: '4px solid var(--accent-primary)' }}>
         <div>
           <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 600, uppercase: 'true' }}>CURRENT ACTIVE PLAN</span>
-          <h2 style={{ fontSize: '2rem', fontWeight: 800, color: '#fff', margin: '0.2rem 0' }}>
+          <h2 style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--text-primary)', margin: '0.2rem 0' }}>
             ManaCity <span className="gradient-text">{subscription?.tier}</span>
           </h2>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
@@ -104,7 +104,7 @@ function Billing({ onBack }) {
         </div>
       </div>
 
-      <h3 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '1.5rem', color: '#fff' }}>Available Subscription Plans</h3>
+      <h3 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '1.5rem', color: 'var(--text-primary)' }}>Available Subscription Plans</h3>
       
       {/* Plans Pricing Grid */}
       <div style={{
@@ -146,9 +146,9 @@ function Billing({ onBack }) {
               )}
 
               <div>
-                <h4 style={{ fontSize: '1.4rem', fontWeight: 700, marginBottom: '0.5rem' }}>{tierName}</h4>
+                <h4 style={{ fontSize: '1.4rem', fontWeight: 700, marginBottom: '0.5rem', color: 'var(--text-primary)' }}>{tierName}</h4>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.25rem', marginBottom: '1.5rem' }}>
-                  <span style={{ fontSize: '2rem', fontWeight: 800, color: '#fff' }}>${tier.price}</span>
+                  <span style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--text-primary)' }}>{tier.price === 0 ? '₹0' : `₹${tier.price}`}</span>
                   <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>/month</span>
                 </div>
 
