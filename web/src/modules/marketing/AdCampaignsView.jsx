@@ -169,7 +169,7 @@ export default function AdCampaignsView({ campaigns: propCampaigns = [], onRefre
                 </div>
 
                 <div style={{ textAlign: 'center' }}>
-                  <span style={{ fontSize: '0.75rem', color: textMuted, display: 'block', fontWeight 700 }}>Total Spent</span>
+                  <span style={{ fontSize: '0.75rem', color: textMuted, display: 'block', fontWeight: 700 }}>Total Spent</span>
                   <strong style={{ fontSize: '1.3rem', color: '#f59e0b', fontWeight: 900 }}>₹{spent.toLocaleString()}</strong>
                 </div>
 
