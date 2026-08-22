@@ -863,6 +863,7 @@ export default function Home({
 
       {/* Main Page Content */}
       <section className="home-section-padding">
+        <div className="hero-banner-grid">
           {/* Main Airfare / Offer Banner */}
           <div style={{
             background: 'linear-gradient(135deg, #0284c7, #0369a1)',
