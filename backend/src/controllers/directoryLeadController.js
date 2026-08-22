@@ -372,20 +372,22 @@ exports.getServiceDetails = async (req, res) => {
     const { slug, city } = req.params;
     const cityStr = (city || 'tirupati').toLowerCase();
 
-    // Find master product/service in library
+    // Find master product/service in library (Safely handle MongoDB ObjectId validation)
+    const isObjectId = /^[0-9a-fA-F]{24}$/.test(slug);
     let masterItem = await prisma.productServiceLibrary.findFirst({
-      where: {
-        OR: [
-          { slug: slug.toLowerCase() },
-          { id: slug }
-        ]
-      }
+      where: isObjectId ? { OR: [{ slug: slug.toLowerCase() }, { id: slug }] } : { slug: slug.toLowerCase() }
     });
 
     if (!masterItem) {
-      // Fallback matching by name slugification
+      // Fallback matching by name slugification or category matching
       const allItems = await prisma.productServiceLibrary.findMany({ where: { status: 'APPROVED' } });
-      masterItem = allItems.find(i => (i.slug && i.slug.toLowerCase() === slug.toLowerCase()) || (i.name && i.name.toLowerCase().replace(/[^a-z0-9]+/g, '-') === slug.toLowerCase()));
+      const slugClean = slug.toLowerCase().replace(/[^a-z0-9]+/g, '');
+      masterItem = allItems.find(i => {
+        const sClean = (i.slug || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
+        const nClean = (i.name || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
+        const cClean = (i.category || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
+        return (sClean && sClean === slugClean) || (nClean && nClean === slugClean) || (cClean && cClean === slugClean);
+      });
     }
 
     if (!masterItem) {
