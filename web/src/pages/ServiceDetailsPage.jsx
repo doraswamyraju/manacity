@@ -545,7 +545,7 @@ export default function ServiceDetailsPage({ user }) {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#0f172a', fontSize: '0.84rem', fontWeight: 700 }}>
                   <Clock size={16} color="#0284c7" /> Fast 15-Min Lead Response SLA
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#0f172a', fontSize: '0.84rem', fontWeight 700 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#0f172a', fontSize: '0.84rem', fontWeight: 700 }}>
                   <Award size={16} color="#d97706" /> Zero Brokerage Commission
                 </div>
               </div>
