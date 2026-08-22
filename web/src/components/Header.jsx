@@ -403,52 +403,61 @@ export default function Header({ user, selectedCity = 'tirupati', onCityChange }
                     </span>
                   </div>
 
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-                    {masterSuggestions.map((mItem, mIdx) => (
-                      <div
-                        key={`m-${mIdx}`}
-                        onClick={() => {
-                          setShowSuggestions(false);
-                          const targetSlug = mItem.slug || mItem.name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-                          navigate(`/${selectedCity}/service/${targetSlug}`);
-                        }}
-                        style={{
-                          padding: '0.65rem 0.85rem',
-                          borderRadius: '10px',
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          backgroundColor: '#f8fafc',
-                          border: '1px solid #e2e8f0',
-                          transition: 'all 0.2s'
-                        }}
-                        onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#eff6ff'; e.currentTarget.style.borderColor = '#2563eb'; }}
-                        onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#f8fafc'; e.currentTarget.style.borderColor = '#e2e8f0'; }}
-                      >
-                        <div style={{ flex: 1, paddingRight: '0.75rem' }}>
-                          <div style={{ fontSize: '0.88rem', fontWeight: 800, color: '#0f172a', marginBottom: '0.2rem' }}>
-                            {mItem.name}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                    {masterSuggestions.map((mItem, mIdx) => {
+                      const isBestMatch = mIdx === 0 && query.trim().length >= 2;
+                      return (
+                        <div
+                          key={`m-${mIdx}`}
+                          onClick={() => {
+                            setShowSuggestions(false);
+                            const targetSlug = mItem.slug || mItem.name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+                            navigate(`/${selectedCity}/service/${targetSlug}`);
+                          }}
+                          style={{
+                            padding: '0.65rem 0.85rem',
+                            borderRadius: '12px',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            backgroundColor: isBestMatch ? '#f0f5ff' : '#f8fafc',
+                            border: isBestMatch ? '2px solid #2563eb' : '1px solid #e2e8f0',
+                            boxShadow: isBestMatch ? '0 4px 14px rgba(37, 99, 235, 0.15)' : 'none',
+                            transition: 'all 0.2s'
+                          }}
+                          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#eff6ff'; e.currentTarget.style.borderColor = '#2563eb'; }}
+                          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = isBestMatch ? '#f0f5ff' : '#f8fafc'; e.currentTarget.style.borderColor = isBestMatch ? '#2563eb' : '#e2e8f0'; }}
+                        >
+                          <div style={{ flex: 1, paddingRight: '0.75rem' }}>
+                            <div style={{ fontSize: '0.88rem', fontWeight: 900, color: '#0f172a', marginBottom: '0.2rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                              {mItem.name}
+                              {isBestMatch && (
+                                <span style={{ backgroundColor: '#2563eb', color: '#fff', fontSize: '0.62rem', fontWeight: 900, padding: '0.1rem 0.45rem', borderRadius: '10px', textTransform: 'uppercase' }}>
+                                  🎯 Best Match
+                                </span>
+                              )}
+                            </div>
+                            <div style={{ fontSize: '0.75rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                              <span style={{ backgroundColor: '#f3e8ff', color: '#7c3aed', fontWeight: 700, padding: '0.1rem 0.45rem', borderRadius: '6px', fontSize: '0.7rem' }}>
+                                {mItem.category}
+                              </span>
+                              <span>•</span>
+                              <span style={{ color: '#059669', fontWeight: 800 }}>
+                                {mItem.defaultPrice ? `Est. ₹${mItem.defaultPrice.toLocaleString('en-IN')}` : 'Custom Pricing'}
+                              </span>
+                            </div>
                           </div>
-                          <div style={{ fontSize: '0.75rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <span style={{ backgroundColor: '#f3e8ff', color: '#7c3aed', fontWeight: 700, padding: '0.1rem 0.45rem', borderRadius: '6px', fontSize: '0.7rem' }}>
-                              {mItem.category}
-                            </span>
-                            <span>•</span>
-                            <span style={{ color: '#059669', fontWeight: 800 }}>
-                              {mItem.defaultPrice ? `Est. ₹${mItem.defaultPrice.toLocaleString('en-IN')}` : 'Custom Pricing'}
-                            </span>
-                          </div>
-                        </div>
 
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexShrink: 0 }}>
-                          <span style={{ fontSize: '0.7rem', fontWeight: 800, color: '#2563eb', backgroundColor: '#eff6ff', padding: '0.25rem 0.65rem', borderRadius: '12px' }}>
-                            Explore Service Page
-                          </span>
-                          <ChevronRight size={16} color="#2563eb" />
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexShrink: 0 }}>
+                            <span style={{ fontSize: '0.7rem', fontWeight: 800, color: '#2563eb', backgroundColor: '#eff6ff', padding: '0.25rem 0.65rem', borderRadius: '12px' }}>
+                              Explore Service Page
+                            </span>
+                            <ChevronRight size={16} color="#2563eb" />
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -465,54 +474,63 @@ export default function Header({ user, selectedCity = 'tirupati', onCityChange }
                     </span>
                   </div>
 
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-                    {suggestions.map((item, idx) => (
-                      <div
-                        key={idx}
-                        onClick={() => {
-                          setShowSuggestions(false);
-                          if (item.isVerifiedManaCity) {
-                            const url = item.subdomain ? `https://${item.subdomain}.manacity.in` : `/site/${item.slug || 'rajugari-ventures'}`;
-                            window.open(url, '_blank');
-                          } else {
-                            navigate(`/${selectedCity}/service/digital-marketing`);
-                          }
-                        }}
-                        style={{
-                          padding: '0.65rem 0.85rem',
-                          borderRadius: '10px',
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          backgroundColor: '#f8fafc',
-                          border: '1px solid #e2e8f0',
-                          transition: 'all 0.2s'
-                        }}
-                        onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#eff6ff'; e.currentTarget.style.borderColor = '#2563eb'; }}
-                        onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#f8fafc'; e.currentTarget.style.borderColor = '#e2e8f0'; }}
-                      >
-                        <div style={{ flex: 1, paddingRight: '0.75rem' }}>
-                          <div style={{ fontSize: '0.88rem', fontWeight: 900, color: '#0f172a', marginBottom: '0.15rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                            {item.businessName || item.name}
-                            <ShieldCheck size={15} color="#2563eb" />
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                    {suggestions.map((item, idx) => {
+                      const isBestMatch = idx === 0 && masterSuggestions.length === 0;
+                      return (
+                        <div
+                          key={idx}
+                          onClick={() => {
+                            setShowSuggestions(false);
+                            if (item.isVerifiedManaCity) {
+                              const url = item.subdomain ? `https://${item.subdomain}.manacity.in` : `/site/${item.slug || 'rajugari-ventures'}`;
+                              window.open(url, '_blank');
+                            } else {
+                              navigate(`/${selectedCity}/service/digital-marketing`);
+                            }
+                          }}
+                          style={{
+                            padding: '0.65rem 0.85rem',
+                            borderRadius: '12px',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            backgroundColor: isBestMatch ? '#f0f5ff' : '#f8fafc',
+                            border: isBestMatch ? '2px solid #2563eb' : '1px solid #e2e8f0',
+                            boxShadow: isBestMatch ? '0 4px 14px rgba(37, 99, 235, 0.15)' : 'none',
+                            transition: 'all 0.2s'
+                          }}
+                          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#eff6ff'; e.currentTarget.style.borderColor = '#2563eb'; }}
+                          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = isBestMatch ? '#f0f5ff' : '#f8fafc'; e.currentTarget.style.borderColor = isBestMatch ? '#2563eb' : '#e2e8f0'; }}
+                        >
+                          <div style={{ flex: 1, paddingRight: '0.75rem' }}>
+                            <div style={{ fontSize: '0.88rem', fontWeight: 900, color: '#0f172a', marginBottom: '0.15rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                              {item.businessName || item.name}
+                              <ShieldCheck size={15} color="#2563eb" />
+                              {isBestMatch && (
+                                <span style={{ backgroundColor: '#2563eb', color: '#fff', fontSize: '0.62rem', fontWeight: 900, padding: '0.1rem 0.45rem', borderRadius: '10px', textTransform: 'uppercase' }}>
+                                  🎯 Best Match
+                                </span>
+                              )}
+                            </div>
+                            <div style={{ fontSize: '0.75rem', color: '#64748b' }}>
+                              {item.address || 'Tirupati, Andhra Pradesh'} • ★ {item.googleRating || 4.9} ({item.googleReviewCount || 63})
+                            </div>
                           </div>
-                          <div style={{ fontSize: '0.75rem', color: '#64748b' }}>
-                            {item.address || 'Tirupati, Andhra Pradesh'} • ★ {item.googleRating || 4.9} ({item.googleReviewCount || 63})
-                          </div>
-                        </div>
 
-                        <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#2563eb', backgroundColor: '#eff6ff', padding: '0.25rem 0.65rem', borderRadius: '8px', display: 'inline-flex', alignItems: 'center', gap: '0.2rem' }}>
-                          Visit Storefront <ExternalLink size={12} />
-                        </span>
-                      </div>
-                    ))}
+                          <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#2563eb', backgroundColor: '#eff6ff', padding: '0.25rem 0.65rem', borderRadius: '8px', display: 'inline-flex', alignItems: 'center', gap: '0.2rem' }}>
+                            Visit Storefront <ExternalLink size={12} />
+                          </span>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               )}
 
-              {/* 3. UNMATCHED SEARCH QUERY REQUEST BUTTON */}
-              {query.trim().length >= 2 && (
+              {/* 3. UNMATCHED SEARCH QUERY REQUEST BUTTON (ONLY SHOWN IF ZERO RESULTS FOUND) */}
+              {masterSuggestions.length === 0 && suggestions.length === 0 && query.trim().length >= 3 && (
                 <div style={{ padding: '0.85rem 1rem', backgroundColor: '#fffbeb', border: '1px solid #fde68a', borderRadius: '12px', textAlign: 'left', marginTop: '0.5rem' }}>
                   <div style={{ fontSize: '0.82rem', fontWeight: 800, color: '#d97706', marginBottom: '0.2rem' }}>
                     🔍 Didn't find exact provider for "{query}"?
