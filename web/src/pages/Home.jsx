@@ -163,6 +163,7 @@ export default function Home({
   const [selectedServiceVendorsModal, setSelectedServiceVendorsModal] = useState(null);
   const [unmatchedSearchQueryText, setUnmatchedSearchQueryText] = useState('');
   const [unmatchedSubmittedMessage, setUnmatchedSubmittedMessage] = useState('');
+  const [dropdownFilter, setDropdownFilter] = useState('ALL');
 
   useEffect(() => {
     if (!query || query.trim().length < 2) {
@@ -576,147 +577,292 @@ export default function Home({
             {showSuggestions && (
               <div style={{
                 position: 'absolute',
-                top: '100%',
+                top: 'calc(100% + 10px)',
                 left: 0,
                 right: 0,
-                marginTop: '8px',
-                backgroundColor: '#1e293b',
-                border: '1px solid #334155',
-                borderRadius: '12px',
-                boxShadow: '0 12px 30px rgba(0,0,0,0.7)',
+                backgroundColor: themeMode === 'dark' ? 'rgba(15, 23, 42, 0.96)' : 'rgba(255, 255, 255, 0.98)',
+                backdropFilter: 'blur(16px)',
+                WebkitBackdropFilter: 'blur(16px)',
+                border: themeMode === 'dark' ? '1px solid rgba(255, 255, 255, 0.15)' : '1px solid rgba(203, 213, 225, 0.8)',
+                borderRadius: '16px',
+                boxShadow: themeMode === 'dark'
+                  ? '0 20px 50px rgba(0, 0, 0, 0.7), 0 0 25px rgba(99, 102, 241, 0.15)'
+                  : '0 20px 40px rgba(0, 0, 0, 0.12), 0 0 20px rgba(59, 130, 246, 0.08)',
                 zIndex: 1000,
-                maxHeight: '360px',
-                overflowY: 'auto'
+                maxHeight: '440px',
+                overflowY: 'auto',
+                padding: '0.6rem'
               }}>
 
-                {/* 1. MASTER PRODUCTS & SERVICES SECTION */}
-                {masterSuggestions.length > 0 && (
-                  <div style={{ padding: '0.65rem 0.85rem', backgroundColor: 'rgba(99, 102, 241, 0.12)', borderBottom: '1px solid rgba(99, 102, 241, 0.2)' }}>
-                    <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#818cf8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                      📦 Products & Services Catalog
+                {/* Filter Tabs Bar (All, Services, Businesses) */}
+                <div style={{
+                  display: 'flex',
+                  gap: '0.4rem',
+                  paddingBottom: '0.5rem',
+                  marginBottom: '0.5rem',
+                  borderBottom: themeMode === 'dark' ? '1px solid rgba(255,255,255,0.08)' : '1px solid #e2e8f0',
+                  overflowX: 'auto'
+                }}>
+                  <button
+                    type="button"
+                    onClick={() => setDropdownFilter('ALL')}
+                    style={{
+                      padding: '0.3rem 0.75rem',
+                      borderRadius: '20px',
+                      border: 'none',
+                      backgroundColor: dropdownFilter === 'ALL' ? '#3b82f6' : (themeMode === 'dark' ? 'rgba(255,255,255,0.08)' : '#f1f5f9'),
+                      color: dropdownFilter === 'ALL' ? '#fff' : (themeMode === 'dark' ? '#94a3b8' : '#64748b'),
+                      fontSize: '0.75rem',
+                      fontWeight: 800,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    All Results ({masterSuggestions.length + suggestions.length})
+                  </button>
+                  {masterSuggestions.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setDropdownFilter('SERVICES')}
+                      style={{
+                        padding: '0.3rem 0.75rem',
+                        borderRadius: '20px',
+                        border: 'none',
+                        backgroundColor: dropdownFilter === 'SERVICES' ? '#6366f1' : (themeMode === 'dark' ? 'rgba(255,255,255,0.08)' : '#f1f5f9'),
+                        color: dropdownFilter === 'SERVICES' ? '#fff' : (themeMode === 'dark' ? '#94a3b8' : '#64748b'),
+                        fontSize: '0.75rem',
+                        fontWeight: 800,
+                        cursor: 'pointer'
+                      }}
+                    >
+                      📦 Offerings ({masterSuggestions.length})
+                    </button>
+                  )}
+                  {suggestions.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setDropdownFilter('BUSINESSES')}
+                      style={{
+                        padding: '0.3rem 0.75rem',
+                        borderRadius: '20px',
+                        border: 'none',
+                        backgroundColor: dropdownFilter === 'BUSINESSES' ? '#10b981' : (themeMode === 'dark' ? 'rgba(255,255,255,0.08)' : '#f1f5f9'),
+                        color: dropdownFilter === 'BUSINESSES' ? '#fff' : (themeMode === 'dark' ? '#94a3b8' : '#64748b'),
+                        fontSize: '0.75rem',
+                        fontWeight: 800,
+                        cursor: 'pointer'
+                      }}
+                    >
+                      🏢 Providers ({suggestions.length})
+                    </button>
+                  )}
+                </div>
+
+                {/* 1. MASTER PRODUCTS & SERVICES CATALOG SECTION */}
+                {(dropdownFilter === 'ALL' || dropdownFilter === 'SERVICES') && masterSuggestions.length > 0 && (
+                  <div style={{ marginBottom: '0.85rem' }}>
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '0.4rem 0.6rem 0.35rem',
+                      marginBottom: '0.35rem'
+                    }}>
+                      <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#818cf8', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                        📦 System Products & Services
+                      </span>
+                      <span style={{ fontSize: '0.68rem', fontWeight: 700, color: '#94a3b8', backgroundColor: 'rgba(99, 102, 241, 0.12)', padding: '0.15rem 0.5rem', borderRadius: '10px' }}>
+                        Central Master Catalog
+                      </span>
                     </div>
-                    {masterSuggestions.map((mItem, mIdx) => (
-                      <div
-                        key={`m-${mIdx}`}
-                        onClick={() => {
-                          setShowSuggestions(false);
-                          const targetSlug = mItem.slug || mItem.name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-                          window.location.href = `/${selectedCity}/service/${targetSlug}`;
-                        }}
-                        style={{
-                          padding: '8px 10px',
-                          marginTop: '4px',
-                          borderRadius: '6px',
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          backgroundColor: 'rgba(255,255,255,0.03)',
-                          transition: 'backgroundColor 0.2s'
-                        }}
-                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#0f172a'}
-                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.03)'}
-                      >
-                        <div>
-                          <div style={{ fontSize: '13px', fontWeight: 800, color: '#fff' }}>{mItem.name}</div>
-                          <div style={{ fontSize: '11px', color: '#94a3b8' }}>
-                            Category: {mItem.category} • {mItem.defaultPrice ? `₹${mItem.defaultPrice.toLocaleString('en-IN')}` : 'Custom Pricing'}
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                      {masterSuggestions.map((mItem, mIdx) => (
+                        <div
+                          key={`m-${mIdx}`}
+                          onClick={() => {
+                            setShowSuggestions(false);
+                            const targetSlug = mItem.slug || mItem.name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+                            window.location.href = `/${selectedCity}/service/${targetSlug}`;
+                          }}
+                          style={{
+                            padding: '0.65rem 0.85rem',
+                            borderRadius: '10px',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            backgroundColor: themeMode === 'dark' ? 'rgba(30, 41, 59, 0.6)' : '#f8fafc',
+                            border: themeMode === 'dark' ? '1px solid rgba(255,255,255,0.06)' : '1px solid #e2e8f0',
+                            transition: 'all 0.2s'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = themeMode === 'dark' ? '#1e293b' : '#edf2f7';
+                            e.currentTarget.style.borderColor = '#818cf8';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = themeMode === 'dark' ? 'rgba(30, 41, 59, 0.6)' : '#f8fafc';
+                            e.currentTarget.style.borderColor = themeMode === 'dark' ? 'rgba(255,255,255,0.06)' : '#e2e8f0';
+                          }}
+                        >
+                          <div style={{ flex: 1, paddingRight: '0.75rem' }}>
+                            <div style={{ fontSize: '0.88rem', fontWeight: 800, color: themeMode === 'dark' ? '#fff' : '#0f172a', marginBottom: '0.2rem' }}>
+                              {mItem.name}
+                            </div>
+                            <div style={{ fontSize: '0.75rem', color: themeMode === 'dark' ? '#94a3b8' : '#64748b', display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                              <span style={{ backgroundColor: 'rgba(99,102,241,0.12)', color: '#818cf8', fontWeight: 700, padding: '0.1rem 0.45rem', borderRadius: '6px', fontSize: '0.7rem' }}>
+                                {mItem.category}
+                              </span>
+                              <span>•</span>
+                              <span style={{ color: '#10b981', fontWeight: 800 }}>
+                                {mItem.defaultPrice ? `Est. ₹${mItem.defaultPrice.toLocaleString('en-IN')}` : 'Custom Pricing'}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexShrink: 0 }}>
+                            <span style={{
+                              fontSize: '0.7rem',
+                              fontWeight: 800,
+                              color: mItem.vendorCount > 0 ? '#10b981' : '#f59e0b',
+                              backgroundColor: mItem.vendorCount > 0 ? 'rgba(16,185,129,0.15)' : 'rgba(245,158,11,0.15)',
+                              padding: '0.25rem 0.65rem',
+                              borderRadius: '12px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.3rem'
+                            }}>
+                              <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: mItem.vendorCount > 0 ? '#10b981' : '#f59e0b' }}></span>
+                              {mItem.vendorCount > 0 ? `${mItem.vendorCount} Vendor(s) in ${selectedCity}` : 'Explore Page'}
+                            </span>
+                            <ChevronRight size={16} color="#818cf8" />
                           </div>
                         </div>
-                        <span style={{ fontSize: '10px', fontWeight: 800, color: '#10b981', backgroundColor: 'rgba(16,185,129,0.15)', padding: '3px 8px', borderRadius: '6px' }}>
-                          {mItem.vendorCount > 0 ? `${mItem.vendorCount} Vendor(s) Available` : 'Explore Providers'}
-                        </span>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
                 )}
 
-                {/* 2. LOCAL BUSINESS DIRECTORY RESULTS */}
-                {suggestions.length > 0 && (
-                  <div>
-                    <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', padding: '0.5rem 0.85rem 0.25rem' }}>
-                      🏢 Registered Businesses & Providers
+                {/* 2. LOCAL BUSINESS DIRECTORY RESULTS SECTION */}
+                {(dropdownFilter === 'ALL' || dropdownFilter === 'BUSINESSES') && suggestions.length > 0 && (
+                  <div style={{ marginBottom: '0.5rem' }}>
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '0.4rem 0.6rem 0.35rem',
+                      marginBottom: '0.35rem'
+                    }}>
+                      <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#38bdf8', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                        🏢 Local Verified Businesses
+                      </span>
+                      <span style={{ fontSize: '0.68rem', fontWeight: 700, color: '#94a3b8', backgroundColor: 'rgba(56, 189, 248, 0.12)', padding: '0.15rem 0.5rem', borderRadius: '10px', textTransform: 'capitalize' }}>
+                        📍 {selectedCity}
+                      </span>
                     </div>
-                    {suggestions.map((item, idx) => (
-                      <div
-                        key={idx}
-                        onClick={() => {
-                          setShowSuggestions(false);
-                          if (item.isVerifiedManaCity) {
-                            const url = item.subdomain
-                              ? `https://${item.subdomain}.manacity.in`
-                              : `/site/${item.slug || 'kumar-shirts'}`;
-                            window.open(url, '_blank');
-                          } else {
-                            setUnonboardedTargetBusiness(item);
-                          }
-                        }}
-                        style={{
-                          padding: '10px 14px',
-                          borderBottom: '1px solid rgba(255,255,255,0.05)',
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between'
-                        }}
-                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#0f172a'}
-                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                      >
-                        <div>
-                          <div style={{ fontSize: '13px', fontWeight: '700', color: '#fff' }}>{item.businessName}</div>
-                          <div style={{ fontSize: '11px', color: '#94a3b8' }}>{item.address || item.category}</div>
-                        </div>
-                        {item.isVerifiedManaCity ? (
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                      {suggestions.map((item, idx) => (
+                        <div
+                          key={idx}
+                          onClick={() => {
+                            setShowSuggestions(false);
+                            if (item.isVerifiedManaCity) {
+                              const url = item.subdomain
+                                ? `https://${item.subdomain}.manacity.in`
+                                : `/site/${item.slug || 'kumar-shirts'}`;
+                              window.open(url, '_blank');
+                            } else {
+                              setUnonboardedTargetBusiness(item);
+                            }
+                          }}
+                          style={{
+                            padding: '0.65rem 0.85rem',
+                            borderRadius: '10px',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            backgroundColor: themeMode === 'dark' ? 'rgba(30, 41, 59, 0.6)' : '#f8fafc',
+                            border: themeMode === 'dark' ? '1px solid rgba(255,255,255,0.06)' : '1px solid #e2e8f0',
+                            transition: 'all 0.2s'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = themeMode === 'dark' ? '#1e293b' : '#edf2f7';
+                            e.currentTarget.style.borderColor = '#38bdf8';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = themeMode === 'dark' ? 'rgba(30, 41, 59, 0.6)' : '#f8fafc';
+                            e.currentTarget.style.borderColor = themeMode === 'dark' ? 'rgba(255,255,255,0.06)' : '#e2e8f0';
+                          }}
+                        >
+                          <div style={{ flex: 1, paddingRight: '0.75rem' }}>
+                            <div style={{ fontSize: '0.88rem', fontWeight: 800, color: themeMode === 'dark' ? '#fff' : '#0f172a', marginBottom: '0.15rem' }}>
+                              {item.businessName}
+                            </div>
+                            <div style={{ fontSize: '0.75rem', color: themeMode === 'dark' ? '#94a3b8' : '#64748b' }}>
+                              {item.address || item.category}
+                            </div>
+                          </div>
+
+                          {item.isVerifiedManaCity ? (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              <span
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setShowSuggestions(false);
+                                  const url = item.subdomain
+                                    ? `https://${item.subdomain}.manacity.in`
+                                    : `/site/${item.slug || 'kumar-shirts'}`;
+                                  window.open(url, '_blank');
+                                }}
+                                style={{ fontSize: '0.7rem', fontWeight: 800, color: '#38bdf8', backgroundColor: 'rgba(56,189,248,0.15)', padding: '0.25rem 0.65rem', borderRadius: '8px', cursor: 'pointer' }}
+                              >
+                                Storefront
+                              </span>
+                              <span
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setShowSuggestions(false);
+                                  setSelectedLeadModal(item);
+                                }}
+                                style={{ fontSize: '0.7rem', fontWeight: 800, color: '#10b981', backgroundColor: 'rgba(16,185,129,0.15)', padding: '0.25rem 0.65rem', borderRadius: '8px', cursor: 'pointer' }}
+                              >
+                                Enquire
+                              </span>
+                            </div>
+                          ) : (
                             <span
                               onClick={(e) => {
                                 e.stopPropagation();
                                 setShowSuggestions(false);
-                                const url = item.subdomain
-                                  ? `https://${item.subdomain}.manacity.in`
-                                  : `/site/${item.slug || 'kumar-shirts'}`;
-                                window.open(url, '_blank');
+                                setUnonboardedTargetBusiness(item);
                               }}
-                              style={{ fontSize: '10px', fontWeight: '700', color: '#38bdf8', backgroundColor: 'rgba(56,189,248,0.15)', padding: '3px 8px', borderRadius: '4px', cursor: 'pointer' }}
-                            >
-                              Verified Page
-                            </span>
-                            <span
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setShowSuggestions(false);
-                                setSelectedLeadModal(item);
-                              }}
-                              style={{ fontSize: '10px', fontWeight: '700', color: '#10b981', backgroundColor: 'rgba(16,185,129,0.15)', padding: '3px 8px', borderRadius: '4px', cursor: 'pointer' }}
+                              style={{ fontSize: '0.7rem', fontWeight: 800, color: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.15)', padding: '0.25rem 0.65rem', borderRadius: '8px', cursor: 'pointer' }}
                             >
                               Enquire
                             </span>
-                          </div>
-                        ) : (
-                          <span
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setShowSuggestions(false);
-                              setUnonboardedTargetBusiness(item);
-                            }}
-                            style={{ fontSize: '10px', fontWeight: '700', color: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.15)', padding: '3px 8px', borderRadius: '4px', cursor: 'pointer' }}
-                          >
-                            Enquire
-                          </span>
-                        )}
-                      </div>
-                    ))}
+                          )}
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
 
                 {/* 3. UNMATCHED SEARCH QUERY CARD (IF FEW OR NO RESULTS FOUND) */}
                 {query.trim().length >= 2 && (
-                  <div style={{ padding: '0.85rem', backgroundColor: 'rgba(245, 158, 11, 0.1)', borderTop: '1px solid rgba(245, 158, 11, 0.25)', textAlign: 'left' }}>
-                    <div style={{ fontSize: '0.82rem', fontWeight: 800, color: '#fbbf24', marginBottom: '0.2rem' }}>
+                  <div style={{
+                    padding: '0.85rem 1rem',
+                    backgroundColor: themeMode === 'dark' ? 'rgba(245, 158, 11, 0.1)' : '#fffbebfb',
+                    border: '1px solid rgba(245, 158, 11, 0.3)',
+                    borderRadius: '12px',
+                    textAlign: 'left',
+                    marginTop: '0.5rem'
+                  }}>
+                    <div style={{ fontSize: '0.82rem', fontWeight: 800, color: '#d97706', marginBottom: '0.2rem' }}>
                       🔍 Didn't find exact provider for "{query}"?
                     </div>
-                    <div style={{ fontSize: '0.75rem', color: '#cbd5e1', marginBottom: '0.5rem' }}>
-                      Submit an Unmatched Search Request. Our ManaCity Super Admin team will verify and onboard top local providers for you in {selectedCity}!
+                    <div style={{ fontSize: '0.75rem', color: themeMode === 'dark' ? '#cbd5e1' : '#475569', marginBottom: '0.6rem', lineHeight: 1.4 }}>
+                      Submit an Unmatched Search Request. ManaCity Super Admin team will verify and onboard top local providers for you in {selectedCity}!
                     </div>
                     <button
                       type="button"
@@ -740,8 +886,8 @@ export default function Home({
                         backgroundColor: '#f59e0b',
                         color: '#0f172a',
                         border: 'none',
-                        borderRadius: '6px',
-                        padding: '0.4rem 0.85rem',
+                        borderRadius: '8px',
+                        padding: '0.45rem 0.9rem',
                         fontSize: '0.78rem',
                         fontWeight: 800,
                         cursor: 'pointer',
