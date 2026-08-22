@@ -365,7 +365,6 @@ exports.importGooglePlaces = async (req, res) => {
           });
         }
       }
-    }
 
     // Auto-create/update Website configuration with unique subdomain
     let websiteConfig = null;
