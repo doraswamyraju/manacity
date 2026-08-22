@@ -7,6 +7,8 @@ const auth = require('../middleware/auth');
 
 // ManaCity Unified Search, Service Details & Unmatched Inquiry
 router.get('/search-unified', directoryLeadController.searchUnified);
+router.get('/search-suggestions', directoryLeadController.searchSuggestions);
+router.get('/master-services-search', directoryLeadController.masterServicesSearch);
 router.post('/unmatched-query', directoryLeadController.recordUnmatchedSearch);
 router.get('/service-details/:city/:slug', directoryLeadController.getServiceDetails);
 router.get('/service-details/:slug', directoryLeadController.getServiceDetails);
