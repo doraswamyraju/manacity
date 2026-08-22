@@ -37,7 +37,8 @@ import {
   Plane,
   GraduationCap,
   Wrench,
-  MoreHorizontal
+  MoreHorizontal,
+  Megaphone
 } from 'lucide-react';
 
 export default function ServiceDetailsPage({ user }) {
@@ -140,6 +141,48 @@ export default function ServiceDetailsPage({ user }) {
 
     return list;
   }, [data?.vendors, vendorSearch, minRating, verifiedOnly, sortBy]);
+
+  // Handle Phone Call Lead & Redirection
+  const handlePhoneCallLead = async (vendor) => {
+    try {
+      await axios.post('/api/phase1/lead', {
+        businessGroupId: vendor.id,
+        channel: 'PHONE_CALL',
+        contactName: user?.name || 'Phone Visitor',
+        contactPhone: user?.phone || vendor.phone || '',
+        contactEmail: user?.email || '',
+        message: `[DIRECT CALL CLICKED] Clicked Phone Call for ${data?.service?.name || 'Service'}`,
+        visitorLocation: data?.city || 'Tirupati',
+        viewedServices: [data?.service?.name || 'Service']
+      });
+    } catch (err) {
+      console.warn('Failed to record phone lead:', err);
+    }
+    const cleanPhone = (vendor.phone || '9876543210').replace(/[^0-9]/g, '');
+    window.location.href = `tel:${cleanPhone}`;
+  };
+
+  // Handle WhatsApp Lead & Redirection
+  const handleWhatsAppLead = async (vendor) => {
+    try {
+      await axios.post('/api/phase1/lead', {
+        businessGroupId: vendor.id,
+        channel: 'WHATSAPP',
+        contactName: user?.name || 'WhatsApp Visitor',
+        contactPhone: user?.phone || vendor.phone || '',
+        contactEmail: user?.email || '',
+        message: `[WHATSAPP CLICKED] Clicked WhatsApp Chat for ${data?.service?.name || 'Service'}`,
+        visitorLocation: data?.city || 'Tirupati',
+        viewedServices: [data?.service?.name || 'Service']
+      });
+    } catch (err) {
+      console.warn('Failed to record whatsapp lead:', err);
+    }
+    const cleanPhone = (vendor.whatsApp || vendor.phone || '9876543210').replace(/[^0-9]/g, '');
+    const num = cleanPhone.length === 10 ? `91${cleanPhone}` : cleanPhone;
+    const text = encodeURIComponent(`Hi ${vendor.name}, I found your business on ManaCity for ${data?.service?.name || 'Service'} in ${data?.city || 'Tirupati'}. I would like to inquire about your services and pricing.`);
+    window.open(`https://wa.me/${num}?text=${text}`, '_blank');
+  };
 
   const handleLeadSubmit = async (e) => {
     e.preventDefault();
@@ -249,7 +292,7 @@ export default function ServiceDetailsPage({ user }) {
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc', color: '#0f172a', fontFamily: 'Inter, system-ui, sans-serif' }}>
       
-      {/* 1. Unified Main Header (Matching Exact Home Header) */}
+      {/* 1. Main Top Header Bar */}
       <header style={{
         display: 'flex',
         flexDirection: 'column',
@@ -260,7 +303,7 @@ export default function ServiceDetailsPage({ user }) {
         zIndex: 100,
         boxShadow: '0 4px 16px rgba(0,0,0,0.04)'
       }}>
-        {/* Main Top Header Bar */}
+        {/* Top Header Bar */}
         <div style={{
           display: 'flex',
           alignItems: 'center',
@@ -311,7 +354,7 @@ export default function ServiceDetailsPage({ user }) {
             </div>
           </div>
 
-          {/* Center: Search Input Bar */}
+          {/* Center: Search Bar */}
           <div style={{
             flex: '1 1 380px',
             maxWidth: '650px',
@@ -421,17 +464,17 @@ export default function ServiceDetailsPage({ user }) {
         </div>
       </header>
 
-      {/* 2. Hero Service Banner (Positioned Directly Below Header) */}
+      {/* 2. Top Hero Section with Left Advertising Banner & Right Top Description */}
       <div style={{
         backgroundColor: '#ffffff',
         borderBottom: '1px solid #e2e8f0',
-        padding: '2rem 1.5rem',
-        background: 'linear-gradient(135deg, #eff6ff 0%, #f0fdf4 100%)'
+        padding: '1.75rem 1.5rem',
+        background: 'linear-gradient(135deg, #f8fafc 0%, #eff6ff 100%)'
       }}>
         <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
           
           {/* Breadcrumb Navigation */}
-          <nav style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', color: '#64748b', marginBottom: '1rem', flexWrap: 'wrap' }}>
+          <nav style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', color: '#64748b', marginBottom: '1.25rem', flexWrap: 'wrap' }}>
             <Link to="/" style={{ color: '#64748b', textDecoration: 'none' }}>Home</Link>
             <ChevronRight size={14} />
             <span style={{ textTransform: 'capitalize' }}>{data.city}</span>
@@ -441,51 +484,87 @@ export default function ServiceDetailsPage({ user }) {
             <span style={{ color: '#0f172a', fontWeight: 800 }}>{service.name}</span>
           </nav>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '0.85rem' }}>
-            <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#2563eb', textTransform: 'uppercase', letterSpacing: '0.05em', backgroundColor: '#dbeafe', padding: '0.3rem 0.75rem', borderRadius: '12px' }}>
-              📦 {service.category}
-            </span>
-            <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#059669', backgroundColor: '#d1fae5', padding: '0.3rem 0.75rem', borderRadius: '12px' }}>
-              {service.defaultPrice ? `Est. Price: ₹${service.defaultPrice.toLocaleString('en-IN')}` : 'Custom Market Pricing'}
-            </span>
-            <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#0284c7', backgroundColor: '#e0f2fe', padding: '0.3rem 0.75rem', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-              <ShieldCheck size={14} /> Verified ManaCity Master Offering
-            </span>
-          </div>
-
-          <h1 style={{ fontSize: '2.2rem', fontWeight: 900, color: '#0f172a', margin: '0 0 0.65rem 0', lineHeight: 1.2 }}>
+          <h1 style={{ fontSize: '2.1rem', fontWeight: 900, color: '#0f172a', margin: '0 0 1rem 0', lineHeight: 1.2 }}>
             {service.name} in {cityNameCap}
           </h1>
 
-          <p style={{ fontSize: '1rem', color: '#475569', lineHeight: 1.6, marginBottom: '1.25rem', maxWidth: '900px' }}>
-            {service.description || `Explore top-rated verified local providers offering ${service.name} in ${cityNameCap}. Compare customer ratings, contact business owners directly, and receive fast competitive quotes.`}
-          </p>
+          {/* Grid: Left Advertising Banner (60%) + Right Top Text & SLA Badges (40%) */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.2fr) minmax(0, 1fr)', gap: '1.5rem', alignItems: 'center' }}>
+            
+            {/* LEFT BOX: FEATURED ADVERTISING BANNER */}
+            <div style={{
+              background: 'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)',
+              borderRadius: '16px',
+              padding: '1.35rem 1.5rem',
+              color: '#ffffff',
+              boxShadow: '0 8px 24px rgba(37, 99, 235, 0.25)',
+              position: 'relative',
+              overflow: 'hidden'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                <Megaphone size={18} color="#fbbf24" />
+                <span style={{ fontSize: '0.72rem', fontWeight: 900, backgroundColor: 'rgba(251, 191, 36, 0.25)', color: '#fbbf24', padding: '0.2rem 0.55rem', borderRadius: '10px', letterSpacing: '0.05em' }}>
+                  FEATURED SPONSOR AD
+                </span>
+              </div>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 900, margin: '0 0 0.35rem 0', lineHeight: 1.3 }}>
+                Grow Your Business in {cityNameCap}!
+              </h3>
+              <p style={{ fontSize: '0.85rem', color: '#dbeafe', margin: '0 0 1rem 0', lineHeight: 1.4 }}>
+                Advertise your business in top spots for <strong>{service.name}</strong>. Get 10x more leads & direct customer calls today.
+              </p>
+              <button
+                type="button"
+                onClick={() => navigate('/register')}
+                style={{
+                  backgroundColor: '#fbbf24',
+                  color: '#0f172a',
+                  border: 'none',
+                  borderRadius: '8px',
+                  padding: '0.5rem 1.1rem',
+                  fontSize: '0.82rem',
+                  fontWeight: 900,
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 12px rgba(251, 191, 36, 0.4)'
+                }}
+              >
+                📢 Sponsor This Service
+              </button>
+            </div>
 
-          <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap', borderTop: '1px solid #cbd5e1', paddingTop: '1rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#475569', fontSize: '0.86rem', fontWeight: 600 }}>
-              <CheckCircle2 size={16} color="#059669" /> 100% Verified Local Vendors
+            {/* RIGHT BOX: TOP DESCRIPTION TEXT & SLA GUARANTEES */}
+            <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '1.35rem 1.5rem', boxShadow: '0 4px 16px rgba(0,0,0,0.03)' }}>
+              <p style={{ fontSize: '0.92rem', color: '#475569', lineHeight: 1.6, margin: '0 0 1rem 0' }}>
+                {service.description || `Explore top-rated verified local providers offering ${service.name} in ${cityNameCap}. Compare customer ratings, contact business owners directly, and receive fast competitive quotes.`}
+              </p>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', borderTop: '1px solid #f1f5f9', paddingTop: '0.85rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#0f172a', fontSize: '0.84rem', fontWeight: 700 }}>
+                  <CheckCircle2 size={16} color="#059669" /> 100% Verified Local Vendors
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#0f172a', fontSize: '0.84rem', fontWeight: 700 }}>
+                  <Clock size={16} color="#0284c7" /> Fast 15-Min Lead Response SLA
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#0f172a', fontSize: '0.84rem', fontWeight 700 }}>
+                  <Award size={16} color="#d97706" /> Zero Brokerage Commission
+                </div>
+              </div>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#475569', fontSize: '0.86rem', fontWeight: 600 }}>
-              <Clock size={16} color="#0284c7" /> Fast 15-Min Response SLA
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#475569', fontSize: '0.86rem', fontWeight: 600 }}>
-              <Award size={16} color="#d97706" /> Zero Brokerage Commission
-            </div>
+
           </div>
 
         </div>
       </div>
 
-      {/* 3. Main Container (Primarily Light Mode & Primary List View Layout) */}
+      {/* 3. Main Container (List View Businesses & Broadcast Quote Sidebar) */}
       <main style={{ maxWidth: '1280px', margin: '0 auto', padding: '2rem 1.5rem' }}>
         
-        {/* 2-Column Content Layout (70% List View Vendors + 30% Broadcast Sidebar) */}
         <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 350px', gap: '2rem', alignItems: 'start' }}>
           
-          {/* LEFT COLUMN: PRIMARY LIST VIEW VENDORS */}
+          {/* LEFT COLUMN: BUSINESSES LIST VIEW */}
           <div>
             
-            {/* Light Mode Filter & Toolbar */}
+            {/* Filter & Toolbar */}
             <div style={{
               backgroundColor: '#ffffff',
               border: '1px solid #e2e8f0',
@@ -582,7 +661,7 @@ export default function ServiceDetailsPage({ user }) {
                   </div>
                 </div>
 
-                {/* View Mode Toggle (Default List View) */}
+                {/* View Mode Toggle */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', backgroundColor: '#f1f5f9', padding: '0.2rem', borderRadius: '8px', border: '1px solid #cbd5e1' }}>
                   <button
                     type="button"
@@ -636,7 +715,7 @@ export default function ServiceDetailsPage({ user }) {
               </span>
             </div>
 
-            {/* 4. PRIMARY LIST VIEW BUSINESS CARDS */}
+            {/* BUSINESS CARDS LIST VIEW */}
             {filteredVendors.length > 0 ? (
               <div style={{
                 display: 'flex',
@@ -665,9 +744,9 @@ export default function ServiceDetailsPage({ user }) {
                     onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#2563eb'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(37, 99, 235, 0.12)'; }}
                     onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.04)'; }}
                   >
-                    {/* Left: Business Avatar & Info */}
+                    {/* Left: Vendor Logo, Info & Vendor Specific Price Badge */}
                     <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1.15rem', flex: 1 }}>
-                      <div style={{ width: '60px', height: '60px', borderRadius: '14px', backgroundColor: '#f1f5f9', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, color: '#2563eb', fontSize: '1.4rem', flexShrink: 0, border: '1px solid #e2e8f0' }}>
+                      <div style={{ width: '64px', height: '64px', borderRadius: '14px', backgroundColor: '#f1f5f9', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, color: '#2563eb', fontSize: '1.4rem', flexShrink: 0, border: '1px solid #e2e8f0' }}>
                         {vendor.logoUrl ? <img src={vendor.logoUrl} alt={vendor.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : vendor.name.charAt(0)}
                       </div>
 
@@ -683,13 +762,15 @@ export default function ServiceDetailsPage({ user }) {
                           )}
                         </div>
 
-                        {/* Rating & Reviews */}
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.4rem' }}>
+                        {/* Rating & Vendor-Specific Price Banner Badge */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.45rem', flexWrap: 'wrap' }}>
                           <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#b45309', backgroundColor: '#fef3c7', padding: '0.15rem 0.5rem', borderRadius: '6px', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
                             ★ {vendor.rating || 4.9} ({vendor.reviewCount || 15} reviews)
                           </span>
-                          <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>
-                            Category: {service.category}
+
+                          {/* Vendor Price Tag inside Card Banner */}
+                          <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#059669', backgroundColor: '#d1fae5', padding: '0.15rem 0.6rem', borderRadius: '6px', display: 'inline-flex', alignItems: 'center', gap: '0.25rem', border: '1px solid #a7f3d0' }}>
+                            💰 Price: {vendor.price ? `₹${vendor.price.toLocaleString('en-IN')}` : 'Custom Quote'}
                           </span>
                         </div>
 
@@ -700,8 +781,78 @@ export default function ServiceDetailsPage({ user }) {
                       </div>
                     </div>
 
-                    {/* Right: Action Buttons */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', flexShrink: 0, width: viewMode === 'GRID' ? '100%' : 'auto' }}>
+                    {/* Right: HIGHLIGHTED Action Buttons (Call, WhatsApp, Get Quote, Storefront) */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0, flexWrap: 'wrap' }}>
+                      {/* Call Now Button (Creates Lead) */}
+                      <button
+                        type="button"
+                        onClick={() => handlePhoneCallLead(vendor)}
+                        style={{
+                          backgroundColor: '#0284c7',
+                          color: '#ffffff',
+                          border: 'none',
+                          borderRadius: '10px',
+                          padding: '0.6rem 0.9rem',
+                          fontSize: '0.82rem',
+                          fontWeight: 800,
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.35rem',
+                          boxShadow: '0 4px 12px rgba(2, 132, 199, 0.25)'
+                        }}
+                        title="Call Provider (Logs lead automatically)"
+                      >
+                        <Phone size={14} /> Call
+                      </button>
+
+                      {/* WhatsApp Chat Button (Creates Lead) */}
+                      <button
+                        type="button"
+                        onClick={() => handleWhatsAppLead(vendor)}
+                        style={{
+                          backgroundColor: '#25d366',
+                          color: '#ffffff',
+                          border: 'none',
+                          borderRadius: '10px',
+                          padding: '0.6rem 0.9rem',
+                          fontSize: '0.82rem',
+                          fontWeight: 800,
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.35rem',
+                          boxShadow: '0 4px 12px rgba(37, 211, 102, 0.3)'
+                        }}
+                        title="Chat on WhatsApp (Logs lead automatically)"
+                      >
+                        <MessageSquare size={14} /> WhatsApp
+                      </button>
+
+                      {/* HIGHLIGHTED GET QUOTE BUTTON */}
+                      <button
+                        type="button"
+                        onClick={() => setSelectedVendorForLead(vendor)}
+                        style={{
+                          background: 'linear-gradient(135deg, #059669 0%, #10b981 100%)',
+                          border: 'none',
+                          color: '#ffffff',
+                          borderRadius: '10px',
+                          padding: '0.65rem 1.25rem',
+                          fontSize: '0.85rem',
+                          fontWeight: 900,
+                          letterSpacing: '0.02em',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.4rem',
+                          boxShadow: '0 4px 16px rgba(16, 185, 129, 0.45)'
+                        }}
+                      >
+                        <Zap size={15} color="#fff" /> GET QUOTE
+                      </button>
+
+                      {/* Storefront Button */}
                       <button
                         type="button"
                         onClick={() => {
@@ -711,39 +862,19 @@ export default function ServiceDetailsPage({ user }) {
                         style={{
                           backgroundColor: '#f1f5f9',
                           border: '1px solid #cbd5e1',
-                          color: '#0f172a',
+                          color: '#475569',
                           borderRadius: '10px',
-                          padding: '0.6rem 1rem',
-                          fontSize: '0.82rem',
-                          fontWeight: 800,
+                          padding: '0.6rem 0.85rem',
+                          fontSize: '0.8rem',
+                          fontWeight: 700,
                           cursor: 'pointer',
                           display: 'flex',
                           alignItems: 'center',
-                          gap: '0.35rem'
+                          gap: '0.3rem'
                         }}
+                        title="View Storefront Website"
                       >
-                        Storefront <ExternalLink size={13} />
-                      </button>
-                      
-                      <button
-                        type="button"
-                        onClick={() => setSelectedVendorForLead(vendor)}
-                        style={{
-                          backgroundColor: '#059669',
-                          border: 'none',
-                          color: '#ffffff',
-                          borderRadius: '10px',
-                          padding: '0.6rem 1.15rem',
-                          fontSize: '0.82rem',
-                          fontWeight: 800,
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '0.35rem',
-                          boxShadow: '0 4px 12px rgba(5, 150, 105, 0.25)'
-                        }}
-                      >
-                        Get Quote <MessageSquare size={13} />
+                        Storefront <ExternalLink size={12} />
                       </button>
                     </div>
                   </div>

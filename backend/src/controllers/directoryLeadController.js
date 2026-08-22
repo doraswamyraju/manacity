@@ -433,14 +433,15 @@ exports.getServiceDetails = async (req, res) => {
           slug: listing ? listing.slug : bg.subdomain,
           subdomain: bg.subdomain,
           city: bg.city || cityStr,
-          phone: bg.mobileNumber || bg.whatsAppNumber,
-          whatsApp: bg.whatsAppNumber || bg.mobileNumber,
+          phone: bg.mobileNumber || bg.whatsAppNumber || '9876543210',
+          whatsApp: bg.whatsAppNumber || bg.mobileNumber || '9876543210',
           rating: bg.googleRating || bg.rating || 4.9,
           reviewCount: bg.googleReviewCount || bg.reviewCount || 63,
           logoUrl: bg.logoUrl,
           coverImageUrl: bg.coverImageUrl,
           address: bg.address || 'Tirupati, Andhra Pradesh',
-          price: itemPrice || masterItem.defaultPrice
+          price: itemPrice || masterItem.defaultPrice,
+          isVerifiedManaCity: true
         });
       }
     });
