@@ -406,30 +406,36 @@ exports.getServiceDetails = async (req, res) => {
       };
     }
 
-    // Find all services/products linked to this master item
-    const services = await prisma.businessService.findMany({
-      where: { libraryItemId: masterItem.id },
-      include: {
-        businessGroup: {
-          include: {
-            directoryListing: true,
-            locations: true
-          }
-        }
-      }
-    });
+    // Find all services/products linked to this master item (Safely check for valid MongoDB ObjectId)
+    const isMasterObjectId = /^[0-9a-fA-F]{24}$/.test(masterItem.id);
+    let services = [];
+    let products = [];
 
-    const products = await prisma.businessProduct.findMany({
-      where: { libraryItemId: masterItem.id },
-      include: {
-        businessGroup: {
-          include: {
-            directoryListing: true,
-            locations: true
+    if (isMasterObjectId) {
+      services = await prisma.businessService.findMany({
+        where: { libraryItemId: masterItem.id },
+        include: {
+          businessGroup: {
+            include: {
+              directoryListing: true,
+              locations: true
+            }
           }
         }
-      }
-    });
+      });
+
+      products = await prisma.businessProduct.findMany({
+        where: { libraryItemId: masterItem.id },
+        include: {
+          businessGroup: {
+            include: {
+              directoryListing: true,
+              locations: true
+            }
+          }
+        }
+      });
+    }
 
     const rawVendors = [...services.map(s => ({ bg: s.businessGroup, itemPrice: s.price })), ...products.map(p => ({ bg: p.businessGroup, itemPrice: p.price }))].filter(v => v.bg);
     const vendors = [];
