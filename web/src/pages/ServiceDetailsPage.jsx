@@ -26,7 +26,18 @@ import {
   Send,
   HelpCircle,
   Clock,
-  Award
+  Award,
+  Heart,
+  Bell,
+  Mic,
+  Utensils,
+  Hotel,
+  Cross,
+  Home as HomeIcon,
+  Plane,
+  GraduationCap,
+  Wrench,
+  MoreHorizontal
 } from 'lucide-react';
 
 export default function ServiceDetailsPage({ user }) {
@@ -42,7 +53,7 @@ export default function ServiceDetailsPage({ user }) {
   const [minRating, setMinRating] = useState(0);
   const [verifiedOnly, setVerifiedOnly] = useState(false);
   const [sortBy, setSortBy] = useState('RATING'); // RATING, REVIEWS, NAME
-  const [viewMode, setViewMode] = useState('GRID'); // GRID, LIST
+  const [viewMode, setViewMode] = useState('LIST'); // Default Primary List View
 
   // Individual Quote Modal State
   const [selectedVendorForLead, setSelectedVendorForLead] = useState(null);
@@ -60,6 +71,26 @@ export default function ServiceDetailsPage({ user }) {
 
   const citySlug = (city || 'tirupati').toLowerCase();
   const serviceSlug = slug;
+
+  const cities = [
+    { id: 'tirupati', name: 'Tirupati' },
+    { id: 'hyderabad', name: 'Hyderabad' },
+    { id: 'vijayawada', name: 'Vijayawada' },
+    { id: 'visakhapatnam', name: 'Visakhapatnam' },
+    { id: 'chennai', name: 'Chennai' },
+    { id: 'bangalore', name: 'Bangalore' }
+  ];
+
+  const topHeaderCategories = [
+    { name: 'Restaurants', icon: Utensils, color: '#ef4444' },
+    { name: 'Hotels', icon: Hotel, color: '#6366f1' },
+    { name: 'Doctors', icon: Cross, color: '#0ea5e9' },
+    { name: 'Real Estate', icon: HomeIcon, color: '#f43f5e' },
+    { name: 'Travel', icon: Plane, color: '#3b82f6' },
+    { name: 'Education', icon: GraduationCap, color: '#10b981' },
+    { name: 'Repairs', icon: Wrench, color: '#f59e0b' },
+    { name: 'More', icon: MoreHorizontal, color: '#64748b' }
+  ];
 
   useEffect(() => {
     async function fetchDetails() {
@@ -169,10 +200,10 @@ export default function ServiceDetailsPage({ user }) {
 
   if (loading) {
     return (
-      <div style={{ minHeight: '100vh', backgroundColor: '#0f172a', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc', color: '#0f172a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ textAlign: 'center' }}>
-          <Sparkles size={36} color="#818cf8" style={{ animation: 'spin 2s linear infinite' }} />
-          <h3 style={{ marginTop: '1rem', fontSize: '1.1rem', fontWeight: 700 }}>Loading Dedicated Service Page...</h3>
+          <Sparkles size={36} color="#3b82f6" style={{ animation: 'spin 2s linear infinite' }} />
+          <h3 style={{ marginTop: '1rem', fontSize: '1.1rem', fontWeight: 800 }}>Loading Dedicated Service Page...</h3>
         </div>
       </div>
     );
@@ -180,12 +211,12 @@ export default function ServiceDetailsPage({ user }) {
 
   if (error || !data || !data.service) {
     return (
-      <div style={{ minHeight: '100vh', backgroundColor: '#0f172a', color: '#fff', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
+      <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc', color: '#0f172a', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
         <h2 style={{ fontSize: '1.75rem', fontWeight: 800 }}>Service Offering Not Found</h2>
-        <p style={{ color: '#94a3b8', marginTop: '0.5rem' }}>We couldn't find details for this service offering.</p>
+        <p style={{ color: '#64748b', marginTop: '0.5rem' }}>We couldn't find details for this service offering.</p>
         <button
           onClick={() => navigate('/')}
-          style={{ marginTop: '1.5rem', padding: '0.65rem 1.25rem', backgroundColor: '#6366f1', color: '#fff', border: 'none', borderRadius: '10px', fontWeight: 800, cursor: 'pointer' }}
+          style={{ marginTop: '1.5rem', padding: '0.65rem 1.25rem', backgroundColor: '#3b82f6', color: '#fff', border: 'none', borderRadius: '10px', fontWeight: 800, cursor: 'pointer' }}
         >
           Return to ManaCity Home
         </button>
@@ -216,145 +247,284 @@ export default function ServiceDetailsPage({ user }) {
   ];
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#0f172a', color: '#f8fafc', fontFamily: 'Inter, system-ui, sans-serif' }}>
+    <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc', color: '#0f172a', fontFamily: 'Inter, system-ui, sans-serif' }}>
       
-      {/* Header Bar */}
+      {/* 1. Unified Main Header (Matching Exact Home Header) */}
       <header style={{
-        backgroundColor: '#1e293b',
-        borderBottom: '1px solid rgba(255,255,255,0.08)',
-        padding: '1rem 2rem',
         display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
+        flexDirection: 'column',
+        backgroundColor: '#ffffff',
+        borderBottom: '1px solid #e2e8f0',
         position: 'sticky',
         top: 0,
         zIndex: 100,
-        backdropFilter: 'blur(12px)'
+        boxShadow: '0 4px 16px rgba(0,0,0,0.04)'
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
-          <button
-            onClick={() => navigate('/')}
-            style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 700, fontSize: '0.9rem' }}
-          >
-            <ArrowLeft size={18} /> Back to ManaCity
-          </button>
-          <div style={{ fontSize: '1.35rem', fontWeight: 900, color: '#38bdf8', letterSpacing: '-0.02em', display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer' }} onClick={() => navigate('/')}>
-            Mana<span style={{ color: '#fff' }}>City</span>
+        {/* Main Top Header Bar */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: '1rem',
+          padding: '0.75rem 1.5rem',
+          width: '100%',
+          flexWrap: 'wrap'
+        }}>
+          
+          {/* Left: Logo & Location Pill */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', flexShrink: 0 }}>
+            <div style={{ cursor: 'pointer' }} onClick={() => navigate('/')}>
+              <picture>
+                <source media="(max-width: 768px)" srcSet="/logo-square.png" />
+                <img src="/logo-horizontal.png" alt="ManaCity Logo" style={{ height: '36px', objectFit: 'contain' }} />
+              </picture>
+            </div>
+
+            {/* Location Pill Dropdown */}
+            <div style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.35rem',
+              backgroundColor: '#f1f5f9',
+              border: '1px solid #cbd5e1',
+              padding: '0.35rem 0.75rem',
+              borderRadius: '20px',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.02)'
+            }}>
+              <MapPin size={15} color="#3b82f6" />
+              <select
+                value={citySlug}
+                onChange={(e) => navigate(`/${e.target.value}/service/${serviceSlug}`)}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  color: '#0f172a',
+                  outline: 'none',
+                  fontWeight: 800,
+                  fontSize: '0.85rem',
+                  textTransform: 'capitalize',
+                  cursor: 'pointer'
+                }}
+              >
+                {cities.map(c => <option key={c.id} value={c.id} style={{ backgroundColor: '#fff', color: '#0f172a' }}>{c.name}</option>)}
+              </select>
+            </div>
+          </div>
+
+          {/* Center: Search Input Bar */}
+          <div style={{
+            flex: '1 1 380px',
+            maxWidth: '650px',
+            position: 'relative'
+          }}>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.6rem',
+              backgroundColor: '#f8fafc',
+              border: '1.5px solid rgba(59, 130, 246, 0.3)',
+              borderRadius: '24px',
+              padding: '0.5rem 1rem',
+              boxShadow: '0 4px 16px rgba(59, 130, 246, 0.08)'
+            }}>
+              <Search size={18} color="#94a3b8" style={{ flexShrink: 0 }} />
+              <input
+                type="text"
+                placeholder="Search anything... (businesses, services, products)"
+                onFocus={() => navigate('/')}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  color: '#0f172a',
+                  width: '100%',
+                  outline: 'none',
+                  fontSize: '0.9rem',
+                  fontWeight: 500
+                }}
+              />
+              <Mic size={18} color="#3b82f6" style={{ cursor: 'pointer', flexShrink: 0 }} />
+            </div>
+          </div>
+
+          {/* Right Action Icons */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1.15rem', flexShrink: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 700, color: '#475569' }}>
+              <Heart size={18} color="#ef4444" />
+              <span className="desktop-only">Saved</span>
+            </div>
+
+            <div style={{ position: 'relative', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+              <Bell size={18} color="#475569" />
+              <span style={{
+                position: 'absolute',
+                top: '-4px',
+                right: '-6px',
+                backgroundColor: '#ef4444',
+                color: '#fff',
+                fontSize: '0.62rem',
+                fontWeight: 900,
+                borderRadius: '50%',
+                width: '15px',
+                height: '15px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                3
+              </span>
+            </div>
+
+            {user ? (
+              <a href="/dashboard" className="btn btn-primary" style={{ padding: '0.45rem 1rem', fontSize: '0.82rem', borderRadius: '20px', fontWeight: 800, backgroundColor: '#3b82f6', color: '#fff', textDecoration: 'none' }}>
+                Dashboard
+              </a>
+            ) : (
+              <button onClick={() => navigate('/login')} className="btn btn-primary" style={{ padding: '0.45rem 1.1rem', fontSize: '0.85rem', background: '#3b82f6', color: '#fff', border: 'none', fontWeight: 800, borderRadius: '20px', cursor: 'pointer' }}>
+                Login
+              </button>
+            )}
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <button
-            onClick={() => navigate('/dashboard')}
-            style={{ backgroundColor: '#3b82f6', color: '#fff', border: 'none', borderRadius: '20px', padding: '0.5rem 1.1rem', fontWeight: 800, fontSize: '0.85rem', cursor: 'pointer', boxShadow: '0 4px 12px rgba(59,130,246,0.25)' }}
-          >
-            Business Dashboard
-          </button>
+        {/* Sub-Header Categories Bar */}
+        <div style={{
+          backgroundColor: '#ffffff',
+          borderTop: '1px solid #f1f5f9',
+          padding: '0.55rem 1.5rem',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '1.75rem',
+          overflowX: 'auto',
+          whiteSpace: 'nowrap'
+        }}>
+          {topHeaderCategories.map((cat, i) => (
+            <div
+              key={i}
+              onClick={() => navigate('/')}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.4rem',
+                fontSize: '0.82rem',
+                fontWeight: 700,
+                color: '#475569',
+                cursor: 'pointer',
+                padding: '0.2rem 0.5rem',
+                borderRadius: '6px'
+              }}
+            >
+              <cat.icon size={15} color={cat.color} />
+              <span>{cat.name}</span>
+            </div>
+          ))}
         </div>
       </header>
 
-      {/* Main Container */}
-      <main style={{ maxWidth: '1280px', margin: '0 auto', padding: '2rem 1.5rem' }}>
-        
-        {/* Breadcrumb Navigation */}
-        <nav style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', color: '#94a3b8', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
-          <Link to="/" style={{ color: '#94a3b8', textDecoration: 'none' }}>Home</Link>
-          <ChevronRight size={14} />
-          <span style={{ textTransform: 'capitalize' }}>{data.city}</span>
-          <ChevronRight size={14} />
-          <span style={{ color: '#818cf8', fontWeight: 700 }}>{service.category}</span>
-          <ChevronRight size={14} />
-          <span style={{ color: '#fff', fontWeight: 700 }}>{service.name}</span>
-        </nav>
+      {/* 2. Hero Service Banner (Positioned Directly Below Header) */}
+      <div style={{
+        backgroundColor: '#ffffff',
+        borderBottom: '1px solid #e2e8f0',
+        padding: '2rem 1.5rem',
+        background: 'linear-gradient(135deg, #eff6ff 0%, #f0fdf4 100%)'
+      }}>
+        <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
+          
+          {/* Breadcrumb Navigation */}
+          <nav style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', color: '#64748b', marginBottom: '1rem', flexWrap: 'wrap' }}>
+            <Link to="/" style={{ color: '#64748b', textDecoration: 'none' }}>Home</Link>
+            <ChevronRight size={14} />
+            <span style={{ textTransform: 'capitalize' }}>{data.city}</span>
+            <ChevronRight size={14} />
+            <span style={{ color: '#2563eb', fontWeight: 700 }}>{service.category}</span>
+            <ChevronRight size={14} />
+            <span style={{ color: '#0f172a', fontWeight: 800 }}>{service.name}</span>
+          </nav>
 
-        {/* Hero Service Overview Banner */}
-        <div style={{
-          backgroundColor: '#1e293b',
-          border: '1px solid rgba(255,255,255,0.1)',
-          borderRadius: '20px',
-          padding: '2rem 2.25rem',
-          marginBottom: '2rem',
-          boxShadow: '0 10px 30px rgba(0,0,0,0.3)',
-          background: 'linear-gradient(135deg, rgba(30,41,59,1) 0%, rgba(15,23,42,1) 100%)'
-        }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '0.85rem' }}>
-            <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#818cf8', textTransform: 'uppercase', letterSpacing: '0.05em', backgroundColor: 'rgba(129, 140, 248, 0.15)', padding: '0.3rem 0.75rem', borderRadius: '12px' }}>
+            <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#2563eb', textTransform: 'uppercase', letterSpacing: '0.05em', backgroundColor: '#dbeafe', padding: '0.3rem 0.75rem', borderRadius: '12px' }}>
               📦 {service.category}
             </span>
-            <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#10b981', backgroundColor: 'rgba(16, 185, 129, 0.15)', padding: '0.3rem 0.75rem', borderRadius: '12px' }}>
+            <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#059669', backgroundColor: '#d1fae5', padding: '0.3rem 0.75rem', borderRadius: '12px' }}>
               {service.defaultPrice ? `Est. Price: ₹${service.defaultPrice.toLocaleString('en-IN')}` : 'Custom Market Pricing'}
             </span>
-            <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#38bdf8', backgroundColor: 'rgba(56, 189, 248, 0.15)', padding: '0.3rem 0.75rem', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+            <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#0284c7', backgroundColor: '#e0f2fe', padding: '0.3rem 0.75rem', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
               <ShieldCheck size={14} /> Verified ManaCity Master Offering
             </span>
           </div>
 
-          <h1 style={{ fontSize: '2.1rem', fontWeight: 900, color: '#fff', margin: '0 0 0.75rem 0', lineHeight: 1.25 }}>
+          <h1 style={{ fontSize: '2.2rem', fontWeight: 900, color: '#0f172a', margin: '0 0 0.65rem 0', lineHeight: 1.2 }}>
             {service.name} in {cityNameCap}
           </h1>
 
-          <p style={{ fontSize: '1rem', color: '#cbd5e1', lineHeight: 1.6, marginBottom: '1.25rem', maxWidth: '900px' }}>
-            {service.description || `Explore top-rated verified local providers offering ${service.name} in ${cityNameCap}. Compare verified customer ratings, contact business owners directly, and receive fast competitive quotes.`}
+          <p style={{ fontSize: '1rem', color: '#475569', lineHeight: 1.6, marginBottom: '1.25rem', maxWidth: '900px' }}>
+            {service.description || `Explore top-rated verified local providers offering ${service.name} in ${cityNameCap}. Compare customer ratings, contact business owners directly, and receive fast competitive quotes.`}
           </p>
 
-          <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap', borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '1.1rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#94a3b8', fontSize: '0.86rem' }}>
-              <CheckCircle2 size={16} color="#10b981" /> 100% Verified Local Vendors
+          <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap', borderTop: '1px solid #cbd5e1', paddingTop: '1rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#475569', fontSize: '0.86rem', fontWeight: 600 }}>
+              <CheckCircle2 size={16} color="#059669" /> 100% Verified Local Vendors
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#94a3b8', fontSize: '0.86rem' }}>
-              <Clock size={16} color="#38bdf8" /> Fast 15-Min Response SLA
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#475569', fontSize: '0.86rem', fontWeight: 600 }}>
+              <Clock size={16} color="#0284c7" /> Fast 15-Min Response SLA
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#94a3b8', fontSize: '0.86rem' }}>
-              <Award size={16} color="#f59e0b" /> Zero Brokerage Commission
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#475569', fontSize: '0.86rem', fontWeight: 600 }}>
+              <Award size={16} color="#d97706" /> Zero Brokerage Commission
             </div>
           </div>
-        </div>
 
-        {/* 2-Column Content Layout (70% Vendors & Filters + 30% Broadcast Sidebar) */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 340px', gap: '2rem', alignItems: 'start' }}>
+        </div>
+      </div>
+
+      {/* 3. Main Container (Primarily Light Mode & Primary List View Layout) */}
+      <main style={{ maxWidth: '1280px', margin: '0 auto', padding: '2rem 1.5rem' }}>
+        
+        {/* 2-Column Content Layout (70% List View Vendors + 30% Broadcast Sidebar) */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 350px', gap: '2rem', alignItems: 'start' }}>
           
-          {/* LEFT COLUMN: VENDORS LIST & FILTER CONTROLS */}
+          {/* LEFT COLUMN: PRIMARY LIST VIEW VENDORS */}
           <div>
             
-            {/* Filter & Sort Toolbar */}
+            {/* Light Mode Filter & Toolbar */}
             <div style={{
-              backgroundColor: '#1e293b',
-              border: '1px solid rgba(255,255,255,0.08)',
+              backgroundColor: '#ffffff',
+              border: '1px solid #e2e8f0',
               borderRadius: '16px',
               padding: '1rem 1.25rem',
               marginBottom: '1.5rem',
               display: 'flex',
               flexDirection: 'column',
-              gap: '0.85rem'
+              gap: '0.85rem',
+              boxShadow: '0 2px 10px rgba(0,0,0,0.03)'
             }}>
-              {/* Search Vendor Input */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', backgroundColor: '#0f172a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', padding: '0.5rem 0.85rem' }}>
-                <Search size={16} color="#94a3b8" />
+              {/* Search Vendor Bar */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', backgroundColor: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '10px', padding: '0.5rem 0.85rem' }}>
+                <Search size={16} color="#64748b" />
                 <input
                   type="text"
-                  placeholder={`Search provider by name or location in ${cityNameCap}...`}
+                  placeholder={`Filter provider by name or location in ${cityNameCap}...`}
                   value={vendorSearch}
                   onChange={(e) => setVendorSearch(e.target.value)}
-                  style={{ background: 'transparent', border: 'none', color: '#fff', width: '100%', outline: 'none', fontSize: '0.86rem' }}
+                  style={{ background: 'transparent', border: 'none', color: '#0f172a', width: '100%', outline: 'none', fontSize: '0.86rem', fontWeight: 500 }}
                 />
                 {vendorSearch && (
-                  <X size={16} color="#94a3b8" style={{ cursor: 'pointer' }} onClick={() => setVendorSearch('')} />
+                  <X size={16} color="#64748b" style={{ cursor: 'pointer' }} onClick={() => setVendorSearch('')} />
                 )}
               </div>
 
               {/* Filter Pills Bar */}
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap' }}>
-                  {/* Verified Only Toggle Pill */}
+                  {/* Verified Only Toggle */}
                   <button
                     type="button"
                     onClick={() => setVerifiedOnly(!verifiedOnly)}
                     style={{
                       padding: '0.35rem 0.75rem',
                       borderRadius: '20px',
-                      border: verifiedOnly ? '1px solid #10b981' : '1px solid rgba(255,255,255,0.1)',
-                      backgroundColor: verifiedOnly ? 'rgba(16, 185, 129, 0.15)' : 'rgba(255,255,255,0.04)',
-                      color: verifiedOnly ? '#10b981' : '#94a3b8',
+                      border: verifiedOnly ? '1.5px solid #059669' : '1px solid #cbd5e1',
+                      backgroundColor: verifiedOnly ? '#d1fae5' : '#f8fafc',
+                      color: verifiedOnly ? '#047857' : '#475569',
                       fontSize: '0.78rem',
                       fontWeight: 800,
                       cursor: 'pointer',
@@ -373,32 +543,32 @@ export default function ServiceDetailsPage({ user }) {
                     style={{
                       padding: '0.35rem 0.75rem',
                       borderRadius: '20px',
-                      border: minRating > 0 ? '1px solid #fbbf24' : '1px solid rgba(255,255,255,0.1)',
-                      backgroundColor: minRating > 0 ? 'rgba(251, 191, 36, 0.15)' : 'rgba(255,255,255,0.04)',
-                      color: minRating > 0 ? '#fbbf24' : '#94a3b8',
+                      border: minRating > 0 ? '1.5px solid #d97706' : '1px solid #cbd5e1',
+                      backgroundColor: minRating > 0 ? '#fef3c7' : '#f8fafc',
+                      color: minRating > 0 ? '#b45309' : '#475569',
                       fontSize: '0.78rem',
                       fontWeight: 800,
                       outline: 'none',
                       cursor: 'pointer'
                     }}
                   >
-                    <option value={0} style={{ backgroundColor: '#1e293b' }}>★ All Ratings</option>
-                    <option value={4.5} style={{ backgroundColor: '#1e293b' }}>★ 4.5+ Stars</option>
-                    <option value={4.0} style={{ backgroundColor: '#1e293b' }}>★ 4.0+ Stars</option>
+                    <option value={0}>★ All Ratings</option>
+                    <option value={4.5}>★ 4.5+ Stars</option>
+                    <option value={4.0}>★ 4.0+ Stars</option>
                   </select>
 
                   {/* Sort By Dropdown */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.78rem', color: '#94a3b8' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.78rem', color: '#475569' }}>
                     <SlidersHorizontal size={14} />
                     <select
                       value={sortBy}
                       onChange={(e) => setSortBy(e.target.value)}
                       style={{
-                        padding: '0.35rem 0.6rem',
+                        padding: '0.35rem 0.65rem',
                         borderRadius: '8px',
-                        border: '1px solid rgba(255,255,255,0.1)',
-                        backgroundColor: '#0f172a',
-                        color: '#fff',
+                        border: '1px solid #cbd5e1',
+                        backgroundColor: '#ffffff',
+                        color: '#0f172a',
                         fontSize: '0.78rem',
                         fontWeight: 700,
                         outline: 'none',
@@ -412,62 +582,66 @@ export default function ServiceDetailsPage({ user }) {
                   </div>
                 </div>
 
-                {/* View Mode Toggle */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', backgroundColor: '#0f172a', padding: '0.2rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.08)' }}>
-                  <button
-                    type="button"
-                    onClick={() => setViewMode('GRID')}
-                    style={{
-                      padding: '0.3rem',
-                      borderRadius: '6px',
-                      border: 'none',
-                      backgroundColor: viewMode === 'GRID' ? '#3b82f6' : 'transparent',
-                      color: '#fff',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center'
-                    }}
-                    title="Grid View"
-                  >
-                    <Grid size={15} />
-                  </button>
+                {/* View Mode Toggle (Default List View) */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', backgroundColor: '#f1f5f9', padding: '0.2rem', borderRadius: '8px', border: '1px solid #cbd5e1' }}>
                   <button
                     type="button"
                     onClick={() => setViewMode('LIST')}
                     style={{
-                      padding: '0.3rem',
+                      padding: '0.3rem 0.6rem',
                       borderRadius: '6px',
                       border: 'none',
-                      backgroundColor: viewMode === 'LIST' ? '#3b82f6' : 'transparent',
-                      color: '#fff',
+                      backgroundColor: viewMode === 'LIST' ? '#2563eb' : 'transparent',
+                      color: viewMode === 'LIST' ? '#fff' : '#64748b',
+                      fontSize: '0.75rem',
+                      fontWeight: 800,
                       cursor: 'pointer',
                       display: 'flex',
-                      alignItems: 'center'
+                      alignItems: 'center',
+                      gap: '0.25rem'
                     }}
-                    title="List View"
                   >
-                    <ListIcon size={15} />
+                    <ListIcon size={14} /> List View
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setViewMode('GRID')}
+                    style={{
+                      padding: '0.3rem 0.6rem',
+                      borderRadius: '6px',
+                      border: 'none',
+                      backgroundColor: viewMode === 'GRID' ? '#2563eb' : 'transparent',
+                      color: viewMode === 'GRID' ? '#fff' : '#64748b',
+                      fontSize: '0.75rem',
+                      fontWeight: 800,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.25rem'
+                    }}
+                  >
+                    <Grid size={14} /> Grid
                   </button>
                 </div>
               </div>
             </div>
 
-            {/* Vendor Results Count Bar */}
+            {/* Vendor Results Heading Bar */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-              <h2 style={{ fontSize: '1.35rem', fontWeight: 900, color: '#fff', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <Building2 size={22} color="#38bdf8" /> Verified Vendors ({filteredVendors.length})
+              <h2 style={{ fontSize: '1.35rem', fontWeight: 900, color: '#0f172a', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Building2 size={22} color="#2563eb" /> Verified Businesses ({filteredVendors.length})
               </h2>
-              <span style={{ fontSize: '0.82rem', color: '#94a3b8' }}>
+              <span style={{ fontSize: '0.82rem', color: '#64748b' }}>
                 Showing {filteredVendors.length} of {vendors.length} local providers
               </span>
             </div>
 
-            {/* Vendor Cards Rendering */}
+            {/* 4. PRIMARY LIST VIEW BUSINESS CARDS */}
             {filteredVendors.length > 0 ? (
               <div style={{
-                display: viewMode === 'GRID' ? 'grid' : 'flex',
-                gridTemplateColumns: viewMode === 'GRID' ? 'repeat(auto-fill, minmax(290px, 1fr))' : 'none',
-                flexDirection: viewMode === 'LIST' ? 'column' : 'none',
+                display: 'flex',
+                flexDirection: viewMode === 'LIST' ? 'column' : 'row',
+                flexWrap: viewMode === 'GRID' ? 'wrap' : 'nowrap',
                 gap: '1.25rem',
                 marginBottom: '3rem'
               }}>
@@ -475,49 +649,59 @@ export default function ServiceDetailsPage({ user }) {
                   <div
                     key={vendor.id}
                     style={{
-                      backgroundColor: '#1e293b',
-                      border: '1px solid rgba(255,255,255,0.08)',
+                      backgroundColor: '#ffffff',
+                      border: '1px solid #e2e8f0',
                       borderRadius: '16px',
-                      padding: '1.35rem',
+                      padding: '1.35rem 1.5rem',
                       display: 'flex',
-                      flexDirection: 'column',
+                      flexDirection: viewMode === 'LIST' ? 'row' : 'column',
                       justifyContent: 'space-between',
-                      boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
-                      transition: 'transform 0.2s, borderColor 0.2s'
+                      alignItems: viewMode === 'LIST' ? 'center' : 'stretch',
+                      gap: '1.25rem',
+                      boxShadow: '0 4px 16px rgba(0,0,0,0.04)',
+                      transition: 'all 0.2s',
+                      flex: viewMode === 'GRID' ? '1 1 290px' : 'none'
                     }}
-                    onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#38bdf8'; e.currentTarget.style.transform = 'translateY(-3px)'; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; e.currentTarget.style.transform = 'translateY(0)'; }}
+                    onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#2563eb'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(37, 99, 235, 0.12)'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.04)'; }}
                   >
-                    <div>
-                      {/* Top Header inside Card */}
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.85rem' }}>
-                        <div style={{ width: '46px', height: '46px', borderRadius: '12px', backgroundColor: '#334155', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, color: '#38bdf8', fontSize: '1.2rem', flexShrink: 0 }}>
-                          {vendor.logoUrl ? <img src={vendor.logoUrl} alt={vendor.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : vendor.name.charAt(0)}
-                        </div>
-                        
-                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.35rem' }}>
-                          <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#fbbf24', backgroundColor: 'rgba(251, 191, 36, 0.15)', padding: '0.25rem 0.6rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                            ★ {vendor.rating || 4.8} ({vendor.reviewCount || 12})
-                          </span>
+                    {/* Left: Business Avatar & Info */}
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1.15rem', flex: 1 }}>
+                      <div style={{ width: '60px', height: '60px', borderRadius: '14px', backgroundColor: '#f1f5f9', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, color: '#2563eb', fontSize: '1.4rem', flexShrink: 0, border: '1px solid #e2e8f0' }}>
+                        {vendor.logoUrl ? <img src={vendor.logoUrl} alt={vendor.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : vendor.name.charAt(0)}
+                      </div>
+
+                      <div style={{ flex: 1 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap', marginBottom: '0.35rem' }}>
+                          <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#0f172a', margin: 0, lineHeight: 1.3 }}>
+                            {vendor.name}
+                          </h3>
                           {vendor.isVerifiedManaCity && (
-                            <span style={{ fontSize: '0.68rem', fontWeight: 800, color: '#10b981', backgroundColor: 'rgba(16,185,129,0.15)', padding: '0.15rem 0.5rem', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                            <span style={{ fontSize: '0.68rem', fontWeight: 800, color: '#047857', backgroundColor: '#d1fae5', padding: '0.2rem 0.55rem', borderRadius: '12px', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
                               <ShieldCheck size={12} /> Verified
                             </span>
                           )}
                         </div>
-                      </div>
 
-                      {/* Business Name & Address */}
-                      <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#fff', margin: '0 0 0.35rem 0', lineHeight: 1.3 }}>
-                        {vendor.name}
-                      </h3>
-                      <div style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '0.35rem', marginBottom: '1rem', lineHeight: 1.4 }}>
-                        <MapPin size={14} color="#64748b" style={{ flexShrink: 0 }} /> {vendor.address || cityNameCap}
+                        {/* Rating & Reviews */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.4rem' }}>
+                          <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#b45309', backgroundColor: '#fef3c7', padding: '0.15rem 0.5rem', borderRadius: '6px', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                            ★ {vendor.rating || 4.9} ({vendor.reviewCount || 15} reviews)
+                          </span>
+                          <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>
+                            Category: {service.category}
+                          </span>
+                        </div>
+
+                        {/* Address */}
+                        <div style={{ fontSize: '0.82rem', color: '#475569', display: 'flex', alignItems: 'center', gap: '0.35rem', lineHeight: 1.4 }}>
+                          <MapPin size={14} color="#94a3b8" style={{ flexShrink: 0 }} /> {vendor.address || cityNameCap}
+                        </div>
                       </div>
                     </div>
 
-                    {/* Action Buttons */}
-                    <div style={{ display: 'flex', gap: '0.65rem', paddingTop: '1rem', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                    {/* Right: Action Buttons */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', flexShrink: 0, width: viewMode === 'GRID' ? '100%' : 'auto' }}>
                       <button
                         type="button"
                         onClick={() => {
@@ -525,18 +709,16 @@ export default function ServiceDetailsPage({ user }) {
                           window.open(url, '_blank');
                         }}
                         style={{
-                          flex: 1,
-                          backgroundColor: 'rgba(255,255,255,0.05)',
-                          border: '1px solid rgba(255,255,255,0.1)',
-                          color: '#fff',
+                          backgroundColor: '#f1f5f9',
+                          border: '1px solid #cbd5e1',
+                          color: '#0f172a',
                           borderRadius: '10px',
-                          padding: '0.55rem',
+                          padding: '0.6rem 1rem',
                           fontSize: '0.82rem',
                           fontWeight: 800,
                           cursor: 'pointer',
                           display: 'flex',
                           alignItems: 'center',
-                          justifyContent: 'center',
                           gap: '0.35rem'
                         }}
                       >
@@ -547,20 +729,18 @@ export default function ServiceDetailsPage({ user }) {
                         type="button"
                         onClick={() => setSelectedVendorForLead(vendor)}
                         style={{
-                          flex: 1,
-                          backgroundColor: '#10b981',
+                          backgroundColor: '#059669',
                           border: 'none',
-                          color: '#fff',
+                          color: '#ffffff',
                           borderRadius: '10px',
-                          padding: '0.55rem',
+                          padding: '0.6rem 1.15rem',
                           fontSize: '0.82rem',
                           fontWeight: 800,
                           cursor: 'pointer',
                           display: 'flex',
                           alignItems: 'center',
-                          justifyContent: 'center',
                           gap: '0.35rem',
-                          boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)'
+                          boxShadow: '0 4px 12px rgba(5, 150, 105, 0.25)'
                         }}
                       >
                         Get Quote <MessageSquare size={13} />
@@ -570,10 +750,10 @@ export default function ServiceDetailsPage({ user }) {
                 ))}
               </div>
             ) : (
-              <div style={{ backgroundColor: '#1e293b', border: '1px solid rgba(245, 158, 11, 0.3)', borderRadius: '16px', padding: '2.5rem', textAlign: 'center', marginBottom: '3rem' }}>
-                <Zap size={36} color="#fbbf24" style={{ margin: '0 auto 0.75rem auto' }} />
-                <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#fff', margin: 0 }}>No Matching Verified Providers Found</h3>
-                <p style={{ fontSize: '0.9rem', color: '#cbd5e1', marginTop: '0.4rem', maxWidth: '600px', margin: '0.4rem auto 1.25rem auto' }}>
+              <div style={{ backgroundColor: '#ffffff', border: '1px solid #fde68a', borderRadius: '16px', padding: '2.5rem', textAlign: 'center', marginBottom: '3rem' }}>
+                <Zap size={36} color="#d97706" style={{ margin: '0 auto 0.75rem auto' }} />
+                <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>No Matching Verified Businesses Found</h3>
+                <p style={{ fontSize: '0.9rem', color: '#475569', marginTop: '0.4rem', maxWidth: '600px', margin: '0.4rem auto 1.25rem auto' }}>
                   No providers matched your current search filters. Try clearing filters or submit a request to onboard top local providers!
                 </p>
                 <button
@@ -592,7 +772,7 @@ export default function ServiceDetailsPage({ user }) {
                       alert('Failed to submit request.');
                     }
                   }}
-                  style={{ backgroundColor: '#f59e0b', color: '#0f172a', border: 'none', borderRadius: '10px', padding: '0.75rem 1.5rem', fontSize: '0.9rem', fontWeight: 800, cursor: 'pointer', boxShadow: '0 4px 14px rgba(245, 158, 11, 0.3)' }}
+                  style={{ backgroundColor: '#d97706', color: '#fff', border: 'none', borderRadius: '10px', padding: '0.75rem 1.5rem', fontSize: '0.9rem', fontWeight: 800, cursor: 'pointer', boxShadow: '0 4px 14px rgba(217, 119, 6, 0.3)' }}
                 >
                   🚀 Request Super Admin to Onboard Local Providers
                 </button>
@@ -600,9 +780,9 @@ export default function ServiceDetailsPage({ user }) {
             )}
 
             {/* Service FAQ Accordion Section */}
-            <section style={{ backgroundColor: '#1e293b', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '20px', padding: '1.75rem', marginBottom: '3rem' }}>
-              <h3 style={{ fontSize: '1.3rem', fontWeight: 800, color: '#fff', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <HelpCircle size={20} color="#818cf8" /> Frequently Asked Questions
+            <section style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '20px', padding: '1.75rem', marginBottom: '3rem', boxShadow: '0 2px 10px rgba(0,0,0,0.03)' }}>
+              <h3 style={{ fontSize: '1.3rem', fontWeight: 800, color: '#0f172a', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <HelpCircle size={20} color="#2563eb" /> Frequently Asked Questions
               </h3>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
@@ -612,8 +792,8 @@ export default function ServiceDetailsPage({ user }) {
                     <div
                       key={index}
                       style={{
-                        backgroundColor: '#0f172a',
-                        border: '1px solid rgba(255,255,255,0.06)',
+                        backgroundColor: '#f8fafc',
+                        border: '1px solid #e2e8f0',
                         borderRadius: '12px',
                         overflow: 'hidden',
                         transition: 'all 0.2s'
@@ -627,7 +807,7 @@ export default function ServiceDetailsPage({ user }) {
                           padding: '1rem 1.25rem',
                           background: 'none',
                           border: 'none',
-                          color: '#fff',
+                          color: '#0f172a',
                           fontWeight: 700,
                           fontSize: '0.92rem',
                           display: 'flex',
@@ -638,10 +818,10 @@ export default function ServiceDetailsPage({ user }) {
                         }}
                       >
                         <span>{faq.q}</span>
-                        {isOpen ? <ChevronUp size={18} color="#818cf8" /> : <ChevronDown size={18} color="#94a3b8" />}
+                        {isOpen ? <ChevronUp size={18} color="#2563eb" /> : <ChevronDown size={18} color="#64748b" />}
                       </button>
                       {isOpen && (
-                        <div style={{ padding: '0 1.25rem 1rem 1.25rem', color: '#cbd5e1', fontSize: '0.86rem', lineHeight: 1.6, borderTop: '1px solid rgba(255,255,255,0.04)', paddingTop: '0.75rem' }}>
+                        <div style={{ padding: '0 1.25rem 1rem 1.25rem', color: '#475569', fontSize: '0.86rem', lineHeight: 1.6, borderTop: '1px solid #e2e8f0', paddingTop: '0.75rem' }}>
                           {faq.a}
                         </div>
                       )}
@@ -654,79 +834,78 @@ export default function ServiceDetailsPage({ user }) {
           </div>
 
           {/* RIGHT COLUMN: INSTANT BROADCAST QUOTE SIDEBAR */}
-          <aside style={{ position: 'sticky', top: '90px' }}>
+          <aside style={{ position: 'sticky', top: '100px' }}>
             <div style={{
-              backgroundColor: '#1e293b',
-              border: '1.5px solid rgba(59, 130, 246, 0.3)',
+              backgroundColor: '#ffffff',
+              border: '1.5px solid rgba(37, 99, 235, 0.3)',
               borderRadius: '20px',
               padding: '1.5rem',
-              boxShadow: '0 12px 35px rgba(59, 130, 246, 0.1)',
-              background: 'linear-gradient(180deg, #1e293b 0%, #0f172a 100%)'
+              boxShadow: '0 12px 35px rgba(37, 99, 235, 0.08)'
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                <Zap size={20} color="#3b82f6" />
-                <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#3b82f6', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                <Zap size={20} color="#2563eb" />
+                <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#2563eb', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                   INSTANT MULTI-QUOTE
                 </span>
               </div>
 
-              <h3 style={{ fontSize: '1.2rem', fontWeight: 900, color: '#fff', margin: '0 0 0.5rem 0', lineHeight: 1.3 }}>
+              <h3 style={{ fontSize: '1.2rem', fontWeight: 900, color: '#0f172a', margin: '0 0 0.5rem 0', lineHeight: 1.3 }}>
                 Get Free Quotes from All Providers in {cityNameCap}
               </h3>
               
-              <p style={{ fontSize: '0.82rem', color: '#94a3b8', lineHeight: 1.5, marginBottom: '1.25rem' }}>
+              <p style={{ fontSize: '0.82rem', color: '#64748b', lineHeight: 1.5, marginBottom: '1.25rem' }}>
                 Submit your requirement once. Verified vendors offering <strong>{service.name}</strong> will contact you with competing rates!
               </p>
 
               {broadcastSubmitted ? (
-                <div style={{ backgroundColor: 'rgba(16, 185, 129, 0.15)', border: '1px solid #10b981', color: '#10b981', padding: '1.15rem 1rem', borderRadius: '12px', textAlign: 'center', fontWeight: 800, fontSize: '0.88rem' }}>
+                <div style={{ backgroundColor: '#d1fae5', border: '1px solid #10b981', color: '#047857', padding: '1.15rem 1rem', borderRadius: '12px', textAlign: 'center', fontWeight: 800, fontSize: '0.88rem' }}>
                   🎉 Broadcast Quote Sent! Verified providers in {cityNameCap} will contact you shortly.
                 </div>
               ) : (
                 <form onSubmit={handleBroadcastSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                   <div>
-                    <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#cbd5e1', marginBottom: '0.25rem', display: 'block' }}>Your Name *</label>
+                    <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#475569', marginBottom: '0.25rem', display: 'block' }}>Your Name *</label>
                     <input
                       type="text"
                       placeholder="e.g. Ramesh Kumar"
                       required
                       value={broadcastForm.name}
                       onChange={e => setBroadcastForm({ ...broadcastForm, name: e.target.value })}
-                      style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '10px', backgroundColor: '#0f172a', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', fontSize: '0.85rem', outline: 'none' }}
+                      style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '10px', backgroundColor: '#f8fafc', border: '1px solid #cbd5e1', color: '#0f172a', fontSize: '0.85rem', outline: 'none' }}
                     />
                   </div>
 
                   <div>
-                    <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#cbd5e1', marginBottom: '0.25rem', display: 'block' }}>Mobile Number *</label>
+                    <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#475569', marginBottom: '0.25rem', display: 'block' }}>Mobile Number *</label>
                     <input
                       type="tel"
                       placeholder="e.g. 9876543210"
                       required
                       value={broadcastForm.phone}
                       onChange={e => setBroadcastForm({ ...broadcastForm, phone: e.target.value })}
-                      style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '10px', backgroundColor: '#0f172a', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', fontSize: '0.85rem', outline: 'none' }}
+                      style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '10px', backgroundColor: '#f8fafc', border: '1px solid #cbd5e1', color: '#0f172a', fontSize: '0.85rem', outline: 'none' }}
                     />
                   </div>
 
                   <div>
-                    <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#cbd5e1', marginBottom: '0.25rem', display: 'block' }}>Email Address (Optional)</label>
+                    <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#475569', marginBottom: '0.25rem', display: 'block' }}>Email Address (Optional)</label>
                     <input
                       type="email"
                       placeholder="yourname@gmail.com"
                       value={broadcastForm.email}
                       onChange={e => setBroadcastForm({ ...broadcastForm, email: e.target.value })}
-                      style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '10px', backgroundColor: '#0f172a', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', fontSize: '0.85rem', outline: 'none' }}
+                      style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '10px', backgroundColor: '#f8fafc', border: '1px solid #cbd5e1', color: '#0f172a', fontSize: '0.85rem', outline: 'none' }}
                     />
                   </div>
 
                   <div>
-                    <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#cbd5e1', marginBottom: '0.25rem', display: 'block' }}>Specific Requirement</label>
+                    <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#475569', marginBottom: '0.25rem', display: 'block' }}>Specific Requirement</label>
                     <textarea
                       placeholder={`Specify your requirement for ${service.name}...`}
                       rows={3}
                       value={broadcastForm.requirement}
                       onChange={e => setBroadcastForm({ ...broadcastForm, requirement: e.target.value })}
-                      style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '10px', backgroundColor: '#0f172a', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', fontSize: '0.85rem', outline: 'none' }}
+                      style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '10px', backgroundColor: '#f8fafc', border: '1px solid #cbd5e1', color: '#0f172a', fontSize: '0.85rem', outline: 'none' }}
                     />
                   </div>
 
@@ -737,7 +916,7 @@ export default function ServiceDetailsPage({ user }) {
                       width: '100%',
                       padding: '0.75rem',
                       borderRadius: '12px',
-                      backgroundColor: '#3b82f6',
+                      backgroundColor: '#2563eb',
                       color: '#fff',
                       fontWeight: 800,
                       fontSize: '0.9rem',
@@ -748,7 +927,7 @@ export default function ServiceDetailsPage({ user }) {
                       alignItems: 'center',
                       justifyContent: 'center',
                       gap: '0.4rem',
-                      boxShadow: '0 4px 14px rgba(59, 130, 246, 0.4)'
+                      boxShadow: '0 4px 14px rgba(37, 99, 235, 0.3)'
                     }}
                   >
                     {submittingBroadcast ? 'Broadcasting Request...' : <><Send size={16} /> Broadcast Quote Request</>}
@@ -763,7 +942,7 @@ export default function ServiceDetailsPage({ user }) {
         {/* Related Services in Category */}
         {relatedServices && relatedServices.length > 0 && (
           <section style={{ marginTop: '3.5rem' }}>
-            <h3 style={{ fontSize: '1.3rem', fontWeight: 800, color: '#fff', marginBottom: '1.25rem' }}>
+            <h3 style={{ fontSize: '1.3rem', fontWeight: 800, color: '#0f172a', marginBottom: '1.25rem' }}>
               Explore Related {service.category} Offerings in {cityNameCap}
             </h3>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '1.15rem' }}>
@@ -772,23 +951,23 @@ export default function ServiceDetailsPage({ user }) {
                   key={rItem.id}
                   onClick={() => navigate(`/${data.city}/service/${rItem.slug || rItem.id}`)}
                   style={{
-                    backgroundColor: '#1e293b',
-                    border: '1px solid rgba(255,255,255,0.06)',
+                    backgroundColor: '#ffffff',
+                    border: '1px solid #e2e8f0',
                     borderRadius: '14px',
                     padding: '1.15rem',
                     cursor: 'pointer',
                     transition: 'all 0.2s'
                   }}
-                  onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#334155'; e.currentTarget.style.borderColor = '#818cf8'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#1e293b'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)'; }}
+                  onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#eff6ff'; e.currentTarget.style.borderColor = '#2563eb'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#ffffff'; e.currentTarget.style.borderColor = '#e2e8f0'; }}
                 >
-                  <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#818cf8', textTransform: 'uppercase', marginBottom: '0.3rem' }}>
+                  <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#2563eb', textTransform: 'uppercase', marginBottom: '0.3rem' }}>
                     {rItem.category}
                   </div>
-                  <h4 style={{ fontSize: '0.98rem', fontWeight: 800, color: '#fff', margin: '0 0 0.5rem 0' }}>
+                  <h4 style={{ fontSize: '0.98rem', fontWeight: 800, color: '#0f172a', margin: '0 0 0.5rem 0' }}>
                     {rItem.name}
                   </h4>
-                  <div style={{ fontSize: '0.8rem', color: '#10b981', fontWeight: 800 }}>
+                  <div style={{ fontSize: '0.8rem', color: '#059669', fontWeight: 800 }}>
                     {rItem.defaultPrice ? `Est. ₹${rItem.defaultPrice.toLocaleString('en-IN')}` : 'Custom Pricing'}
                   </div>
                 </div>
@@ -804,25 +983,26 @@ export default function ServiceDetailsPage({ user }) {
         <div style={{
           position: 'fixed',
           top: 0, left: 0, right: 0, bottom: 0,
-          backgroundColor: 'rgba(0,0,0,0.85)',
+          backgroundColor: 'rgba(15, 23, 42, 0.65)',
+          backdropFilter: 'blur(6px)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           zIndex: 1000, padding: '1rem'
         }}>
-          <div style={{ backgroundColor: '#1e293b', borderRadius: '16px', padding: '1.75rem', maxWidth: '450px', width: '100%', border: '1px solid rgba(255,255,255,0.1)' }}>
+          <div style={{ backgroundColor: '#ffffff', borderRadius: '20px', padding: '1.75rem', maxWidth: '450px', width: '100%', border: '1px solid #e2e8f0', boxShadow: '0 20px 40px rgba(0,0,0,0.15)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-              <h3 style={{ fontSize: '1.2rem', fontWeight: 800, margin: 0 }}>
-                Get Best Quote from <span style={{ color: '#38bdf8' }}>{selectedVendorForLead.name}</span>
+              <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>
+                Get Best Quote from <span style={{ color: '#2563eb' }}>{selectedVendorForLead.name}</span>
               </h3>
-              <button onClick={() => setSelectedVendorForLead(null)} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }}>
+              <button onClick={() => setSelectedVendorForLead(null)} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer' }}>
                 <X size={20} />
               </button>
             </div>
-            <p style={{ fontSize: '0.84rem', color: '#94a3b8', marginBottom: '1.25rem' }}>
+            <p style={{ fontSize: '0.84rem', color: '#64748b', marginBottom: '1.25rem' }}>
               Submit your inquiry for {service.name} and receive instant price quotes directly.
             </p>
 
             {leadSubmitted ? (
-              <div style={{ backgroundColor: 'rgba(16, 185, 129, 0.15)', border: '1px solid #10b981', color: '#10b981', padding: '1rem', borderRadius: '8px', textAlign: 'center', fontWeight: 700 }}>
+              <div style={{ backgroundColor: '#d1fae5', border: '1px solid #10b981', color: '#047857', padding: '1rem', borderRadius: '10px', textAlign: 'center', fontWeight: 800 }}>
                 ✓ Inquiry Sent Successfully! The business will contact you shortly.
               </div>
             ) : (
@@ -833,7 +1013,7 @@ export default function ServiceDetailsPage({ user }) {
                   required
                   value={leadForm.name}
                   onChange={e => setLeadForm({ ...leadForm, name: e.target.value })}
-                  style={{ width: '100%', padding: '0.7rem', borderRadius: '8px', backgroundColor: '#0f172a', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}
+                  style={{ width: '100%', padding: '0.7rem', borderRadius: '8px', backgroundColor: '#f8fafc', border: '1px solid #cbd5e1', color: '#0f172a', fontSize: '0.85rem' }}
                 />
                 <input
                   type="tel"
@@ -841,26 +1021,26 @@ export default function ServiceDetailsPage({ user }) {
                   required
                   value={leadForm.phone}
                   onChange={e => setLeadForm({ ...leadForm, phone: e.target.value })}
-                  style={{ width: '100%', padding: '0.7rem', borderRadius: '8px', backgroundColor: '#0f172a', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}
+                  style={{ width: '100%', padding: '0.7rem', borderRadius: '8px', backgroundColor: '#f8fafc', border: '1px solid #cbd5e1', color: '#0f172a', fontSize: '0.85rem' }}
                 />
                 <input
                   type="email"
                   placeholder="Your Email Address"
                   value={leadForm.email}
                   onChange={e => setLeadForm({ ...leadForm, email: e.target.value })}
-                  style={{ width: '100%', padding: '0.7rem', borderRadius: '8px', backgroundColor: '#0f172a', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}
+                  style={{ width: '100%', padding: '0.7rem', borderRadius: '8px', backgroundColor: '#f8fafc', border: '1px solid #cbd5e1', color: '#0f172a', fontSize: '0.85rem' }}
                 />
                 <textarea
                   placeholder={`Requirements for ${service.name}...`}
                   rows={3}
                   value={leadForm.message}
                   onChange={e => setLeadForm({ ...leadForm, message: e.target.value })}
-                  style={{ width: '100%', padding: '0.7rem', borderRadius: '8px', backgroundColor: '#0f172a', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}
+                  style={{ width: '100%', padding: '0.7rem', borderRadius: '8px', backgroundColor: '#f8fafc', border: '1px solid #cbd5e1', color: '#0f172a', fontSize: '0.85rem' }}
                 />
                 <button
                   type="submit"
                   disabled={submittingLead}
-                  style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', backgroundColor: '#38bdf8', color: '#0f172a', fontWeight: 800, border: 'none', cursor: 'pointer', marginTop: '0.5rem' }}
+                  style={{ width: '100%', padding: '0.75rem', borderRadius: '10px', backgroundColor: '#2563eb', color: '#ffffff', fontWeight: 800, border: 'none', cursor: 'pointer', marginTop: '0.5rem', boxShadow: '0 4px 12px rgba(37,99,235,0.3)' }}
                 >
                   {submittingLead ? 'Sending...' : 'Submit Quote Request'}
                 </button>
@@ -871,7 +1051,7 @@ export default function ServiceDetailsPage({ user }) {
       )}
 
       {/* Footer */}
-      <footer style={{ marginTop: '4rem', padding: '2rem 1.5rem', textAlign: 'center', borderTop: '1px solid rgba(255, 255, 255, 0.08)', color: '#64748b', fontSize: '0.85rem' }}>
+      <footer style={{ marginTop: '4rem', padding: '2rem 1.5rem', textAlign: 'center', borderTop: '1px solid #e2e8f0', backgroundColor: '#ffffff', color: '#64748b', fontSize: '0.85rem' }}>
         <p>© 2026 ManaCity Aggregator Platform. All rights reserved.</p>
       </footer>
     </div>
