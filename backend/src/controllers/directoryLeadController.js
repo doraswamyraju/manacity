@@ -588,21 +588,6 @@ exports.masterServicesSearch = async (req, res) => {
       return nameMatch || catMatch || slugMatch;
     }).slice(0, 5);
 
-    // Fallback dynamic item if nothing matched
-    if (matching.length === 0) {
-      const formatted = queryStr
-        .split(' ')
-        .map(w => w.charAt(0).toUpperCase() + w.slice(1))
-        .join(' ');
-      matching.push({
-        id: queryStr.replace(/[^a-z0-9]+/g, '-'),
-        name: formatted,
-        slug: queryStr.replace(/[^a-z0-9]+/g, '-'),
-        category: 'Services',
-        defaultPrice: 4999
-      });
-    }
-
     return res.json(matching);
   } catch (err) {
     console.error('Error in masterServicesSearch:', err);
