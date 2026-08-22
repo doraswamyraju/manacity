@@ -64,55 +64,52 @@ exports.autocompleteGooglePlaces = async (req, res) => {
       return res.status(200).json({ predictions: [] });
     }
 
-    if (!apiKey) {
-      return res.status(400).json({ error: 'Google Places API Key is missing in server configuration.' });
-    }
+    if (apiKey) {
+      try {
+        const apiRes = await axios.post(
+          'https://places.googleapis.com/v1/places:autocomplete',
+          { input: input.trim() },
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              'X-Goog-Api-Key': apiKey
+            }
+          }
+        );
 
-    // Call Google Places API (New v1) Autocomplete
-    try {
-      const apiRes = await axios.post(
-        'https://places.googleapis.com/v1/places:autocomplete',
-        { input: input.trim() },
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'X-Goog-Api-Key': apiKey
+        if (apiRes.data && apiRes.data.suggestions) {
+          const predictions = apiRes.data.suggestions
+            .filter(s => s.placePrediction)
+            .map(s => ({
+              placeId: s.placePrediction.placeId,
+              name: s.placePrediction.structuredFormat?.mainText?.text || s.placePrediction.text?.text,
+              description: s.placePrediction.text?.text
+            }));
+          if (predictions.length > 0) {
+            return res.status(200).json({ predictions });
           }
         }
-      );
-
-      if (apiRes.data && apiRes.data.suggestions) {
-        const predictions = apiRes.data.suggestions
-          .filter(s => s.placePrediction)
-          .map(s => ({
-            placeId: s.placePrediction.placeId,
-            name: s.placePrediction.structuredFormat?.mainText?.text || s.placePrediction.text?.text,
-            description: s.placePrediction.text?.text
-          }));
-        return res.status(200).json({ predictions });
-      }
-    } catch (newErr) {
-      const errMsg = newErr.response?.data?.error?.message || newErr.message;
-      console.warn('Places API (New v1) autocomplete warning, trying legacy:', errMsg);
-      
-      // Fallback to Places Autocomplete Legacy
-      try {
-        const legacyRes = await axios.get(`https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(input)}&key=${apiKey}`);
-        if (legacyRes.data && legacyRes.data.status === 'OK' && legacyRes.data.predictions) {
-          const predictions = legacyRes.data.predictions.map(p => ({
-            placeId: p.place_id,
-            name: p.structured_formatting?.main_text || p.description,
-            description: p.description
-          }));
-          return res.status(200).json({ predictions });
-        } else if (legacyRes.data && (legacyRes.data.status === 'REQUEST_DENIED' || legacyRes.data.status === 'INVALID_REQUEST')) {
-          return res.status(400).json({ error: legacyRes.data.error_message || 'Google Places API Key denied by Google.' });
+      } catch (newErr) {
+        console.warn('Places API (New v1) autocomplete warning, trying legacy:', newErr.message);
+        try {
+          const legacyRes = await axios.get(`https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(input)}&key=${apiKey}`);
+          if (legacyRes.data && legacyRes.data.status === 'OK' && legacyRes.data.predictions) {
+            const predictions = legacyRes.data.predictions.map(p => ({
+              placeId: p.place_id,
+              name: p.structured_formatting?.main_text || p.description,
+              description: p.description
+            }));
+            if (predictions.length > 0) {
+              return res.status(200).json({ predictions });
+            }
+          }
+        } catch (legacyErr) {
+          console.warn('Legacy Places Autocomplete warning:', legacyErr.message);
         }
-      } catch (legacyErr) {
-        console.warn('Legacy Places Autocomplete warning:', legacyErr.response?.data || legacyErr.message);
       }
+    }
 
-    // If API key is missing or no predictions returned from Google, return smart fallback places predictions
+    // Smart Fallback predictions if Google API returns empty or key is missing
     const formatted = input
       .split(' ')
       .map(w => w.charAt(0).toUpperCase() + w.slice(1))
