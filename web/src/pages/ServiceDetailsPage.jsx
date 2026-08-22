@@ -116,6 +116,26 @@ export default function ServiceDetailsPage({ user }) {
     { name: 'More', icon: MoreHorizontal, color: '#64748b', bg: '#f8fafc' }
   ];
 
+  // Dynamic Cycling Search Bar Placeholders
+  const cityNameCap = (data?.city || citySlug).charAt(0).toUpperCase() + (data?.city || citySlug).slice(1);
+  const searchPlaceholders = useMemo(() => [
+    `Search Businesses, Services & Products in ${cityNameCap}...`,
+    `Search Digital Marketing Agencies in ${cityNameCap}...`,
+    `Search CA & Tax Consultants in ${cityNameCap}...`,
+    `Search Restaurants & Cafes in ${cityNameCap}...`,
+    `Search Real Estate & Apartments in ${cityNameCap}...`,
+    `Search Doctors & Clinics in ${cityNameCap}...`
+  ], [cityNameCap]);
+
+  const [placeholderIndex, setPlaceholderIndex] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setPlaceholderIndex(prev => (prev + 1) % searchPlaceholders.length);
+    }, 2800);
+    return () => clearInterval(timer);
+  }, [searchPlaceholders.length]);
+
   // Default fallback business covers
   const fallbackCovers = [
     'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=800&q=80',
@@ -324,13 +344,12 @@ export default function ServiceDetailsPage({ user }) {
     );
   }
 
-  const { service, vendors, relatedServices } = data;
-  const cityNameCap = data.city.charAt(0).toUpperCase() + data.city.slice(1);
+  const { service, vendors } = data;
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc', color: '#0f172a', fontFamily: 'Inter, system-ui, sans-serif' }}>
       
-      {/* 1. Header Bar (Matching Exact Reference Screenshot Header) */}
+      {/* 1. Main Top Header Bar with Animated Search Glow & Cycling Placeholders */}
       <header style={{
         display: 'flex',
         flexDirection: 'column',
@@ -357,7 +376,7 @@ export default function ServiceDetailsPage({ user }) {
             <div style={{ cursor: 'pointer' }} onClick={() => navigate('/')}>
               <picture>
                 <source media="(max-width: 768px)" srcSet="/logo-square.png" />
-                <img src="/logo-horizontal.png" alt="ManaCity Logo" style={{ height: '36px', objectFit: 'contain' }} />
+                <img src="/logo-horizontal.png" alt="ManaCity Logo" style={{ height: '48px', objectFit: 'contain' }} />
               </picture>
             </div>
 
@@ -392,7 +411,7 @@ export default function ServiceDetailsPage({ user }) {
             </div>
           </div>
 
-          {/* Center: Hero Search Input Bar */}
+          {/* Center: Search Bar with Outer Glow Animation & Dynamic Placeholder Cycling */}
           <div style={{
             flex: '1 1 380px',
             maxWidth: '650px',
@@ -402,16 +421,20 @@ export default function ServiceDetailsPage({ user }) {
               display: 'flex',
               alignItems: 'center',
               gap: '0.6rem',
-              backgroundColor: '#f8fafc',
-              border: '1.5px solid rgba(37, 99, 235, 0.3)',
+              backgroundColor: '#ffffff',
               borderRadius: '24px',
-              padding: '0.5rem 1rem',
-              boxShadow: '0 4px 16px rgba(37, 99, 235, 0.08)'
+              padding: '0.45rem 1rem',
+              border: '2px solid transparent',
+              backgroundImage: 'linear-gradient(#ffffff, #ffffff), linear-gradient(135deg, #2563eb, #38bdf8, #818cf8, #2563eb)',
+              backgroundOrigin: 'border-box',
+              backgroundClip: 'padding-box, border-box',
+              boxShadow: '0 4px 18px rgba(37, 99, 235, 0.14)',
+              transition: 'all 0.3s ease-in-out'
             }}>
-              <Search size={18} color="#94a3b8" style={{ flexShrink: 0 }} />
+              <Search size={18} color="#2563eb" style={{ flexShrink: 0 }} />
               <input
                 type="text"
-                placeholder={`Search businesses, services & products in ${cityNameCap}...`}
+                placeholder={searchPlaceholders[placeholderIndex]}
                 onFocus={() => navigate('/')}
                 style={{
                   background: 'transparent',
@@ -419,8 +442,9 @@ export default function ServiceDetailsPage({ user }) {
                   color: '#0f172a',
                   width: '100%',
                   outline: 'none',
-                  fontSize: '0.9rem',
-                  fontWeight: 500
+                  fontSize: '0.88rem',
+                  fontWeight: 600,
+                  transition: 'all 0.3s ease-in-out'
                 }}
               />
               <Mic size={18} color="#2563eb" style={{ cursor: 'pointer', flexShrink: 0 }} />
@@ -429,7 +453,6 @@ export default function ServiceDetailsPage({ user }) {
 
           {/* Right Action Controls */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '1.15rem', flexShrink: 0 }}>
-            {/* List Your Business Button */}
             <button
               type="button"
               onClick={() => navigate('/register')}
@@ -447,13 +470,11 @@ export default function ServiceDetailsPage({ user }) {
               List Your Business
             </button>
 
-            {/* Saved Link */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 700, color: '#475569' }}>
               <Heart size={18} color="#ef4444" />
               <span className="desktop-only">Saved</span>
             </div>
 
-            {/* Notification Icon */}
             <div style={{ position: 'relative', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
               <Bell size={18} color="#475569" />
               <span style={{
@@ -475,7 +496,6 @@ export default function ServiceDetailsPage({ user }) {
               </span>
             </div>
 
-            {/* User Profile Avatar / Login */}
             {user ? (
               <div
                 onClick={() => navigate('/dashboard')}
@@ -526,7 +546,7 @@ export default function ServiceDetailsPage({ user }) {
         </div>
       </header>
 
-      {/* 2. Top Promo Advertising Banner (Matching Reference Banner 100%) */}
+      {/* 2. Top Promo Advertising Banner */}
       {showTopAdBanner && (
         <div style={{ maxWidth: '1280px', margin: '1rem auto 0.5rem auto', padding: '0 1.5rem' }}>
           <div style={{
@@ -542,7 +562,6 @@ export default function ServiceDetailsPage({ user }) {
             boxShadow: '0 8px 25px rgba(30, 27, 75, 0.3)',
             flexWrap: 'wrap'
           }}>
-            {/* Left Megaphone & Copy */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
               <div style={{ backgroundColor: 'rgba(255,255,255,0.12)', padding: '0.75rem', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <Megaphone size={28} color="#fbbf24" />
@@ -560,7 +579,6 @@ export default function ServiceDetailsPage({ user }) {
               </div>
             </div>
 
-            {/* Right Code Coupon & CTA */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
               <div style={{ border: '1px dashed rgba(255,255,255,0.4)', borderRadius: '8px', padding: '0.45rem 0.85rem', fontSize: '0.82rem', fontWeight: 700, color: '#e0e7ff', backgroundColor: 'rgba(255,255,255,0.06)' }}>
                 Use Code: <span style={{ color: '#fbbf24', fontWeight: 900 }}>MC20</span>
@@ -600,13 +618,10 @@ export default function ServiceDetailsPage({ user }) {
         </div>
       )}
 
-      {/* 3. Horizontal Filter Toolbar (Matching Screenshot Filters Bar 100%) */}
+      {/* 3. Horizontal Filter Toolbar */}
       <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '1rem 1.5rem 0.5rem 1.5rem' }}>
-        
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '0.85rem' }}>
-          
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', flexWrap: 'wrap' }}>
-            {/* All Categories Dropdown */}
             <select
               value={selectedCategoryFilter}
               onChange={(e) => setSelectedCategoryFilter(e.target.value)}
@@ -629,7 +644,6 @@ export default function ServiceDetailsPage({ user }) {
               <option value="Auditor / CA / Tax Consultant">CA & Tax</option>
             </select>
 
-            {/* City Selector Pill */}
             <div style={{ backgroundColor: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '10px', padding: '0.45rem 0.85rem', fontSize: '0.83rem', fontWeight: 700, color: '#0f172a', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
               <MapPin size={14} color="#2563eb" />
               <select
@@ -641,7 +655,6 @@ export default function ServiceDetailsPage({ user }) {
               </select>
             </div>
 
-            {/* Sort By Dropdown */}
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
@@ -662,7 +675,6 @@ export default function ServiceDetailsPage({ user }) {
               <option value="NAME">Sort by: Name (A-Z)</option>
             </select>
 
-            {/* Verified Only Pill Button */}
             <button
               type="button"
               onClick={() => setVerifiedOnly(!verifiedOnly)}
@@ -683,7 +695,6 @@ export default function ServiceDetailsPage({ user }) {
               <ShieldCheck size={15} color={verifiedOnly ? '#047857' : '#2563eb'} /> Verified Only
             </button>
 
-            {/* Fast Response Pill Button */}
             <button
               type="button"
               onClick={() => setFastResponseOnly(!fastResponseOnly)}
@@ -703,32 +714,9 @@ export default function ServiceDetailsPage({ user }) {
             >
               <Clock size={15} color="#2563eb" /> Fast Response
             </button>
-
-            {/* More Filters */}
-            <button
-              type="button"
-              onClick={() => setMinRating(minRating === 4.5 ? 0 : 4.5)}
-              style={{
-                backgroundColor: minRating > 0 ? '#fef3c7' : '#ffffff',
-                border: minRating > 0 ? '1.5px solid #d97706' : '1px solid #cbd5e1',
-                color: minRating > 0 ? '#b45309' : '#0f172a',
-                borderRadius: '10px',
-                padding: '0.45rem 0.85rem',
-                fontSize: '0.83rem',
-                fontWeight: 800,
-                cursor: 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.35rem'
-              }}
-            >
-              <SlidersHorizontal size={14} /> {minRating > 0 ? '★ 4.5+ Stars' : 'More Filters'}
-            </button>
           </div>
-
         </div>
 
-        {/* Results Counter & Clear Filters Row */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.82rem', color: '#64748b', margin: '0.5rem 0 1rem 0' }}>
           <div>
             Showing <strong>1 – {filteredVendors.length}</strong> of <strong>{vendors.length}</strong> results in <strong>{cityNameCap}</strong>
@@ -743,22 +731,23 @@ export default function ServiceDetailsPage({ user }) {
             </button>
           )}
         </div>
-
       </div>
 
-      {/* 4. Main 2-Column Content Layout (68% Left Column + 32% Right Sidebar) */}
+      {/* 4. Main Content Layout */}
       <main style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 1.5rem 3rem 1.5rem' }}>
-        
         <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 350px', gap: '1.75rem', alignItems: 'start' }}>
           
-          {/* LEFT COLUMN: LIST VIEW BUSINESS CARDS (EXACT MATCH TO MOCKUP) */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+          {/* LEFT COLUMN: SLEEK COMPACT BUSINESS LISTING CARDS */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             {filteredVendors.length > 0 ? (
               filteredVendors.map((vendor, idx) => {
                 const coverImage = vendor.coverImageUrl || fallbackCovers[idx % fallbackCovers.length];
                 const isSaved = !!savedVendors[vendor.id];
-                const categoryColor = idx % 3 === 0 ? '#2563eb' : (idx % 3 === 1 ? '#ea580c' : '#7c3aed');
                 const categoryBg = idx % 3 === 0 ? '#2563eb' : (idx % 3 === 1 ? '#ea580c' : '#7c3aed');
+
+                const tagList = vendor.tags && vendor.tags.length > 0
+                  ? vendor.tags
+                  : ['Social Media Marketing', 'Google Ads', 'SEO Services', 'Content Marketing', 'Website Development'];
 
                 return (
                   <div
@@ -766,99 +755,103 @@ export default function ServiceDetailsPage({ user }) {
                     style={{
                       backgroundColor: '#ffffff',
                       border: '1px solid #e2e8f0',
-                      borderRadius: '16px',
-                      padding: '1.25rem',
+                      borderRadius: '14px',
+                      padding: '0.85rem 1.1rem',
                       display: 'grid',
-                      gridTemplateColumns: '220px 1fr 180px',
-                      gap: '1.25rem',
+                      gridTemplateColumns: '170px 1fr 170px',
+                      gap: '1.1rem',
                       alignItems: 'center',
-                      boxShadow: '0 4px 16px rgba(0,0,0,0.03)',
+                      boxShadow: '0 2px 12px rgba(0,0,0,0.03)',
                       transition: 'all 0.2s',
                       position: 'relative'
                     }}
-                    onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#3b82f6'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(59, 130, 246, 0.1)'; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.03)'; }}
+                    onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#2563eb'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(37, 99, 235, 0.1)'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.boxShadow = '0 2px 12px rgba(0,0,0,0.03)'; }}
                   >
                     
-                    {/* LEFT BLOCK: BUSINESS COVER IMAGE THUMBNAIL */}
-                    <div style={{ position: 'relative', height: '140px', borderRadius: '12px', overflow: 'hidden', backgroundColor: '#f1f5f9' }}>
+                    {/* LEFT BLOCK: THUMBNAIL WITH CATEGORY & VERIFIED BADGES */}
+                    <div style={{ position: 'relative', height: '105px', borderRadius: '10px', overflow: 'hidden', backgroundColor: '#f1f5f9' }}>
                       <img
                         src={coverImage}
                         alt={vendor.name}
                         style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                       />
 
-                      {/* Top-Left Category Tag Pill */}
+                      {/* Top-Left Category Tag Pill (Requirement 4: Category Logo Badge) */}
                       <span style={{
                         position: 'absolute',
-                        top: '8px',
-                        left: '8px',
+                        top: '6px',
+                        left: '6px',
                         backgroundColor: categoryBg,
                         color: '#ffffff',
-                        fontSize: '0.68rem',
+                        fontSize: '0.65rem',
                         fontWeight: 800,
-                        padding: '0.25rem 0.6rem',
+                        padding: '0.2rem 0.5rem',
                         borderRadius: '6px',
                         boxShadow: '0 2px 6px rgba(0,0,0,0.2)'
                       }}>
                         {service.category || 'Service'}
                       </span>
 
-                      {/* Bottom-Left Verified Badge */}
+                      {/* Bottom-Left Green Verified Badge */}
                       {vendor.isVerifiedManaCity && (
                         <span style={{
                           position: 'absolute',
-                          bottom: '8px',
-                          left: '8px',
+                          bottom: '6px',
+                          left: '6px',
                           backgroundColor: '#ffffff',
                           color: '#059669',
-                          fontSize: '0.68rem',
+                          fontSize: '0.65rem',
                           fontWeight: 800,
-                          padding: '0.2rem 0.55rem',
+                          padding: '0.18rem 0.45rem',
                           borderRadius: '6px',
                           display: 'flex',
                           alignItems: 'center',
-                          gap: '0.25rem',
+                          gap: '0.2rem',
                           boxShadow: '0 2px 6px rgba(0,0,0,0.15)'
                         }}>
-                          <CheckCircle2 size={12} color="#059669" /> Verified
+                          <CheckCircle2 size={11} color="#059669" /> Verified
                         </span>
                       )}
                     </div>
 
-                    {/* MIDDLE BLOCK: BUSINESS DETAILS & CHIPS */}
+                    {/* MIDDLE BLOCK: BUSINESS TITLE, SINGLE-LINE TAG CHIPS & SLA */}
                     <div>
-                      {/* Business Title & Blue Verified Checkmark */}
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.2rem' }}>
-                        <h3 style={{ fontSize: '1.15rem', fontWeight: 900, color: '#0f172a', margin: 0, lineHeight: 1.25 }}>
+                      {/* Business Title (Requirement 4: Subtitle Category Line Removed) */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', marginBottom: '0.25rem' }}>
+                        <h3 style={{ fontSize: '1.05rem', fontWeight: 900, color: '#0f172a', margin: 0, lineHeight: 1.2 }}>
                           {vendor.name}
                         </h3>
                         {vendor.isVerifiedManaCity && (
-                          <ShieldCheck size={17} color="#2563eb" fill="#2563eb" style={{ color: '#fff' }} />
+                          <ShieldCheck size={16} color="#2563eb" fill="#2563eb" style={{ color: '#fff' }} />
                         )}
                       </div>
 
-                      {/* Subtitle / Category */}
-                      <div style={{ fontSize: '0.82rem', color: '#64748b', fontWeight: 600, marginBottom: '0.45rem' }}>
-                        {service.name} Agency
-                      </div>
-
-                      {/* Rating • Years in Business • Location Row */}
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', flexWrap: 'wrap', marginBottom: '0.65rem', fontSize: '0.78rem' }}>
-                        <span style={{ fontWeight: 900, color: '#d97706', backgroundColor: '#fef3c7', padding: '0.15rem 0.55rem', borderRadius: '6px', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                      {/* Rating & Location Row */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.55rem', marginBottom: '0.45rem', fontSize: '0.76rem' }}>
+                        <span style={{ fontWeight: 900, color: '#d97706', backgroundColor: '#fef3c7', padding: '0.12rem 0.45rem', borderRadius: '6px', display: 'inline-flex', alignItems: 'center', gap: '0.2rem' }}>
                           ★ {vendor.rating || 4.9} ({vendor.reviewCount || 63} reviews)
                         </span>
-                        <span style={{ color: '#94a3b8' }}>•</span>
+                        <span style={{ color: '#cbd5e1' }}>•</span>
                         <span style={{ color: '#475569', fontWeight: 600 }}>8+ Years in Business</span>
-                        <span style={{ color: '#94a3b8' }}>•</span>
+                        <span style={{ color: '#cbd5e1' }}>•</span>
                         <span style={{ color: '#475569', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '0.2rem' }}>
                           <MapPin size={12} color="#64748b" /> {cityNameCap}
                         </span>
                       </div>
 
-                      {/* Service Specialization Tag Chips Row */}
-                      <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', marginBottom: '0.65rem' }}>
-                        {['Social Media Marketing', 'Google Ads', 'SEO Services', 'Content Marketing', 'Website Development'].map((tag, tIdx) => (
+                      {/* SINGLE-LINE PRODUCT/SERVICE TAG CHIPS (Requirement 1: All tags in 1 line) */}
+                      <div style={{
+                        display: 'flex',
+                        gap: '0.35rem',
+                        alignItems: 'center',
+                        overflowX: 'auto',
+                        whiteSpace: 'nowrap',
+                        scrollbarWidth: 'none',
+                        msOverflowStyle: 'none',
+                        marginBottom: '0.4rem'
+                      }}>
+                        {tagList.map((tag, tIdx) => (
                           <span
                             key={tIdx}
                             style={{
@@ -867,26 +860,21 @@ export default function ServiceDetailsPage({ user }) {
                               color: '#2563eb',
                               fontSize: '0.68rem',
                               fontWeight: 700,
-                              padding: '0.15rem 0.5rem',
-                              borderRadius: '10px'
+                              padding: '0.12rem 0.48rem',
+                              borderRadius: '8px',
+                              whiteSpace: 'nowrap',
+                              flexShrink: 0
                             }}
                           >
                             {tag}
                           </span>
                         ))}
-                        <span style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 700, padding: '0.15rem 0.35rem' }}>+4 more</span>
                       </div>
 
-                      {/* Trust Badges Row */}
-                      <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap', fontSize: '0.72rem', color: '#475569', fontWeight: 600 }}>
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', backgroundColor: '#f8fafc', padding: '0.15rem 0.45rem', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+                      {/* SLA Response Badge (Requirement 2 & 3: 5-Star & Best Price Removed) */}
+                      <div style={{ display: 'flex', gap: '0.5rem', fontSize: '0.72rem', color: '#475569', fontWeight: 600 }}>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', backgroundColor: '#f8fafc', padding: '0.12rem 0.45rem', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
                           <Clock size={12} color="#2563eb" /> 15-Min Response
-                        </span>
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', backgroundColor: '#f8fafc', padding: '0.15rem 0.45rem', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
-                          <Award size={12} color="#059669" /> Best Price Guarantee
-                        </span>
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', backgroundColor: '#f8fafc', padding: '0.15rem 0.45rem', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
-                          <Star size={12} color="#d97706" /> 5-Star Rated
                         </span>
                       </div>
                     </div>
@@ -894,24 +882,21 @@ export default function ServiceDetailsPage({ user }) {
                     {/* RIGHT BLOCK: PRICING & ACTION BUTTONS */}
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', justifyContent: 'space-between', height: '100%' }}>
                       
-                      {/* Save Heart Button */}
                       <button
                         type="button"
                         onClick={() => toggleSaveVendor(vendor.id)}
-                        style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.78rem', fontWeight: 700, color: '#64748b' }}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.2rem', fontSize: '0.75rem', fontWeight: 700, color: '#64748b' }}
                       >
-                        <Heart size={16} color={isSaved ? '#ef4444' : '#94a3b8'} fill={isSaved ? '#ef4444' : 'none'} /> Save
+                        <Heart size={15} color={isSaved ? '#ef4444' : '#94a3b8'} fill={isSaved ? '#ef4444' : 'none'} /> Save
                       </button>
 
-                      {/* Price Badge */}
-                      <div style={{ textAlign: 'right', margin: '0.4rem 0' }}>
-                        <div style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 600 }}>Starts from</div>
-                        <div style={{ fontSize: '1.25rem', fontWeight: 900, color: '#059669' }}>
+                      <div style={{ textAlign: 'right', margin: '0.2rem 0' }}>
+                        <div style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 600 }}>Starts from</div>
+                        <div style={{ fontSize: '1.15rem', fontWeight: 900, color: '#059669' }}>
                           ₹{vendor.price ? vendor.price.toLocaleString('en-IN') : '4,999'}
                         </div>
                       </div>
 
-                      {/* Primary Enquire / Order Button */}
                       <button
                         type="button"
                         onClick={() => setSelectedVendorForLead(vendor)}
@@ -919,28 +904,27 @@ export default function ServiceDetailsPage({ user }) {
                           backgroundColor: '#2563eb',
                           color: '#ffffff',
                           border: 'none',
-                          borderRadius: '20px',
-                          padding: '0.55rem 1.15rem',
-                          fontSize: '0.85rem',
+                          borderRadius: '16px',
+                          padding: '0.45rem 1rem',
+                          fontSize: '0.82rem',
                           fontWeight: 900,
                           cursor: 'pointer',
                           width: '100%',
                           textAlign: 'center',
-                          boxShadow: '0 4px 12px rgba(37, 99, 235, 0.3)',
-                          marginBottom: '0.5rem'
+                          boxShadow: '0 4px 12px rgba(37, 99, 235, 0.25)',
+                          marginBottom: '0.35rem'
                         }}
                       >
                         Enquire / Order
                       </button>
 
-                      {/* WhatsApp & Call Action Icons */}
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', width: '100%', justifyContent: 'center', marginBottom: '0.5rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', width: '100%', justifyContent: 'center', marginBottom: '0.35rem' }}>
                         <button
                           type="button"
                           onClick={() => handleWhatsAppLead(vendor)}
                           style={{
-                            width: '36px',
-                            height: '36px',
+                            width: '32px',
+                            height: '32px',
                             borderRadius: '50%',
                             backgroundColor: '#25d366',
                             color: '#fff',
@@ -949,18 +933,18 @@ export default function ServiceDetailsPage({ user }) {
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            boxShadow: '0 2px 8px rgba(37, 211, 102, 0.3)'
+                            boxShadow: '0 2px 6px rgba(37, 211, 102, 0.25)'
                           }}
                           title="Chat on WhatsApp (Logs lead automatically)"
                         >
-                          <MessageSquare size={16} />
+                          <MessageSquare size={14} />
                         </button>
                         <button
                           type="button"
                           onClick={() => handlePhoneCallLead(vendor)}
                           style={{
-                            width: '36px',
-                            height: '36px',
+                            width: '32px',
+                            height: '32px',
                             borderRadius: '50%',
                             backgroundColor: '#2563eb',
                             color: '#fff',
@@ -969,15 +953,14 @@ export default function ServiceDetailsPage({ user }) {
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            boxShadow: '0 2px 8px rgba(37, 99, 235, 0.3)'
+                            boxShadow: '0 2px 6px rgba(37, 99, 235, 0.25)'
                           }}
                           title="Call Provider (Logs lead automatically)"
                         >
-                          <Phone size={16} />
+                          <Phone size={14} />
                         </button>
                       </div>
 
-                      {/* View Profile Storefront Link */}
                       <button
                         type="button"
                         onClick={() => {
@@ -988,19 +971,19 @@ export default function ServiceDetailsPage({ user }) {
                           backgroundColor: '#ffffff',
                           border: '1px solid #cbd5e1',
                           color: '#2563eb',
-                          borderRadius: '10px',
-                          padding: '0.4rem 0.75rem',
-                          fontSize: '0.78rem',
+                          borderRadius: '8px',
+                          padding: '0.3rem 0.6rem',
+                          fontSize: '0.75rem',
                           fontWeight: 800,
                           cursor: 'pointer',
                           width: '100%',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          gap: '0.3rem'
+                          gap: '0.25rem'
                         }}
                       >
-                        View Profile <ChevronRight size={14} />
+                        View Profile <ChevronRight size={13} />
                       </button>
 
                     </div>
@@ -1039,7 +1022,7 @@ export default function ServiceDetailsPage({ user }) {
             )}
           </div>
 
-          {/* RIGHT COLUMN: 3 STACKED SIDEBAR WIDGETS (EXACT MATCH TO REFERENCE SCREENSHOT) */}
+          {/* RIGHT COLUMN: 3 STACKED SIDEBAR WIDGETS (Requirement 2: Best Price Guarantee Moved Here) */}
           <aside style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', position: 'sticky', top: '100px' }}>
             
             {/* WIDGET 1: SEND ENQUIRY TO ALL VENDORS CARD */}
@@ -1178,7 +1161,7 @@ export default function ServiceDetailsPage({ user }) {
               </div>
             </div>
 
-            {/* WIDGET 3: WHY CHOOSE MANACITY? TRUST BOX */}
+            {/* WIDGET 3: WHY CHOOSE MANACITY? TRUST BOX (Requirement 2: Best Price Guarantee Included) */}
             <div style={{
               backgroundColor: '#ffffff',
               border: '1px solid #e2e8f0',
@@ -1200,18 +1183,18 @@ export default function ServiceDetailsPage({ user }) {
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.65rem' }}>
-                  <Clock size={18} color="#2563eb" style={{ flexShrink: 0, marginTop: '2px' }} />
+                  <Award size={18} color="#059669" style={{ flexShrink: 0, marginTop: '2px' }} />
                   <div>
-                    <div style={{ fontSize: '0.82rem', fontWeight: 800, color: '#0f172a' }}>Fast Response</div>
-                    <div style={{ fontSize: '0.72rem', color: '#64748b' }}>Get quick reply within 15 minutes SLA</div>
+                    <div style={{ fontSize: '0.82rem', fontWeight: 800, color: '#0f172a' }}>Best Price Guarantee</div>
+                    <div style={{ fontSize: '0.72rem', color: '#64748b' }}>Compare & get lowest direct vendor pricing</div>
                   </div>
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.65rem' }}>
-                  <Award size={18} color="#d97706" style={{ flexShrink: 0, marginTop: '2px' }} />
+                  <Clock size={18} color="#2563eb" style={{ flexShrink: 0, marginTop: '2px' }} />
                   <div>
-                    <div style={{ fontSize: '0.82rem', fontWeight: 800, color: '#0f172a' }}>Best Prices</div>
-                    <div style={{ fontSize: '0.72rem', color: '#64748b' }}>Compare and get the best price</div>
+                    <div style={{ fontSize: '0.82rem', fontWeight: 800, color: '#0f172a' }}>Fast Response</div>
+                    <div style={{ fontSize: '0.72rem', color: '#64748b' }}>Get quick reply within 15 minutes SLA</div>
                   </div>
                 </div>
 

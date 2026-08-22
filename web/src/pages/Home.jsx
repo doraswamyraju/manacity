@@ -501,7 +501,7 @@ export default function Home({
             <div style={{ cursor: 'pointer' }} onClick={() => navigate('/')}>
               <picture>
                 <source media="(max-width: 768px)" srcSet="/logo-square.png" />
-                <img src="/logo-horizontal.png" alt="ManaCity Logo" style={{ height: '36px', objectFit: 'contain' }} />
+                <img src="/logo-horizontal.png" alt="ManaCity Logo" style={{ height: '48px', objectFit: 'contain' }} />
               </picture>
             </div>
 
