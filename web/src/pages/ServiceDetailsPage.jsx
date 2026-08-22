@@ -38,7 +38,8 @@ import {
   Car,
   Briefcase,
   Megaphone,
-  User
+  User,
+  ChevronLast
 } from 'lucide-react';
 
 export default function ServiceDetailsPage({ user }) {
@@ -116,7 +117,7 @@ export default function ServiceDetailsPage({ user }) {
     { name: 'More', icon: MoreHorizontal, color: '#64748b', bg: '#f8fafc' }
   ];
 
-  // Dynamic Cycling Search Bar Placeholders
+  // Dynamic Cycling Search Bar Placeholders with Vibrant Color Animations
   const cityNameCap = (data?.city || citySlug).charAt(0).toUpperCase() + (data?.city || citySlug).slice(1);
   const searchPlaceholders = useMemo(() => [
     `Search Businesses, Services & Products in ${cityNameCap}...`,
@@ -355,7 +356,24 @@ export default function ServiceDetailsPage({ user }) {
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc', color: '#0f172a', fontFamily: 'Inter, system-ui, sans-serif' }}>
       
-      {/* 1. Header Bar with Logo 48px & Animated Search */}
+      {/* Dynamic Keyframes for Rainbow Search Ring & Pulse Animations */}
+      <style>{`
+        @keyframes searchGlowRotate {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+        @keyframes placeholderFadeSlide {
+          0% { opacity: 0; transform: translateY(4px); }
+          100% { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes iconPulseGlow {
+          0%, 100% { transform: scale(1); filter: drop-shadow(0 0 2px rgba(37,99,235,0.4)); }
+          50% { transform: scale(1.1); filter: drop-shadow(0 0 8px rgba(124,58,237,0.8)); }
+        }
+      `}</style>
+
+      {/* 1. Header Bar with Logo 48px & Animated Rainbow Search */}
       <header style={{
         display: 'flex',
         flexDirection: 'column',
@@ -417,43 +435,51 @@ export default function ServiceDetailsPage({ user }) {
             </div>
           </div>
 
-          {/* Center: Search Bar with Outer Glow Animation & Dynamic Placeholder Cycling */}
+          {/* Center: Search Bar with Vibrant Rainbow Glow Ring & Animated Typing Text */}
           <div style={{
             flex: '1 1 380px',
             maxWidth: '650px',
             position: 'relative'
           }}>
             <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.6rem',
-              backgroundColor: '#ffffff',
-              borderRadius: '24px',
-              padding: '0.45rem 1rem',
-              border: '2px solid transparent',
-              backgroundImage: 'linear-gradient(#ffffff, #ffffff), linear-gradient(135deg, #2563eb, #38bdf8, #818cf8, #2563eb)',
-              backgroundOrigin: 'border-box',
-              backgroundClip: 'padding-box, border-box',
-              boxShadow: '0 4px 18px rgba(37, 99, 235, 0.14)',
-              transition: 'all 0.3s ease-in-out'
+              position: 'relative',
+              padding: '2.5px',
+              borderRadius: '26px',
+              background: 'linear-gradient(90deg, #2563eb, #7c3aed, #ec4899, #10b981, #f59e0b, #2563eb)',
+              backgroundSize: '300% 300%',
+              animation: 'searchGlowRotate 4s ease infinite',
+              boxShadow: '0 4px 22px rgba(124, 58, 237, 0.22)'
             }}>
-              <Search size={18} color="#2563eb" style={{ flexShrink: 0 }} />
-              <input
-                type="text"
-                placeholder={searchPlaceholders[placeholderIndex]}
-                onFocus={() => navigate('/')}
-                style={{
-                  background: 'transparent',
-                  border: 'none',
-                  color: '#0f172a',
-                  width: '100%',
-                  outline: 'none',
-                  fontSize: '0.88rem',
-                  fontWeight: 600,
-                  transition: 'all 0.3s ease-in-out'
-                }}
-              />
-              <Mic size={18} color="#2563eb" style={{ cursor: 'pointer', flexShrink: 0 }} />
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.65rem',
+                backgroundColor: '#ffffff',
+                borderRadius: '24px',
+                padding: '0.45rem 1.1rem'
+              }}>
+                <Search size={19} color="#2563eb" style={{ flexShrink: 0, animation: 'iconPulseGlow 2.5s infinite ease-in-out' }} />
+                <input
+                  key={placeholderIndex}
+                  type="text"
+                  placeholder={searchPlaceholders[placeholderIndex]}
+                  onFocus={() => navigate('/')}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    color: '#0f172a',
+                    width: '100%',
+                    outline: 'none',
+                    fontSize: '0.88rem',
+                    fontWeight: 700,
+                    animation: 'placeholderFadeSlide 0.45s ease-out'
+                  }}
+                />
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', backgroundColor: '#eff6ff', border: '1px solid #bfdbfe', padding: '0.25rem 0.6rem', borderRadius: '14px', cursor: 'pointer' }}>
+                  <Mic size={15} color="#2563eb" />
+                  <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#2563eb' }}>Voice</span>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -743,7 +769,7 @@ export default function ServiceDetailsPage({ user }) {
       <main style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 1.5rem 3rem 1.5rem' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 350px', gap: '1.75rem', alignItems: 'start' }}>
           
-          {/* LEFT COLUMN: BUSINESS CARDS WITH STRICT VERTICAL STACK & INTERACTIVE TAG CHIPS */}
+          {/* LEFT COLUMN: BUSINESS CARDS WITH MORE SERVICES INDICATOR & NO REDUNDANT CITY NAME */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             {filteredVendors.length > 0 ? (
               filteredVendors.map((vendor, idx) => {
@@ -783,7 +809,6 @@ export default function ServiceDetailsPage({ user }) {
                         style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                       />
 
-                      {/* Top-Left Category Badge over Logo */}
                       <span style={{
                         position: 'absolute',
                         top: '6px',
@@ -799,7 +824,6 @@ export default function ServiceDetailsPage({ user }) {
                         {service.category || 'Service'}
                       </span>
 
-                      {/* Bottom-Left Verified / Unverified Badge over Logo */}
                       <span style={{
                         position: 'absolute',
                         bottom: '6px',
@@ -823,9 +847,8 @@ export default function ServiceDetailsPage({ user }) {
                       </span>
                     </div>
 
-                    {/* 2. MIDDLE COLUMN: COMPANY NAME -> RATINGS & SLA -> INTERACTIVE TAG CHIPS */}
+                    {/* 2. MIDDLE COLUMN: COMPANY NAME -> RATINGS/SLA -> TAG CHIPS WITH MORE INDICATOR */}
                     <div style={{ minWidth: 0 }}>
-                      {/* Line 1: Company Name (as per Google/Signup) */}
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', marginBottom: '0.35rem' }}>
                         <h3 style={{ fontSize: '1.05rem', fontWeight: 900, color: '#0f172a', margin: 0, lineHeight: 1.25, overflow: 'hidden', textOverflow: 'ellipsis' }}>
                           {vendor.name}
@@ -835,61 +858,86 @@ export default function ServiceDetailsPage({ user }) {
                         )}
                       </div>
 
-                      {/* Line 2: Ratings, No. of Years in Business, Location & 15-Min SLA Response */}
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.55rem', flexWrap: 'wrap', marginBottom: '0.5rem', fontSize: '0.76rem' }}>
+                      {/* Requirement 1: City Name Removed from info line */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.55rem', flexWrap: 'wrap', marginBottom: '0.55rem', fontSize: '0.76rem' }}>
                         <span style={{ fontWeight: 900, color: '#d97706', backgroundColor: '#fef3c7', padding: '0.12rem 0.45rem', borderRadius: '6px', display: 'inline-flex', alignItems: 'center', gap: '0.2rem' }}>
                           ★ {vendor.rating || 4.9} ({vendor.reviewCount || 63} reviews)
                         </span>
                         <span style={{ color: '#cbd5e1' }}>•</span>
                         <span style={{ color: '#475569', fontWeight: 600 }}>8+ Years in Business</span>
                         <span style={{ color: '#cbd5e1' }}>•</span>
-                        <span style={{ color: '#475569', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '0.2rem' }}>
-                          <MapPin size={12} color="#64748b" /> {cityNameCap}
-                        </span>
-                        <span style={{ color: '#cbd5e1' }}>•</span>
                         <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.2rem', backgroundColor: '#eff6ff', color: '#2563eb', padding: '0.12rem 0.45rem', borderRadius: '6px', fontWeight: 700 }}>
                           <Clock size={11} color="#2563eb" /> 15-Min Response
                         </span>
                       </div>
 
-                      {/* Line 3: Offered Services/Products Tag Chips (CLICKABLE: Opens dedicated Service Details Page!) */}
-                      <div style={{
-                        display: 'flex',
-                        gap: '0.35rem',
-                        alignItems: 'center',
-                        overflowX: 'auto',
-                        whiteSpace: 'nowrap',
-                        scrollbarWidth: 'none',
-                        msOverflowStyle: 'none'
-                      }}>
-                        {tagList.map((tag, tIdx) => (
+                      {/* Requirement 2: Single-Line Service Tag Chips WITH "+More Services ❯" Indication Pill */}
+                      <div style={{ position: 'relative', minWidth: 0 }}>
+                        <div style={{
+                          display: 'flex',
+                          gap: '0.35rem',
+                          alignItems: 'center',
+                          overflowX: 'auto',
+                          whiteSpace: 'nowrap',
+                          scrollbarWidth: 'none',
+                          msOverflowStyle: 'none'
+                        }}>
+                          {tagList.map((tag, tIdx) => (
+                            <span
+                              key={tIdx}
+                              onClick={() => handleTagClick(tag)}
+                              style={{
+                                backgroundColor: '#eff6ff',
+                                border: '1px solid #bfdbfe',
+                                color: '#2563eb',
+                                fontSize: '0.7rem',
+                                fontWeight: 700,
+                                padding: '0.2rem 0.55rem',
+                                borderRadius: '8px',
+                                whiteSpace: 'nowrap',
+                                flexShrink: 0,
+                                cursor: 'pointer',
+                                transition: 'all 0.15s'
+                              }}
+                              onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#2563eb'; e.currentTarget.style.color = '#ffffff'; }}
+                              onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#eff6ff'; e.currentTarget.style.color = '#2563eb'; }}
+                              title={`Click to view details for ${tag}`}
+                            >
+                              {tag}
+                            </span>
+                          ))}
+
+                          {/* Requirement 2: Indication pill showing more services in that line */}
                           <span
-                            key={tIdx}
-                            onClick={() => handleTagClick(tag)}
+                            onClick={() => setSelectedVendorForLead(vendor)}
                             style={{
-                              backgroundColor: '#eff6ff',
-                              border: '1px solid #bfdbfe',
-                              color: '#2563eb',
+                              backgroundColor: '#e0e7ff',
+                              border: '1px solid #c7d2fe',
+                              color: '#3730a3',
                               fontSize: '0.7rem',
-                              fontWeight: 700,
-                              padding: '0.2rem 0.55rem',
+                              fontWeight: 800,
+                              padding: '0.2rem 0.6rem',
                               borderRadius: '8px',
                               whiteSpace: 'nowrap',
                               flexShrink: 0,
                               cursor: 'pointer',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '0.2rem',
+                              boxShadow: '0 2px 6px rgba(55, 48, 163, 0.12)',
                               transition: 'all 0.15s'
                             }}
-                            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#2563eb'; e.currentTarget.style.color = '#ffffff'; }}
-                            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#eff6ff'; e.currentTarget.style.color = '#2563eb'; }}
-                            title={`Click to view details for ${tag}`}
+                            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#3730a3'; e.currentTarget.style.color = '#ffffff'; }}
+                            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#e0e7ff'; e.currentTarget.style.color = '#3730a3'; }}
+                            title="Click to view all offered services for this business"
                           >
-                            {tag}
+                            +4 More Services ❯
                           </span>
-                        ))}
+                        </div>
                       </div>
                     </div>
 
-                    {/* 3. RIGHT COLUMN: PRICING & ACTION BUTTONS (Clean Fixed 150px Column) */}
+                    {/* 3. RIGHT COLUMN: PRICING & ACTION BUTTONS */}
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', justifyContent: 'center', gap: '0.4rem', height: '100%', flexShrink: 0 }}>
                       
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
@@ -909,7 +957,6 @@ export default function ServiceDetailsPage({ user }) {
                         </div>
                       </div>
 
-                      {/* Main Action Button */}
                       <button
                         type="button"
                         onClick={() => setSelectedVendorForLead(vendor)}
@@ -930,7 +977,6 @@ export default function ServiceDetailsPage({ user }) {
                         Enquire / Order
                       </button>
 
-                      {/* Circular WhatsApp & Call Triggers */}
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', width: '100%', justifyContent: 'center' }}>
                         <button
                           type="button"
@@ -974,7 +1020,6 @@ export default function ServiceDetailsPage({ user }) {
                         </button>
                       </div>
 
-                      {/* Storefront Link Button */}
                       <button
                         type="button"
                         onClick={() => {
@@ -1284,7 +1329,7 @@ export default function ServiceDetailsPage({ user }) {
                   placeholder={`Requirements for ${service.name}...`}
                   rows={3}
                   value={leadForm.message}
-                  onChange={e => setLeadForm({ ...leadForm, message: e.target.message })}
+                  onChange={e => setLeadForm({ ...leadForm, message: e.target.value })}
                   style={{ width: '100%', padding: '0.7rem', borderRadius: '8px', backgroundColor: '#f8fafc', border: '1px solid #cbd5e1', color: '#0f172a', fontSize: '0.85rem' }}
                 />
                 <button
