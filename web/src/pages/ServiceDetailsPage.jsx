@@ -301,16 +301,14 @@ export default function ServiceDetailsPage({ user }) {
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc', color: '#0f172a', fontFamily: 'Inter, system-ui, sans-serif' }}>
       
-      {/* Animations for Pulsing Enquire / Order Button & Listing Card Glow */}
+      {/* Animations for Metallic Shimmer Light Sweep on Enquire/Order Button */}
       <style>{`
-        @keyframes enquireButtonGlowPulse {
-          0%, 100% {
-            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4);
-            transform: translateY(0);
+        @keyframes enquireButtonShimmer {
+          0% {
+            background-position: -200% 0;
           }
-          50% {
-            box-shadow: 0 6px 20px rgba(37, 99, 235, 0.7);
-            transform: translateY(-1.5px);
+          100% {
+            background-position: 200% 0;
           }
         }
       `}</style>
@@ -730,7 +728,8 @@ export default function ServiceDetailsPage({ user }) {
                         type="button"
                         onClick={() => setSelectedVendorForLead(vendor)}
                         style={{
-                          background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 50%, #3b82f6 100%)',
+                          background: 'linear-gradient(110deg, #2563eb 0%, #3b82f6 30%, #60a5fa 50%, #3b82f6 70%, #2563eb 100%)',
+                          backgroundSize: '250% 100%',
                           color: '#ffffff',
                           border: 'none',
                           borderRadius: '16px',
@@ -740,7 +739,8 @@ export default function ServiceDetailsPage({ user }) {
                           cursor: 'pointer',
                           width: '100%',
                           textAlign: 'center',
-                          animation: 'enquireButtonGlowPulse 2.8s infinite ease-in-out',
+                          animation: 'enquireButtonShimmer 3s ease-in-out infinite',
+                          boxShadow: '0 4px 14px rgba(37, 99, 235, 0.35)',
                           letterSpacing: '0.02em'
                         }}
                       >
