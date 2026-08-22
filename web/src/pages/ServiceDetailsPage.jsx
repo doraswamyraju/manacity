@@ -625,15 +625,15 @@ export default function ServiceDetailsPage({ user }) {
                         )}
                       </div>
 
-                      {/* Ratings & SLA Row */}
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.55rem', flexWrap: 'wrap', marginBottom: '0.55rem', fontSize: '0.78rem' }}>
-                        <span style={{ fontWeight: 900, color: '#d97706', backgroundColor: '#fef3c7', padding: '0.12rem 0.5rem', borderRadius: '6px', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                      {/* Ratings & SLA Row - Strictly 1 Horizontal Line */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', whiteSpace: 'nowrap', overflowX: 'auto', scrollbarWidth: 'none', marginBottom: '0.55rem', fontSize: '0.78rem' }}>
+                        <span style={{ fontWeight: 900, color: '#d97706', backgroundColor: '#fef3c7', padding: '0.12rem 0.5rem', borderRadius: '6px', display: 'inline-flex', alignItems: 'center', gap: '0.25rem', flexShrink: 0 }}>
                           ★ {vendor.rating || 4.9} ({vendor.reviewCount || 63} reviews)
                         </span>
-                        <span style={{ color: '#cbd5e1' }}>•</span>
-                        <span style={{ color: '#475569', fontWeight: 600 }}>8+ Years in Business</span>
-                        <span style={{ color: '#cbd5e1' }}>•</span>
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.2rem', backgroundColor: '#eff6ff', color: '#2563eb', padding: '0.12rem 0.5rem', borderRadius: '6px', fontWeight: 700 }}>
+                        <span style={{ color: '#cbd5e1', flexShrink: 0 }}>•</span>
+                        <span style={{ color: '#475569', fontWeight: 600, flexShrink: 0 }}>8+ Years in Business</span>
+                        <span style={{ color: '#cbd5e1', flexShrink: 0 }}>•</span>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.2rem', backgroundColor: '#eff6ff', color: '#2563eb', padding: '0.12rem 0.5rem', borderRadius: '6px', fontWeight: 700, flexShrink: 0 }}>
                           <Clock size={11} color="#2563eb" /> 15-Min Response
                         </span>
                       </div>

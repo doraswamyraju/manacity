@@ -436,7 +436,8 @@ exports.getServiceDetails = async (req, res) => {
     const seenBg = new Set();
 
     rawVendors.forEach(({ bg, itemPrice }) => {
-      if (!seenBg.has(bg.id) && bg.status !== 'DISABLED') {
+      const bgCity = (bg.city || 'tirupati').toLowerCase();
+      if (!seenBg.has(bg.id) && bg.status !== 'DISABLED' && bgCity === cityStr) {
         seenBg.add(bg.id);
         const listing = bg.directoryListing;
         vendors.push({
@@ -458,12 +459,13 @@ exports.getServiceDetails = async (req, res) => {
       }
     });
 
-    // Fallback: If no direct service link, return all active business groups in this city
+    // Fallback: If no direct service link, return all active business groups strictly in this city
     if (vendors.length === 0) {
-      const cityBgs = await prisma.businessGroup.findMany({
+      const allBgs = await prisma.businessGroup.findMany({
         where: { status: { not: 'DISABLED' } },
         include: { directoryListing: true, locations: true }
       });
+      const cityBgs = allBgs.filter(bg => (bg.city || 'tirupati').toLowerCase() === cityStr);
       cityBgs.forEach(bg => {
         if (!seenBg.has(bg.id)) {
           seenBg.add(bg.id);
