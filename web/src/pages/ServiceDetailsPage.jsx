@@ -248,6 +248,12 @@ export default function ServiceDetailsPage({ user }) {
     window.open(`https://wa.me/${num}?text=${text}`, '_blank');
   };
 
+  // Navigate to specific service/product page when tag chip clicked
+  const handleTagClick = (tag) => {
+    const tagSlug = tag.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    navigate(`/${data?.city || citySlug}/service/${tagSlug}`);
+  };
+
   const handleLeadSubmit = async (e) => {
     e.preventDefault();
     if (!selectedVendorForLead) return;
@@ -349,7 +355,7 @@ export default function ServiceDetailsPage({ user }) {
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc', color: '#0f172a', fontFamily: 'Inter, system-ui, sans-serif' }}>
       
-      {/* 1. Main Top Header Bar with Animated Search Glow & Cycling Placeholders */}
+      {/* 1. Header Bar with Logo 48px & Animated Search */}
       <header style={{
         display: 'flex',
         flexDirection: 'column',
@@ -737,7 +743,7 @@ export default function ServiceDetailsPage({ user }) {
       <main style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 1.5rem 3rem 1.5rem' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 350px', gap: '1.75rem', alignItems: 'start' }}>
           
-          {/* LEFT COLUMN: SLEEK COMPACT BUSINESS LISTING CARDS */}
+          {/* LEFT COLUMN: BUSINESS CARDS WITH STRICT VERTICAL STACK & INTERACTIVE TAG CHIPS */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             {filteredVendors.length > 0 ? (
               filteredVendors.map((vendor, idx) => {
@@ -756,10 +762,10 @@ export default function ServiceDetailsPage({ user }) {
                       backgroundColor: '#ffffff',
                       border: '1px solid #e2e8f0',
                       borderRadius: '14px',
-                      padding: '0.85rem 1.1rem',
+                      padding: '1rem 1.25rem',
                       display: 'grid',
-                      gridTemplateColumns: '170px 1fr 170px',
-                      gap: '1.1rem',
+                      gridTemplateColumns: '170px minmax(0, 1fr) 150px',
+                      gap: '1.25rem',
                       alignItems: 'center',
                       boxShadow: '0 2px 12px rgba(0,0,0,0.03)',
                       transition: 'all 0.2s',
@@ -769,15 +775,15 @@ export default function ServiceDetailsPage({ user }) {
                     onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.boxShadow = '0 2px 12px rgba(0,0,0,0.03)'; }}
                   >
                     
-                    {/* LEFT BLOCK: THUMBNAIL WITH CATEGORY & VERIFIED BADGES */}
-                    <div style={{ position: 'relative', height: '105px', borderRadius: '10px', overflow: 'hidden', backgroundColor: '#f1f5f9' }}>
+                    {/* 1. LEFT COLUMN: LOGO / COVER IMAGE WITH CATEGORY & VERIFIED BADGES OVER IT */}
+                    <div style={{ position: 'relative', height: '110px', borderRadius: '10px', overflow: 'hidden', backgroundColor: '#f1f5f9' }}>
                       <img
                         src={coverImage}
                         alt={vendor.name}
                         style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                       />
 
-                      {/* Top-Left Category Tag Pill (Requirement 4: Category Logo Badge) */}
+                      {/* Top-Left Category Badge over Logo */}
                       <span style={{
                         position: 'absolute',
                         top: '6px',
@@ -786,49 +792,51 @@ export default function ServiceDetailsPage({ user }) {
                         color: '#ffffff',
                         fontSize: '0.65rem',
                         fontWeight: 800,
-                        padding: '0.2rem 0.5rem',
+                        padding: '0.2rem 0.55rem',
                         borderRadius: '6px',
-                        boxShadow: '0 2px 6px rgba(0,0,0,0.2)'
+                        boxShadow: '0 2px 6px rgba(0,0,0,0.25)'
                       }}>
                         {service.category || 'Service'}
                       </span>
 
-                      {/* Bottom-Left Green Verified Badge */}
-                      {vendor.isVerifiedManaCity && (
-                        <span style={{
-                          position: 'absolute',
-                          bottom: '6px',
-                          left: '6px',
-                          backgroundColor: '#ffffff',
-                          color: '#059669',
-                          fontSize: '0.65rem',
-                          fontWeight: 800,
-                          padding: '0.18rem 0.45rem',
-                          borderRadius: '6px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '0.2rem',
-                          boxShadow: '0 2px 6px rgba(0,0,0,0.15)'
-                        }}>
-                          <CheckCircle2 size={11} color="#059669" /> Verified
-                        </span>
-                      )}
+                      {/* Bottom-Left Verified / Unverified Badge over Logo */}
+                      <span style={{
+                        position: 'absolute',
+                        bottom: '6px',
+                        left: '6px',
+                        backgroundColor: '#ffffff',
+                        color: vendor.isVerifiedManaCity ? '#059669' : '#64748b',
+                        fontSize: '0.65rem',
+                        fontWeight: 800,
+                        padding: '0.18rem 0.45rem',
+                        borderRadius: '6px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.2rem',
+                        boxShadow: '0 2px 6px rgba(0,0,0,0.15)'
+                      }}>
+                        {vendor.isVerifiedManaCity ? (
+                          <><CheckCircle2 size={11} color="#059669" /> Verified</>
+                        ) : (
+                          'Unverified'
+                        )}
+                      </span>
                     </div>
 
-                    {/* MIDDLE BLOCK: BUSINESS TITLE, SINGLE-LINE TAG CHIPS & SLA */}
-                    <div>
-                      {/* Business Title (Requirement 4: Subtitle Category Line Removed) */}
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', marginBottom: '0.25rem' }}>
-                        <h3 style={{ fontSize: '1.05rem', fontWeight: 900, color: '#0f172a', margin: 0, lineHeight: 1.2 }}>
+                    {/* 2. MIDDLE COLUMN: COMPANY NAME -> RATINGS & SLA -> INTERACTIVE TAG CHIPS */}
+                    <div style={{ minWidth: 0 }}>
+                      {/* Line 1: Company Name (as per Google/Signup) */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', marginBottom: '0.35rem' }}>
+                        <h3 style={{ fontSize: '1.05rem', fontWeight: 900, color: '#0f172a', margin: 0, lineHeight: 1.25, overflow: 'hidden', textOverflow: 'ellipsis' }}>
                           {vendor.name}
                         </h3>
                         {vendor.isVerifiedManaCity && (
-                          <ShieldCheck size={16} color="#2563eb" fill="#2563eb" style={{ color: '#fff' }} />
+                          <ShieldCheck size={16} color="#2563eb" fill="#2563eb" style={{ color: '#fff', flexShrink: 0 }} />
                         )}
                       </div>
 
-                      {/* Rating & Location Row */}
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.55rem', marginBottom: '0.45rem', fontSize: '0.76rem' }}>
+                      {/* Line 2: Ratings, No. of Years in Business, Location & 15-Min SLA Response */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.55rem', flexWrap: 'wrap', marginBottom: '0.5rem', fontSize: '0.76rem' }}>
                         <span style={{ fontWeight: 900, color: '#d97706', backgroundColor: '#fef3c7', padding: '0.12rem 0.45rem', borderRadius: '6px', display: 'inline-flex', alignItems: 'center', gap: '0.2rem' }}>
                           ★ {vendor.rating || 4.9} ({vendor.reviewCount || 63} reviews)
                         </span>
@@ -838,9 +846,13 @@ export default function ServiceDetailsPage({ user }) {
                         <span style={{ color: '#475569', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '0.2rem' }}>
                           <MapPin size={12} color="#64748b" /> {cityNameCap}
                         </span>
+                        <span style={{ color: '#cbd5e1' }}>•</span>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.2rem', backgroundColor: '#eff6ff', color: '#2563eb', padding: '0.12rem 0.45rem', borderRadius: '6px', fontWeight: 700 }}>
+                          <Clock size={11} color="#2563eb" /> 15-Min Response
+                        </span>
                       </div>
 
-                      {/* SINGLE-LINE PRODUCT/SERVICE TAG CHIPS (Requirement 1: All tags in 1 line) */}
+                      {/* Line 3: Offered Services/Products Tag Chips (CLICKABLE: Opens dedicated Service Details Page!) */}
                       <div style={{
                         display: 'flex',
                         gap: '0.35rem',
@@ -848,55 +860,56 @@ export default function ServiceDetailsPage({ user }) {
                         overflowX: 'auto',
                         whiteSpace: 'nowrap',
                         scrollbarWidth: 'none',
-                        msOverflowStyle: 'none',
-                        marginBottom: '0.4rem'
+                        msOverflowStyle: 'none'
                       }}>
                         {tagList.map((tag, tIdx) => (
                           <span
                             key={tIdx}
+                            onClick={() => handleTagClick(tag)}
                             style={{
-                              backgroundColor: '#f1f5f9',
-                              border: '1px solid #cbd5e1',
+                              backgroundColor: '#eff6ff',
+                              border: '1px solid #bfdbfe',
                               color: '#2563eb',
-                              fontSize: '0.68rem',
+                              fontSize: '0.7rem',
                               fontWeight: 700,
-                              padding: '0.12rem 0.48rem',
+                              padding: '0.2rem 0.55rem',
                               borderRadius: '8px',
                               whiteSpace: 'nowrap',
-                              flexShrink: 0
+                              flexShrink: 0,
+                              cursor: 'pointer',
+                              transition: 'all 0.15s'
                             }}
+                            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#2563eb'; e.currentTarget.style.color = '#ffffff'; }}
+                            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#eff6ff'; e.currentTarget.style.color = '#2563eb'; }}
+                            title={`Click to view details for ${tag}`}
                           >
                             {tag}
                           </span>
                         ))}
                       </div>
-
-                      {/* SLA Response Badge (Requirement 2 & 3: 5-Star & Best Price Removed) */}
-                      <div style={{ display: 'flex', gap: '0.5rem', fontSize: '0.72rem', color: '#475569', fontWeight: 600 }}>
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', backgroundColor: '#f8fafc', padding: '0.12rem 0.45rem', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
-                          <Clock size={12} color="#2563eb" /> 15-Min Response
-                        </span>
-                      </div>
                     </div>
 
-                    {/* RIGHT BLOCK: PRICING & ACTION BUTTONS */}
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', justifyContent: 'space-between', height: '100%' }}>
+                    {/* 3. RIGHT COLUMN: PRICING & ACTION BUTTONS (Clean Fixed 150px Column) */}
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', justifyContent: 'center', gap: '0.4rem', height: '100%', flexShrink: 0 }}>
                       
-                      <button
-                        type="button"
-                        onClick={() => toggleSaveVendor(vendor.id)}
-                        style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.2rem', fontSize: '0.75rem', fontWeight: 700, color: '#64748b' }}
-                      >
-                        <Heart size={15} color={isSaved ? '#ef4444' : '#94a3b8'} fill={isSaved ? '#ef4444' : 'none'} /> Save
-                      </button>
-
-                      <div style={{ textAlign: 'right', margin: '0.2rem 0' }}>
-                        <div style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 600 }}>Starts from</div>
-                        <div style={{ fontSize: '1.15rem', fontWeight: 900, color: '#059669' }}>
-                          ₹{vendor.price ? vendor.price.toLocaleString('en-IN') : '4,999'}
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                        <button
+                          type="button"
+                          onClick={() => toggleSaveVendor(vendor.id)}
+                          style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.2rem', fontSize: '0.72rem', fontWeight: 700, color: '#64748b' }}
+                        >
+                          <Heart size={14} color={isSaved ? '#ef4444' : '#94a3b8'} fill={isSaved ? '#ef4444' : 'none'} /> Save
+                        </button>
+                        
+                        <div style={{ textAlign: 'right' }}>
+                          <span style={{ fontSize: '0.65rem', color: '#64748b', fontWeight: 600 }}>Starts from </span>
+                          <span style={{ fontSize: '1.05rem', fontWeight: 900, color: '#059669' }}>
+                            ₹{vendor.price ? vendor.price.toLocaleString('en-IN') : '7,999'}
+                          </span>
                         </div>
                       </div>
 
+                      {/* Main Action Button */}
                       <button
                         type="button"
                         onClick={() => setSelectedVendorForLead(vendor)}
@@ -905,20 +918,20 @@ export default function ServiceDetailsPage({ user }) {
                           color: '#ffffff',
                           border: 'none',
                           borderRadius: '16px',
-                          padding: '0.45rem 1rem',
+                          padding: '0.45rem 0.85rem',
                           fontSize: '0.82rem',
                           fontWeight: 900,
                           cursor: 'pointer',
                           width: '100%',
                           textAlign: 'center',
-                          boxShadow: '0 4px 12px rgba(37, 99, 235, 0.25)',
-                          marginBottom: '0.35rem'
+                          boxShadow: '0 3px 10px rgba(37, 99, 235, 0.25)'
                         }}
                       >
                         Enquire / Order
                       </button>
 
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', width: '100%', justifyContent: 'center', marginBottom: '0.35rem' }}>
+                      {/* Circular WhatsApp & Call Triggers */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', width: '100%', justifyContent: 'center' }}>
                         <button
                           type="button"
                           onClick={() => handleWhatsAppLead(vendor)}
@@ -961,6 +974,7 @@ export default function ServiceDetailsPage({ user }) {
                         </button>
                       </div>
 
+                      {/* Storefront Link Button */}
                       <button
                         type="button"
                         onClick={() => {
@@ -972,7 +986,7 @@ export default function ServiceDetailsPage({ user }) {
                           border: '1px solid #cbd5e1',
                           color: '#2563eb',
                           borderRadius: '8px',
-                          padding: '0.3rem 0.6rem',
+                          padding: '0.28rem 0.55rem',
                           fontSize: '0.75rem',
                           fontWeight: 800,
                           cursor: 'pointer',
@@ -1022,7 +1036,7 @@ export default function ServiceDetailsPage({ user }) {
             )}
           </div>
 
-          {/* RIGHT COLUMN: 3 STACKED SIDEBAR WIDGETS (Requirement 2: Best Price Guarantee Moved Here) */}
+          {/* RIGHT COLUMN: 3 STACKED SIDEBAR WIDGETS */}
           <aside style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', position: 'sticky', top: '100px' }}>
             
             {/* WIDGET 1: SEND ENQUIRY TO ALL VENDORS CARD */}
@@ -1161,7 +1175,7 @@ export default function ServiceDetailsPage({ user }) {
               </div>
             </div>
 
-            {/* WIDGET 3: WHY CHOOSE MANACITY? TRUST BOX (Requirement 2: Best Price Guarantee Included) */}
+            {/* WIDGET 3: WHY CHOOSE MANACITY? TRUST BOX */}
             <div style={{
               backgroundColor: '#ffffff',
               border: '1px solid #e2e8f0',
@@ -1270,7 +1284,7 @@ export default function ServiceDetailsPage({ user }) {
                   placeholder={`Requirements for ${service.name}...`}
                   rows={3}
                   value={leadForm.message}
-                  onChange={e => setLeadForm({ ...leadForm, message: e.target.value })}
+                  onChange={e => setLeadForm({ ...leadForm, message: e.target.message })}
                   style={{ width: '100%', padding: '0.7rem', borderRadius: '8px', backgroundColor: '#f8fafc', border: '1px solid #cbd5e1', color: '#0f172a', fontSize: '0.85rem' }}
                 />
                 <button
