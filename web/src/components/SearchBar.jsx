@@ -4,11 +4,13 @@ import axios from 'axios';
 import {
   Search,
   Mic,
+  MapPin,
   Sparkles,
   Building2,
   ShieldCheck,
   ChevronRight,
-  ExternalLink
+  ExternalLink,
+  PlusCircle
 } from 'lucide-react';
 
 export default function SearchBar({ selectedCity = 'tirupati' }) {
@@ -31,8 +33,10 @@ export default function SearchBar({ selectedCity = 'tirupati' }) {
   const [query, setQuery] = useState('');
   const [suggestions, setSuggestions] = useState([]);
   const [masterSuggestions, setMasterSuggestions] = useState([]);
+  const [googlePlacesSuggestions, setGooglePlacesSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [dropdownFilter, setDropdownFilter] = useState('ALL');
+  const [importingPlaceId, setImportingPlaceId] = useState(null);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -41,32 +45,36 @@ export default function SearchBar({ selectedCity = 'tirupati' }) {
     return () => clearInterval(timer);
   }, [revolvingKeywords.length]);
 
-  // Live Autocomplete Search Fetcher
+  // Live Autocomplete Search Fetcher (ManaCity DB + Google Places API)
   useEffect(() => {
     if (!query.trim() || query.trim().length < 2) {
       setSuggestions([]);
       setMasterSuggestions([]);
+      setGooglePlacesSuggestions([]);
       setShowSuggestions(false);
       return;
     }
 
     const timer = setTimeout(async () => {
       try {
-        const [bizRes, masterRes] = await Promise.all([
+        const [bizRes, masterRes, placesRes] = await Promise.allSettled([
           axios.get(`/api/phase1/search-suggestions?q=${encodeURIComponent(query)}&city=${selectedCity}`),
-          axios.get(`/api/phase1/master-services-search?q=${encodeURIComponent(query)}`)
+          axios.get(`/api/phase1/master-services-search?q=${encodeURIComponent(query)}`),
+          axios.get(`/api/phase1/google-places/autocomplete?input=${encodeURIComponent(query + ' ' + selectedCity)}`)
         ]);
 
-        const rawBiz = bizRes.data || [];
-        const rawMaster = masterRes.data || [];
+        const rawBiz = bizRes.status === 'fulfilled' ? (bizRes.value.data || []) : [];
+        const rawMaster = masterRes.status === 'fulfilled' ? (masterRes.value.data || []) : [];
+        const rawPlaces = placesRes.status === 'fulfilled' ? (placesRes.value.data?.predictions || []) : [];
 
         setSuggestions(rawBiz);
         setMasterSuggestions(rawMaster);
+        setGooglePlacesSuggestions(rawPlaces);
         setShowSuggestions(true);
       } catch (err) {
         console.error('Search fetch error:', err);
       }
-    }, 150);
+    }, 160);
 
     return () => clearTimeout(timer);
   }, [query, selectedCity]);
@@ -114,6 +122,31 @@ export default function SearchBar({ selectedCity = 'tirupati' }) {
     return { topMatchItem: null, topMatchType: null };
   }, [query, suggestions, masterSuggestions]);
 
+  const handleGooglePlaceClick = async (place) => {
+    setImportingPlaceId(place.placeId);
+    try {
+      // Import Place into ManaCity database
+      const res = await axios.post('/api/phase1/google-places/import', {
+        placeId: place.placeId,
+        businessName: place.name
+      });
+      setShowSuggestions(false);
+      if (res.data?.subdomain) {
+        window.open(`https://${res.data.subdomain}.manacity.in`, '_blank');
+      } else {
+        const targetSlug = place.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+        navigate(`/${selectedCity}/service/${targetSlug}`);
+      }
+    } catch (err) {
+      // Fallback navigate to service page
+      setShowSuggestions(false);
+      const targetSlug = place.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+      navigate(`/${selectedCity}/service/${targetSlug}`);
+    } finally {
+      setImportingPlaceId(null);
+    }
+  };
+
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && query.trim()) {
       setShowSuggestions(false);
@@ -127,7 +160,7 @@ export default function SearchBar({ selectedCity = 'tirupati' }) {
     }
   };
 
-  const hasResults = suggestions.length > 0 || masterSuggestions.length > 0;
+  const hasResults = suggestions.length > 0 || masterSuggestions.length > 0 || googlePlacesSuggestions.length > 0;
 
   return (
     <div ref={searchContainerRef} style={{ flex: '1 1 380px', maxWidth: '650px', position: 'relative' }}>
@@ -169,7 +202,7 @@ export default function SearchBar({ selectedCity = 'tirupati' }) {
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={handleKeyDown}
               onFocus={() => {
-                if (suggestions.length > 0 || masterSuggestions.length > 0) setShowSuggestions(true);
+                if (suggestions.length > 0 || masterSuggestions.length > 0 || googlePlacesSuggestions.length > 0) setShowSuggestions(true);
               }}
               placeholder=""
               style={{
@@ -237,10 +270,10 @@ export default function SearchBar({ selectedCity = 'tirupati' }) {
           padding: '0.85rem',
           boxShadow: '0 16px 40px rgba(0, 0, 0, 0.15)',
           zIndex: 1000,
-          maxHeight: '440px',
+          maxHeight: '460px',
           overflowY: 'auto'
         }}>
-          {/* Scope Filters (All, Services, Businesses) */}
+          {/* Scope Filters (All, Services, Businesses, Google Places) */}
           <div style={{ display: 'flex', gap: '0.4rem', paddingBottom: '0.55rem', marginBottom: '0.55rem', borderBottom: '1px solid #f1f5f9' }}>
             <button
               type="button"
@@ -256,26 +289,8 @@ export default function SearchBar({ selectedCity = 'tirupati' }) {
                 cursor: 'pointer'
               }}
             >
-              All Results ({masterSuggestions.length + suggestions.length})
+              All Results ({masterSuggestions.length + suggestions.length + googlePlacesSuggestions.length})
             </button>
-            {masterSuggestions.length > 0 && (
-              <button
-                type="button"
-                onClick={() => setDropdownFilter('SERVICES')}
-                style={{
-                  padding: '0.3rem 0.75rem',
-                  borderRadius: '20px',
-                  border: 'none',
-                  backgroundColor: dropdownFilter === 'SERVICES' ? '#7c3aed' : '#f1f5f9',
-                  color: dropdownFilter === 'SERVICES' ? '#fff' : '#64748b',
-                  fontSize: '0.75rem',
-                  fontWeight: 800,
-                  cursor: 'pointer'
-                }}
-              >
-                📦 Offerings ({masterSuggestions.length})
-              </button>
-            )}
             {suggestions.length > 0 && (
               <button
                 type="button"
@@ -291,7 +306,25 @@ export default function SearchBar({ selectedCity = 'tirupati' }) {
                   cursor: 'pointer'
                 }}
               >
-                🏢 Providers ({suggestions.length})
+                🏢 Verified ({suggestions.length})
+              </button>
+            )}
+            {googlePlacesSuggestions.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setDropdownFilter('PLACES')}
+                style={{
+                  padding: '0.3rem 0.75rem',
+                  borderRadius: '20px',
+                  border: 'none',
+                  backgroundColor: dropdownFilter === 'PLACES' ? '#ea580c' : '#f1f5f9',
+                  color: dropdownFilter === 'PLACES' ? '#fff' : '#64748b',
+                  fontSize: '0.75rem',
+                  fontWeight: 800,
+                  cursor: 'pointer'
+                }}
+              >
+                📍 Google Places ({googlePlacesSuggestions.length})
               </button>
             )}
           </div>
@@ -363,7 +396,57 @@ export default function SearchBar({ selectedCity = 'tirupati' }) {
             </div>
           )}
 
-          {/* 2. MASTER PRODUCTS & SERVICES CATALOG SECTION */}
+          {/* 2. GOOGLE PLACES API NEARBY LISTINGS SECTION */}
+          {(dropdownFilter === 'ALL' || dropdownFilter === 'PLACES') && googlePlacesSuggestions.length > 0 && (
+            <div style={{ marginBottom: '0.85rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.4rem 0.6rem 0.35rem', marginBottom: '0.35rem' }}>
+                <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#ea580c', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                  📍 Google Maps Places
+                </span>
+                <span style={{ fontSize: '0.68rem', fontWeight: 700, color: '#c2410c', backgroundColor: '#fff7ed', padding: '0.15rem 0.5rem', borderRadius: '10px' }}>
+                  Live API
+                </span>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                {googlePlacesSuggestions.map((place, pIdx) => (
+                  <div
+                    key={`p-${pIdx}`}
+                    onClick={() => handleGooglePlaceClick(place)}
+                    style={{
+                      padding: '0.65rem 0.85rem',
+                      borderRadius: '12px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      backgroundColor: '#fff7ed',
+                      border: '1px solid #ffedd5',
+                      transition: 'all 0.2s'
+                    }}
+                    onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#ffedd5'; e.currentTarget.style.borderColor = '#ea580c'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#fff7ed'; e.currentTarget.style.borderColor = '#ffedd5'; }}
+                  >
+                    <div style={{ flex: 1, paddingRight: '0.75rem' }}>
+                      <div style={{ fontSize: '0.88rem', fontWeight: 900, color: '#0f172a', marginBottom: '0.15rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                        <span>{place.name}</span>
+                        <MapPin size={14} color="#ea580c" />
+                      </div>
+                      <div style={{ fontSize: '0.74rem', color: '#64748b' }}>
+                        {place.description}
+                      </div>
+                    </div>
+
+                    <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#ea580c', backgroundColor: '#ffffff', padding: '0.25rem 0.65rem', borderRadius: '8px', border: '1px solid #ffedd5', display: 'inline-flex', alignItems: 'center', gap: '0.2rem', flexShrink: 0 }}>
+                      {importingPlaceId === place.placeId ? 'Importing...' : <><PlusCircle size={13} /> View / Import</>}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* 3. MASTER PRODUCTS & SERVICES CATALOG SECTION */}
           {(dropdownFilter === 'ALL' || dropdownFilter === 'SERVICES') && masterSuggestions.length > 0 && (
             <div style={{ marginBottom: '0.5rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.4rem 0.6rem 0.35rem', marginBottom: '0.35rem' }}>
@@ -434,7 +517,7 @@ export default function SearchBar({ selectedCity = 'tirupati' }) {
             </div>
           )}
 
-          {/* 3. UNMATCHED SEARCH QUERY REQUEST BUTTON (ONLY SHOWN IF ZERO RESULTS FOUND) */}
+          {/* 4. UNMATCHED SEARCH QUERY REQUEST BUTTON (ONLY SHOWN IF ZERO RESULTS FOUND) */}
           {!hasResults && query.trim().length >= 3 && (
             <div style={{ padding: '0.85rem 1rem', backgroundColor: '#fffbeb', border: '1px solid #fde68a', borderRadius: '12px', textAlign: 'left', marginTop: '0.5rem' }}>
               <div style={{ fontSize: '0.82rem', fontWeight: 800, color: '#d97706', marginBottom: '0.2rem' }}>

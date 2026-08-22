@@ -280,54 +280,53 @@ exports.importGooglePlaces = async (req, res) => {
 
     const descString = fetchedData.description || `Official Google Business profile for ${fetchedData.name}.`;
 
-    // Create or update business group using resolved tenant boundary
+    // Create or update business group (Support UNLIMITED profiles per user/super admin)
     let businessGroup = null;
-    if (ownerId) {
-      const existingGroup = await prisma.businessGroup.findFirst({
-        where: { ownerId }
-      });
+    const existingGroup = resolvedPlaceId ? await prisma.businessGroup.findFirst({
+      where: { googlePlaceId: resolvedPlaceId }
+    }) : null;
 
-      if (existingGroup) {
-        try {
-          businessGroup = await prisma.businessGroup.update({
-            where: { id: existingGroup.id },
-            data: {
-              name: fetchedData.name,
-              description: descString,
-              mobileNumber: fetchedData.phone || existingGroup.mobileNumber || '',
-              whatsAppNumber: fetchedData.phone || existingGroup.whatsAppNumber || '',
-              website: fetchedData.website || existingGroup.website,
-              address: fetchedData.address || existingGroup.address,
-              city: safeCity || existingGroup.city,
-              googleReviewUrl: computedReviewUrl || existingGroup.googleReviewUrl,
-              googlePlaceId: resolvedPlaceId || existingGroup.googlePlaceId,
-              googleRating: fetchedData.rating || existingGroup.googleRating,
-              googleReviewCount: fetchedData.reviewCount || existingGroup.googleReviewCount,
-              isSetupComplete: true,
-              setupStep: 6
-            }
-          });
-        } catch (updateErr) {
-          console.warn('Fallback update without googleRating fields:', updateErr.message);
-          businessGroup = await prisma.businessGroup.update({
-            where: { id: existingGroup.id },
-            data: {
-              name: fetchedData.name,
-              description: descString,
-              mobileNumber: fetchedData.phone || existingGroup.mobileNumber || '',
-              whatsAppNumber: fetchedData.phone || existingGroup.whatsAppNumber || '',
-              website: fetchedData.website || existingGroup.website,
-              address: fetchedData.address || existingGroup.address,
-              city: safeCity || existingGroup.city,
-              googleReviewUrl: computedReviewUrl || existingGroup.googleReviewUrl,
-              googlePlaceId: resolvedPlaceId || existingGroup.googlePlaceId,
-              isSetupComplete: true,
-              setupStep: 6
-            }
-          });
-        }
-      } else {
-        try {
+    if (existingGroup) {
+      try {
+        businessGroup = await prisma.businessGroup.update({
+          where: { id: existingGroup.id },
+          data: {
+            name: fetchedData.name,
+            description: descString,
+            mobileNumber: fetchedData.phone || existingGroup.mobileNumber || '',
+            whatsAppNumber: fetchedData.phone || existingGroup.whatsAppNumber || '',
+            website: fetchedData.website || existingGroup.website,
+            address: fetchedData.address || existingGroup.address,
+            city: safeCity || existingGroup.city,
+            googleReviewUrl: computedReviewUrl || existingGroup.googleReviewUrl,
+            googlePlaceId: resolvedPlaceId || existingGroup.googlePlaceId,
+            googleRating: fetchedData.rating || existingGroup.googleRating,
+            googleReviewCount: fetchedData.reviewCount || existingGroup.googleReviewCount,
+            isSetupComplete: true,
+            setupStep: 6
+          }
+        });
+      } catch (updateErr) {
+        businessGroup = await prisma.businessGroup.update({
+          where: { id: existingGroup.id },
+          data: {
+            name: fetchedData.name,
+            description: descString,
+            mobileNumber: fetchedData.phone || existingGroup.mobileNumber || '',
+            whatsAppNumber: fetchedData.phone || existingGroup.whatsAppNumber || '',
+            website: fetchedData.website || existingGroup.website,
+            address: fetchedData.address || existingGroup.address,
+            city: safeCity || existingGroup.city,
+            googleReviewUrl: computedReviewUrl || existingGroup.googleReviewUrl,
+            googlePlaceId: resolvedPlaceId || existingGroup.googlePlaceId,
+            isSetupComplete: true,
+            setupStep: 6
+          }
+        });
+      }
+    } else {
+      // Create brand NEW business group for owner
+      try {
           businessGroup = await prisma.businessGroup.create({
             data: {
               name: fetchedData.name,
