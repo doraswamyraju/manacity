@@ -45,7 +45,9 @@ import {
   Moon,
   Plus,
   Globe,
-  Heart
+  Heart,
+  Bell,
+  MoreHorizontal
 } from 'lucide-react';
 
 export default function Home({
@@ -233,6 +235,17 @@ export default function Home({
     { id: 'visakhapatnam', name: 'Visakhapatnam' },
     { id: 'chennai', name: 'Chennai' },
     { id: 'bangalore', name: 'Bangalore' }
+  ];
+
+  const topHeaderCategories = [
+    { name: 'Restaurants', icon: Utensils, color: '#ef4444' },
+    { name: 'Hotels', icon: Hotel, color: '#6366f1' },
+    { name: 'Doctors', icon: Cross, color: '#0ea5e9' },
+    { name: 'Real Estate', icon: HomeIcon, color: '#f43f5e' },
+    { name: 'Travel', icon: Plane, color: '#3b82f6' },
+    { name: 'Education', icon: GraduationCap, color: '#10b981' },
+    { name: 'Repairs', icon: Wrench, color: '#f59e0b' },
+    { name: 'More', icon: MoreHorizontal, color: '#64748b' }
   ];
 
   // 18 Icon Categories (Matching Justdial Screenshot 1)
@@ -460,166 +473,104 @@ export default function Home({
     <div style={{ width: '100%', minHeight: '100vh', backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)', display: 'flex', flexDirection: 'column', paddingBottom: '70px' }}>
       
       {/* 1. Header Bar (Matching Justdial Screenshot 1 Top Nav) */}
+      {/* 1. Sleek Redesigned Top Header Bar */}
       <header style={{
-        padding: '0.85rem 2rem',
         display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        borderBottom: '1px solid var(--border-color)',
+        flexDirection: 'column',
         backgroundColor: 'var(--bg-secondary)',
-        backdropFilter: 'blur(12px)',
+        borderBottom: '1px solid var(--border-color)',
         position: 'sticky',
         top: 0,
-        zIndex: 100
+        zIndex: 100,
+        boxShadow: '0 4px 20px rgba(0,0,0,0.06)'
       }}>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center' }}>
-            <picture>
-              <source media="(max-width: 768px)" srcSet="/logo-square.png" />
-              <img src="/logo-horizontal.png" alt="ManaCity Logo" style={{ height: '38px', objectFit: 'contain' }} />
-            </picture>
-          </div>
-          {/* City selector styled as Google AI search pill */}
-          <div style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '0.4rem',
-            background: 'linear-gradient(135deg, rgba(2, 132, 199, 0.08), rgba(99, 102, 241, 0.08))',
-            border: '1px solid rgba(2, 132, 199, 0.35)',
-            boxShadow: '0 2px 8px rgba(2, 132, 199, 0.08)',
-            padding: '0.2rem 0.65rem',
-            borderRadius: '20px',
-            width: 'fit-content'
-          }}>
-            <MapPin size={13} color="#0284c7" />
-            <span style={{ fontSize: '0.76rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Locality:</span>
-            <select
-              value={selectedCity}
-              onChange={(e) => setSelectedCity(e.target.value)}
-              style={{
-                background: 'transparent',
-                border: 'none',
-                color: '#0284c7',
-                outline: 'none',
-                fontWeight: 800,
-                fontSize: '0.8rem',
-                textTransform: 'capitalize',
-                cursor: 'pointer'
-              }}
-            >
-              {cities.map(c => <option key={c.id} value={c.id} style={{ backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)' }}>{c.name}</option>)}
-            </select>
-          </div>
-        </div>
-
-        {/* Desktop Header Links */}
-        <div className="desktop-only" style={{ display: 'flex', gap: '1.25rem', alignItems: 'center', fontSize: '0.86rem', color: 'var(--text-secondary)' }}>
-          <a href="#hiring" style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}>We Are Hiring</a>
-          {user ? (
-            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-              {user.role === 'SUPER_ADMIN' && (
-                <button onClick={onNavigateToSuperAdmin} className="btn btn-secondary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.82rem' }}>
-                  Super Admin
-                </button>
-              )}
-              <a href="/dashboard" className="btn btn-primary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.82rem' }}>
-                Dashboard
-              </a>
+        {/* Main Top Header Bar */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: '1rem',
+          padding: '0.75rem 1.5rem',
+          width: '100%',
+          flexWrap: 'wrap'
+        }}>
+          
+          {/* Left: Logo & Location Pill */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', flexShrink: 0 }}>
+            <div style={{ cursor: 'pointer' }} onClick={() => navigate('/')}>
+              <picture>
+                <source media="(max-width: 768px)" srcSet="/logo-square.png" />
+                <img src="/logo-horizontal.png" alt="ManaCity Logo" style={{ height: '36px', objectFit: 'contain' }} />
+              </picture>
             </div>
-          ) : (
-            <button onClick={onNavigateToLogin} className="btn btn-primary" style={{ padding: '0.45rem 1.1rem', fontSize: '0.85rem', background: '#3b82f6', fontWeight: 700 }}>
-              Login / Sign Up
-            </button>
-          )}
-        </div>
 
-        {/* Clean Mobile Header Actions (Justdial Mobile Style) */}
-        <div className="mobile-only" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <button
-            onClick={onNavigateToRegister}
-            style={{
-              backgroundColor: '#3b82f6',
-              color: '#fff',
-              border: 'none',
-              padding: '0.4rem 0.7rem',
-              borderRadius: '8px',
-              fontSize: '0.75rem',
-              fontWeight: 800,
+            {/* Location Pill Dropdown */}
+            <div style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.35rem',
+              backgroundColor: 'var(--bg-primary)',
+              border: '1px solid var(--border-color)',
+              padding: '0.35rem 0.75rem',
+              borderRadius: '20px',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
+            }}>
+              <MapPin size={15} color="#3b82f6" />
+              <select
+                value={selectedCity}
+                onChange={(e) => setSelectedCity(e.target.value)}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  color: 'var(--text-primary)',
+                  outline: 'none',
+                  fontWeight: 800,
+                  fontSize: '0.85rem',
+                  textTransform: 'capitalize',
+                  cursor: 'pointer'
+                }}
+              >
+                {cities.map(c => <option key={c.id} value={c.id} style={{ backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)' }}>{c.name}</option>)}
+              </select>
+            </div>
+          </div>
+
+          {/* Center: Clean Search Bar (No Search Button - Auto-Suggests Live) */}
+          <div ref={heroSearchRef} style={{
+            flex: '1 1 380px',
+            maxWidth: '650px',
+            position: 'relative'
+          }}>
+            <div style={{
               display: 'flex',
               alignItems: 'center',
-              gap: '0.25rem'
-            }}
-          >
-            📢 Advertise
-          </button>
-          <button
-            onClick={toggleTheme}
-            style={{
-              backgroundColor: 'var(--bg-tertiary)',
-              border: '1px solid var(--border-color)',
-              color: 'var(--text-primary)',
-              padding: '0.4rem',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center'
-            }}
-            title="Toggle Theme"
-          >
-            {themeMode === 'dark' ? <Moon size={16} color="#38bdf8" /> : <Sun size={16} color="#f59e0b" />}
-          </button>
-          <button
-            onClick={() => user ? (window.location.href = user.role === 'SUPER_ADMIN' ? '/admin' : '/dashboard') : onNavigateToLogin()}
-            style={{
-              backgroundColor: 'rgba(255,255,255,0.06)',
-              border: '1px solid var(--border-color)',
-              color: '#fff',
-              padding: '0.4rem',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center'
-            }}
-          >
-            <User size={16} />
-          </button>
-        </div>
-
-      </header>
-
-
-      {/* 2. Hero Search & Promo Banners Section (Matching Justdial Screenshot 1) */}
-      <section className="home-section-padding">
-        <h1 style={{ fontSize: 'clamp(1.3rem, 5vw, 2.2rem)', fontWeight: 900, marginBottom: '1.25rem', color: 'var(--text-primary)' }}>
-          Search across <span style={{ color: 'var(--accent-primary)' }}>'10,000+' Verified Businesses</span>
-        </h1>
-
-
-        {/* Integrated Search Bar */}
-        <form ref={heroSearchRef} onSubmit={handleSearchSubmit} style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          gap: '0.5rem',
-          backgroundColor: 'var(--bg-secondary)',
-          padding: '0.5rem',
-          borderRadius: '12px',
-          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
-          border: '1px solid var(--border-color)',
-          marginBottom: '1.5rem'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: 'var(--bg-primary)', padding: '0.65rem 1rem', borderRadius: '8px', flex: '1 1 300px', position: 'relative' }}>
-            <Search size={18} color="var(--text-muted)" />
-            <input
-              type="text"
-              placeholder="Search for Spa, Salons, Rice Mills, SEO..."
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              onFocus={() => { if (suggestions.length > 0) setShowSuggestions(true); }}
-              style={{ background: 'transparent', border: 'none', color: 'var(--text-primary)', width: '100%', outline: 'none', fontSize: '0.92rem' }}
-            />
-
-            <Mic size={18} color="#6366f1" style={{ cursor: 'pointer' }} />
+              gap: '0.6rem',
+              backgroundColor: 'var(--bg-primary)',
+              border: '1.5px solid rgba(59, 130, 246, 0.3)',
+              borderRadius: '24px',
+              padding: '0.5rem 1rem',
+              boxShadow: '0 4px 16px rgba(59, 130, 246, 0.08)',
+              transition: 'all 0.2s'
+            }}>
+              <Search size={18} color="var(--text-muted)" style={{ flexShrink: 0 }} />
+              <input
+                type="text"
+                placeholder="Search anything... (businesses, services, products)"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onFocus={() => { if (suggestions.length > 0 || masterSuggestions.length > 0 || query.trim().length >= 2) setShowSuggestions(true); }}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  color: 'var(--text-primary)',
+                  width: '100%',
+                  outline: 'none',
+                  fontSize: '0.9rem',
+                  fontWeight: 500
+                }}
+              />
+              <Mic size={18} color="#3b82f6" style={{ cursor: 'pointer', flexShrink: 0 }} />
+            </div>
 
             {/* Live Autocomplete Suggestions Overlay Dropdown */}
             {showSuggestions && (
@@ -805,10 +756,113 @@ export default function Home({
               </div>
             )}
           </div>
-        </form>
 
-        {/* Hero Feature Banner Carousel Grid */}
-        <div className="hero-banner-grid">
+          {/* Right Action Icons (Saved, Notifications, Theme Toggle, Profile/Dashboard) */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1.15rem', flexShrink: 0 }}>
+            {/* Saved Pill */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-secondary)' }}>
+              <Heart size={18} color="#ef4444" />
+              <span className="desktop-only">Saved</span>
+            </div>
+
+            {/* Notification Pill with Badge */}
+            <div style={{ position: 'relative', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+              <Bell size={18} color="var(--text-secondary)" />
+              <span style={{
+                position: 'absolute',
+                top: '-4px',
+                right: '-6px',
+                backgroundColor: '#ef4444',
+                color: '#fff',
+                fontSize: '0.62rem',
+                fontWeight: 900,
+                borderRadius: '50%',
+                width: '15px',
+                height: '15px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                3
+              </span>
+            </div>
+
+            {/* Theme Toggle */}
+            <button
+              onClick={toggleTheme}
+              style={{
+                backgroundColor: 'var(--bg-primary)',
+                border: '1px solid var(--border-color)',
+                color: 'var(--text-primary)',
+                padding: '0.4rem',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center'
+              }}
+              title="Toggle Theme"
+            >
+              {themeMode === 'dark' ? <Moon size={16} color="#38bdf8" /> : <Sun size={16} color="#f59e0b" />}
+            </button>
+
+            {/* User Profile / Dashboard Button */}
+            {user ? (
+              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                {user.role === 'SUPER_ADMIN' && (
+                  <button onClick={onNavigateToSuperAdmin} className="btn btn-secondary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.82rem' }}>
+                    Super Admin
+                  </button>
+                )}
+                <a href="/dashboard" className="btn btn-primary" style={{ padding: '0.45rem 1rem', fontSize: '0.82rem', borderRadius: '20px', fontWeight: 800 }}>
+                  Dashboard
+                </a>
+              </div>
+            ) : (
+              <button onClick={onNavigateToLogin} className="btn btn-primary" style={{ padding: '0.45rem 1.1rem', fontSize: '0.85rem', background: '#3b82f6', fontWeight: 800, borderRadius: '20px' }}>
+                Login
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* 2. Secondary Horizontal Category Navigation Bar */}
+        <div style={{
+          backgroundColor: 'var(--bg-secondary)',
+          borderTop: '1px solid var(--border-color)',
+          padding: '0.55rem 1.5rem',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '1.75rem',
+          overflowX: 'auto',
+          whiteSpace: 'nowrap'
+        }}>
+          {topHeaderCategories.map((cat, i) => (
+            <div
+              key={i}
+              onClick={() => { setSelectedCategory(cat.name); }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.4rem',
+                fontSize: '0.82rem',
+                fontWeight: 700,
+                color: selectedCategory === cat.name ? '#3b82f6' : 'var(--text-secondary)',
+                cursor: 'pointer',
+                padding: '0.2rem 0.5rem',
+                borderRadius: '6px',
+                transition: 'all 0.2s'
+              }}
+            >
+              <cat.icon size={15} color={cat.color} />
+              <span>{cat.name}</span>
+            </div>
+          ))}
+        </div>
+      </header>
+
+      {/* Main Page Content */}
+      <section className="home-section-padding">
           {/* Main Airfare / Offer Banner */}
           <div style={{
             background: 'linear-gradient(135deg, #0284c7, #0369a1)',
