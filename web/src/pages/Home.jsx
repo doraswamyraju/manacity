@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
+import Header from '../components/Header';
 import ClaimBusinessModal from '../components/ClaimBusinessModal';
 import UnonboardedEnquiryModal from '../components/UnonboardedEnquiryModal';
 import PhoneCollectionModal from '../components/PhoneCollectionModal';

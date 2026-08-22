@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
+import Header from '../components/Header';
 import {
   Search,
   MapPin,
@@ -11,7 +12,6 @@ import {
   ShieldCheck,
   Building2,
   CheckCircle2,
-  ArrowLeft,
   Zap,
   ChevronRight,
   ChevronDown,
@@ -23,10 +23,7 @@ import {
   Clock,
   Award,
   Heart,
-  Bell,
-  Mic,
   Utensils,
-  Hotel,
   Cross,
   Home as HomeIcon,
   Plane,
@@ -36,10 +33,7 @@ import {
   Sparkles,
   Scissors,
   Car,
-  Briefcase,
-  Megaphone,
-  User,
-  ChevronLast
+  Megaphone
 } from 'lucide-react';
 
 export default function ServiceDetailsPage({ user }) {
@@ -55,7 +49,7 @@ export default function ServiceDetailsPage({ user }) {
   const [minRating, setMinRating] = useState(0);
   const [verifiedOnly, setVerifiedOnly] = useState(false);
   const [fastResponseOnly, setFastResponseOnly] = useState(false);
-  const [sortBy, setSortBy] = useState('RATING'); // RATING, REVIEWS, NAME
+  const [sortBy, setSortBy] = useState('RATING');
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState('ALL');
 
   // Ad Banner Visibility State
@@ -83,27 +77,6 @@ export default function ServiceDetailsPage({ user }) {
   const citySlug = (city || 'tirupati').toLowerCase();
   const serviceSlug = slug;
 
-  const cities = [
-    { id: 'tirupati', name: 'Tirupati' },
-    { id: 'hyderabad', name: 'Hyderabad' },
-    { id: 'vijayawada', name: 'Vijayawada' },
-    { id: 'visakhapatnam', name: 'Visakhapatnam' },
-    { id: 'chennai', name: 'Chennai' },
-    { id: 'bangalore', name: 'Bangalore' }
-  ];
-
-  const topHeaderCategories = [
-    { name: 'Restaurants', icon: Utensils, color: '#ef4444' },
-    { name: 'Doctors', icon: Cross, color: '#0ea5e9' },
-    { name: 'Real Estate', icon: HomeIcon, color: '#f43f5e' },
-    { name: 'Travel', icon: Plane, color: '#3b82f6' },
-    { name: 'Education', icon: GraduationCap, color: '#10b981' },
-    { name: 'Repairs', icon: Wrench, color: '#f59e0b' },
-    { name: 'Beauty', icon: Scissors, color: '#ec4899' },
-    { name: 'Automotive', icon: Car, color: '#8b5cf6' },
-    { name: 'More', icon: MoreHorizontal, color: '#64748b' }
-  ];
-
   const sidebarCategories = [
     { name: 'Restaurants', icon: Utensils, color: '#ef4444', bg: '#fef2f2' },
     { name: 'Doctors', icon: Cross, color: '#0ea5e9', bg: '#f0f9ff' },
@@ -116,26 +89,6 @@ export default function ServiceDetailsPage({ user }) {
     { name: 'Fitness', icon: Zap, color: '#06b6d4', bg: '#ecfeff' },
     { name: 'More', icon: MoreHorizontal, color: '#64748b', bg: '#f8fafc' }
   ];
-
-  // Dynamic Cycling Search Bar Placeholders with Vibrant Color Animations
-  const cityNameCap = (data?.city || citySlug).charAt(0).toUpperCase() + (data?.city || citySlug).slice(1);
-  const searchPlaceholders = useMemo(() => [
-    `Search Businesses, Services & Products in ${cityNameCap}...`,
-    `Search Digital Marketing Agencies in ${cityNameCap}...`,
-    `Search CA & Tax Consultants in ${cityNameCap}...`,
-    `Search Restaurants & Cafes in ${cityNameCap}...`,
-    `Search Real Estate & Apartments in ${cityNameCap}...`,
-    `Search Doctors & Clinics in ${cityNameCap}...`
-  ], [cityNameCap]);
-
-  const [placeholderIndex, setPlaceholderIndex] = useState(0);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setPlaceholderIndex(prev => (prev + 1) % searchPlaceholders.length);
-    }, 2800);
-    return () => clearInterval(timer);
-  }, [searchPlaceholders.length]);
 
   // Default fallback business covers
   const fallbackCovers = [
@@ -169,33 +122,27 @@ export default function ServiceDetailsPage({ user }) {
     if (!data?.vendors) return [];
     let list = [...data.vendors];
 
-    // Search query filter
     if (vendorSearch.trim()) {
       const q = vendorSearch.toLowerCase();
       list = list.filter(v => v.name.toLowerCase().includes(q) || (v.address && v.address.toLowerCase().includes(q)));
     }
 
-    // Min Rating filter
     if (minRating > 0) {
       list = list.filter(v => (v.rating || 0) >= minRating);
     }
 
-    // Verified Only filter
     if (verifiedOnly) {
       list = list.filter(v => v.isVerifiedManaCity);
     }
 
-    // Fast Response filter
     if (fastResponseOnly) {
       list = list.filter(v => v.isVerifiedManaCity || v.rating >= 4.5);
     }
 
-    // Category filter
     if (selectedCategoryFilter !== 'ALL') {
       list = list.filter(v => (v.category || '').toLowerCase() === selectedCategoryFilter.toLowerCase());
     }
 
-    // Sort
     if (sortBy === 'RATING') {
       list.sort((a, b) => (b.rating || 0) - (a.rating || 0));
     } else if (sortBy === 'REVIEWS') {
@@ -207,7 +154,6 @@ export default function ServiceDetailsPage({ user }) {
     return list;
   }, [data?.vendors, vendorSearch, minRating, verifiedOnly, fastResponseOnly, selectedCategoryFilter, sortBy]);
 
-  // Handle Lead Recording for Direct Phone Call
   const handlePhoneCallLead = async (vendor) => {
     try {
       await axios.post('/api/phase1/lead', {
@@ -227,7 +173,6 @@ export default function ServiceDetailsPage({ user }) {
     window.location.href = `tel:${cleanPhone}`;
   };
 
-  // Handle Lead Recording for WhatsApp Chat
   const handleWhatsAppLead = async (vendor) => {
     try {
       await axios.post('/api/phase1/lead', {
@@ -249,7 +194,6 @@ export default function ServiceDetailsPage({ user }) {
     window.open(`https://wa.me/${num}?text=${text}`, '_blank');
   };
 
-  // Navigate to specific service/product page when tag chip clicked
   const handleTagClick = (tag) => {
     const tagSlug = tag.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
     navigate(`/${data?.city || citySlug}/service/${tagSlug}`);
@@ -352,231 +296,31 @@ export default function ServiceDetailsPage({ user }) {
   }
 
   const { service, vendors } = data;
+  const cityNameCap = data.city.charAt(0).toUpperCase() + data.city.slice(1);
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc', color: '#0f172a', fontFamily: 'Inter, system-ui, sans-serif' }}>
       
-      {/* Dynamic Keyframes for Rainbow Search Ring & Pulse Animations */}
+      {/* Animations for Pulsing Enquire / Order Button & Listing Card Glow */}
       <style>{`
-        @keyframes searchGlowRotate {
-          0% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-          100% { background-position: 0% 50%; }
-        }
-        @keyframes placeholderFadeSlide {
-          0% { opacity: 0; transform: translateY(4px); }
-          100% { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes iconPulseGlow {
-          0%, 100% { transform: scale(1); filter: drop-shadow(0 0 2px rgba(37,99,235,0.4)); }
-          50% { transform: scale(1.1); filter: drop-shadow(0 0 8px rgba(124,58,237,0.8)); }
+        @keyframes enquireButtonGlowPulse {
+          0%, 100% {
+            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4);
+            transform: translateY(0);
+          }
+          50% {
+            box-shadow: 0 6px 20px rgba(37, 99, 235, 0.7);
+            transform: translateY(-1.5px);
+          }
         }
       `}</style>
 
-      {/* 1. Header Bar with Logo 48px & Animated Rainbow Search */}
-      <header style={{
-        display: 'flex',
-        flexDirection: 'column',
-        backgroundColor: '#ffffff',
-        borderBottom: '1px solid #e2e8f0',
-        position: 'sticky',
-        top: 0,
-        zIndex: 100,
-        boxShadow: '0 4px 16px rgba(0,0,0,0.04)'
-      }}>
-        {/* Main Top Header Bar */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: '1rem',
-          padding: '0.75rem 1.5rem',
-          width: '100%',
-          flexWrap: 'wrap'
-        }}>
-          
-          {/* Left: Logo & Location Selector Pill */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', flexShrink: 0 }}>
-            <div style={{ cursor: 'pointer' }} onClick={() => navigate('/')}>
-              <picture>
-                <source media="(max-width: 768px)" srcSet="/logo-square.png" />
-                <img src="/logo-horizontal.png" alt="ManaCity Logo" style={{ height: '48px', objectFit: 'contain' }} />
-              </picture>
-            </div>
-
-            {/* Location Selector Dropdown Pill */}
-            <div style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.35rem',
-              backgroundColor: '#f1f5f9',
-              border: '1px solid #cbd5e1',
-              padding: '0.35rem 0.75rem',
-              borderRadius: '20px',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.02)'
-            }}>
-              <MapPin size={15} color="#2563eb" />
-              <select
-                value={citySlug}
-                onChange={(e) => navigate(`/${e.target.value}/service/${serviceSlug}`)}
-                style={{
-                  background: 'transparent',
-                  border: 'none',
-                  color: '#0f172a',
-                  outline: 'none',
-                  fontWeight: 800,
-                  fontSize: '0.85rem',
-                  textTransform: 'capitalize',
-                  cursor: 'pointer'
-                }}
-              >
-                {cities.map(c => <option key={c.id} value={c.id} style={{ backgroundColor: '#fff', color: '#0f172a' }}>{c.name}</option>)}
-              </select>
-            </div>
-          </div>
-
-          {/* Center: Search Bar with Vibrant Rainbow Glow Ring & Animated Typing Text */}
-          <div style={{
-            flex: '1 1 380px',
-            maxWidth: '650px',
-            position: 'relative'
-          }}>
-            <div style={{
-              position: 'relative',
-              padding: '2.5px',
-              borderRadius: '26px',
-              background: 'linear-gradient(90deg, #2563eb, #7c3aed, #ec4899, #10b981, #f59e0b, #2563eb)',
-              backgroundSize: '300% 300%',
-              animation: 'searchGlowRotate 4s ease infinite',
-              boxShadow: '0 4px 22px rgba(124, 58, 237, 0.22)'
-            }}>
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.65rem',
-                backgroundColor: '#ffffff',
-                borderRadius: '24px',
-                padding: '0.45rem 1.1rem'
-              }}>
-                <Search size={19} color="#2563eb" style={{ flexShrink: 0, animation: 'iconPulseGlow 2.5s infinite ease-in-out' }} />
-                <input
-                  key={placeholderIndex}
-                  type="text"
-                  placeholder={searchPlaceholders[placeholderIndex]}
-                  onFocus={() => navigate('/')}
-                  style={{
-                    background: 'transparent',
-                    border: 'none',
-                    color: '#0f172a',
-                    width: '100%',
-                    outline: 'none',
-                    fontSize: '0.88rem',
-                    fontWeight: 700,
-                    animation: 'placeholderFadeSlide 0.45s ease-out'
-                  }}
-                />
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', backgroundColor: '#eff6ff', border: '1px solid #bfdbfe', padding: '0.25rem 0.6rem', borderRadius: '14px', cursor: 'pointer' }}>
-                  <Mic size={15} color="#2563eb" />
-                  <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#2563eb' }}>Voice</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Right Action Controls */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1.15rem', flexShrink: 0 }}>
-            <button
-              type="button"
-              onClick={() => navigate('/register')}
-              style={{
-                backgroundColor: '#ffffff',
-                border: '1.5px solid #2563eb',
-                color: '#2563eb',
-                padding: '0.45rem 1rem',
-                borderRadius: '8px',
-                fontSize: '0.82rem',
-                fontWeight: 800,
-                cursor: 'pointer'
-              }}
-            >
-              List Your Business
-            </button>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 700, color: '#475569' }}>
-              <Heart size={18} color="#ef4444" />
-              <span className="desktop-only">Saved</span>
-            </div>
-
-            <div style={{ position: 'relative', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
-              <Bell size={18} color="#475569" />
-              <span style={{
-                position: 'absolute',
-                top: '-4px',
-                right: '-6px',
-                backgroundColor: '#ef4444',
-                color: '#fff',
-                fontSize: '0.62rem',
-                fontWeight: 900,
-                borderRadius: '50%',
-                width: '15px',
-                height: '15px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}>
-                3
-              </span>
-            </div>
-
-            {user ? (
-              <div
-                onClick={() => navigate('/dashboard')}
-                style={{ width: '36px', height: '36px', borderRadius: '50%', backgroundColor: '#2563eb', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, cursor: 'pointer', overflow: 'hidden' }}
-              >
-                {user.avatar ? <img src={user.avatar} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <User size={18} />}
-              </div>
-            ) : (
-              <button onClick={() => navigate('/login')} style={{ padding: '0.45rem 1.1rem', fontSize: '0.85rem', background: '#2563eb', color: '#fff', border: 'none', fontWeight: 800, borderRadius: '20px', cursor: 'pointer' }}>
-                Login
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* Sub-Header Horizontal Category Nav Bar */}
-        <div style={{
-          backgroundColor: '#ffffff',
-          borderTop: '1px solid #f1f5f9',
-          padding: '0.55rem 1.5rem',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '1.75rem',
-          overflowX: 'auto',
-          whiteSpace: 'nowrap'
-        }}>
-          {topHeaderCategories.map((cat, i) => (
-            <div
-              key={i}
-              onClick={() => navigate('/')}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.4rem',
-                fontSize: '0.82rem',
-                fontWeight: 700,
-                color: '#475569',
-                cursor: 'pointer',
-                padding: '0.2rem 0.5rem',
-                borderRadius: '6px'
-              }}
-            >
-              <cat.icon size={15} color={cat.color} />
-              <span>{cat.name}</span>
-            </div>
-          ))}
-        </div>
-      </header>
+      {/* 1. Standalone Header Module */}
+      <Header
+        user={user}
+        selectedCity={citySlug}
+        onCityChange={(newCity) => navigate(`/${newCity}/service/${serviceSlug}`)}
+      />
 
       {/* 2. Top Promo Advertising Banner */}
       {showTopAdBanner && (
@@ -683,7 +427,7 @@ export default function ServiceDetailsPage({ user }) {
                 onChange={(e) => navigate(`/${e.target.value}/service/${serviceSlug}`)}
                 style={{ background: 'transparent', border: 'none', color: '#0f172a', fontWeight: 800, fontSize: '0.83rem', outline: 'none', cursor: 'pointer', textTransform: 'capitalize' }}
               >
-                {cities.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                {['tirupati', 'hyderabad', 'vijayawada', 'visakhapatnam', 'chennai', 'bangalore'].map(c => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
 
@@ -769,8 +513,8 @@ export default function ServiceDetailsPage({ user }) {
       <main style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 1.5rem 3rem 1.5rem' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 350px', gap: '1.75rem', alignItems: 'start' }}>
           
-          {/* LEFT COLUMN: BUSINESS CARDS WITH MORE SERVICES INDICATOR & NO REDUNDANT CITY NAME */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          {/* LEFT COLUMN: ELEVATED PREMIUM BUSINESS CARDS */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.15rem' }}>
             {filteredVendors.length > 0 ? (
               filteredVendors.map((vendor, idx) => {
                 const coverImage = vendor.coverImageUrl || fallbackCovers[idx % fallbackCovers.length];
@@ -781,34 +525,49 @@ export default function ServiceDetailsPage({ user }) {
                   ? vendor.tags
                   : ['Social Media Marketing', 'Google Ads', 'SEO Services', 'Content Marketing', 'Website Development'];
 
+                const isTopRated = (vendor.rating || 4.9) >= 4.8;
+
                 return (
                   <div
                     key={vendor.id}
                     style={{
                       backgroundColor: '#ffffff',
                       border: '1px solid #e2e8f0',
-                      borderRadius: '14px',
-                      padding: '1rem 1.25rem',
+                      borderRadius: '16px',
+                      padding: '1.15rem 1.35rem',
                       display: 'grid',
-                      gridTemplateColumns: '170px minmax(0, 1fr) 150px',
+                      gridTemplateColumns: '175px minmax(0, 1fr) 155px',
                       gap: '1.25rem',
                       alignItems: 'center',
-                      boxShadow: '0 2px 12px rgba(0,0,0,0.03)',
-                      transition: 'all 0.2s',
-                      position: 'relative'
+                      boxShadow: '0 4px 18px rgba(0,0,0,0.035)',
+                      transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+                      position: 'relative',
+                      overflow: 'hidden'
                     }}
-                    onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#2563eb'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(37, 99, 235, 0.1)'; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.boxShadow = '0 2px 12px rgba(0,0,0,0.03)'; }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.borderColor = '#2563eb';
+                      e.currentTarget.style.transform = 'translateY(-2px)';
+                      e.currentTarget.style.boxShadow = '0 10px 30px rgba(37, 99, 235, 0.12)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.borderColor = '#e2e8f0';
+                      e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.boxShadow = '0 4px 18px rgba(0,0,0,0.035)';
+                    }}
                   >
                     
-                    {/* 1. LEFT COLUMN: LOGO / COVER IMAGE WITH CATEGORY & VERIFIED BADGES OVER IT */}
-                    <div style={{ position: 'relative', height: '110px', borderRadius: '10px', overflow: 'hidden', backgroundColor: '#f1f5f9' }}>
+                    {/* Top Ambient Highlight Strip */}
+                    <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '4px', background: isTopRated ? 'linear-gradient(90deg, #f59e0b, #fbbf24)' : 'linear-gradient(90deg, #2563eb, #60a5fa)' }} />
+
+                    {/* 1. LEFT COLUMN: THUMBNAIL LOGO WITH CATEGORY & VERIFIED BADGES */}
+                    <div style={{ position: 'relative', height: '115px', borderRadius: '12px', overflow: 'hidden', backgroundColor: '#f1f5f9', border: '1px solid #cbd5e1' }}>
                       <img
                         src={coverImage}
                         alt={vendor.name}
                         style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                       />
 
+                      {/* Top-Left Category Badge */}
                       <span style={{
                         position: 'absolute',
                         top: '6px',
@@ -824,6 +583,7 @@ export default function ServiceDetailsPage({ user }) {
                         {service.category || 'Service'}
                       </span>
 
+                      {/* Bottom-Left Verified Badge */}
                       <span style={{
                         position: 'absolute',
                         bottom: '6px',
@@ -847,31 +607,40 @@ export default function ServiceDetailsPage({ user }) {
                       </span>
                     </div>
 
-                    {/* 2. MIDDLE COLUMN: COMPANY NAME -> RATINGS/SLA -> TAG CHIPS WITH MORE INDICATOR */}
+                    {/* 2. MIDDLE COLUMN: TITLE, TOP CHOICE RIBBON, RATINGS & INTERACTIVE TAG CHIPS */}
                     <div style={{ minWidth: 0 }}>
+                      
+                      {/* Top Choice Gold Badge */}
+                      {isTopRated && (
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', backgroundColor: '#fffbeb', border: '1px solid #fde68a', color: '#b45309', fontSize: '0.68rem', fontWeight: 800, padding: '0.12rem 0.5rem', borderRadius: '10px', marginBottom: '0.35rem' }}>
+                          🏆 Top Rated Vendor in {cityNameCap}
+                        </div>
+                      )}
+
+                      {/* Company Name */}
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', marginBottom: '0.35rem' }}>
-                        <h3 style={{ fontSize: '1.05rem', fontWeight: 900, color: '#0f172a', margin: 0, lineHeight: 1.25, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        <h3 style={{ fontSize: '1.1rem', fontWeight: 900, color: '#0f172a', margin: 0, lineHeight: 1.25, overflow: 'hidden', textOverflow: 'ellipsis' }}>
                           {vendor.name}
                         </h3>
                         {vendor.isVerifiedManaCity && (
-                          <ShieldCheck size={16} color="#2563eb" fill="#2563eb" style={{ color: '#fff', flexShrink: 0 }} />
+                          <ShieldCheck size={17} color="#2563eb" fill="#2563eb" style={{ color: '#fff', flexShrink: 0 }} />
                         )}
                       </div>
 
-                      {/* Requirement 1: City Name Removed from info line */}
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.55rem', flexWrap: 'wrap', marginBottom: '0.55rem', fontSize: '0.76rem' }}>
-                        <span style={{ fontWeight: 900, color: '#d97706', backgroundColor: '#fef3c7', padding: '0.12rem 0.45rem', borderRadius: '6px', display: 'inline-flex', alignItems: 'center', gap: '0.2rem' }}>
+                      {/* Ratings & SLA Row */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.55rem', flexWrap: 'wrap', marginBottom: '0.55rem', fontSize: '0.78rem' }}>
+                        <span style={{ fontWeight: 900, color: '#d97706', backgroundColor: '#fef3c7', padding: '0.12rem 0.5rem', borderRadius: '6px', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
                           ★ {vendor.rating || 4.9} ({vendor.reviewCount || 63} reviews)
                         </span>
                         <span style={{ color: '#cbd5e1' }}>•</span>
                         <span style={{ color: '#475569', fontWeight: 600 }}>8+ Years in Business</span>
                         <span style={{ color: '#cbd5e1' }}>•</span>
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.2rem', backgroundColor: '#eff6ff', color: '#2563eb', padding: '0.12rem 0.45rem', borderRadius: '6px', fontWeight: 700 }}>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.2rem', backgroundColor: '#eff6ff', color: '#2563eb', padding: '0.12rem 0.5rem', borderRadius: '6px', fontWeight: 700 }}>
                           <Clock size={11} color="#2563eb" /> 15-Min Response
                         </span>
                       </div>
 
-                      {/* Requirement 2: Single-Line Service Tag Chips WITH "+More Services ❯" Indication Pill */}
+                      {/* Single-Line Tag Chips WITH "+More Services ❯" Indication Pill */}
                       <div style={{ position: 'relative', minWidth: 0 }}>
                         <div style={{
                           display: 'flex',
@@ -890,7 +659,7 @@ export default function ServiceDetailsPage({ user }) {
                                 backgroundColor: '#eff6ff',
                                 border: '1px solid #bfdbfe',
                                 color: '#2563eb',
-                                fontSize: '0.7rem',
+                                fontSize: '0.72rem',
                                 fontWeight: 700,
                                 padding: '0.2rem 0.55rem',
                                 borderRadius: '8px',
@@ -907,14 +676,13 @@ export default function ServiceDetailsPage({ user }) {
                             </span>
                           ))}
 
-                          {/* Requirement 2: Indication pill showing more services in that line */}
                           <span
                             onClick={() => setSelectedVendorForLead(vendor)}
                             style={{
                               backgroundColor: '#e0e7ff',
                               border: '1px solid #c7d2fe',
                               color: '#3730a3',
-                              fontSize: '0.7rem',
+                              fontSize: '0.72rem',
                               fontWeight: 800,
                               padding: '0.2rem 0.6rem',
                               borderRadius: '8px',
@@ -929,7 +697,7 @@ export default function ServiceDetailsPage({ user }) {
                             }}
                             onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#3730a3'; e.currentTarget.style.color = '#ffffff'; }}
                             onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#e0e7ff'; e.currentTarget.style.color = '#3730a3'; }}
-                            title="Click to view all offered services for this business"
+                            title="Click to view all offered services"
                           >
                             +4 More Services ❯
                           </span>
@@ -937,8 +705,8 @@ export default function ServiceDetailsPage({ user }) {
                       </div>
                     </div>
 
-                    {/* 3. RIGHT COLUMN: PRICING & ACTION BUTTONS */}
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', justifyContent: 'center', gap: '0.4rem', height: '100%', flexShrink: 0 }}>
+                    {/* 3. RIGHT COLUMN: PRICING & ANIMATED ENQUIRE / ORDER BUTTON */}
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', justifyContent: 'center', gap: '0.45rem', height: '100%', flexShrink: 0 }}>
                       
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
                         <button
@@ -951,32 +719,35 @@ export default function ServiceDetailsPage({ user }) {
                         
                         <div style={{ textAlign: 'right' }}>
                           <span style={{ fontSize: '0.65rem', color: '#64748b', fontWeight: 600 }}>Starts from </span>
-                          <span style={{ fontSize: '1.05rem', fontWeight: 900, color: '#059669' }}>
+                          <span style={{ fontSize: '1.1rem', fontWeight: 900, color: '#059669' }}>
                             ₹{vendor.price ? vendor.price.toLocaleString('en-IN') : '7,999'}
                           </span>
                         </div>
                       </div>
 
+                      {/* ANIMATED ENQUIRE / ORDER NOW BUTTON */}
                       <button
                         type="button"
                         onClick={() => setSelectedVendorForLead(vendor)}
                         style={{
-                          backgroundColor: '#2563eb',
+                          background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 50%, #3b82f6 100%)',
                           color: '#ffffff',
                           border: 'none',
                           borderRadius: '16px',
-                          padding: '0.45rem 0.85rem',
-                          fontSize: '0.82rem',
+                          padding: '0.5rem 0.9rem',
+                          fontSize: '0.85rem',
                           fontWeight: 900,
                           cursor: 'pointer',
                           width: '100%',
                           textAlign: 'center',
-                          boxShadow: '0 3px 10px rgba(37, 99, 235, 0.25)'
+                          animation: 'enquireButtonGlowPulse 2.8s infinite ease-in-out',
+                          letterSpacing: '0.02em'
                         }}
                       >
                         Enquire / Order
                       </button>
 
+                      {/* Circular WhatsApp & Call Buttons */}
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', width: '100%', justifyContent: 'center' }}>
                         <button
                           type="button"
@@ -1020,6 +791,7 @@ export default function ServiceDetailsPage({ user }) {
                         </button>
                       </div>
 
+                      {/* Storefront Profile Link */}
                       <button
                         type="button"
                         onClick={() => {

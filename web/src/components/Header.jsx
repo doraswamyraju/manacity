@@ -1,0 +1,356 @@
+import React, { useState, useEffect, useMemo } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import {
+  Search,
+  MapPin,
+  Mic,
+  Heart,
+  Bell,
+  User,
+  Utensils,
+  Cross,
+  Home as HomeIcon,
+  Plane,
+  GraduationCap,
+  Wrench,
+  Scissors,
+  Car,
+  MoreHorizontal
+} from 'lucide-react';
+
+export default function Header({ user, selectedCity = 'tirupati', onCityChange }) {
+  const navigate = useNavigate();
+
+  const cities = [
+    { id: 'tirupati', name: 'Tirupati' },
+    { id: 'hyderabad', name: 'Hyderabad' },
+    { id: 'vijayawada', name: 'Vijayawada' },
+    { id: 'visakhapatnam', name: 'Visakhapatnam' },
+    { id: 'chennai', name: 'Chennai' },
+    { id: 'bangalore', name: 'Bangalore' }
+  ];
+
+  const topHeaderCategories = [
+    { name: 'Restaurants', icon: Utensils, color: '#ef4444' },
+    { name: 'Doctors', icon: Cross, color: '#0ea5e9' },
+    { name: 'Real Estate', icon: HomeIcon, color: '#f43f5e' },
+    { name: 'Travel', icon: Plane, color: '#3b82f6' },
+    { name: 'Education', icon: GraduationCap, color: '#10b981' },
+    { name: 'Repairs', icon: Wrench, color: '#f59e0b' },
+    { name: 'Beauty', icon: Scissors, color: '#ec4899' },
+    { name: 'Automotive', icon: Car, color: '#8b5cf6' },
+    { name: 'More', icon: MoreHorizontal, color: '#64748b' }
+  ];
+
+  // Revolving Category Keywords with Individual Vibrant Colors
+  const cityCap = selectedCity.charAt(0).toUpperCase() + selectedCity.slice(1);
+  const revolvingKeywords = useMemo(() => [
+    { prefix: 'Search', highlight: 'Digital Marketing Agencies', color: '#2563eb', bg: '#eff6ff' },
+    { prefix: 'Find Top', highlight: 'CA & Tax Consultants', color: '#059669', bg: '#ecfdf5' },
+    { prefix: 'Discover', highlight: 'Restaurants & Cafes', color: '#ea580c', bg: '#fff7ed' },
+    { prefix: 'Explore', highlight: 'Real Estate & Villas', color: '#7c3aed', bg: '#f5f3ff' },
+    { prefix: 'Book Verified', highlight: 'Doctors & Clinics', color: '#0284c7', bg: '#f0f9ff' },
+    { prefix: 'Connect with', highlight: 'AC & Electrician Repairs', color: '#d97706', bg: '#fffbeb' }
+  ], []);
+
+  const [keywordIdx, setKeywordIdx] = useState(0);
+  const [searchInput, setSearchInput] = useState('');
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setKeywordIdx(prev => (prev + 1) % revolvingKeywords.length);
+    }, 2600);
+    return () => clearInterval(timer);
+  }, [revolvingKeywords.length]);
+
+  const currentKw = revolvingKeywords[keywordIdx];
+
+  const handleCitySelect = (e) => {
+    const newCity = e.target.value;
+    if (onCityChange) {
+      onCityChange(newCity);
+    } else {
+      navigate(`/${newCity}/service/digital-marketing`);
+    }
+  };
+
+  return (
+    <header style={{
+      display: 'flex',
+      flexDirection: 'column',
+      backgroundColor: '#ffffff',
+      borderBottom: '1px solid #e2e8f0',
+      position: 'sticky',
+      top: 0,
+      zIndex: 100,
+      boxShadow: '0 4px 20px rgba(0,0,0,0.05)'
+    }}>
+      {/* Dynamic Keyframes for Rainbow Border & Text Slide Animations */}
+      <style>{`
+        @keyframes searchGlowRotate {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+        @keyframes keywordSlideUp {
+          0% { opacity: 0; transform: translateY(6px); }
+          100% { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes searchIconPulse {
+          0%, 100% { transform: scale(1); filter: drop-shadow(0 0 2px rgba(37,99,235,0.4)); }
+          50% { transform: scale(1.1); filter: drop-shadow(0 0 8px rgba(124,58,237,0.8)); }
+        }
+      `}</style>
+
+      {/* Main Top Header Bar */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: '1rem',
+        padding: '0.65rem 1.5rem',
+        width: '100%',
+        flexWrap: 'wrap'
+      }}>
+        
+        {/* Left: ManaCity Logo (54px height) & Compact City Selector */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', flexShrink: 0 }}>
+          {/* Logo - Clicking takes user to landing page */}
+          <div
+            style={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+            onClick={() => navigate('/')}
+            title="ManaCity Home - Discover. Connect. Get it done."
+          >
+            <picture>
+              <source media="(max-width: 768px)" srcSet="/logo-square.png" />
+              <img
+                src="/logo-horizontal.png"
+                alt="ManaCity Logo"
+                style={{ height: '54px', objectFit: 'contain', transition: 'transform 0.2s' }}
+                onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.03)'}
+                onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+              />
+            </picture>
+          </div>
+
+          {/* Reduced Sleek City Selector Pill */}
+          <div style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.25rem',
+            backgroundColor: '#f1f5f9',
+            border: '1px solid #cbd5e1',
+            padding: '0.25rem 0.6rem',
+            borderRadius: '16px',
+            boxShadow: '0 1px 4px rgba(0,0,0,0.03)'
+          }}>
+            <MapPin size={13} color="#2563eb" />
+            <select
+              value={selectedCity}
+              onChange={handleCitySelect}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: '#0f172a',
+                outline: 'none',
+                fontWeight: 800,
+                fontSize: '0.78rem',
+                textTransform: 'capitalize',
+                cursor: 'pointer'
+              }}
+            >
+              {cities.map(c => <option key={c.id} value={c.id} style={{ backgroundColor: '#fff', color: '#0f172a' }}>{c.name}</option>)}
+            </select>
+          </div>
+        </div>
+
+        {/* Center: Search Bar with Rainbow Border & Rich Colored Revolving Keyword Badge */}
+        <div style={{
+          flex: '1 1 380px',
+          maxWidth: '650px',
+          position: 'relative'
+        }}>
+          <div style={{
+            position: 'relative',
+            padding: '2.5px',
+            borderRadius: '26px',
+            background: 'linear-gradient(90deg, #2563eb, #7c3aed, #ec4899, #10b981, #f59e0b, #2563eb)',
+            backgroundSize: '300% 300%',
+            animation: 'searchGlowRotate 4s ease infinite',
+            boxShadow: '0 4px 22px rgba(124, 58, 237, 0.2)'
+          }}>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.65rem',
+              backgroundColor: '#ffffff',
+              borderRadius: '24px',
+              padding: '0.45rem 1rem'
+            }}>
+              <Search size={18} color="#2563eb" style={{ flexShrink: 0, animation: 'searchIconPulse 2.5s infinite ease-in-out' }} />
+
+              {/* Animated Colored Revolving Text Container */}
+              <div style={{ position: 'relative', width: '100%', display: 'flex', alignItems: 'center' }}>
+                <input
+                  type="text"
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  onFocus={() => navigate('/')}
+                  placeholder=""
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    color: '#0f172a',
+                    width: '100%',
+                    outline: 'none',
+                    fontSize: '0.88rem',
+                    fontWeight: 700,
+                    zIndex: 2
+                  }}
+                />
+
+                {!searchInput && (
+                  <div
+                    onClick={() => navigate('/')}
+                    style={{
+                      position: 'absolute',
+                      left: 0,
+                      pointerEvents: 'none',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.35rem',
+                      fontSize: '0.86rem',
+                      fontWeight: 600,
+                      color: '#64748b',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      animation: 'keywordSlideUp 0.45s ease-out'
+                    }}
+                  >
+                    <span>{currentKw.prefix}</span>
+                    <span style={{
+                      backgroundColor: currentKw.bg,
+                      color: currentKw.color,
+                      padding: '0.12rem 0.5rem',
+                      borderRadius: '8px',
+                      fontWeight: 800,
+                      border: `1px solid ${currentKw.color}33`
+                    }}>
+                      {currentKw.highlight}
+                    </span>
+                    <span>in {cityCap}...</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Voice Search Pill */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', backgroundColor: '#eff6ff', border: '1px solid #bfdbfe', padding: '0.25rem 0.6rem', borderRadius: '14px', cursor: 'pointer', flexShrink: 0 }}>
+                <Mic size={14} color="#2563eb" />
+                <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#2563eb' }}>Voice</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Action Controls */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1.15rem', flexShrink: 0 }}>
+          <button
+            type="button"
+            onClick={() => navigate('/register')}
+            style={{
+              backgroundColor: '#ffffff',
+              border: '1.5px solid #2563eb',
+              color: '#2563eb',
+              padding: '0.45rem 1rem',
+              borderRadius: '8px',
+              fontSize: '0.82rem',
+              fontWeight: 800,
+              cursor: 'pointer',
+              transition: 'all 0.2s'
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#2563eb'; e.currentTarget.style.color = '#fff'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#ffffff'; e.currentTarget.style.color = '#2563eb'; }}
+          >
+            List Your Business
+          </button>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 700, color: '#475569' }}>
+            <Heart size={18} color="#ef4444" />
+            <span className="desktop-only">Saved</span>
+          </div>
+
+          <div style={{ position: 'relative', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+            <Bell size={18} color="#475569" />
+            <span style={{
+              position: 'absolute',
+              top: '-4px',
+              right: '-6px',
+              backgroundColor: '#ef4444',
+              color: '#fff',
+              fontSize: '0.62rem',
+              fontWeight: 900,
+              borderRadius: '50%',
+              width: '15px',
+              height: '15px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              3
+            </span>
+          </div>
+
+          {user ? (
+            <div
+              onClick={() => navigate('/dashboard')}
+              style={{ width: '36px', height: '36px', borderRadius: '50%', backgroundColor: '#2563eb', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, cursor: 'pointer', overflow: 'hidden' }}
+            >
+              {user.avatar ? <img src={user.avatar} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <User size={18} />}
+            </div>
+          ) : (
+            <button onClick={() => navigate('/login')} style={{ padding: '0.45rem 1.1rem', fontSize: '0.85rem', background: '#2563eb', color: '#fff', border: 'none', fontWeight: 800, borderRadius: '20px', cursor: 'pointer' }}>
+              Login
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Sub-Header Horizontal Category Nav Bar */}
+      <div style={{
+        backgroundColor: '#ffffff',
+        borderTop: '1px solid #f1f5f9',
+        padding: '0.55rem 1.5rem',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: '1.75rem',
+        overflowX: 'auto',
+        whiteSpace: 'nowrap'
+      }}>
+        {topHeaderCategories.map((cat, i) => (
+          <div
+            key={i}
+            onClick={() => navigate('/')}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.4rem',
+              fontSize: '0.82rem',
+              fontWeight: 700,
+              color: '#475569',
+              cursor: 'pointer',
+              padding: '0.2rem 0.5rem',
+              borderRadius: '6px',
+              transition: 'color 0.15s'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.color = '#2563eb'}
+            onMouseLeave={(e) => e.currentTarget.style.color = '#475569'}
+          >
+            <cat.icon size={15} color={cat.color} />
+            <span>{cat.name}</span>
+          </div>
+        ))}
+      </div>
+    </header>
+  );
+}
