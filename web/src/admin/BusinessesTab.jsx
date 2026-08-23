@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Search, Trash2, Power, AlertTriangle, X, Plus, UserPlus, ShieldCheck, Building2, CheckCircle2 } from 'lucide-react';
+import { Search, Trash2, Power, AlertTriangle, X, Plus, UserPlus, ShieldCheck, Building2, MapPin, Star, Sparkles, CheckCircle2, ArrowRight } from 'lucide-react';
 
 function BusinessesTab({ businesses, setBusinesses, searchQuery, setSearchQuery, handleStatusChange, handleDeleteBusiness, users = [], theme }) {
   const isDark = theme === 'dark';
@@ -9,14 +9,26 @@ function BusinessesTab({ businesses, setBusinesses, searchQuery, setSearchQuery,
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // 2. Add Business Modal State
+  // 2. Add / Import Business Modal State
   const [showAddModal, setShowAddModal] = useState(false);
+  const [placesQuery, setPlacesQuery] = useState('');
+  const [predictions, setPredictions] = useState([]);
+  const [isSearchingPlaces, setIsSearchingPlaces] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
+
+  // Imported Google Places fields
   const [newBizName, setNewBizName] = useState('');
   const [newBizOwnerEmail, setNewBizOwnerEmail] = useState('');
-  const [newBizCategory, setNewBizCategory] = useState('Digital Marketing');
+  const [newBizCategory, setNewBizCategory] = useState('General Business');
   const [newBizCity, setNewBizCity] = useState('tirupati');
   const [newBizPhone, setNewBizPhone] = useState('');
   const [newBizAddress, setNewBizAddress] = useState('');
+  const [newBizWebsite, setNewBizWebsite] = useState('');
+  const [googlePlaceId, setGooglePlaceId] = useState('');
+  const [googleRating, setGoogleRating] = useState(4.9);
+  const [googleReviewCount, setGoogleReviewCount] = useState(45);
+  const [isImporting, setIsImporting] = useState(false);
+
   const [isCreating, setIsCreating] = useState(false);
   const [addMessage, setAddMessage] = useState({ type: '', text: '' });
 
@@ -31,6 +43,72 @@ function BusinessesTab({ businesses, setBusinesses, searchQuery, setSearchQuery,
     b.owner?.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     b.owner?.name?.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  // Google Places Autocomplete Effect
+  useEffect(() => {
+    if (!placesQuery.trim() || placesQuery.length < 2) {
+      setPredictions([]);
+      setShowDropdown(false);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      setIsSearchingPlaces(true);
+      try {
+        const response = await axios.get(`/api/phase1/google-places/autocomplete?input=${encodeURIComponent(placesQuery)}`);
+        setPredictions(response.data.predictions || []);
+        setShowDropdown(true);
+      } catch (err) {
+        console.warn('Google Places autocomplete warning:', err);
+      } finally {
+        setIsSearchingPlaces(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [placesQuery]);
+
+  // Handle Google Places Prediction Selection
+  const handleSelectPrediction = async (prediction) => {
+    setShowDropdown(false);
+    setPlacesQuery(prediction.name);
+    setNewBizName(prediction.name);
+    setIsImporting(true);
+
+    try {
+      const response = await axios.post('/api/phase1/google-places/import', {
+        placeId: prediction.placeId,
+        businessName: prediction.name
+      });
+
+      const data = response.data.data || {};
+      setNewBizName(data.name || prediction.name);
+      setNewBizAddress(data.address || prediction.description || '');
+      setNewBizPhone(data.phone || '');
+      setNewBizWebsite(data.website || '');
+      setGooglePlaceId(prediction.placeId);
+      if (data.rating) setGoogleRating(data.rating);
+      if (data.reviewCount) setGoogleReviewCount(data.reviewCount);
+      if (data.category) setNewBizCategory(data.category);
+
+      // Auto-detect city from address
+      if (data.address) {
+        const addrLower = data.address.toLowerCase();
+        if (addrLower.includes('hyderabad')) setNewBizCity('hyderabad');
+        else if (addrLower.includes('vijayawada')) setNewBizCity('vijayawada');
+        else if (addrLower.includes('visakhapatnam') || addrLower.includes('vizag')) setNewBizCity('visakhapatnam');
+        else if (addrLower.includes('chennai')) setNewBizCity('chennai');
+        else if (addrLower.includes('bangalore')) setNewBizCity('bangalore');
+        else setNewBizCity('tirupati');
+      }
+
+      setAddMessage({ type: 'success', text: `Fetched Google Places data for "${prediction.name}"!` });
+    } catch (err) {
+      console.warn('Google Places import details error:', err);
+    } finally {
+      setIsImporting(false);
+    }
+  };
 
   const confirmDelete = async () => {
     if (!deleteTarget) return;
@@ -57,21 +135,27 @@ function BusinessesTab({ businesses, setBusinesses, searchQuery, setSearchQuery,
         category: newBizCategory,
         city: newBizCity,
         phone: newBizPhone,
-        address: newBizAddress
+        address: newBizAddress,
+        website: newBizWebsite,
+        googlePlaceId,
+        googleRating,
+        googleReviewCount
       });
 
       const createdBiz = response.data.business;
       if (setBusinesses) {
         setBusinesses(prev => [createdBiz, ...prev]);
       }
-      setAddMessage({ type: 'success', text: `Business "${newBizName}" created & assigned successfully!` });
+      setAddMessage({ type: 'success', text: `Business "${newBizName}" imported & assigned to ${newBizOwnerEmail || 'owner'} successfully!` });
 
       setTimeout(() => {
         setShowAddModal(false);
+        setPlacesQuery('');
         setNewBizName('');
         setNewBizOwnerEmail('');
         setNewBizPhone('');
         setNewBizAddress('');
+        setNewBizWebsite('');
         setAddMessage({ type: '', text: '' });
       }, 1500);
     } catch (err) {
@@ -192,7 +276,7 @@ function BusinessesTab({ businesses, setBusinesses, searchQuery, setSearchQuery,
         </div>
       )}
 
-      {/* 2. Add New Business Modal */}
+      {/* 2. Add / Import Business Modal (Google Places API Autocomplete Search) */}
       {showAddModal && (
         <div style={{
           position: 'fixed',
@@ -207,8 +291,10 @@ function BusinessesTab({ businesses, setBusinesses, searchQuery, setSearchQuery,
             border: isDark ? '1px solid rgba(56, 189, 248, 0.3)' : '1px solid #cbd5e1',
             borderRadius: '20px',
             padding: '1.75rem',
-            maxWidth: '520px',
+            maxWidth: '560px',
             width: '92%',
+            maxHeight: '90vh',
+            overflowY: 'auto',
             boxShadow: '0 25px 50px rgba(0,0,0,0.5)',
             color: isDark ? '#fff' : '#0f172a'
           }}>
@@ -216,7 +302,7 @@ function BusinessesTab({ businesses, setBusinesses, searchQuery, setSearchQuery,
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
                 <Building2 size={22} color="#38bdf8" />
                 <h3 style={{ fontSize: '1.15rem', fontWeight: 900, margin: 0 }}>
-                  Add New Business & Assign Owner
+                  Search Google Places & Assign Owner
                 </h3>
               </div>
               <button
@@ -241,13 +327,94 @@ function BusinessesTab({ businesses, setBusinesses, searchQuery, setSearchQuery,
               </div>
             )}
 
+            {/* Google Places Live Autocomplete Search Input */}
+            <div style={{ position: 'relative', marginBottom: '1.25rem' }}>
+              <label style={{ fontSize: '0.82rem', fontWeight: 800, color: '#38bdf8', display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.35rem' }}>
+                <Sparkles size={14} color="#38bdf8" /> Search Business on Google Places API
+              </label>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.6rem',
+                backgroundColor: isDark ? '#0f172a' : '#f8fafc',
+                border: '1px solid #38bdf8',
+                borderRadius: '10px',
+                padding: '0.65rem 0.85rem'
+              }}>
+                <Search size={18} color="#38bdf8" />
+                <input
+                  type="text"
+                  placeholder="Type business name (e.g. Rajugari Ventures, Apex Dental)..."
+                  value={placesQuery}
+                  onChange={e => {
+                    setPlacesQuery(e.target.value);
+                    setNewBizName(e.target.value);
+                  }}
+                  style={{
+                    width: '100%',
+                    backgroundColor: 'transparent',
+                    border: 'none',
+                    color: isDark ? '#fff' : '#0f172a',
+                    outline: 'none',
+                    fontSize: '0.9rem'
+                  }}
+                />
+                {isSearchingPlaces && <span style={{ fontSize: '0.75rem', color: '#38bdf8' }}>Searching...</span>}
+              </div>
+
+              {/* Autocomplete Predictions Dropdown */}
+              {showDropdown && predictions.length > 0 && (
+                <div style={{
+                  position: 'absolute',
+                  top: '100%',
+                  left: 0, right: 0,
+                  marginTop: '4px',
+                  backgroundColor: isDark ? '#0f172a' : '#ffffff',
+                  border: isDark ? '1px solid rgba(56, 189, 248, 0.4)' : '1px solid #cbd5e1',
+                  borderRadius: '12px',
+                  maxHeight: '220px',
+                  overflowY: 'auto',
+                  zIndex: 1000,
+                  boxShadow: '0 10px 25px rgba(0,0,0,0.5)'
+                }}>
+                  {predictions.map(pred => (
+                    <div
+                      key={pred.placeId}
+                      onClick={() => handleSelectPrediction(pred)}
+                      style={{
+                        padding: '0.75rem 1rem',
+                        borderBottom: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid #f1f5f9',
+                        cursor: 'pointer',
+                        transition: 'background-color 0.15s'
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = isDark ? 'rgba(56, 189, 248, 0.15)' : '#f0f9ff'}
+                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                    >
+                      <div style={{ fontSize: '0.9rem', fontWeight: 800, color: isDark ? '#fff' : '#0f172a', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                        <MapPin size={14} color="#38bdf8" /> {pred.name}
+                      </div>
+                      <div style={{ fontSize: '0.78rem', color: isDark ? '#94a3b8' : '#64748b', marginTop: '0.15rem', paddingLeft: '1.2rem' }}>
+                        {pred.description}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {isImporting && (
+              <div style={{ padding: '0.75rem', backgroundColor: 'rgba(56, 189, 248, 0.1)', borderRadius: '8px', color: '#38bdf8', fontSize: '0.82rem', marginBottom: '1rem', textAlign: 'center' }}>
+                Fetching Google Maps rating, reviews, phone, and address...
+              </div>
+            )}
+
             <form onSubmit={handleCreateBusiness} style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
               <div>
                 <label style={{ fontSize: '0.78rem', fontWeight: 700, display: 'block', marginBottom: '0.25rem' }}>Business Name *</label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Tirupati Travels & Cabs"
+                  placeholder="Business Name"
                   value={newBizName}
                   onChange={e => setNewBizName(e.target.value)}
                   style={{
@@ -267,7 +434,7 @@ function BusinessesTab({ businesses, setBusinesses, searchQuery, setSearchQuery,
                 <input
                   type="email"
                   required
-                  placeholder="e.g. owner@gmail.com (Creates user if not exists)"
+                  placeholder="owner@gmail.com (Creates user account if not exists)"
                   value={newBizOwnerEmail}
                   onChange={e => setNewBizOwnerEmail(e.target.value)}
                   style={{
@@ -314,7 +481,8 @@ function BusinessesTab({ businesses, setBusinesses, searchQuery, setSearchQuery,
                       border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid #cbd5e1',
                       borderRadius: '8px',
                       color: isDark ? '#fff' : '#0f172a',
-                      outline: 'none'
+                      outline: 'none',
+                      textTransform: 'capitalize'
                     }}
                   >
                     <option value="tirupati">Tirupati</option>
@@ -329,7 +497,7 @@ function BusinessesTab({ businesses, setBusinesses, searchQuery, setSearchQuery,
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
                 <div>
-                  <label style={{ fontSize: '0.78rem', fontWeight: 700, display: 'block', marginBottom: '0.25rem' }}>Contact Mobile</label>
+                  <label style={{ fontSize: '0.78rem', fontWeight: 700, display: 'block', marginBottom: '0.25rem' }}>Contact Phone</label>
                   <input
                     type="tel"
                     placeholder="9876543210"
@@ -351,7 +519,7 @@ function BusinessesTab({ businesses, setBusinesses, searchQuery, setSearchQuery,
                   <label style={{ fontSize: '0.78rem', fontWeight: 700, display: 'block', marginBottom: '0.25rem' }}>Address</label>
                   <input
                     type="text"
-                    placeholder="e.g. KT Road, Tirupati"
+                    placeholder="Address details"
                     value={newBizAddress}
                     onChange={e => setNewBizAddress(e.target.value)}
                     style={{
@@ -398,7 +566,7 @@ function BusinessesTab({ businesses, setBusinesses, searchQuery, setSearchQuery,
                     boxShadow: '0 4px 14px rgba(37, 99, 235, 0.4)'
                   }}
                 >
-                  {isCreating ? 'Creating...' : '🚀 Create & Assign Business'}
+                  {isCreating ? 'Importing...' : '🚀 Import & Assign Business'}
                 </button>
               </div>
             </form>

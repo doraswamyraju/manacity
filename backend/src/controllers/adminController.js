@@ -194,7 +194,22 @@ exports.deleteBusiness = async (req, res) => {
 // 4d. Create New Business by Super Admin and Assign to User
 exports.createBusinessByAdmin = async (req, res) => {
   try {
-    const { name, ownerId, ownerEmail, category, city, phone, address } = req.body;
+    const {
+      name,
+      ownerId,
+      ownerEmail,
+      category,
+      city,
+      phone,
+      address,
+      googlePlaceId,
+      googleRating,
+      googleReviewCount,
+      googleMapsLink,
+      website,
+      logoUrl
+    } = req.body;
+
     if (!name || !name.trim()) {
       return res.status(400).json({ error: 'Business name is required.' });
     }
@@ -230,6 +245,12 @@ exports.createBusinessByAdmin = async (req, res) => {
         mobileNumber: phone || '',
         whatsAppNumber: phone || '',
         address: address || '',
+        website: website || '',
+        logoUrl: logoUrl || null,
+        googlePlaceId: googlePlaceId || null,
+        googleRating: googleRating ? parseFloat(googleRating) : 4.9,
+        googleReviewCount: googleReviewCount ? parseInt(googleReviewCount) : 45,
+        googleMapsLink: googleMapsLink || null,
         status: 'LIVE',
         isSetupComplete: true
       },
@@ -261,12 +282,14 @@ exports.createBusinessByAdmin = async (req, res) => {
         city: cleanCity,
         address: address || 'Tirupati, AP',
         phone: phone || '9876543210',
+        rating: googleRating ? parseFloat(googleRating) : 4.9,
+        reviewCount: googleReviewCount ? parseInt(googleReviewCount) : 45,
         status: 'LIVE',
         isVerified: true
       }
     }).catch(() => {});
 
-    res.json({ status: 'success', business: newBusiness, message: 'Business created and assigned successfully.' });
+    res.json({ status: 'success', business: newBusiness, message: 'Business imported and assigned successfully.' });
   } catch (error) {
     console.error('Create business by admin error:', error);
     res.status(500).json({ error: 'Failed to create business profile.', details: error?.message });
