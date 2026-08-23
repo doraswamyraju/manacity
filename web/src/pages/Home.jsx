@@ -622,7 +622,10 @@ export default function Home({
                 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&auto=format&fit=crop&q=80'
               );
 
-              const manacityProfileUrl = `/site/${item.slug || item.subdomain || 'business'}`;
+              const subdomainSlug = item.subdomain || item.slug || 'business';
+              const manacityProfileUrl = typeof window !== 'undefined' && window.location.hostname.includes('manacity.in')
+                ? `https://${subdomainSlug}.manacity.in`
+                : `/site/${subdomainSlug}`;
 
               return (
                 <div

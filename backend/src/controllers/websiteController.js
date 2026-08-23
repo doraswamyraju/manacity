@@ -604,11 +604,36 @@ exports.renderPublicWebsite = async (req, res) => {
         }
 
         website = existingWeb;
-        website.businessGroup = targetBg;
       }
     }
 
-    // 5. Auto-publish website if unpublished
+    // 5. Query complete website record with all relations & sections populated
+    if (website) {
+      website = await prisma.website.findUnique({
+        where: { id: website.id },
+        include: {
+          sections: { orderBy: { displayOrder: 'asc' } },
+          businessGroup: {
+            include: {
+              directoryListing: true,
+              locations: {
+                include: {
+                  reviews: { orderBy: { createdAt: 'desc' } }
+                }
+              },
+              services: {
+                include: { libraryItem: true }
+              },
+              products: {
+                include: { libraryItem: true }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // 6. Auto-publish website if unpublished
     if (website && !website.isPublished) {
       await prisma.website.update({
         where: { id: website.id },
