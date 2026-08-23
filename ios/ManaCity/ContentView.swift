@@ -17,13 +17,17 @@ struct ContentView: View {
     var body: some View {
         Group {
             switch currentScreen {
-            case .publicHome:
-                PublicHomeView(
+            case .publicHome, .customerDashboard:
+                CustomerMainTabView(
                     onSelectBusiness: { biz in
                         selectedBusinessForWebsite = biz
                     },
                     onNavigateToLogin: { currentScreen = .login },
-                    onNavigateToRegister: { currentScreen = .register }
+                    onNavigateToRegister: { currentScreen = .register },
+                    onLogout: {
+                        clearSession()
+                        currentScreen = .publicHome
+                    }
                 )
 
             case .login:
@@ -59,14 +63,6 @@ struct ContentView: View {
                         currentScreen = .publicHome
                     },
                     onNavigateToWizard: {}
-                )
-
-            case .customerDashboard:
-                CustomerDashboardView(
-                    onLogout: {
-                        clearSession()
-                        currentScreen = .publicHome
-                    }
                 )
 
             case .superAdminConsole:
