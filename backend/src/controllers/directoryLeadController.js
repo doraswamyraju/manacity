@@ -496,15 +496,24 @@ exports.getServiceDetails = async (req, res) => {
       });
     }
 
-    // Fetch related services in the same category
-    const relatedItems = await prisma.productServiceLibrary.findMany({
-      where: {
-        category: masterItem.category,
-        id: { not: masterItem.id },
-        status: 'APPROVED'
-      },
-      take: 4
-    });
+    // Safely check if masterItem.id is a valid 24-char hex MongoDB ObjectID before querying Prisma
+    const isValidObjectId = (id) => typeof id === 'string' && /^[0-9a-fA-F]{24}$/.test(id);
+
+    let relatedItems = [];
+    if (masterItem && masterItem.category && isValidObjectId(masterItem.id)) {
+      try {
+        relatedItems = await prisma.productServiceLibrary.findMany({
+          where: {
+            category: masterItem.category,
+            id: { not: masterItem.id },
+            status: 'APPROVED'
+          },
+          take: 4
+        });
+      } catch (rErr) {
+        console.warn('Related items fetch fallback:', rErr.message);
+      }
+    }
 
     return res.status(200).json({
       service: masterItem,
@@ -589,6 +598,25 @@ exports.masterServicesSearch = async (req, res) => {
       const catMatch = (item.category || '').toLowerCase().includes(queryStr);
       const slugMatch = (item.slug || '').toLowerCase().includes(queryStr);
       return nameMatch || catMatch || slugMatch;
+    }).sort((a, b) => {
+      const aName = a.name.toLowerCase();
+      const bName = b.name.toLowerCase();
+      const aCat = (a.category || '').toLowerCase();
+      const bCat = (b.category || '').toLowerCase();
+
+      // Priority 1: Exact or prefix match on category
+      const aCatPrefix = aCat.startsWith(queryStr);
+      const bCatPrefix = bCat.startsWith(queryStr);
+      if (aCatPrefix && !bCatPrefix) return -1;
+      if (!aCatPrefix && bCatPrefix) return 1;
+
+      // Priority 2: Exact or prefix match on name
+      const aNamePrefix = aName.startsWith(queryStr);
+      const bNamePrefix = bName.startsWith(queryStr);
+      if (aNamePrefix && !bNamePrefix) return -1;
+      if (!aNamePrefix && bNamePrefix) return 1;
+
+      return 0;
     }).slice(0, 5);
 
     return res.json(matching);
