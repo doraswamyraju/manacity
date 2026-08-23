@@ -197,6 +197,8 @@ export default function MarketingTabContainer({ businessGroup, activeTabOverride
     } finally {
       setSubscribingWebhook(false);
     }
+  };
+
   const handleAiGenerateCaption = () => {
     const businessName = businessGroup?.name || 'our business';
     const city = businessGroup?.city || 'Tirupati';
