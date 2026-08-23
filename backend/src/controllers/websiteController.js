@@ -504,8 +504,8 @@ exports.renderPublicWebsite = async (req, res) => {
         where: {
           OR: [
             { directoryListing: { slug: cleanSub } },
-            { id: cleanSub.length === 24 ? cleanSub : undefined },
-            { subdomain: cleanSub }
+            { website: { subdomain: cleanSub } },
+            { id: cleanSub.length === 24 ? cleanSub : undefined }
           ].filter(Boolean)
         },
         include: {
