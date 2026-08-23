@@ -40,7 +40,7 @@ export default function PublicBusinessWebsite() {
   useEffect(() => {
     const letsTrackWidgetId = websiteConfig?.letsTrackWidgetId;
 
-    if (letsTrackWidgetId) {
+    if (letsTrackWidgetId && typeof letsTrackWidgetId === 'string' && letsTrackWidgetId.trim().length > 10) {
       window.LetsTrackConfig = { websiteId: letsTrackWidgetId };
 
       // Remove existing script/root if switching business/re-rendering
@@ -59,6 +59,12 @@ export default function PublicBusinessWebsite() {
       script.setAttribute('data-api-key', letsTrackWidgetId);
       script.async = true;
       document.body.appendChild(script);
+    } else {
+      // Remove any previously injected script if current business has no valid API key
+      const existingScript = document.getElementById('letstrack-widget-script');
+      if (existingScript) existingScript.remove();
+      const existingRoot = document.getElementById('letstrack-widget-root');
+      if (existingRoot) existingRoot.remove();
     }
   }, [websiteConfig]);
 
