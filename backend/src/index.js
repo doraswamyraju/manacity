@@ -81,6 +81,8 @@ app.listen(PORT, () => {
     .then(() => {
       console.log('Successfully connected to MongoDB via Prisma Client.');
       authRoutes && authController.seedTestUser();
+      const { seedTravelTaxiLibrary } = require('./seedTravelTaxiLibrary');
+      seedTravelTaxiLibrary().catch((err) => console.warn('Travel/Taxi seed warning:', err.message));
       startScheduledPostCron(60000);
     })
     .catch((error) => {
