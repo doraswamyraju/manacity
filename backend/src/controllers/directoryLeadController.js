@@ -533,7 +533,10 @@ exports.searchSuggestions = async (req, res) => {
       include: { directoryListing: true, locations: true }
     });
 
+    const isTestAccount = (bName) => (bName || '').toLowerCase().includes('test') || (bName || '').toLowerCase().includes('manacity test');
+
     const matchingBgs = allBgs.filter(bg => {
+      if (isTestAccount(bg.name)) return false;
       const bgCity = (bg.city || 'tirupati').toLowerCase();
       const matchCity = cityStr === 'all' || bgCity === cityStr;
       const matchQuery = bg.name.toLowerCase().includes(queryStr) ||

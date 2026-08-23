@@ -620,9 +620,9 @@ exports.seedTestUser = async (req, res) => {
     if (!businessGroup) {
       businessGroup = await prisma.businessGroup.create({
         data: {
-          name: "Rajugari Ventures - ManaCity Test",
+          name: "Rajugari Ventures - A Digital Marketing Agency in Tirupati",
           ownerId: user.id,
-          description: "Official ManaCity Platform Test Business Account",
+          description: "Official ManaCity Platform Digital Marketing Agency Account",
           country: "India",
           state: "Andhra Pradesh",
           city: "Tirupati"
