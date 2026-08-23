@@ -131,7 +131,7 @@ export default function SearchBar({ selectedCity = 'tirupati' }) {
   };
 
   return (
-    <div ref={searchContainerRef} style={{ flex: '1 1 380px', maxWidth: '650px', position: 'relative' }}>
+    <div ref={searchContainerRef} style={{ width: '100%', maxWidth: '650px', position: 'relative', boxSizing: 'border-box' }}>
       
       {/* Search Input Container with Rotating Rainbow Border */}
       <div style={{
@@ -179,7 +179,7 @@ export default function SearchBar({ selectedCity = 'tirupati' }) {
                 color: '#0f172a',
                 width: '100%',
                 outline: 'none',
-                fontSize: '0.88rem',
+                fontSize: '16px',
                 fontWeight: 700,
                 zIndex: 2
               }}
