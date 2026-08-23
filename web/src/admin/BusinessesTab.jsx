@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Search, Trash2, Power, AlertTriangle, X, Plus, UserPlus, ShieldCheck, Building2, MapPin, Star, Sparkles, CheckCircle2, ArrowRight } from 'lucide-react';
+import { Search, Trash2, Power, AlertTriangle, X, Plus, UserPlus, ShieldCheck, Building2, MapPin, Star, Sparkles, CheckCircle2, ArrowRight, Wand2 } from 'lucide-react';
+import OnboardingWizard from '../pages/OnboardingWizard';
 
 function BusinessesTab({ businesses, setBusinesses, searchQuery, setSearchQuery, handleStatusChange, handleDeleteBusiness, users = [], theme }) {
   const isDark = theme === 'dark';
@@ -9,7 +10,11 @@ function BusinessesTab({ businesses, setBusinesses, searchQuery, setSearchQuery,
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // 2. Add / Import Business Modal State
+  // 2. Onboarding Wizard Modal State (Super Admin Onboarding Logic)
+  const [wizardBusinessId, setWizardBusinessId] = useState(null);
+  const [showWizardModal, setShowWizardModal] = useState(false);
+
+  // 3. Quick Import Business Modal State
   const [showAddModal, setShowAddModal] = useState(false);
   const [placesQuery, setPlacesQuery] = useState('');
   const [predictions, setPredictions] = useState([]);
@@ -32,7 +37,7 @@ function BusinessesTab({ businesses, setBusinesses, searchQuery, setSearchQuery,
   const [isCreating, setIsCreating] = useState(false);
   const [addMessage, setAddMessage] = useState({ type: '', text: '' });
 
-  // 3. Reassign Owner Modal State
+  // 4. Reassign Owner Modal State
   const [reassignTarget, setReassignTarget] = useState(null);
   const [targetOwnerEmail, setTargetOwnerEmail] = useState('');
   const [isReassigning, setIsReassigning] = useState(false);
@@ -68,7 +73,6 @@ function BusinessesTab({ businesses, setBusinesses, searchQuery, setSearchQuery,
     return () => clearTimeout(timer);
   }, [placesQuery]);
 
-  // Handle Google Places Prediction Selection
   const handleSelectPrediction = async (prediction) => {
     setShowDropdown(false);
     setPlacesQuery(prediction.name);
@@ -91,7 +95,6 @@ function BusinessesTab({ businesses, setBusinesses, searchQuery, setSearchQuery,
       if (data.reviewCount) setGoogleReviewCount(data.reviewCount);
       if (data.category) setNewBizCategory(data.category);
 
-      // Auto-detect city from address
       if (data.address) {
         const addrLower = data.address.toLowerCase();
         if (addrLower.includes('hyderabad')) setNewBizCity('hyderabad');
@@ -146,7 +149,7 @@ function BusinessesTab({ businesses, setBusinesses, searchQuery, setSearchQuery,
       if (setBusinesses) {
         setBusinesses(prev => [createdBiz, ...prev]);
       }
-      setAddMessage({ type: 'success', text: `Business "${newBizName}" imported & assigned to ${newBizOwnerEmail || 'owner'} successfully!` });
+      setAddMessage({ type: 'success', text: `Business "${newBizName}" imported & assigned successfully!` });
 
       setTimeout(() => {
         setShowAddModal(false);
@@ -157,7 +160,7 @@ function BusinessesTab({ businesses, setBusinesses, searchQuery, setSearchQuery,
         setNewBizAddress('');
         setNewBizWebsite('');
         setAddMessage({ type: '', text: '' });
-      }, 1500);
+      }, 1200);
     } catch (err) {
       setAddMessage({ type: 'error', text: err.response?.data?.error || 'Failed to create business profile.' });
     } finally {
@@ -198,7 +201,52 @@ function BusinessesTab({ businesses, setBusinesses, searchQuery, setSearchQuery,
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
       
-      {/* 1. Delete Confirmation Modal */}
+      {/* 1. Full-Screen Onboarding Wizard Overlay Modal */}
+      {showWizardModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0, left: 0, right: 0, bottom: 0,
+          backgroundColor: 'rgba(15, 23, 42, 0.95)',
+          backdropFilter: 'blur(8px)',
+          zIndex: 99999,
+          overflowY: 'auto'
+        }}>
+          <div style={{ position: 'absolute', top: '1rem', right: '1.5rem', zIndex: 100000 }}>
+            <button
+              onClick={() => setShowWizardModal(false)}
+              style={{
+                backgroundColor: 'rgba(239, 68, 68, 0.2)',
+                border: '1px solid #ef4444',
+                color: '#fca5a5',
+                padding: '0.5rem 1rem',
+                borderRadius: '10px',
+                fontWeight: 800,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.4rem'
+              }}
+            >
+              <X size={18} /> Close Super Admin Wizard
+            </button>
+          </div>
+
+          <OnboardingWizard
+            businessGroupId={wizardBusinessId}
+            onCompleteOnboarding={() => {
+              setShowWizardModal(false);
+              axios.get('/api/admin/businesses').then(res => {
+                if (res.data.businesses && setBusinesses) {
+                  setBusinesses(res.data.businesses);
+                }
+              });
+            }}
+            onCancel={() => setShowWizardModal(false)}
+          />
+        </div>
+      )}
+
+      {/* 2. Delete Confirmation Modal */}
       {deleteTarget && (
         <div style={{
           position: 'fixed',
@@ -276,7 +324,7 @@ function BusinessesTab({ businesses, setBusinesses, searchQuery, setSearchQuery,
         </div>
       )}
 
-      {/* 2. Add / Import Business Modal (Google Places API Autocomplete Search) */}
+      {/* 3. Add / Import Business Modal (Google Places API Autocomplete Search) */}
       {showAddModal && (
         <div style={{
           position: 'fixed',
@@ -362,7 +410,6 @@ function BusinessesTab({ businesses, setBusinesses, searchQuery, setSearchQuery,
                 {isSearchingPlaces && <span style={{ fontSize: '0.75rem', color: '#38bdf8' }}>Searching...</span>}
               </div>
 
-              {/* Autocomplete Predictions Dropdown */}
               {showDropdown && predictions.length > 0 && (
                 <div style={{
                   position: 'absolute',
@@ -574,7 +621,7 @@ function BusinessesTab({ businesses, setBusinesses, searchQuery, setSearchQuery,
         </div>
       )}
 
-      {/* 3. Reassign Business Owner Modal */}
+      {/* 4. Reassign Business Owner Modal */}
       {reassignTarget && (
         <div style={{
           position: 'fixed',
@@ -710,7 +757,7 @@ function BusinessesTab({ businesses, setBusinesses, searchQuery, setSearchQuery,
         </div>
       )}
 
-      {/* Top Header Bar with Search & Add Business Button */}
+      {/* Top Header Bar with Search & Action Buttons */}
       <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
         <div style={{
           flex: 1,
@@ -741,6 +788,30 @@ function BusinessesTab({ businesses, setBusinesses, searchQuery, setSearchQuery,
         </div>
 
         <button
+          onClick={() => {
+            setWizardBusinessId(null);
+            setShowWizardModal(true);
+          }}
+          style={{
+            padding: '0.65rem 1.25rem',
+            backgroundColor: '#7c3aed',
+            color: '#ffffff',
+            border: 'none',
+            borderRadius: '12px',
+            fontWeight: 800,
+            fontSize: '0.88rem',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.4rem',
+            boxShadow: '0 4px 14px rgba(124, 58, 237, 0.35)',
+            whiteSpace: 'nowrap'
+          }}
+        >
+          <Wand2 size={18} /> Launch Onboarding Wizard
+        </button>
+
+        <button
           onClick={() => setShowAddModal(true)}
           style={{
             padding: '0.65rem 1.25rem',
@@ -758,7 +829,7 @@ function BusinessesTab({ businesses, setBusinesses, searchQuery, setSearchQuery,
             whiteSpace: 'nowrap'
           }}
         >
-          <Plus size={18} /> Add Business & Assign User
+          <Plus size={18} /> Quick Import & Assign
         </button>
       </div>
 
@@ -782,7 +853,7 @@ function BusinessesTab({ businesses, setBusinesses, searchQuery, setSearchQuery,
               <th style={{ padding: '0.85rem 1rem' }}>Owner User</th>
               <th style={{ padding: '0.85rem 1rem' }}>Locations</th>
               <th style={{ padding: '0.85rem 1rem' }}>Status</th>
-              <th style={{ padding: '0.85rem 1rem', textAlign: 'right' }}>Actions (Assign / Live / Delete)</th>
+              <th style={{ padding: '0.85rem 1rem', textAlign: 'right' }}>Actions (Wizard / Assign / Live / Delete)</th>
             </tr>
           </thead>
           <tbody>
@@ -819,6 +890,29 @@ function BusinessesTab({ businesses, setBusinesses, searchQuery, setSearchQuery,
                   <td style={{ padding: '0.85rem 1rem', textAlign: 'right' }}>
                     <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end', alignItems: 'center' }}>
                       
+                      {/* Onboarding Wizard Action Button */}
+                      <button
+                        onClick={() => {
+                          setWizardBusinessId(bus.id);
+                          setShowWizardModal(true);
+                        }}
+                        style={{
+                          padding: '0.35rem 0.65rem',
+                          backgroundColor: 'rgba(124, 58, 237, 0.15)',
+                          border: '1px solid rgba(124, 58, 237, 0.3)',
+                          color: '#c084fc',
+                          borderRadius: '6px',
+                          cursor: 'pointer',
+                          fontSize: '0.75rem',
+                          fontWeight: 700,
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '0.35rem'
+                        }}
+                      >
+                        <Wand2 size={13} /> Onboarding Wizard
+                      </button>
+
                       {/* Reassign Owner Button */}
                       <button
                         onClick={() => {
@@ -827,9 +921,9 @@ function BusinessesTab({ businesses, setBusinesses, searchQuery, setSearchQuery,
                         }}
                         style={{
                           padding: '0.35rem 0.65rem',
-                          backgroundColor: 'rgba(168, 85, 247, 0.15)',
-                          border: '1px solid rgba(168, 85, 247, 0.3)',
-                          color: '#c084fc',
+                          backgroundColor: 'rgba(56, 189, 248, 0.15)',
+                          border: '1px solid rgba(56, 189, 248, 0.3)',
+                          color: '#38bdf8',
                           borderRadius: '6px',
                           cursor: 'pointer',
                           fontSize: '0.75rem',

@@ -1082,7 +1082,7 @@ function StepCompletion({ summaryData, onComplete, onBack, onNavigateToStep }) {
 }
 
 // --- Main Wizard Controller Page ---
-export default function OnboardingWizard({ onCompleteOnboarding, onCancel }) {
+export default function OnboardingWizard({ businessGroupId, onCompleteOnboarding, onCancel }) {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -1090,9 +1090,14 @@ export default function OnboardingWizard({ onCompleteOnboarding, onCancel }) {
 
   useEffect(() => {
     // Fetch onboarding state from backend
-    axios.get('/api/business/onboarding-state')
+    const url = businessGroupId
+      ? `/api/business/onboarding-state?businessGroupId=${businessGroupId}`
+      : '/api/business/onboarding-state';
+
+    axios.get(url)
       .then(res => {
         const bg = res.data.businessGroup;
+        if (!bg) return;
         // Map database state to layout fields
         setFormData({
           name: bg.name || '',
@@ -1137,7 +1142,7 @@ export default function OnboardingWizard({ onCompleteOnboarding, onCancel }) {
       })
       .catch(err => console.error('Failed to load onboarding status:', err))
       .finally(() => setLoading(false));
-  }, []);
+  }, [businessGroupId]);
 
   const handleAutoFill = (importedData) => {
     const newFormData = { ...formData, ...importedData };
@@ -1162,7 +1167,8 @@ export default function OnboardingWizard({ onCompleteOnboarding, onCancel }) {
     try {
       await axios.post('/api/business/save-step', {
         step: nextStep,
-        data: updatedData
+        data: updatedData,
+        businessGroupId
       });
       setStep(nextStep);
     } catch (err) {
@@ -1175,7 +1181,7 @@ export default function OnboardingWizard({ onCompleteOnboarding, onCancel }) {
   const handleFinalSubmit = async () => {
     setSaving(true);
     try {
-      const response = await axios.post('/api/business/complete-onboarding');
+      const response = await axios.post('/api/business/complete-onboarding', { businessGroupId });
       if (response.data.status === 'success') {
         onCompleteOnboarding(response.data.businessGroup, 'website-builder');
       }

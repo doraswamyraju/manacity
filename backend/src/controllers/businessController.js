@@ -218,18 +218,34 @@ exports.uploadMedia = async (req, res) => {
 exports.getOnboardingState = async (req, res) => {
   try {
     const ownerId = req.user.id;
+    const targetBusinessGroupId = req.query.businessGroupId || req.query.targetBusinessGroupId;
 
-    let businessGroup = await prisma.businessGroup.findFirst({
-      where: { ownerId },
-      include: {
-        documents: true,
-        services: true,
-        products: true,
-        paymentMethods: true,
-        languages: true,
-        locations: true
-      }
-    });
+    let businessGroup = null;
+    if (targetBusinessGroupId) {
+      businessGroup = await prisma.businessGroup.findUnique({
+        where: { id: targetBusinessGroupId },
+        include: {
+          documents: true,
+          services: true,
+          products: true,
+          paymentMethods: true,
+          languages: true,
+          locations: true
+        }
+      });
+    } else {
+      businessGroup = await prisma.businessGroup.findFirst({
+        where: { ownerId },
+        include: {
+          documents: true,
+          services: true,
+          products: true,
+          paymentMethods: true,
+          languages: true,
+          locations: true
+        }
+      });
+    }
 
     // Auto-create business group ONLY if missing and user is NOT SUPER_ADMIN
     if (!businessGroup && req.user.role !== 'SUPER_ADMIN') {
@@ -278,15 +294,22 @@ exports.saveOnboardingStep = async (req, res) => {
     const ownerId = req.user.id;
     const step = req.body.step || req.params.stepNumber || 1;
     const data = req.body.data || req.body.stepData || req.body;
+    const targetBusinessGroupId = req.body.businessGroupId || req.query.businessGroupId;
 
     if (!data || Object.keys(data).length === 0) {
       return res.status(400).json({ error: 'Profile data is required.' });
     }
 
-    // Find the business group
-    let businessGroup = await prisma.businessGroup.findFirst({
-      where: { ownerId }
-    });
+    let businessGroup = null;
+    if (targetBusinessGroupId) {
+      businessGroup = await prisma.businessGroup.findUnique({
+        where: { id: targetBusinessGroupId }
+      });
+    } else {
+      businessGroup = await prisma.businessGroup.findFirst({
+        where: { ownerId }
+      });
+    }
 
     if (!businessGroup) {
       businessGroup = await prisma.businessGroup.create({
