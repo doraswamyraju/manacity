@@ -45,58 +45,73 @@ exports.searchDirectoryListings = async (req, res) => {
   try {
     const { city } = req.params;
     const { query, category } = req.query;
+    const cityStr = (city || 'tirupati').toLowerCase();
 
-    const where = {};
-    if (city && city.toLowerCase() !== 'all') {
-      where.city = city.toLowerCase();
-    }
-    if (category && category !== 'All') {
-      where.category = { contains: category, mode: 'insensitive' };
-    }
-
-    let listings = await prisma.directoryListing.findMany({
-      where,
+    // Query all active BusinessGroups with directoryListing, locations, and services
+    const businessGroups = await prisma.businessGroup.findMany({
+      where: { status: { not: 'DISABLED' } },
       include: {
-        businessGroup: {
-          include: {
-            locations: true
-          }
-        }
-      }
+        directoryListing: true,
+        locations: true,
+        services: true,
+        products: true
+      },
+      orderBy: { createdAt: 'desc' }
     });
 
-    // Filter out orphaned listings or disabled businesses
-    listings = listings.filter(l => l.businessGroup && l.businessGroup.status !== 'DISABLED');
+    const isTestAccount = (bName) => (bName || '').toLowerCase().includes('manacity test');
 
-    if (query) {
-      const q = query.toLowerCase();
-      listings = listings.filter(l => 
-        (l.businessGroup && l.businessGroup.name.toLowerCase().includes(q)) ||
-        (l.category && l.category.toLowerCase().includes(q)) ||
-        (l.city && l.city.toLowerCase().includes(q))
-      );
-    }
+    let filteredGroups = businessGroups.filter(bg => {
+      if (isTestAccount(bg.name)) return false;
+      const bgCity = (bg.city || bg.locations?.[0]?.city || 'tirupati').toLowerCase();
+      const matchCity = cityStr === 'all' || bgCity === cityStr;
 
+      let matchCat = true;
+      if (category && category !== 'All') {
+        const bgCat = (bg.category || bg.directoryListing?.category || bg.locations?.[0]?.category || '').toLowerCase();
+        matchCat = bgCat.includes(category.toLowerCase());
+      }
 
-    const formattedListings = listings.map(l => ({
-      id: l.id,
-      businessName: l.businessGroup ? l.businessGroup.name : 'Local Business',
-      category: l.category || 'General Business',
-      city: l.city,
-      slug: l.slug,
-      subdomain: l.businessGroup ? (l.businessGroup.subdomain || l.slug) : l.slug,
-      rating: (l.reviews && l.reviews.rating) ? l.reviews.rating : (l.rating || 4.9),
-      reviewCount: (l.reviews && l.reviews.reviewCount) ? l.reviews.reviewCount : (l.reviewCount || 63),
-      phone: l.contactPhone || (l.businessGroup ? l.businessGroup.mobileNumber : '9876543210'),
-      whatsApp: l.whatsAppNumber || (l.businessGroup ? l.businessGroup.whatsAppNumber : '9876543210'),
-      address: l.businessGroup ? (l.businessGroup.address || l.businessGroup.city) : 'Tirupati',
-      websiteUrl: l.websiteUrl || (l.businessGroup ? l.businessGroup.website : null),
-      logoUrl: l.businessGroup ? l.businessGroup.logoUrl : null,
-      coverImage: l.businessGroup ? l.businessGroup.coverImageUrl : null,
-      verified: l.businessGroup ? (l.businessGroup.isVerified !== false) : true,
-      isOpenNow: true,
-      services: l.businessGroup && l.businessGroup.services ? l.businessGroup.services.map(s => s.name) : ['SEO Optimization', 'Google Ads Management', 'GBP Optimization', 'Meta Ads']
-    }));
+      let matchQuery = true;
+      if (query && query.trim()) {
+        const q = query.trim().toLowerCase();
+        const bName = bg.name.toLowerCase();
+        const bCat = (bg.category || bg.directoryListing?.category || '').toLowerCase();
+        const bAddr = (bg.address || '').toLowerCase();
+        matchQuery = bName.includes(q) || bCat.includes(q) || bAddr.includes(q);
+      }
+
+      return matchCity && matchCat && matchQuery;
+    });
+
+    const formattedListings = filteredGroups.map(bg => {
+      const listing = bg.directoryListing;
+      const loc = bg.locations?.[0];
+      const safeCity = (bg.city || loc?.city || cityStr).toLowerCase();
+      const slug = listing?.slug || bg.subdomain || bg.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+
+      return {
+        id: bg.id,
+        businessName: bg.name,
+        category: bg.category || listing?.category || loc?.category || 'General Business',
+        city: safeCity,
+        slug,
+        subdomain: bg.subdomain || slug,
+        rating: bg.googleRating || listing?.rating || 4.9,
+        reviewCount: bg.googleReviewCount || listing?.reviewCount || 45,
+        phone: bg.mobileNumber || bg.whatsAppNumber || loc?.phone || '9876543210',
+        whatsApp: bg.whatsAppNumber || bg.mobileNumber || '9876543210',
+        address: bg.address || loc?.address || `${safeCity.charAt(0).toUpperCase() + safeCity.slice(1)}, Andhra Pradesh`,
+        websiteUrl: bg.website || (listing ? listing.websiteUrl : null),
+        logoUrl: bg.logoUrl || null,
+        coverImage: bg.coverImageUrl || null,
+        verified: bg.isVerified !== false,
+        isOpenNow: true,
+        services: bg.services && bg.services.length > 0
+          ? bg.services.map(s => s.name)
+          : ['Direct Service Delivery', 'Verified Local Business', 'Customer Support']
+      };
+    });
 
     return res.status(200).json({ listings: formattedListings });
   } catch (error) {

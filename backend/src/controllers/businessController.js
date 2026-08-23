@@ -544,9 +544,44 @@ exports.completeOnboarding = async (req, res) => {
           city: updatedGroup.city || 'Tirupati',
           country: updatedGroup.country || 'India',
           phone: updatedGroup.mobileNumber || '9876543210',
-          category: 'General Business'
+          category: updatedGroup.category || 'General Business'
         }
       });
+    }
+
+    // Ensure DirectoryListing record exists for Public Landing Page Directory
+    const cleanSlug = updatedGroup.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'business';
+    const cleanCity = (updatedGroup.city || 'tirupati').toLowerCase();
+    const existingListing = await prisma.directoryListing.findFirst({ where: { businessGroupId: businessGroup.id } });
+
+    if (!existingListing) {
+      await prisma.directoryListing.create({
+        data: {
+          businessGroupId: businessGroup.id,
+          businessName: updatedGroup.name,
+          slug: cleanSlug,
+          category: updatedGroup.category || 'General Business',
+          city: cleanCity,
+          address: updatedGroup.address || `${cleanCity}, AP`,
+          phone: updatedGroup.mobileNumber || '9876543210',
+          rating: updatedGroup.googleRating || 4.9,
+          reviewCount: updatedGroup.googleReviewCount || 45,
+          status: 'LIVE',
+          isVerified: true
+        }
+      }).catch(() => {});
+    } else {
+      await prisma.directoryListing.update({
+        where: { id: existingListing.id },
+        data: {
+          businessName: updatedGroup.name,
+          category: updatedGroup.category || existingListing.category,
+          city: cleanCity,
+          address: updatedGroup.address || existingListing.address,
+          phone: updatedGroup.mobileNumber || existingListing.phone,
+          status: 'LIVE'
+        }
+      }).catch(() => {});
     }
 
     // Auto-provision LetsTrack tenant upon completing onboarding if missing
