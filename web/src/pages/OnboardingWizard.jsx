@@ -61,10 +61,42 @@ function StepBusinessInfo({ initialData, onNext, onAutoFill }) {
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [uploadingCover, setUploadingCover] = useState(false);
 
+  const defaultCategoryList = [
+    'Taxi Service & Cab Travels',
+    'Travel Agency & Tour Packages',
+    'Car Rental Agency',
+    'Car Leasing Service',
+    'Auditor / CA / Tax Consultant',
+    'Digital Marketing',
+    'Rice Mill',
+    'Clinics & Health',
+    'Hotels & Lodging',
+    'Restaurants & Food',
+    'Real Estate & Builders',
+    'Repairs & Maintenance',
+    'Shopping & Retail',
+    'Schools & Education',
+    'Services',
+    'General Business'
+  ];
+
+  const [categoriesList, setCategoriesList] = useState(defaultCategoryList);
+
+  useEffect(() => {
+    if (category && !categoriesList.includes(category)) {
+      setCategoriesList(prev => [category, ...prev]);
+    }
+  }, [category]);
+
   // Sync state if initialData is updated via auto-fill
   useEffect(() => {
     if (initialData.name) setName(initialData.name);
-    if (initialData.category) setCategory(initialData.category);
+    if (initialData.category) {
+      setCategory(initialData.category);
+      if (!categoriesList.includes(initialData.category)) {
+        setCategoriesList(prev => [initialData.category, ...prev]);
+      }
+    }
     if (initialData.description) setDescription(initialData.description);
     if (initialData.logoUrl) {
       setLogoUrl(initialData.logoUrl);
@@ -340,13 +372,9 @@ function StepBusinessInfo({ initialData, onNext, onAutoFill }) {
           onChange={(e) => setCategory(e.target.value)} 
           style={selectStyle}
         >
-          <option value="Auditor / CA / Tax Consultant">Auditor / CA / Tax Consultant</option>
-          <option value="Digital Marketing">Digital Marketing</option>
-          <option value="Rice Mill">Rice Mill</option>
-          <option value="Clinics & Health">Clinics & Health</option>
-          <option value="Hotels & Lodging">Hotels & Lodging</option>
-          <option value="Services">Services</option>
-          <option value="General Business">General Business</option>
+          {categoriesList.map(cat => (
+            <option key={cat} value={cat}>{cat}</option>
+          ))}
         </select>
       </div>
 

@@ -4,14 +4,22 @@ const axios = require('axios');
 const { provisionLetsTrackTenant } = require('../services/letsTrackService');
 
 // Helper Functions
-const mapGoogleTypeToCategory = (types = []) => {
-  const tStr = types.join(' ').toLowerCase();
+const mapGoogleTypeToCategory = (types = [], businessName = '') => {
+  const tStr = (types.join(' ') + ' ' + businessName).toLowerCase();
+
+  if (tStr.includes('taxi') || tStr.includes('cab') || tStr.includes('travels') || tStr.includes('tour') || tStr.includes('car travel') || tStr.includes('transportation')) return 'Taxi Service & Cab Travels';
+  if (tStr.includes('car rental') || tStr.includes('rent a car') || tStr.includes('self drive')) return 'Car Rental Agency';
+  if (tStr.includes('car lease') || tStr.includes('fleet lease')) return 'Car Leasing Service';
+  if (tStr.includes('travel agency') || tStr.includes('tour operator') || tStr.includes('flight ticket') || tStr.includes('passport') || tStr.includes('visa')) return 'Travel Agency & Tour Packages';
   if (tStr.includes('audit') || tStr.includes('tax') || tStr.includes('accounting') || tStr.includes('accountant') || tStr.includes('finance') || tStr.includes('ca')) return 'Auditor / CA / Tax Consultant';
-  if (tStr.includes('marketing') || tStr.includes('advertising') || tStr.includes('consultant')) return 'Digital Marketing';
+  if (tStr.includes('marketing') || tStr.includes('advertising') || tStr.includes('digital')) return 'Digital Marketing';
   if (tStr.includes('rice') || tStr.includes('mill') || tStr.includes('grain')) return 'Rice Mill';
-  if (tStr.includes('health') || tStr.includes('doctor') || tStr.includes('hospital') || tStr.includes('clinic') || tStr.includes('dentist')) return 'Clinics & Health';
+  if (tStr.includes('health') || tStr.includes('doctor') || tStr.includes('hospital') || tStr.includes('clinic') || tStr.includes('dentist') || tStr.includes('medical')) return 'Clinics & Health';
   if (tStr.includes('hotel') || tStr.includes('lodging') || tStr.includes('resort')) return 'Hotels & Lodging';
-  if (tStr.includes('service') || tStr.includes('repair') || tStr.includes('store')) return 'Services';
+  if (tStr.includes('restaurant') || tStr.includes('food') || tStr.includes('cafe') || tStr.includes('bakery') || tStr.includes('catering')) return 'Restaurants & Food';
+  if (tStr.includes('real estate') || tStr.includes('builder') || tStr.includes('property') || tStr.includes('apartment')) return 'Real Estate & Builders';
+  if (tStr.includes('repair') || tStr.includes('electrician') || tStr.includes('plumber') || tStr.includes('mechanic')) return 'Repairs & Maintenance';
+  if (tStr.includes('service') || tStr.includes('store') || tStr.includes('shop')) return 'Services';
   
   if (types.length > 0) {
     const raw = types[0].replace(/_/g, ' ');
