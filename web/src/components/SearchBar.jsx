@@ -237,7 +237,7 @@ export default function SearchBar({ selectedCity = 'tirupati' }) {
 
           <div style={{ position: 'relative', width: '100%', display: 'flex', alignItems: 'center' }}>
             
-            {/* Translucent Ghost Text Auto-Suggestion */}
+            {/* Translucent Ghost Text Auto-Suggestion (Truncated on mobile, Press Tab on desktop) */}
             {autoCompletionText && query && autoCompletionText.toLowerCase().startsWith(query.toLowerCase()) && (
               <div style={{
                 position: 'absolute',
@@ -251,11 +251,13 @@ export default function SearchBar({ selectedCity = 'tirupati' }) {
                 color: '#cbd5e1',
                 pointerEvents: 'none',
                 whiteSpace: 'nowrap',
-                zIndex: 1
+                zIndex: 1,
+                overflow: 'hidden',
+                maxWidth: 'calc(100% - 5px)'
               }}>
                 <span style={{ opacity: 0 }}>{query}</span>
-                <span>{autoCompletionText.slice(query.length)}</span>
-                <span style={{ fontSize: '0.65rem', fontWeight: 800, backgroundColor: '#f1f5f9', color: '#64748b', padding: '0.05rem 0.35rem', borderRadius: '4px', marginLeft: '0.4rem' }}>
+                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{autoCompletionText.slice(query.length)}</span>
+                <span className="desktop-only" style={{ fontSize: '0.62rem', fontWeight: 800, backgroundColor: '#f1f5f9', color: '#64748b', padding: '0.05rem 0.35rem', borderRadius: '4px', marginLeft: '0.4rem', flexShrink: 0 }}>
                   Press Tab ↹
                 </span>
               </div>
@@ -297,7 +299,7 @@ export default function SearchBar({ selectedCity = 'tirupati' }) {
                   whiteSpace: 'nowrap',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
-                  maxWidth: '100%',
+                  maxWidth: 'calc(100% - 5px)',
                   animation: 'keywordSlideUp 0.45s ease-out'
                 }}
               >
@@ -308,7 +310,11 @@ export default function SearchBar({ selectedCity = 'tirupati' }) {
                   padding: '0.1rem 0.4rem',
                   borderRadius: '8px',
                   fontWeight: 800,
-                  border: `1px solid ${currentKw.color}33`
+                  border: `1px solid ${currentKw.color}33`,
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  maxWidth: '180px'
                 }}>
                   {currentKw.highlight}
                 </span>
@@ -327,7 +333,7 @@ export default function SearchBar({ selectedCity = 'tirupati' }) {
       {showSuggestions && (
         <div style={{
           position: 'absolute',
-          top: 'calc(100% + 10px)',
+          top: 'calc(100% + 8px)',
           left: 0,
           right: 0,
           backgroundColor: '#ffffff',
@@ -336,7 +342,7 @@ export default function SearchBar({ selectedCity = 'tirupati' }) {
           padding: '0.85rem',
           boxShadow: '0 16px 40px rgba(0, 0, 0, 0.15)',
           zIndex: 1000,
-          maxHeight: '480px',
+          maxHeight: '75vh',
           overflowY: 'auto'
         }}>
           {/* Scope Filters (All, Offerings, Verified Businesses, Nearby Businesses) */}
