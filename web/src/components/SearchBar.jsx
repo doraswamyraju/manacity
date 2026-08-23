@@ -187,7 +187,19 @@ export default function SearchBar({ selectedCity = 'tirupati' }) {
     }, 2200);
   };
 
-  const placesToDisplay = googlePlacesSuggestions.slice(0, 3);
+  const placesToDisplay = useMemo(() => {
+    return googlePlacesSuggestions
+      .filter(place => {
+        const placeNorm = (place.name || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
+        const isAlreadyVerified = suggestions.some(b => {
+          const bNorm = (b.businessName || b.name || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
+          return (bNorm && placeNorm) && (bNorm.includes(placeNorm) || placeNorm.includes(bNorm));
+        });
+        return !isAlreadyVerified;
+      })
+      .slice(0, 3);
+  }, [googlePlacesSuggestions, suggestions]);
+
   const hasResults = suggestions.length > 0 || masterSuggestions.length > 0 || placesToDisplay.length > 0;
 
   return (
