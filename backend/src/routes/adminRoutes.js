@@ -19,6 +19,8 @@ router.patch('/users/:userId/role', adminController.updateUserRole);
 
 // Business & Directory Moderation
 router.get('/businesses', adminController.getBusinesses);
+router.post('/businesses', adminController.createBusinessByAdmin);
+router.patch('/businesses/:id/reassign', adminController.reassignBusinessOwner);
 router.patch('/businesses/:id/status', adminController.updateBusinessStatus);
 router.delete('/businesses/:id', adminController.deleteBusiness);
 

@@ -191,6 +191,123 @@ exports.deleteBusiness = async (req, res) => {
   }
 };
 
+// 4d. Create New Business by Super Admin and Assign to User
+exports.createBusinessByAdmin = async (req, res) => {
+  try {
+    const { name, ownerId, ownerEmail, category, city, phone, address } = req.body;
+    if (!name || !name.trim()) {
+      return res.status(400).json({ error: 'Business name is required.' });
+    }
+
+    let targetOwnerId = ownerId;
+
+    if (!targetOwnerId && ownerEmail) {
+      const existingUser = await prisma.user.findUnique({ where: { email: ownerEmail.trim().toLowerCase() } });
+      if (existingUser) {
+        targetOwnerId = existingUser.id;
+      } else {
+        const newUser = await prisma.user.create({
+          data: {
+            name: name.trim() + ' Owner',
+            email: ownerEmail.trim().toLowerCase(),
+            password: 'Password123!',
+            role: 'BUSINESS_OWNER'
+          }
+        });
+        targetOwnerId = newUser.id;
+      }
+    }
+
+    if (!targetOwnerId) {
+      targetOwnerId = req.user?.id || req.userId;
+    }
+
+    const newBusiness = await prisma.businessGroup.create({
+      data: {
+        name: name.trim(),
+        ownerId: targetOwnerId,
+        city: city || 'Tirupati',
+        mobileNumber: phone || '',
+        whatsAppNumber: phone || '',
+        address: address || '',
+        status: 'LIVE',
+        isSetupComplete: true
+      },
+      include: {
+        owner: { select: { id: true, name: true, email: true, role: true } },
+        _count: { select: { locations: true } }
+      }
+    });
+
+    const cleanCity = (city || 'Tirupati').toLowerCase();
+    const cleanSlug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') + '-' + Date.now().toString().slice(-4);
+    
+    await prisma.location.create({
+      data: {
+        name: name.trim() + ' Main Location',
+        businessGroupId: newBusiness.id,
+        city: cleanCity,
+        address: address || 'Tirupati, AP',
+        phone: phone || '9876543210'
+      }
+    }).catch(() => {});
+
+    await prisma.directoryListing.create({
+      data: {
+        businessGroupId: newBusiness.id,
+        businessName: name.trim(),
+        slug: cleanSlug,
+        category: category || 'General Business',
+        city: cleanCity,
+        address: address || 'Tirupati, AP',
+        phone: phone || '9876543210',
+        status: 'LIVE',
+        isVerified: true
+      }
+    }).catch(() => {});
+
+    res.json({ status: 'success', business: newBusiness, message: 'Business created and assigned successfully.' });
+  } catch (error) {
+    console.error('Create business by admin error:', error);
+    res.status(500).json({ error: 'Failed to create business profile.', details: error?.message });
+  }
+};
+
+// 4e. Reassign Business Ownership to Another User
+exports.reassignBusinessOwner = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { targetUserId, targetUserEmail } = req.body;
+
+    let newOwnerId = targetUserId;
+    if (!newOwnerId && targetUserEmail) {
+      const u = await prisma.user.findUnique({ where: { email: targetUserEmail.trim().toLowerCase() } });
+      if (!u) {
+        return res.status(404).json({ error: `User with email "${targetUserEmail}" not found.` });
+      }
+      newOwnerId = u.id;
+    }
+
+    if (!newOwnerId) {
+      return res.status(400).json({ error: 'Please select or provide a valid target user.' });
+    }
+
+    const updated = await prisma.businessGroup.update({
+      where: { id },
+      data: { ownerId: newOwnerId },
+      include: {
+        owner: { select: { id: true, name: true, email: true, role: true } },
+        _count: { select: { locations: true } }
+      }
+    });
+
+    res.json({ status: 'success', business: updated, message: 'Business owner reassigned successfully.' });
+  } catch (error) {
+    console.error('Reassign business owner error:', error);
+    res.status(500).json({ error: 'Failed to reassign business owner.' });
+  }
+};
+
 // 5. Fetch Master Catalog Library Items (Database Only - No Dummy Data)
 exports.getMasterCatalog = async (req, res) => {
   try {

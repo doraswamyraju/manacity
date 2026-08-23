@@ -294,10 +294,12 @@ function SuperAdminDashboardLayout({ user, onLogout }) {
               {activeTab === 'businesses' && (
                 <BusinessesTab
                   businesses={businesses}
+                  setBusinesses={setBusinesses}
                   searchQuery={searchQuery}
                   setSearchQuery={setSearchQuery}
                   handleStatusChange={handleBusinessStatusChange}
                   handleDeleteBusiness={handleDeleteBusiness}
+                  users={users}
                   theme={theme}
                 />
               )}
