@@ -15,7 +15,13 @@ function isValidDomainFormat(domain) {
  */
 function sanitizeDomain(domain) {
   if (!domain) return '';
-  return domain.trim().toLowerCase().replace(/^https?:\/\//, '').replace(/\/.*$/, '');
+  return domain
+    .trim()
+    .toLowerCase()
+    .replace(/^https?:\/\//i, '')
+    .replace(/\/.*$/, '')
+    .replace(/^www\./i, '')
+    .replace(/[^a-z0-9\.\-]/g, '');
 }
 
 /**
@@ -72,11 +78,11 @@ async function verifyDnsRecords(customDomain, targetIp = '147.93.107.21', target
  * Discovers Domain Connect protocol support by checking _domainconnect TXT/CNAME records.
  */
 async function discoverDomainConnect(domain) {
-  const rootDomain = domain.replace(/^www\./, '').trim().toLowerCase();
-  const discoveryHost = `_domainconnect.${rootDomain}`;
+  const rootDomain = sanitizeDomain(domain);
 
   let url = null;
   try {
+    const discoveryHost = `_domainconnect.${rootDomain}`;
     const txtRecords = await dns.resolveTxt(discoveryHost).catch(() => []);
     if (txtRecords && txtRecords.length > 0) {
       url = txtRecords.flat().join('');
@@ -92,12 +98,12 @@ async function discoverDomainConnect(domain) {
     // DNS discovery fallback
   }
 
-  const domainConnectUrl = `https://dcp.godaddy.com/dcp/v1/m/godaddy/apps/authorize?domain=${rootDomain}&providerId=manacity.in`;
+  const domainConnectUrl = `https://domainconnect.godaddy.com/v2/domainTemplates/providers/manacity.in/services/dns/apply?domain=${rootDomain}`;
   const godaddyDnsUrl = `https://dns.godaddy.com/zone/${rootDomain}`;
 
   return {
     supported: true,
-    providerUrl: url || 'https://dcp.godaddy.com',
+    providerUrl: url || 'https://domainconnect.godaddy.com',
     domainConnectUrl,
     godaddyDnsUrl
   };

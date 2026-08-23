@@ -242,14 +242,27 @@ export default function WebsiteBuilder({ onBack, theme: appTheme }) {
     setSections(updated);
   };
 
+  const getCleanDomain = (str) => {
+    if (!str) return '';
+    return str
+      .trim()
+      .toLowerCase()
+      .replace(/^https?:\/\//i, '')
+      .replace(/\/.*$/, '')
+      .replace(/^www\./i, '')
+      .replace(/[^a-z0-9\.\-]/g, '');
+  };
+
   const handleConnectDomain = async () => {
-    if (!customDomainInput || !customDomainInput.trim()) return;
+    const cleanInput = getCleanDomain(customDomainInput);
+    if (!cleanInput) return;
     setConnectingDomain(true);
     setDomainError('');
     setDomainSuccess('');
     try {
-      const res = await axios.post('/api/website/domain/connect', { customDomain: customDomainInput.trim() });
+      const res = await axios.post('/api/website/domain/connect', { customDomain: cleanInput });
       setCustomDomain(res.data.website.customDomain);
+      setCustomDomainInput(res.data.website.customDomain);
       setDnsStatus(res.data.dnsStatus);
       setDomainSuccess('Custom domain attached successfully! Complete DNS setup below.');
     } catch (err) {
@@ -771,12 +784,12 @@ export default function WebsiteBuilder({ onBack, theme: appTheme }) {
                   ⚡ 1-Click GoDaddy Domain Connect & Quick DNS Access
                 </div>
                 <div style={{ fontSize: '0.8rem', color: isAppDark ? '#cbd5e1' : '#334155', marginBottom: '0.85rem' }}>
-                  Authorize DNS changes automatically or open your GoDaddy DNS Manager directly for <strong>{(customDomainInput || customDomain).trim().toLowerCase()}</strong>.
+                  Authorize DNS changes automatically or open your GoDaddy DNS Manager directly for <strong>{getCleanDomain(customDomainInput || customDomain)}</strong>.
                 </div>
                 
                 <div style={{ display: 'flex', gap: '0.65rem', justifyContent: 'center', flexWrap: 'wrap' }}>
                   <a
-                    href={dnsStatus?.domainConnect?.domainConnectUrl || `https://dcp.godaddy.com/dcp/v1/m/godaddy/apps/authorize?domain=${(customDomainInput || customDomain).trim().toLowerCase().replace(/^www\./, '')}&providerId=manacity.in`}
+                    href={`https://domainconnect.godaddy.com/v2/domainTemplates/providers/manacity.in/services/dns/apply?domain=${getCleanDomain(customDomainInput || customDomain)}`}
                     target="_blank"
                     rel="noreferrer"
                     style={{
@@ -797,7 +810,7 @@ export default function WebsiteBuilder({ onBack, theme: appTheme }) {
                   </a>
 
                   <a
-                    href={`https://dns.godaddy.com/zone/${(customDomainInput || customDomain).trim().toLowerCase().replace(/^www\./, '')}`}
+                    href={`https://dns.godaddy.com/zone/${getCleanDomain(customDomainInput || customDomain)}`}
                     target="_blank"
                     rel="noreferrer"
                     style={{
