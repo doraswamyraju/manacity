@@ -521,11 +521,16 @@ exports.saveOnboardingStep = async (req, res) => {
 exports.completeOnboarding = async (req, res) => {
   try {
     const ownerId = req.user.id;
+    const targetBusinessGroupId = req.body.businessGroupId;
+    const ownerUser = await prisma.user.findUnique({ where: { id: ownerId } }).catch(() => null);
 
     // Find the business group
-    const businessGroup = await prisma.businessGroup.findFirst({
-      where: { ownerId }
-    });
+    let businessGroup = null;
+    if (targetBusinessGroupId && targetBusinessGroupId !== 'NEW') {
+      businessGroup = await prisma.businessGroup.findUnique({ where: { id: targetBusinessGroupId } });
+    } else {
+      businessGroup = await prisma.businessGroup.findFirst({ where: { ownerId } });
+    }
 
     if (!businessGroup) {
       return res.status(404).json({ error: 'Business profile not found.' });
