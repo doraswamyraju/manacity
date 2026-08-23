@@ -36,6 +36,8 @@ export default function ListYourBusiness({ onAuthSuccess, onNavigateToLogin, use
   const [error, setError] = useState('');
   const [activeFaq, setActiveFaq] = useState(null);
 
+  const cityCap = (cityInput || 'tirupati').charAt(0).toUpperCase() + (cityInput || 'tirupati').slice(1);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!name || !email || !password || !phone) {
