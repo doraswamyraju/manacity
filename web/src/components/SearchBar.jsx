@@ -10,7 +10,11 @@ import {
   ShieldCheck,
   ChevronRight,
   ExternalLink,
-  PlusCircle
+  Phone,
+  MessageSquare,
+  Zap,
+  CheckCircle2,
+  X
 } from 'lucide-react';
 
 export default function SearchBar({ selectedCity = 'tirupati' }) {
@@ -36,7 +40,13 @@ export default function SearchBar({ selectedCity = 'tirupati' }) {
   const [googlePlacesSuggestions, setGooglePlacesSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [dropdownFilter, setDropdownFilter] = useState('ALL');
-  const [importingPlaceId, setImportingPlaceId] = useState(null);
+  
+  // Enquiry Lead Modal State
+  const [enquiryModalTarget, setEnquiryModalTarget] = useState(null);
+  const [customerName, setCustomerName] = useState('');
+  const [customerPhone, setCustomerPhone] = useState('');
+  const [customerMsg, setCustomerMsg] = useState('');
+  const [enquirySubmitted, setEnquirySubmitted] = useState(false);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -74,7 +84,7 @@ export default function SearchBar({ selectedCity = 'tirupati' }) {
       } catch (err) {
         console.error('Search fetch error:', err);
       }
-    }, 160);
+    }, 150);
 
     return () => clearTimeout(timer);
   }, [query, selectedCity]);
@@ -92,6 +102,27 @@ export default function SearchBar({ selectedCity = 'tirupati' }) {
 
   const currentKw = revolvingKeywords[keywordIdx];
 
+  // Inline Ghost Text Auto-Suggestion
+  const autoCompletionText = useMemo(() => {
+    if (!query.trim() || query.length < 2) return '';
+    const qLower = query.toLowerCase();
+
+    // Check master services match
+    const masterMatch = masterSuggestions.find(m => m.name.toLowerCase().startsWith(qLower));
+    if (masterMatch) return masterMatch.name;
+
+    // Check local business match
+    const bizMatch = suggestions.find(b => (b.businessName || b.name || '').toLowerCase().startsWith(qLower));
+    if (bizMatch) return bizMatch.businessName || bizMatch.name;
+
+    // Check revolving keywords
+    if (currentKw.highlight.toLowerCase().startsWith(qLower)) {
+      return currentKw.highlight;
+    }
+
+    return '';
+  }, [query, masterSuggestions, suggestions, currentKw]);
+
   // Calculate Best Match across both Providers & Master Services
   const { topMatchItem, topMatchType } = useMemo(() => {
     if (!query.trim() || (suggestions.length === 0 && masterSuggestions.length === 0)) {
@@ -100,67 +131,64 @@ export default function SearchBar({ selectedCity = 'tirupati' }) {
 
     const qLower = query.trim().toLowerCase();
 
-    // Check if any business name starts with or closely matches the query
     const exactBiz = suggestions.find(b => (b.businessName || b.name || '').toLowerCase().includes(qLower));
-    const exactMaster = masterSuggestions.find(m => (m.name || '').toLowerCase().includes(qLower) && m.id !== qLower.replace(/[^a-z0-9]+/g, '-'));
+    const exactMaster = masterSuggestions.find(m => (m.name || '').toLowerCase().includes(qLower));
 
-    if (exactBiz && exactMaster) {
-      const bizName = (exactBiz.businessName || exactBiz.name).toLowerCase();
-      const masterName = exactMaster.name.toLowerCase();
-      if (bizName.startsWith(qLower) && !masterName.startsWith(qLower)) {
-        return { topMatchItem: exactBiz, topMatchType: 'BIZ' };
-      }
-      return { topMatchItem: exactMaster, topMatchType: 'MASTER' };
-    }
-
-    if (exactBiz) return { topMatchItem: exactBiz, topMatchType: 'BIZ' };
     if (exactMaster) return { topMatchItem: exactMaster, topMatchType: 'MASTER' };
+    if (exactBiz) return { topMatchItem: exactBiz, topMatchType: 'BIZ' };
 
-    if (suggestions.length > 0) return { topMatchItem: suggestions[0], topMatchType: 'BIZ' };
     if (masterSuggestions.length > 0) return { topMatchItem: masterSuggestions[0], topMatchType: 'MASTER' };
+    if (suggestions.length > 0) return { topMatchItem: suggestions[0], topMatchType: 'BIZ' };
 
     return { topMatchItem: null, topMatchType: null };
   }, [query, suggestions, masterSuggestions]);
 
-  const handleGooglePlaceClick = async (place) => {
-    setImportingPlaceId(place.placeId);
-    try {
-      // Import Place into ManaCity database
-      const res = await axios.post('/api/phase1/google-places/import', {
-        placeId: place.placeId,
-        businessName: place.name
-      });
-      setShowSuggestions(false);
-      if (res.data?.subdomain) {
-        window.open(`https://${res.data.subdomain}.manacity.in`, '_blank');
-      } else {
-        const targetSlug = place.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-        navigate(`/${selectedCity}/service/${targetSlug}`);
-      }
-    } catch (err) {
-      // Fallback navigate to service page
-      setShowSuggestions(false);
-      const targetSlug = place.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-      navigate(`/${selectedCity}/service/${targetSlug}`);
-    } finally {
-      setImportingPlaceId(null);
-    }
-  };
-
   const handleKeyDown = (e) => {
+    // Complete ghost suggestion on Tab or Right Arrow
+    if ((e.key === 'Tab' || e.key === 'ArrowRight') && autoCompletionText) {
+      e.preventDefault();
+      setQuery(autoCompletionText);
+      return;
+    }
+
+    // Pressing ENTER routes user to Search Results Page
     if (e.key === 'Enter' && query.trim()) {
       setShowSuggestions(false);
-      if (topMatchItem && topMatchType === 'BIZ') {
-        const url = topMatchItem.subdomain ? `https://${topMatchItem.subdomain}.manacity.in` : `/site/${topMatchItem.slug || 'rajugari-ventures'}`;
-        window.open(url, '_blank');
-      } else {
-        const targetSlug = query.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-        navigate(`/${selectedCity}/service/${targetSlug}`);
-      }
+      const targetSlug = query.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+      navigate(`/${selectedCity}/service/${targetSlug}`);
     }
   };
 
-  const hasResults = suggestions.length > 0 || masterSuggestions.length > 0 || googlePlacesSuggestions.length > 0;
+  const handleEnquirySubmit = async (e) => {
+    e.preventDefault();
+    if (!customerPhone.trim()) {
+      alert('Please enter your mobile number.');
+      return;
+    }
+    try {
+      await axios.post('/api/phase1/lead-capture', {
+        businessId: enquiryModalTarget.id || enquiryModalTarget.placeId,
+        businessName: enquiryModalTarget.name || enquiryModalTarget.businessName,
+        customerName: customerName || 'Valued Customer',
+        customerPhone,
+        customerMessage: customerMsg || `Instant enquiry from ManaCity for ${enquiryModalTarget.name || enquiryModalTarget.businessName}`,
+        city: selectedCity
+      });
+    } catch (err) {
+      console.warn('Lead capture fallback:', err.message);
+    }
+    setEnquirySubmitted(true);
+    setTimeout(() => {
+      setEnquirySubmitted(false);
+      setEnquiryModalTarget(null);
+      setCustomerPhone('');
+      setCustomerName('');
+      setCustomerMsg('');
+    }, 2200);
+  };
+
+  const placesToDisplay = googlePlacesSuggestions.slice(0, 3);
+  const hasResults = suggestions.length > 0 || masterSuggestions.length > 0 || placesToDisplay.length > 0;
 
   return (
     <div ref={searchContainerRef} style={{ flex: '1 1 380px', maxWidth: '650px', position: 'relative' }}>
@@ -196,13 +224,38 @@ export default function SearchBar({ selectedCity = 'tirupati' }) {
           />
 
           <div style={{ position: 'relative', width: '100%', display: 'flex', alignItems: 'center' }}>
+            
+            {/* Translucent Ghost Text Auto-Suggestion */}
+            {autoCompletionText && query && autoCompletionText.toLowerCase().startsWith(query.toLowerCase()) && (
+              <div style={{
+                position: 'absolute',
+                left: 0,
+                top: 0,
+                height: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                fontSize: '0.88rem',
+                fontWeight: 700,
+                color: '#cbd5e1',
+                pointerEvents: 'none',
+                whiteSpace: 'nowrap',
+                zIndex: 1
+              }}>
+                <span style={{ opacity: 0 }}>{query}</span>
+                <span>{autoCompletionText.slice(query.length)}</span>
+                <span style={{ fontSize: '0.65rem', fontWeight: 800, backgroundColor: '#f1f5f9', color: '#64748b', padding: '0.05rem 0.35rem', borderRadius: '4px', marginLeft: '0.4rem' }}>
+                  Press Tab ↹
+                </span>
+              </div>
+            )}
+
             <input
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={handleKeyDown}
               onFocus={() => {
-                if (suggestions.length > 0 || masterSuggestions.length > 0 || googlePlacesSuggestions.length > 0) setShowSuggestions(true);
+                if (hasResults) setShowSuggestions(true);
               }}
               placeholder=""
               style={{
@@ -270,11 +323,11 @@ export default function SearchBar({ selectedCity = 'tirupati' }) {
           padding: '0.85rem',
           boxShadow: '0 16px 40px rgba(0, 0, 0, 0.15)',
           zIndex: 1000,
-          maxHeight: '460px',
+          maxHeight: '480px',
           overflowY: 'auto'
         }}>
-          {/* Scope Filters (All, Services, Businesses, Google Places) */}
-          <div style={{ display: 'flex', gap: '0.4rem', paddingBottom: '0.55rem', marginBottom: '0.55rem', borderBottom: '1px solid #f1f5f9' }}>
+          {/* Scope Filters (All, Offerings, Verified Businesses, Nearby Businesses) */}
+          <div style={{ display: 'flex', gap: '0.4rem', paddingBottom: '0.55rem', marginBottom: '0.55rem', borderBottom: '1px solid #f1f5f9', flexWrap: 'wrap' }}>
             <button
               type="button"
               onClick={() => setDropdownFilter('ALL')}
@@ -289,8 +342,26 @@ export default function SearchBar({ selectedCity = 'tirupati' }) {
                 cursor: 'pointer'
               }}
             >
-              All Results ({masterSuggestions.length + suggestions.length + googlePlacesSuggestions.length})
+              All Results ({masterSuggestions.length + suggestions.length + placesToDisplay.length})
             </button>
+            {masterSuggestions.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setDropdownFilter('SERVICES')}
+                style={{
+                  padding: '0.3rem 0.75rem',
+                  borderRadius: '20px',
+                  border: 'none',
+                  backgroundColor: dropdownFilter === 'SERVICES' ? '#7c3aed' : '#f1f5f9',
+                  color: dropdownFilter === 'SERVICES' ? '#fff' : '#64748b',
+                  fontSize: '0.75rem',
+                  fontWeight: 800,
+                  cursor: 'pointer'
+                }}
+              >
+                📦 Products & Services ({masterSuggestions.length})
+              </button>
+            )}
             {suggestions.length > 0 && (
               <button
                 type="button"
@@ -306,149 +377,32 @@ export default function SearchBar({ selectedCity = 'tirupati' }) {
                   cursor: 'pointer'
                 }}
               >
-                🏢 Verified ({suggestions.length})
+                🛡️ Verified ({suggestions.length})
               </button>
             )}
-            {googlePlacesSuggestions.length > 0 && (
+            {placesToDisplay.length > 0 && (
               <button
                 type="button"
-                onClick={() => setDropdownFilter('PLACES')}
+                onClick={() => setDropdownFilter('NEARBY')}
                 style={{
                   padding: '0.3rem 0.75rem',
                   borderRadius: '20px',
                   border: 'none',
-                  backgroundColor: dropdownFilter === 'PLACES' ? '#ea580c' : '#f1f5f9',
-                  color: dropdownFilter === 'PLACES' ? '#fff' : '#64748b',
+                  backgroundColor: dropdownFilter === 'NEARBY' ? '#ea580c' : '#f1f5f9',
+                  color: dropdownFilter === 'NEARBY' ? '#fff' : '#64748b',
                   fontSize: '0.75rem',
                   fontWeight: 800,
                   cursor: 'pointer'
                 }}
               >
-                📍 Google Places ({googlePlacesSuggestions.length})
+                📍 Nearby Listings ({placesToDisplay.length})
               </button>
             )}
           </div>
 
-          {/* 1. LOCAL VERIFIED BUSINESSES SECTION */}
-          {(dropdownFilter === 'ALL' || dropdownFilter === 'BUSINESSES') && suggestions.length > 0 && (
-            <div style={{ marginBottom: '0.85rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.4rem 0.6rem 0.35rem', marginBottom: '0.35rem' }}>
-                <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#2563eb', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                  🏢 Local Verified Businesses
-                </span>
-                <span style={{ fontSize: '0.68rem', fontWeight: 700, color: '#64748b', backgroundColor: '#eff6ff', padding: '0.15rem 0.5rem', borderRadius: '10px', textTransform: 'capitalize' }}>
-                  📍 {selectedCity}
-                </span>
-              </div>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                {suggestions.map((item, idx) => {
-                  const isBestMatch = topMatchType === 'BIZ' && topMatchItem?.id === item.id;
-                  return (
-                    <div
-                      key={idx}
-                      onClick={() => {
-                        setShowSuggestions(false);
-                        if (item.isVerifiedManaCity) {
-                          const url = item.subdomain ? `https://${item.subdomain}.manacity.in` : `/site/${item.slug || 'rajugari-ventures'}`;
-                          window.open(url, '_blank');
-                        } else {
-                          navigate(`/${selectedCity}/service/digital-marketing`);
-                        }
-                      }}
-                      style={{
-                        padding: '0.65rem 0.85rem',
-                        borderRadius: '12px',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        backgroundColor: isBestMatch ? '#f0f5ff' : '#f8fafc',
-                        border: isBestMatch ? '2px solid #2563eb' : '1px solid #e2e8f0',
-                        boxShadow: isBestMatch ? '0 4px 14px rgba(37, 99, 235, 0.15)' : 'none',
-                        transition: 'all 0.2s'
-                      }}
-                      onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#eff6ff'; e.currentTarget.style.borderColor = '#2563eb'; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = isBestMatch ? '#f0f5ff' : '#f8fafc'; e.currentTarget.style.borderColor = isBestMatch ? '#2563eb' : '#e2e8f0'; }}
-                    >
-                      <div style={{ flex: 1, paddingRight: '0.75rem' }}>
-                        <div style={{ fontSize: '0.88rem', fontWeight: 900, color: '#0f172a', marginBottom: '0.15rem', display: 'flex', alignItems: 'center', gap: '0.35rem', flexWrap: 'wrap' }}>
-                          <span>{item.businessName || item.name}</span>
-                          <ShieldCheck size={15} color="#2563eb" />
-                          {isBestMatch && (
-                            <span style={{ backgroundColor: '#2563eb', color: '#fff', fontSize: '0.62rem', fontWeight: 900, padding: '0.1rem 0.45rem', borderRadius: '10px', textTransform: 'uppercase' }}>
-                              🎯 Best Match
-                            </span>
-                          )}
-                        </div>
-                        <div style={{ fontSize: '0.75rem', color: '#64748b' }}>
-                          {item.address || 'Tirupati, Andhra Pradesh'} • ★ {item.googleRating || 4.9} ({item.googleReviewCount || 63})
-                        </div>
-                      </div>
-
-                      <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#2563eb', backgroundColor: '#eff6ff', padding: '0.25rem 0.65rem', borderRadius: '8px', display: 'inline-flex', alignItems: 'center', gap: '0.2rem', flexShrink: 0 }}>
-                        Visit Storefront <ExternalLink size={12} />
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* 2. GOOGLE PLACES API NEARBY LISTINGS SECTION */}
-          {(dropdownFilter === 'ALL' || dropdownFilter === 'PLACES') && googlePlacesSuggestions.length > 0 && (
-            <div style={{ marginBottom: '0.85rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.4rem 0.6rem 0.35rem', marginBottom: '0.35rem' }}>
-                <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#ea580c', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                  📍 Google Maps Places
-                </span>
-                <span style={{ fontSize: '0.68rem', fontWeight: 700, color: '#c2410c', backgroundColor: '#fff7ed', padding: '0.15rem 0.5rem', borderRadius: '10px' }}>
-                  Live API
-                </span>
-              </div>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                {googlePlacesSuggestions.map((place, pIdx) => (
-                  <div
-                    key={`p-${pIdx}`}
-                    onClick={() => handleGooglePlaceClick(place)}
-                    style={{
-                      padding: '0.65rem 0.85rem',
-                      borderRadius: '12px',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      backgroundColor: '#fff7ed',
-                      border: '1px solid #ffedd5',
-                      transition: 'all 0.2s'
-                    }}
-                    onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#ffedd5'; e.currentTarget.style.borderColor = '#ea580c'; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#fff7ed'; e.currentTarget.style.borderColor = '#ffedd5'; }}
-                  >
-                    <div style={{ flex: 1, paddingRight: '0.75rem' }}>
-                      <div style={{ fontSize: '0.88rem', fontWeight: 900, color: '#0f172a', marginBottom: '0.15rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                        <span>{place.name}</span>
-                        <MapPin size={14} color="#ea580c" />
-                      </div>
-                      <div style={{ fontSize: '0.74rem', color: '#64748b' }}>
-                        {place.description}
-                      </div>
-                    </div>
-
-                    <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#ea580c', backgroundColor: '#ffffff', padding: '0.25rem 0.65rem', borderRadius: '8px', border: '1px solid #ffedd5', display: 'inline-flex', alignItems: 'center', gap: '0.2rem', flexShrink: 0 }}>
-                      {importingPlaceId === place.placeId ? 'Importing...' : <><PlusCircle size={13} /> View / Import</>}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* 3. MASTER PRODUCTS & SERVICES CATALOG SECTION */}
+          {/* SECTION 1: MASTER PRODUCTS & SERVICES CATALOG (SHOWN FIRST WHEN SEARCHED) */}
           {(dropdownFilter === 'ALL' || dropdownFilter === 'SERVICES') && masterSuggestions.length > 0 && (
-            <div style={{ marginBottom: '0.5rem' }}>
+            <div style={{ marginBottom: '0.85rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.4rem 0.6rem 0.35rem', marginBottom: '0.35rem' }}>
                 <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#7c3aed', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
                   📦 System Products & Services
@@ -506,7 +460,7 @@ export default function SearchBar({ selectedCity = 'tirupati' }) {
 
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexShrink: 0 }}>
                         <span style={{ fontSize: '0.7rem', fontWeight: 800, color: '#2563eb', backgroundColor: '#eff6ff', padding: '0.25rem 0.65rem', borderRadius: '12px' }}>
-                          Explore Service Page
+                          Explore Providers List
                         </span>
                         <ChevronRight size={16} color="#2563eb" />
                       </div>
@@ -517,7 +471,172 @@ export default function SearchBar({ selectedCity = 'tirupati' }) {
             </div>
           )}
 
-          {/* 4. UNMATCHED SEARCH QUERY REQUEST BUTTON (ONLY SHOWN IF ZERO RESULTS FOUND) */}
+          {/* SECTION 2: MANACITY REGISTERED VERIFIED BUSINESSES */}
+          {(dropdownFilter === 'ALL' || dropdownFilter === 'BUSINESSES') && suggestions.length > 0 && (
+            <div style={{ marginBottom: '0.85rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.4rem 0.6rem 0.35rem', marginBottom: '0.35rem' }}>
+                <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#059669', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                  🛡️ ManaCity Verified Businesses
+                </span>
+                <span style={{ fontSize: '0.68rem', fontWeight: 700, color: '#64748b', backgroundColor: '#ecfdf5', padding: '0.15rem 0.5rem', borderRadius: '10px', textTransform: 'capitalize' }}>
+                  📍 {selectedCity}
+                </span>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                {suggestions.map((item, idx) => {
+                  const isBestMatch = topMatchType === 'BIZ' && topMatchItem?.id === item.id;
+                  const itemPhone = item.phone || '9876543210';
+                  return (
+                    <div
+                      key={idx}
+                      style={{
+                        padding: '0.75rem 0.9rem',
+                        borderRadius: '14px',
+                        backgroundColor: isBestMatch ? '#f0f5ff' : '#ffffff',
+                        border: isBestMatch ? '2px solid #2563eb' : '1px solid #e2e8f0',
+                        boxShadow: isBestMatch ? '0 4px 16px rgba(37, 99, 235, 0.15)' : '0 2px 6px rgba(0,0,0,0.03)'
+                      }}
+                    >
+                      {/* Business Header & Authentic Verified Badge */}
+                      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '0.5rem', marginBottom: '0.35rem' }}>
+                        <div>
+                          <div style={{ fontSize: '0.9rem', fontWeight: 900, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
+                            <span>{item.businessName || item.name}</span>
+                            
+                            {/* Authentic Verified Badge */}
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.2rem', backgroundColor: '#ecfdf5', color: '#047857', border: '1px solid #a7f3d0', fontSize: '0.65rem', fontWeight: 800, padding: '0.1rem 0.45rem', borderRadius: '12px' }}>
+                              <ShieldCheck size={12} color="#059669" /> Verified
+                            </span>
+
+                            {isBestMatch && (
+                              <span style={{ backgroundColor: '#2563eb', color: '#fff', fontSize: '0.62rem', fontWeight: 900, padding: '0.1rem 0.45rem', borderRadius: '10px', textTransform: 'uppercase' }}>
+                                🎯 Best Match
+                              </span>
+                            )}
+                          </div>
+
+                          {/* Address & SLA Ratings Line */}
+                          <div style={{ fontSize: '0.74rem', color: '#475569', marginTop: '0.2rem', display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
+                            <span>📍 {item.address || `${cityCap}, Andhra Pradesh`}</span>
+                            <span>•</span>
+                            <span style={{ color: '#d97706', fontWeight: 800 }}>★ {item.googleRating || 4.9} ({item.googleReviewCount || 63})</span>
+                            <span>•</span>
+                            <span style={{ color: '#059669', fontWeight: 800 }}>⏱️ 15-Min Response</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Action Icon Row (Call, WhatsApp, Quick Enquire, Storefront) */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', marginTop: '0.55rem', paddingTop: '0.45rem', borderTop: '1px solid #f1f5f9', flexWrap: 'wrap' }}>
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); window.open(`tel:${itemPhone}`); }}
+                          style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', backgroundColor: '#eff6ff', color: '#2563eb', border: '1px solid #bfdbfe', padding: '0.25rem 0.6rem', borderRadius: '8px', fontSize: '0.72rem', fontWeight: 800, cursor: 'pointer' }}
+                        >
+                          <Phone size={12} /> Call
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); window.open(`https://wa.me/91${itemPhone}?text=Hi, I found your business on ManaCity!`); }}
+                          style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', backgroundColor: '#ecfdf5', color: '#059669', border: '1px solid #a7f3d0', padding: '0.25rem 0.6rem', borderRadius: '8px', fontSize: '0.72rem', fontWeight: 800, cursor: 'pointer' }}
+                        >
+                          <MessageSquare size={12} /> WhatsApp
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); setEnquiryModalTarget(item); }}
+                          style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', backgroundColor: '#2563eb', color: '#fff', border: 'none', padding: '0.25rem 0.7rem', borderRadius: '8px', fontSize: '0.72rem', fontWeight: 800, cursor: 'pointer', boxShadow: '0 2px 6px rgba(37,99,235,0.25)' }}
+                        >
+                          <Zap size={12} /> Enquire / Quote
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setShowSuggestions(false);
+                            const url = item.subdomain ? `https://${item.subdomain}.manacity.in` : `/site/${item.slug || 'rajugari-ventures'}`;
+                            window.open(url, '_blank');
+                          }}
+                          style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', backgroundColor: '#f8fafc', color: '#475569', border: '1px solid #cbd5e1', padding: '0.25rem 0.6rem', borderRadius: '8px', fontSize: '0.72rem', fontWeight: 700, cursor: 'pointer', marginLeft: 'auto' }}
+                        >
+                          Storefront <ExternalLink size={12} />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* SECTION 3: NEARBY LOCAL BUSINESSES (2-3 RESULTS MAX) */}
+          {(dropdownFilter === 'ALL' || dropdownFilter === 'NEARBY') && placesToDisplay.length > 0 && (
+            <div style={{ marginBottom: '0.5rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.4rem 0.6rem 0.35rem', marginBottom: '0.35rem' }}>
+                <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#ea580c', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                  📍 Nearby Businesses in {cityCap}
+                </span>
+                <span style={{ fontSize: '0.68rem', fontWeight: 700, color: '#c2410c', backgroundColor: '#fff7ed', padding: '0.15rem 0.5rem', borderRadius: '10px' }}>
+                  Local Area
+                </span>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
+                {placesToDisplay.map((place, pIdx) => (
+                  <div
+                    key={`p-${pIdx}`}
+                    style={{
+                      padding: '0.65rem 0.85rem',
+                      borderRadius: '12px',
+                      backgroundColor: '#fff7ed',
+                      border: '1px solid #ffedd5'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '0.5rem' }}>
+                      <div>
+                        <div style={{ fontSize: '0.88rem', fontWeight: 900, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                          <span>{place.name}</span>
+                          <span style={{ fontSize: '0.62rem', fontWeight: 800, backgroundColor: '#ffedd5', color: '#c2410c', padding: '0.05rem 0.4rem', borderRadius: '6px' }}>
+                            Unverified Listing
+                          </span>
+                        </div>
+                        <div style={{ fontSize: '0.74rem', color: '#64748b', marginTop: '0.15rem' }}>
+                          {place.description}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginTop: '0.45rem' }}>
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); setEnquiryModalTarget(place); }}
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', backgroundColor: '#ea580c', color: '#fff', border: 'none', padding: '0.25rem 0.65rem', borderRadius: '8px', fontSize: '0.72rem', fontWeight: 800, cursor: 'pointer' }}
+                      >
+                        <Zap size={12} /> Request Quote / Connect
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          alert(`ManaCity Support will help you claim and verify "${place.name}"! Call us at +91 98765 43210.`);
+                        }}
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: '0.2rem', backgroundColor: '#ffffff', color: '#ea580c', border: '1px solid #ffedd5', padding: '0.25rem 0.6rem', borderRadius: '8px', fontSize: '0.72rem', fontWeight: 700, cursor: 'pointer', marginLeft: 'auto' }}
+                      >
+                        Claim Listing 🛡️
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* UNMATCHED SEARCH QUERY REQUEST BUTTON (ONLY SHOWN IF ZERO RESULTS FOUND) */}
           {!hasResults && query.trim().length >= 3 && (
             <div style={{ padding: '0.85rem 1rem', backgroundColor: '#fffbeb', border: '1px solid #fde68a', borderRadius: '12px', textAlign: 'left', marginTop: '0.5rem' }}>
               <div style={{ fontSize: '0.82rem', fontWeight: 800, color: '#d97706', marginBottom: '0.2rem' }}>
@@ -551,6 +670,106 @@ export default function SearchBar({ selectedCity = 'tirupati' }) {
             </div>
           )}
 
+        </div>
+      )}
+
+      {/* Instant Lead Capture Enquiry Modal */}
+      {enquiryModalTarget && (
+        <div style={{
+          position: 'fixed',
+          top: 0, left: 0, right: 0, bottom: 0,
+          backgroundColor: 'rgba(15, 23, 42, 0.65)',
+          backdropFilter: 'blur(4px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 9999,
+          padding: '1rem'
+        }}>
+          <div style={{
+            backgroundColor: '#ffffff',
+            borderRadius: '20px',
+            padding: '1.5rem',
+            width: '100%',
+            maxWidth: '440px',
+            boxShadow: '0 20px 50px rgba(0,0,0,0.3)',
+            position: 'relative'
+          }}>
+            <button
+              type="button"
+              onClick={() => setEnquiryModalTarget(null)}
+              style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}
+            >
+              <X size={20} />
+            </button>
+
+            {enquirySubmitted ? (
+              <div style={{ textAlign: 'center', padding: '1.5rem 0' }}>
+                <CheckCircle2 size={48} color="#059669" style={{ margin: '0 auto 0.75rem' }} />
+                <h3 style={{ fontSize: '1.2rem', fontWeight: 900, color: '#0f172a', marginBottom: '0.35rem' }}>
+                  Enquiry Sent Successfully!
+                </h3>
+                <p style={{ fontSize: '0.85rem', color: '#475569' }}>
+                  ManaCity team and {enquiryModalTarget.name || enquiryModalTarget.businessName} will respond to your mobile within 15 minutes.
+                </p>
+              </div>
+            ) : (
+              <form onSubmit={handleEnquirySubmit}>
+                <div style={{ fontSize: '0.78rem', fontWeight: 800, color: '#2563eb', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.2rem' }}>
+                  ⚡ Quick Quote & Instant Connect
+                </div>
+                <h3 style={{ fontSize: '1.15rem', fontWeight: 900, color: '#0f172a', marginBottom: '0.2rem' }}>
+                  {enquiryModalTarget.name || enquiryModalTarget.businessName}
+                </h3>
+                <p style={{ fontSize: '0.78rem', color: '#64748b', marginBottom: '1.25rem' }}>
+                  Enter your details below to get instant quotes, pricing, and direct callback.
+                </p>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+                  <div>
+                    <label style={{ fontSize: '0.78rem', fontWeight: 800, color: '#334155', display: 'block', marginBottom: '0.25rem' }}>Your Name</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Raju Meesala"
+                      value={customerName}
+                      onChange={(e) => setCustomerName(e.target.value)}
+                      style={{ width: '100%', padding: '0.55rem 0.85rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.85rem', outline: 'none' }}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ fontSize: '0.78rem', fontWeight: 800, color: '#334155', display: 'block', marginBottom: '0.25rem' }}>Mobile Number *</label>
+                    <input
+                      type="tel"
+                      required
+                      placeholder="e.g. 9876543210"
+                      value={customerPhone}
+                      onChange={(e) => setCustomerPhone(e.target.value)}
+                      style={{ width: '100%', padding: '0.55rem 0.85rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.85rem', outline: 'none' }}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ fontSize: '0.78rem', fontWeight: 800, color: '#334155', display: 'block', marginBottom: '0.25rem' }}>Service Needed / Question</label>
+                    <textarea
+                      rows={2}
+                      placeholder="What service or product pricing are you looking for?"
+                      value={customerMsg}
+                      onChange={(e) => setCustomerMsg(e.target.value)}
+                      style={{ width: '100%', padding: '0.55rem 0.85rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.85rem', outline: 'none', resize: 'none' }}
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    style={{ backgroundColor: '#2563eb', color: '#fff', border: 'none', borderRadius: '10px', padding: '0.75rem', fontSize: '0.9rem', fontWeight: 800, cursor: 'pointer', marginTop: '0.5rem', boxShadow: '0 4px 14px rgba(37,99,235,0.3)' }}
+                  >
+                    🚀 Submit Instant Enquiry
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
         </div>
       )}
 

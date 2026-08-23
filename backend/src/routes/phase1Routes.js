@@ -23,6 +23,7 @@ router.post('/library/add', phase1Controller.addLibraryItemToBusiness);
 router.get('/directory/:city/all', directoryLeadController.searchDirectoryListings);
 router.get('/directory/:city/:slug', directoryLeadController.getDirectoryListing);
 router.post('/lead', directoryLeadController.recordLeadOrClick);
+router.post('/lead-capture', directoryLeadController.recordLeadOrClick);
 router.get('/lead/dashboard/:businessGroupId', directoryLeadController.getBusinessLeads);
 
 // Let's Track Telemetry
