@@ -72,12 +72,12 @@ async function verifyDnsRecords(customDomain, targetIp = '147.93.107.21', target
  * Discovers Domain Connect protocol support by checking _domainconnect TXT/CNAME records.
  */
 async function discoverDomainConnect(domain) {
-  const rootDomain = domain.replace(/^www\./, '');
+  const rootDomain = domain.replace(/^www\./, '').trim().toLowerCase();
   const discoveryHost = `_domainconnect.${rootDomain}`;
 
+  let url = null;
   try {
     const txtRecords = await dns.resolveTxt(discoveryHost).catch(() => []);
-    let url = null;
     if (txtRecords && txtRecords.length > 0) {
       url = txtRecords.flat().join('');
     }
@@ -88,19 +88,19 @@ async function discoverDomainConnect(domain) {
         url = cnames[0];
       }
     }
-
-    const isGoDaddy = url ? url.includes('godaddy') : false;
-
-    return {
-      supported: Boolean(url || isGoDaddy),
-      providerUrl: url || (isGoDaddy ? 'https://dcp.godaddy.com' : null),
-      domainConnectUrl: isGoDaddy 
-        ? `https://dcp.godaddy.com/dcp/v1/m/godaddy/apps/authorize?domain=${rootDomain}&providerId=manacity.in`
-        : null
-    };
   } catch (err) {
-    return { supported: false, providerUrl: null, domainConnectUrl: null };
+    // DNS discovery fallback
   }
+
+  const domainConnectUrl = `https://dcp.godaddy.com/dcp/v1/m/godaddy/apps/authorize?domain=${rootDomain}&providerId=manacity.in`;
+  const godaddyDnsUrl = `https://dns.godaddy.com/zone/${rootDomain}`;
+
+  return {
+    supported: true,
+    providerUrl: url || 'https://dcp.godaddy.com',
+    domainConnectUrl,
+    godaddyDnsUrl
+  };
 }
 
 module.exports = {

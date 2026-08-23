@@ -765,31 +765,58 @@ export default function WebsiteBuilder({ onBack, theme: appTheme }) {
             </div>
 
             {/* 1-Click GoDaddy DomainConnect Option */}
-            {dnsStatus?.domainConnect?.supported && dnsStatus?.domainConnect?.domainConnectUrl && (
-              <div style={{ backgroundColor: 'rgba(2, 132, 199, 0.12)', border: '1px solid #0284c7', borderRadius: '12px', padding: '1rem', marginBottom: '1.25rem', textAlign: 'center' }}>
-                <div style={{ fontSize: '0.9rem', fontWeight: 800, color: '#38bdf8', marginBottom: '0.4rem' }}>
-                  ⚡ 1-Click Domain Connect Supported for your Registrar!
+            {(customDomainInput || customDomain) && (
+              <div style={{ backgroundColor: isAppDark ? 'rgba(2, 132, 199, 0.12)' : '#e0f2fe', border: '1.5px solid #0284c7', borderRadius: '12px', padding: '1rem', marginBottom: '1.25rem', textAlign: 'center' }}>
+                <div style={{ fontSize: '0.92rem', fontWeight: 800, color: isAppDark ? '#38bdf8' : '#0284c7', marginBottom: '0.35rem' }}>
+                  ⚡ 1-Click GoDaddy Domain Connect & Quick DNS Access
                 </div>
-                <div style={{ fontSize: '0.8rem', color: isAppDark ? '#cbd5e1' : '#334155', marginBottom: '0.75rem' }}>
-                  Authorize DNS changes automatically without copying IP addresses manually.
+                <div style={{ fontSize: '0.8rem', color: isAppDark ? '#cbd5e1' : '#334155', marginBottom: '0.85rem' }}>
+                  Authorize DNS changes automatically or open your GoDaddy DNS Manager directly for <strong>{(customDomainInput || customDomain).trim().toLowerCase()}</strong>.
                 </div>
-                <a
-                  href={dnsStatus.domainConnect.domainConnectUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  style={{
-                    display: 'inline-block',
-                    backgroundColor: '#10b981',
-                    color: '#ffffff',
-                    padding: '0.55rem 1.25rem',
-                    borderRadius: '8px',
-                    fontWeight: 800,
-                    fontSize: '0.85rem',
-                    textDecoration: 'none'
-                  }}
-                >
-                  ⚡ Authorize via GoDaddy / 1-Click
-                </a>
+                
+                <div style={{ display: 'flex', gap: '0.65rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+                  <a
+                    href={dnsStatus?.domainConnect?.domainConnectUrl || `https://dcp.godaddy.com/dcp/v1/m/godaddy/apps/authorize?domain=${(customDomainInput || customDomain).trim().toLowerCase().replace(/^www\./, '')}&providerId=manacity.in`}
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.4rem',
+                      backgroundColor: '#10b981',
+                      color: '#ffffff',
+                      padding: '0.55rem 1.15rem',
+                      borderRadius: '8px',
+                      fontWeight: 800,
+                      fontSize: '0.83rem',
+                      textDecoration: 'none',
+                      boxShadow: '0 4px 12px rgba(16, 185, 129, 0.25)'
+                    }}
+                  >
+                    ⚡ Authorize via 1-Click GoDaddy
+                  </a>
+
+                  <a
+                    href={`https://dns.godaddy.com/zone/${(customDomainInput || customDomain).trim().toLowerCase().replace(/^www\./, '')}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.4rem',
+                      backgroundColor: '#0284c7',
+                      color: '#ffffff',
+                      padding: '0.55rem 1.15rem',
+                      borderRadius: '8px',
+                      fontWeight: 800,
+                      fontSize: '0.83rem',
+                      textDecoration: 'none',
+                      boxShadow: '0 4px 12px rgba(2, 132, 199, 0.25)'
+                    }}
+                  >
+                    ↗️ Open GoDaddy DNS Manager
+                  </a>
+                </div>
               </div>
             )}
 
