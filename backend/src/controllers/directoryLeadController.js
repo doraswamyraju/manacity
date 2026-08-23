@@ -441,9 +441,11 @@ exports.getServiceDetails = async (req, res) => {
     const vendors = [];
     const seenBg = new Set();
 
+    const isTestAccount = (bName) => (bName || '').toLowerCase().includes('test') || (bName || '').toLowerCase().includes('manacity test');
+
     rawVendors.forEach(({ bg, itemPrice }) => {
       const bgCity = (bg.city || 'tirupati').toLowerCase();
-      if (!seenBg.has(bg.id) && bg.status !== 'DISABLED' && bgCity === cityStr) {
+      if (!seenBg.has(bg.id) && bg.status !== 'DISABLED' && bgCity === cityStr && !isTestAccount(bg.name)) {
         seenBg.add(bg.id);
         const listing = bg.directoryListing;
         vendors.push({
@@ -471,7 +473,7 @@ exports.getServiceDetails = async (req, res) => {
         where: { status: { not: 'DISABLED' } },
         include: { directoryListing: true, locations: true }
       });
-      const cityBgs = allBgs.filter(bg => (bg.city || 'tirupati').toLowerCase() === cityStr);
+      const cityBgs = allBgs.filter(bg => (bg.city || 'tirupati').toLowerCase() === cityStr && !isTestAccount(bg.name));
       cityBgs.forEach(bg => {
         if (!seenBg.has(bg.id)) {
           seenBg.add(bg.id);

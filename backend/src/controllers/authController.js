@@ -617,7 +617,14 @@ exports.seedTestUser = async (req, res) => {
       where: { ownerId: user.id }
     });
 
-    if (!businessGroup) {
+    if (businessGroup) {
+      if (businessGroup.name.includes('ManaCity Test')) {
+        await prisma.businessGroup.update({
+          where: { id: businessGroup.id },
+          data: { name: "Rajugari Ventures - A Digital Marketing Agency in Tirupati" }
+        });
+      }
+    } else {
       businessGroup = await prisma.businessGroup.create({
         data: {
           name: "Rajugari Ventures - A Digital Marketing Agency in Tirupati",
