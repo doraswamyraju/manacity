@@ -665,11 +665,18 @@ function StepBusinessDetails({ initialData, onNext, onBack }) {
   // Master Category Library State
   const [libraryItems, setLibraryItems] = useState([]);
   const [loadingLibrary, setLoadingLibrary] = useState(false);
+  const [filterCategory, setFilterCategory] = useState(initialData.category || 'All');
+  const [catalogSearch, setCatalogSearch] = useState('');
 
-  useEffect(() => {
+  const fetchCatalogItems = (cat, q) => {
     setLoadingLibrary(true);
-    const cat = initialData.category || 'All';
-    axios.get(`/api/phase1/library?category=${encodeURIComponent(cat)}`)
+    let url = '/api/phase1/library';
+    const params = [];
+    if (cat && cat !== 'All') params.push(`category=${encodeURIComponent(cat)}`);
+    if (q && q.trim()) params.push(`query=${encodeURIComponent(q.trim())}`);
+    if (params.length > 0) url += `?${params.join('&')}`;
+
+    axios.get(url)
       .then(res => {
         if (res.data && res.data.items) {
           setLibraryItems(res.data.items);
@@ -677,7 +684,11 @@ function StepBusinessDetails({ initialData, onNext, onBack }) {
       })
       .catch(err => console.warn('Library load error:', err))
       .finally(() => setLoadingLibrary(false));
-  }, [initialData.category]);
+  };
+
+  useEffect(() => {
+    fetchCatalogItems(filterCategory, catalogSearch);
+  }, [filterCategory, catalogSearch]);
 
   const handleDayToggle = (day) => {
     if (workingDays.includes(day)) {
@@ -800,17 +811,76 @@ function StepBusinessDetails({ initialData, onNext, onBack }) {
 
       {/* Category Master Product & Service Library Recommendations */}
       <div style={{ backgroundColor: 'rgba(99, 102, 241, 0.08)', border: '1.5px solid #6366f1', padding: '1rem', borderRadius: '10px' }}>
-        <h4 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#4f46e5', marginBottom: '0.4rem' }}>
-          ⚡ Recommended Master Catalog Items ({initialData.category || 'General Business'})
-        </h4>
-        <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary, #475569)', marginBottom: '0.75rem' }}>
-          Click <strong>+ Add</strong> on any item to attach it directly to your business profile catalog.
-        </p>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.5rem' }}>
+          <h4 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#4f46e5', margin: 0 }}>
+            ⚡ Recommended Master Catalog Items ({libraryItems.length} items available)
+          </h4>
+
+          <button
+            type="button"
+            onClick={() => {
+              libraryItems.forEach(item => {
+                if (item.type === 'SERVICE') {
+                  if (!servicesOffered.includes(item.name)) servicesOffered.push(item.name);
+                } else {
+                  if (!productsOffered.includes(item.name)) productsOffered.push(item.name);
+                }
+              });
+              setServicesOffered([...servicesOffered]);
+              setProductsOffered([...productsOffered]);
+            }}
+            style={{
+              padding: '0.25rem 0.65rem',
+              fontSize: '0.75rem',
+              fontWeight: 800,
+              backgroundColor: '#10b981',
+              color: '#ffffff',
+              border: 'none',
+              borderRadius: '6px',
+              cursor: 'pointer'
+            }}
+          >
+            ✓ Add All Recommended Items
+          </button>
+        </div>
+
+        {/* Filter & Search Bar for Catalog Items */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginBottom: '0.85rem' }}>
+          <div>
+            <select
+              value={filterCategory}
+              onChange={e => setFilterCategory(e.target.value)}
+              style={{ width: '100%', padding: '0.4rem 0.6rem', fontSize: '0.8rem', borderRadius: '6px', border: '1px solid #cbd5e1', outline: 'none' }}
+            >
+              <option value="All">All Master Categories ({libraryItems.length})</option>
+              <option value="Taxi Service & Cab Travels">Taxi Service & Cab Travels</option>
+              <option value="Car Rental Agency">Car Rental Agency</option>
+              <option value="Car Leasing Service">Car Leasing Service</option>
+              <option value="Travel Agency & Tour Packages">Travel Agency & Tour Packages</option>
+              <option value="Auditor / CA / Tax Consultant">Auditor / CA / Tax Consultant</option>
+              <option value="Digital Marketing">Digital Marketing</option>
+              <option value="Rice Mill">Rice Mill</option>
+              <option value="Clinics & Health">Clinics & Health</option>
+              <option value="Hotels & Lodging">Hotels & Lodging</option>
+              <option value="Restaurants & Food">Restaurants & Food</option>
+            </select>
+          </div>
+
+          <div>
+            <input
+              type="text"
+              placeholder="Search catalog items..."
+              value={catalogSearch}
+              onChange={e => setCatalogSearch(e.target.value)}
+              style={{ width: '100%', padding: '0.4rem 0.6rem', fontSize: '0.8rem', borderRadius: '6px', border: '1px solid #cbd5e1', outline: 'none' }}
+            />
+          </div>
+        </div>
 
         {loadingLibrary ? (
-          <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Loading category catalog...</span>
+          <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Loading catalog items...</span>
         ) : libraryItems.length === 0 ? (
-          <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>No catalog suggestions found for this category.</span>
+          <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>No catalog suggestions found. Try selecting "All Master Categories" or clearing the search.</span>
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '0.5rem' }}>
             {libraryItems.map(item => {

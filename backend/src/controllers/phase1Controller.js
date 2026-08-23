@@ -615,17 +615,65 @@ exports.importGooglePlaces = async (req, res) => {
 exports.getLibraryItems = async (req, res) => {
   try {
     const { category, type, query } = req.query;
-    const where = {};
-    if (category) where.category = category;
-    if (type) where.type = type;
-    if (query) {
-      where.name = { contains: query, mode: 'insensitive' };
-    }
+    let items = [];
 
-    const items = await prisma.productServiceLibrary.findMany({
-      where,
-      orderBy: { name: 'asc' }
-    });
+    const baseWhere = {};
+    if (type) baseWhere.type = type;
+
+    if (query && query.trim()) {
+      baseWhere.OR = [
+        { name: { contains: query.trim(), mode: 'insensitive' } },
+        { category: { contains: query.trim(), mode: 'insensitive' } },
+        { tags: { has: query.trim().toLowerCase() } }
+      ];
+      items = await prisma.productServiceLibrary.findMany({
+        where: baseWhere,
+        orderBy: { name: 'asc' }
+      });
+    } else if (category && category !== 'All') {
+      // 1. Primary Category Match
+      items = await prisma.productServiceLibrary.findMany({
+        where: {
+          ...baseWhere,
+          category: { contains: category.trim(), mode: 'insensitive' }
+        },
+        orderBy: { name: 'asc' }
+      });
+
+      // 2. If fewer than 15 items, fetch related keywords (e.g. Taxi, Travel, Rental, Lease, Tour)
+      if (items.length < 15) {
+        const catWords = category.split(/[\s&/]+/).filter(w => w.length > 2);
+        const relatedConditions = [];
+        catWords.forEach(w => {
+          relatedConditions.push({ category: { contains: w, mode: 'insensitive' } });
+          relatedConditions.push({ name: { contains: w, mode: 'insensitive' } });
+        });
+
+        if (relatedConditions.length > 0) {
+          const extraItems = await prisma.productServiceLibrary.findMany({
+            where: {
+              ...baseWhere,
+              OR: relatedConditions
+            },
+            take: 25,
+            orderBy: { name: 'asc' }
+          });
+
+          const existingIds = new Set(items.map(i => i.id));
+          for (const item of extraItems) {
+            if (!existingIds.has(item.id)) {
+              items.push(item);
+              existingIds.add(item.id);
+            }
+          }
+        }
+      }
+    } else {
+      items = await prisma.productServiceLibrary.findMany({
+        where: baseWhere,
+        orderBy: { name: 'asc' }
+      });
+    }
 
     return res.status(200).json({ items });
 
