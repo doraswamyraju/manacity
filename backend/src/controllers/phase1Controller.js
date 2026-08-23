@@ -175,7 +175,7 @@ exports.importGooglePlaces = async (req, res) => {
             headers: {
               'Content-Type': 'application/json',
               'X-Goog-Api-Key': apiKey,
-              'X-Goog-FieldMask': 'id,displayName,formattedAddress,rating,userRatingCount,types,nationalPhoneNumber,websiteUri'
+              'X-Goog-FieldMask': 'id,displayName,primaryTypeDisplayName,primaryType,formattedAddress,rating,userRatingCount,types,nationalPhoneNumber,websiteUri'
             }
           }
         );
@@ -188,8 +188,14 @@ exports.importGooglePlaces = async (req, res) => {
           fetchedData.phone = cleanPhone(pd.nationalPhoneNumber) || fetchedData.phone;
           fetchedData.website = pd.websiteUri || fetchedData.website;
           resolvedPlaceId = pd.id || placeId;
-          if (pd.types && pd.types.length > 0) {
-            fetchedData.category = mapGoogleTypeToCategory(pd.types);
+          
+          if (pd.primaryTypeDisplayName?.text) {
+            fetchedData.category = pd.primaryTypeDisplayName.text;
+          } else if (pd.primaryType) {
+            const raw = pd.primaryType.replace(/_/g, ' ');
+            fetchedData.category = raw.charAt(0).toUpperCase() + raw.slice(1);
+          } else if (pd.types && pd.types.length > 0) {
+            fetchedData.category = mapGoogleTypeToCategory(pd.types, pd.displayName?.text);
           }
         }
       } catch (pdErr) {
@@ -206,7 +212,7 @@ exports.importGooglePlaces = async (req, res) => {
             fetchedData.website = r.website || fetchedData.website;
             resolvedPlaceId = r.place_id || placeId;
             if (r.types && r.types.length > 0) {
-              fetchedData.category = mapGoogleTypeToCategory(r.types);
+              fetchedData.category = mapGoogleTypeToCategory(r.types, r.name);
             }
           }
         } catch (e) {
@@ -223,7 +229,7 @@ exports.importGooglePlaces = async (req, res) => {
             headers: {
               'Content-Type': 'application/json',
               'X-Goog-Api-Key': apiKey,
-              'X-Goog-FieldMask': 'places.id,places.displayName,places.formattedAddress,places.rating,places.userRatingCount,places.types,places.nationalPhoneNumber,places.websiteUri'
+              'X-Goog-FieldMask': 'places.id,places.displayName,places.primaryTypeDisplayName,places.primaryType,places.formattedAddress,places.rating,places.userRatingCount,places.types,places.nationalPhoneNumber,places.websiteUri'
             }
           }
         );
@@ -237,8 +243,14 @@ exports.importGooglePlaces = async (req, res) => {
           fetchedData.phone = cleanPhone(topResult.nationalPhoneNumber) || fetchedData.phone;
           fetchedData.website = topResult.websiteUri || fetchedData.website;
           resolvedPlaceId = topResult.id || topResult.name?.split('/')?.pop() || null;
-          if (topResult.types && topResult.types.length > 0) {
-            fetchedData.category = mapGoogleTypeToCategory(topResult.types);
+          
+          if (topResult.primaryTypeDisplayName?.text) {
+            fetchedData.category = topResult.primaryTypeDisplayName.text;
+          } else if (topResult.primaryType) {
+            const raw = topResult.primaryType.replace(/_/g, ' ');
+            fetchedData.category = raw.charAt(0).toUpperCase() + raw.slice(1);
+          } else if (topResult.types && topResult.types.length > 0) {
+            fetchedData.category = mapGoogleTypeToCategory(topResult.types, topResult.displayName?.text);
           }
         }
       } catch (newApiErr) {
@@ -253,11 +265,11 @@ exports.importGooglePlaces = async (req, res) => {
             fetchedData.reviewCount = topResult.user_ratings_total || fetchedData.reviewCount;
             resolvedPlaceId = topResult.place_id || null;
             if (topResult.types && topResult.types.length > 0) {
-              fetchedData.category = mapGoogleTypeToCategory(topResult.types);
+              fetchedData.category = mapGoogleTypeToCategory(topResult.types, topResult.name);
             }
           }
         } catch (legacyErr) {
-          console.warn('Legacy Places API call warning:', legacyErr.response?.data || legacyErr.message);
+          console.warn('Legacy Text Search failed:', legacyErr.message);
         }
       }
     }
