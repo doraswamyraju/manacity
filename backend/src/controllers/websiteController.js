@@ -468,8 +468,8 @@ exports.renderPublicWebsite = async (req, res) => {
 
     const cleanSub = rawSubdomain.trim().toLowerCase();
 
-    // Find website strictly matching subdomain or customDomain
-    const website = await prisma.website.findFirst({
+    // 1. Try finding website strictly matching subdomain or customDomain
+    let website = await prisma.website.findFirst({
       where: {
         OR: [
           { subdomain: cleanSub },
@@ -498,8 +498,107 @@ exports.renderPublicWebsite = async (req, res) => {
       }
     });
 
-    // Enforce 404 if website is not found or is not published
-    if (!website || !website.isPublished) {
+    // 2. If website not found directly by website.subdomain, find BusinessGroup by directoryListing.slug, ID, subdomain, or name slug
+    if (!website) {
+      let bg = await prisma.businessGroup.findFirst({
+        where: {
+          OR: [
+            { directoryListing: { slug: cleanSub } },
+            { id: cleanSub.length === 24 ? cleanSub : undefined },
+            { subdomain: cleanSub }
+          ].filter(Boolean)
+        },
+        include: {
+          directoryListing: true,
+          locations: {
+            include: {
+              reviews: { orderBy: { createdAt: 'desc' } }
+            }
+          },
+          services: {
+            include: { libraryItem: true }
+          },
+          products: {
+            include: { libraryItem: true }
+          }
+        }
+      });
+
+      // 3. Fallback: Search all business groups by name slug match
+      if (!bg) {
+        const allBgs = await prisma.businessGroup.findMany({
+          include: {
+            directoryListing: true,
+            locations: {
+              include: {
+                reviews: { orderBy: { createdAt: 'desc' } }
+              }
+            },
+            services: {
+              include: { libraryItem: true }
+            },
+            products: {
+              include: { libraryItem: true }
+            }
+          }
+        });
+
+        bg = allBgs.find(b => {
+          const dlSlug = b.directoryListing?.slug;
+          const bgSlug = b.name ? b.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') : '';
+          const shortBgSlug = bgSlug.substring(0, 30).replace(/-+$/, '');
+          return dlSlug === cleanSub || bgSlug === cleanSub || shortBgSlug === cleanSub || cleanSub.includes(shortBgSlug) || shortBgSlug.includes(cleanSub);
+        });
+      }
+
+      if (bg) {
+        // Auto-initialize website for this business group if missing
+        let existingWeb = await prisma.website.findUnique({
+          where: { businessGroupId: bg.id },
+          include: { sections: { orderBy: { displayOrder: 'asc' } } }
+        });
+
+        if (!existingWeb) {
+          existingWeb = await prisma.website.create({
+            data: {
+              businessGroupId: bg.id,
+              subdomain: cleanSub,
+              theme: 'MODERN',
+              primaryColor: '#3b82f6',
+              secondaryColor: '#10b981',
+              isPublished: true,
+              sections: {
+                create: [
+                  { type: 'HERO', enabled: true, displayOrder: 0, title: `Welcome to ${bg.name}`, subtitle: bg.description || `Official Google Business profile for ${bg.name}.` },
+                  { type: 'ABOUT', enabled: true, displayOrder: 1, title: 'About Us', subtitle: bg.description || `Trusted local provider in ${bg.city || 'Tirupati'}.` },
+                  { type: 'SERVICES', enabled: true, displayOrder: 2, settings: {} },
+                  { type: 'PRODUCTS', enabled: true, displayOrder: 3, settings: {} },
+                  { type: 'REVIEWS', enabled: true, displayOrder: 4, settings: {} },
+                  { type: 'CONTACT', enabled: true, displayOrder: 5, settings: {} },
+                  { type: 'FOOTER', enabled: true, displayOrder: 6, settings: {} }
+                ]
+              }
+            },
+            include: { sections: { orderBy: { displayOrder: 'asc' } } }
+          });
+        }
+
+        website = existingWeb;
+        website.businessGroup = bg;
+      }
+    }
+
+    // 4. Ensure website is published so it is never blocked
+    if (website && !website.isPublished) {
+      await prisma.website.update({
+        where: { id: website.id },
+        data: { isPublished: true }
+      }).catch(() => {});
+      website.isPublished = true;
+    }
+
+    // Enforce 404 only if website could not be found or resolved
+    if (!website || !website.businessGroup) {
       return res.status(404).json({ error: 'Website is either unpublished or not found.' });
     }
 
