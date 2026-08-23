@@ -566,7 +566,7 @@ export default function WebsiteBuilder({ onBack, theme: appTheme }) {
         }}>
           <iframe
             key={`${subdomain}-${previewDevice}-${theme}`}
-            src={subdomain ? `https://${subdomain}.manacity.in?t=${theme}` : `https://manacity.in?t=${theme}`}
+            src={subdomain ? `/site/${subdomain}?t=${theme}` : `/site/default?t=${theme}`}
             title="Live Website Preview"
             style={{
               width: previewDevice === 'mobile' ? '375px' : previewDevice === 'tablet' ? '768px' : '100%',

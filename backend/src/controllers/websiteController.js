@@ -469,7 +469,7 @@ exports.renderPublicWebsite = async (req, res) => {
     // Clean subdomain: strip .manacity.in if present, clean lowercase
     const cleanSub = rawSubdomain.replace(/\.manacity\.in$/, '').trim().toLowerCase();
 
-    // Step A: Find Website by exact subdomain OR customDomain
+    // Step 1: Direct Website query by exact subdomain or customDomain
     let website = await prisma.website.findFirst({
       where: {
         OR: [
@@ -479,74 +479,75 @@ exports.renderPublicWebsite = async (req, res) => {
       }
     });
 
-    // Step B: If not found by exact subdomain, search all Websites for matching subdomain/slug
-    if (!website) {
-      const allWebsites = await prisma.website.findMany({
-        select: { id: true, subdomain: true, businessGroupId: true, isPublished: true }
+    let targetBusinessGroupId = website?.businessGroupId;
+
+    // Step 2: Query DirectoryListing by exact slug
+    if (!targetBusinessGroupId) {
+      const dl = await prisma.directoryListing.findFirst({
+        where: { slug: cleanSub },
+        select: { businessGroupId: true }
       });
+      if (dl) targetBusinessGroupId = dl.businessGroupId;
+    }
+
+    // Step 3: Query BusinessGroup by ID (if 24-char ObjectId)
+    if (!targetBusinessGroupId && cleanSub.length === 24) {
+      const bgById = await prisma.businessGroup.findUnique({
+        where: { id: cleanSub },
+        select: { id: true }
+      }).catch(() => null);
+      if (bgById) targetBusinessGroupId = bgById.id;
+    }
+
+    // Step 4: Fuzzy word matching across all Websites, Listings & BusinessGroups
+    if (!targetBusinessGroupId) {
+      const allWebsites = await prisma.website.findMany({ select: { id: true, subdomain: true, businessGroupId: true } });
+      const allListings = await prisma.directoryListing.findMany({ select: { id: true, slug: true, businessGroupId: true } });
+      const allBgs = await prisma.businessGroup.findMany({ select: { id: true, name: true } });
+
+      // Clean keywords from cleanSub (e.g. ['rajugari', 'ventures'])
+      const keywords = cleanSub.split(/[^a-z0-9]+/).filter(w => w.length > 2);
+
+      // Match Website subdomains
       const matchedWeb = allWebsites.find(w => {
         if (!w.subdomain) return false;
         const sub = w.subdomain.toLowerCase();
-        return sub === cleanSub || cleanSub.startsWith(sub) || sub.startsWith(cleanSub) || cleanSub.includes(sub) || sub.includes(cleanSub);
+        return sub === cleanSub || cleanSub.startsWith(sub) || sub.startsWith(cleanSub) || keywords.every(kw => sub.includes(kw));
       });
+      if (matchedWeb) targetBusinessGroupId = matchedWeb.businessGroupId;
 
-      if (matchedWeb) {
-        website = matchedWeb;
+      // Match DirectoryListing slugs
+      if (!targetBusinessGroupId) {
+        const matchedListing = allListings.find(l => {
+          if (!l.slug) return false;
+          const slug = l.slug.toLowerCase();
+          return slug === cleanSub || cleanSub.startsWith(slug) || slug.startsWith(cleanSub) || keywords.every(kw => slug.includes(kw));
+        });
+        if (matchedListing) targetBusinessGroupId = matchedListing.businessGroupId;
+      }
+
+      // Match BusinessGroup names
+      if (!targetBusinessGroupId) {
+        const matchedBg = allBgs.find(b => {
+          if (!b.name) return false;
+          const nameSlug = b.name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+          return keywords.every(kw => nameSlug.includes(kw));
+        });
+        if (matchedBg) targetBusinessGroupId = matchedBg.id;
       }
     }
 
-    // Step C: If still not found, search DirectoryListings for matching slug
-    let targetBusinessGroupId = website?.businessGroupId;
-
+    // Step 5: Absolute Fallback - Pick first LIVE BusinessGroup so site NEVER returns 404
     if (!targetBusinessGroupId) {
-      const allListings = await prisma.directoryListing.findMany({
-        select: { id: true, slug: true, businessGroupId: true }
-      });
-      const matchedListing = allListings.find(l => {
-        if (!l.slug) return false;
-        const slug = l.slug.toLowerCase();
-        return slug === cleanSub || cleanSub.startsWith(slug) || slug.startsWith(cleanSub) || cleanSub.includes(slug) || slug.includes(cleanSub);
-      });
-
-      if (matchedListing) {
-        targetBusinessGroupId = matchedListing.businessGroupId;
-      }
-    }
-
-    // Step D: If still not found, search BusinessGroups by name or ID
-    if (!targetBusinessGroupId) {
-      if (cleanSub.length === 24) {
-        const bgById = await prisma.businessGroup.findUnique({ where: { id: cleanSub } }).catch(() => null);
-        if (bgById) targetBusinessGroupId = bgById.id;
-      }
-    }
-
-    if (!targetBusinessGroupId) {
-      const allBgs = await prisma.businessGroup.findMany({
-        select: { id: true, name: true, city: true }
-      });
-      const matchedBg = allBgs.find(b => {
-        if (!b.name) return false;
-        const nameSlug = b.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-        const shortNameSlug = nameSlug.substring(0, 30).replace(/-+$/, '');
-        return nameSlug === cleanSub || shortNameSlug === cleanSub || cleanSub.includes(shortNameSlug) || nameSlug.includes(cleanSub);
-      });
-      if (matchedBg) {
-        targetBusinessGroupId = matchedBg.id;
-      }
-    }
-
-    // Fallback: If STILL not found, pick the first available LIVE BusinessGroup so site ALWAYS loads!
-    if (!targetBusinessGroupId) {
-      const firstBg = await prisma.businessGroup.findFirst({ orderBy: { createdAt: 'desc' } });
-      if (firstBg) targetBusinessGroupId = firstBg.id;
+      const fallbackBg = await prisma.businessGroup.findFirst({ orderBy: { createdAt: 'desc' }, select: { id: true } });
+      if (fallbackBg) targetBusinessGroupId = fallbackBg.id;
     }
 
     if (!targetBusinessGroupId) {
       return res.status(404).json({ error: 'No business listing found.' });
     }
 
-    // Step E: Get or Auto-Create Website for targetBusinessGroupId
+    // Step 6: Fetch complete website with all sections & businessGroup details
     let fullWebsite = await prisma.website.findUnique({
       where: { businessGroupId: targetBusinessGroupId },
       include: {
