@@ -440,13 +440,16 @@ exports.getServiceDetails = async (req, res) => {
     const rawVendors = [...services.map(s => ({ bg: s.businessGroup, itemPrice: s.price })), ...products.map(p => ({ bg: p.businessGroup, itemPrice: p.price }))].filter(v => v.bg);
     const vendors = [];
     const seenBg = new Set();
+    const seenName = new Set();
 
     const isTestAccount = (bName) => (bName || '').toLowerCase().includes('test') || (bName || '').toLowerCase().includes('manacity test');
 
     rawVendors.forEach(({ bg, itemPrice }) => {
       const bgCity = (bg.city || 'tirupati').toLowerCase();
-      if (!seenBg.has(bg.id) && bg.status !== 'DISABLED' && bgCity === cityStr && !isTestAccount(bg.name)) {
+      const normName = (bg.name || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
+      if (!seenBg.has(bg.id) && !seenName.has(normName) && bg.status !== 'DISABLED' && bgCity === cityStr && !isTestAccount(bg.name)) {
         seenBg.add(bg.id);
+        seenName.add(normName);
         const listing = bg.directoryListing;
         vendors.push({
           id: bg.id,
@@ -475,8 +478,10 @@ exports.getServiceDetails = async (req, res) => {
       });
       const cityBgs = allBgs.filter(bg => (bg.city || 'tirupati').toLowerCase() === cityStr && !isTestAccount(bg.name));
       cityBgs.forEach(bg => {
-        if (!seenBg.has(bg.id)) {
+        const normName = (bg.name || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
+        if (!seenBg.has(bg.id) && !seenName.has(normName)) {
           seenBg.add(bg.id);
+          seenName.add(normName);
           const listing = bg.directoryListing;
           vendors.push({
             id: bg.id,
@@ -554,9 +559,25 @@ exports.searchSuggestions = async (req, res) => {
         (bg.category && bg.category.toLowerCase().includes(queryStr)) ||
         (bg.address && bg.address.toLowerCase().includes(queryStr));
       return matchCity && matchQuery;
-    }).slice(0, 5);
+    });
 
-    const results = matchingBgs.map(bg => {
+    // Deduplicate matching business groups by normalized business name (Keep the one with longest address)
+    const uniqueMap = new Map();
+    for (const bg of matchingBgs) {
+      const normName = bg.name.toLowerCase().replace(/[^a-z0-9]+/g, '');
+      if (!uniqueMap.has(normName)) {
+        uniqueMap.set(normName, bg);
+      } else {
+        const existing = uniqueMap.get(normName);
+        if ((bg.address || '').length > (existing.address || '').length) {
+          uniqueMap.set(normName, bg);
+        }
+      }
+    }
+
+    const uniqueBgs = Array.from(uniqueMap.values()).slice(0, 5);
+
+    const results = uniqueBgs.map(bg => {
       const listing = bg.directoryListing;
       return {
         id: bg.id,
