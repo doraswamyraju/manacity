@@ -550,7 +550,12 @@ exports.completeOnboarding = async (req, res) => {
     }
 
     // Ensure DirectoryListing record exists for Public Landing Page Directory
-    const cleanSlug = updatedGroup.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'business';
+    let primaryName = updatedGroup.name.split(/[-|:|–]/)[0].trim();
+    if (!primaryName || primaryName.length < 3) primaryName = updatedGroup.name;
+    let cleanSlug = primaryName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    if (cleanSlug.length > 30) cleanSlug = cleanSlug.substring(0, 30).replace(/-+$/, '');
+    if (!cleanSlug) cleanSlug = 'business';
+
     const cleanCity = (updatedGroup.city || 'tirupati').toLowerCase();
     const existingListing = await prisma.directoryListing.findFirst({ where: { businessGroupId: businessGroup.id } });
 

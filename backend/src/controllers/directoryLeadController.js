@@ -88,7 +88,14 @@ exports.searchDirectoryListings = async (req, res) => {
       const listing = bg.directoryListing;
       const loc = bg.locations?.[0];
       const safeCity = (bg.city || loc?.city || cityStr).toLowerCase();
-      const slug = listing?.slug || bg.subdomain || bg.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+
+      let primaryName = bg.name.split(/[-|:|–]/)[0].trim();
+      if (!primaryName || primaryName.length < 3) primaryName = bg.name;
+      let cleanSlug = primaryName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+      if (cleanSlug.length > 30) cleanSlug = cleanSlug.substring(0, 30).replace(/-+$/, '');
+      if (!cleanSlug) cleanSlug = 'business';
+
+      const slug = listing?.slug || cleanSlug;
 
       return {
         id: bg.id,

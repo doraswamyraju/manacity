@@ -261,7 +261,13 @@ exports.createBusinessByAdmin = async (req, res) => {
     });
 
     const cleanCity = (city || 'Tirupati').toLowerCase();
-    const cleanSlug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') + '-' + Date.now().toString().slice(-4);
+    
+    // Clean and truncate slug to max 30 chars (strip SEO noise after -, |, :)
+    let primaryName = name.split(/[-|:|–]/)[0].trim();
+    if (!primaryName || primaryName.length < 3) primaryName = name;
+    let cleanSlug = primaryName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    if (cleanSlug.length > 30) cleanSlug = cleanSlug.substring(0, 30).replace(/-+$/, '');
+    if (!cleanSlug) cleanSlug = 'business';
     
     await prisma.location.create({
       data: {

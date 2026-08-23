@@ -622,9 +622,7 @@ export default function Home({
                 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&auto=format&fit=crop&q=80'
               );
 
-              const manacityProfileUrl = item.subdomain
-                ? `https://${item.subdomain}.manacity.in`
-                : `/site/${item.slug || 'kumar-shirts'}`;
+              const manacityProfileUrl = `/site/${item.slug || item.subdomain || 'business'}`;
 
               return (
                 <div
@@ -633,6 +631,8 @@ export default function Home({
                   style={{
                     minWidth: '340px',
                     maxWidth: '340px',
+                    height: '470px',
+                    maxHeight: '470px',
                     backgroundColor: 'var(--bg-secondary)',
                     borderRadius: '20px',
                     border: '1px solid var(--border-color)',
@@ -653,6 +653,7 @@ export default function Home({
                   <div style={{
                     position: 'relative',
                     height: '135px',
+                    minHeight: '135px',
                     width: '100%',
                     backgroundImage: `url(${bannerImg})`,
                     backgroundSize: 'cover',
@@ -799,9 +800,20 @@ export default function Home({
                   </div>
 
                   {/* Card Content Body */}
-                  <div style={{ padding: '32px 1.25rem 1.25rem 1.25rem', display: 'flex', flexDirection: 'column', flexGrow: 1, justifyContent: 'space-between' }}>
+                  <div style={{ padding: '30px 1.25rem 1.25rem 1.25rem', display: 'flex', flexDirection: 'column', flexGrow: 1, justifyContent: 'space-between' }}>
                     <div>
-                      <h3 style={{ fontSize: '1.15rem', fontWeight: 800, marginBottom: '0.4rem', color: 'var(--text-primary)', display: 'inline-flex', alignItems: 'center', gap: '0.4rem', lineHeight: 1.3 }}>
+                      <h3 style={{
+                        fontSize: '1.05rem',
+                        fontWeight: 800,
+                        marginBottom: '0.35rem',
+                        color: 'var(--text-primary)',
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden',
+                        lineHeight: 1.3,
+                        height: '2.7rem'
+                      }}>
                         {item.businessName}
                         {item.websiteUrl && (
                           <span
@@ -810,23 +822,55 @@ export default function Home({
                               window.open(item.websiteUrl, '_blank');
                             }}
                             title="Open external website"
-                            style={{ display: 'inline-flex', cursor: 'pointer' }}
+                            style={{ display: 'inline-flex', cursor: 'pointer', marginLeft: '0.3rem' }}
                           >
-                            <ExternalLink size={14} color="#0284c7" />
+                            <ExternalLink size={13} color="#0284c7" />
                           </span>
                         )}
                       </h3>
 
-                      <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'flex-start', gap: '0.4rem', marginBottom: '0.9rem', lineHeight: 1.4 }}>
-                        <MapPin size={14} color="var(--text-muted)" style={{ flexShrink: 0, marginTop: '2px' }} />
-                        {item.address}
+                      <p style={{
+                        fontSize: '0.78rem',
+                        color: 'var(--text-secondary)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.35rem',
+                        marginBottom: '0.75rem',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis'
+                      }}>
+                        <MapPin size={13} color="var(--text-muted)" style={{ flexShrink: 0 }} />
+                        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.address}</span>
                       </p>
 
-                      <div style={{ marginBottom: '1.1rem' }}>
-                        <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.35rem', fontWeight: 600 }}>Products & Services:</span>
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem' }}>
+                      {/* Products & Services Single Row Horizontal Carousel */}
+                      <div style={{ marginBottom: '0.85rem' }}>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.25rem', fontWeight: 600 }}>Products & Services:</span>
+                        <div style={{
+                          display: 'flex',
+                          flexWrap: 'nowrap',
+                          overflowX: 'auto',
+                          gap: '0.35rem',
+                          paddingBottom: '0.25rem',
+                          scrollbarWidth: 'none',
+                          msOverflowStyle: 'none'
+                        }}>
                           {item.services && item.services.map((svc, idx) => (
-                            <span key={idx} style={{ fontSize: '0.74rem', backgroundColor: 'var(--bg-tertiary)', color: 'var(--text-primary)', padding: '0.2rem 0.55rem', borderRadius: '6px', border: '1px solid var(--border-color)', fontWeight: 600 }}>
+                            <span
+                              key={idx}
+                              style={{
+                                fontSize: '0.72rem',
+                                backgroundColor: 'var(--bg-tertiary, #f1f5f9)',
+                                color: 'var(--text-primary, #0f172a)',
+                                padding: '0.2rem 0.55rem',
+                                borderRadius: '6px',
+                                border: '1px solid var(--border-color, #cbd5e1)',
+                                fontWeight: 600,
+                                whiteSpace: 'nowrap',
+                                flexShrink: 0
+                              }}
+                            >
                               {svc}
                             </span>
                           ))}
@@ -836,11 +880,11 @@ export default function Home({
 
                     {/* Action Buttons */}
                     <div onClick={(e) => e.stopPropagation()}>
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginBottom: '0.75rem' }}>
-                        <button onClick={() => handleCallClick(item)} className="btn" style={{ backgroundColor: '#10b981', color: '#fff', fontSize: '0.82rem', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem', padding: '0.55rem', borderRadius: '10px', border: 'none', cursor: 'pointer' }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                        <button onClick={() => handleCallClick(item)} className="btn" style={{ backgroundColor: '#10b981', color: '#fff', fontSize: '0.82rem', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem', padding: '0.5rem', borderRadius: '10px', border: 'none', cursor: 'pointer' }}>
                           <Phone size={14} /> Call Now
                         </button>
-                        <button onClick={() => handleWhatsAppClick(item)} className="btn" style={{ backgroundColor: '#25d366', color: '#fff', fontSize: '0.82rem', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem', padding: '0.55rem', borderRadius: '10px', border: 'none', cursor: 'pointer' }}>
+                        <button onClick={() => handleWhatsAppClick(item)} className="btn" style={{ backgroundColor: '#25d366', color: '#fff', fontSize: '0.82rem', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem', padding: '0.5rem', borderRadius: '10px', border: 'none', cursor: 'pointer' }}>
                           <MessageSquare size={14} /> WhatsApp
                         </button>
                       </div>
@@ -849,12 +893,12 @@ export default function Home({
                         onClick={() => setSelectedLeadModal(item)}
                         style={{
                           width: '100%',
-                          padding: '0.65rem',
+                          padding: '0.55rem',
                           borderRadius: '10px',
                           backgroundColor: '#eef2ff',
                           border: '1px solid #c7d2fe',
                           color: '#4f46e5',
-                          fontSize: '0.88rem',
+                          fontSize: '0.85rem',
                           fontWeight: 800,
                           cursor: 'pointer',
                           display: 'flex',
