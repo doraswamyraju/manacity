@@ -123,77 +123,94 @@ struct PublicHomeView: View {
                         .padding(.horizontal, 16)
                         .padding(.top, 14)
 
-                        // Search Autocomplete Overlay Dropdown (DB + Google Places) - Parity with Web Version Home.jsx
+                        // Search Autocomplete Overlay Dropdown (DB + Google Places) - JustDial Parity
                         if (!searchSuggestions.isEmpty || isSearchingSuggestions) && !searchText.trimmingCharacters(in: .whitespaces).isEmpty {
-                            VStack(alignment: .leading, spacing: 8) {
+                            VStack(alignment: .leading, spacing: 0) {
                                 HStack {
-                                    Text("Search Results across Tirupati")
-                                        .font(.system(size: 12, weight: .bold))
-                                        .foregroundColor(.manaTextSecondary)
+                                    Text("SEARCH RESULTS IN \(selectedCity.uppercased())")
+                                        .font(.system(size: 11, weight: .black))
+                                        .foregroundColor(.manaViolet)
                                     Spacer()
                                     if isSearchingSuggestions {
-                                        ProgressView().scaleEffect(0.8)
+                                        ProgressView().scaleEffect(0.7)
                                     }
                                 }
-                                .padding(.horizontal, 16)
+                                .padding(.horizontal, 14)
+                                .padding(.top, 10)
+                                .padding(.bottom, 6)
 
                                 ForEach(searchSuggestions) { item in
-                                    HStack(spacing: 12) {
-                                        ZStack {
-                                            Circle()
-                                                .fill(item.isVerified ? Color.green.opacity(0.12) : Color.orange.opacity(0.12))
-                                                .frame(width: 36, height: 36)
-                                            Image(systemName: item.isVerified ? "checkmark.seal.fill" : "mappin.circle.fill")
-                                                .font(.system(size: 16))
-                                                .foregroundColor(item.isVerified ? .green : .orange)
-                                        }
-
-                                        VStack(alignment: .leading, spacing: 2) {
-                                            Text(item.name)
-                                                .font(.system(size: 13, weight: .bold))
-                                                .foregroundColor(.manaTextPrimary)
-                                                .lineLimit(1)
-                                            Text(item.address.isEmpty ? item.category : item.address)
-                                                .font(.system(size: 11))
-                                                .foregroundColor(.manaTextSecondary)
-                                                .lineLimit(1)
-                                        }
-
-                                        Spacer()
-
+                                    Button(action: {
                                         if item.isVerified {
-                                            Button(action: {
-                                                onSelectBusiness(item)
-                                            }) {
-                                                Text("Verified Page")
-                                                    .font(.system(size: 10, weight: .bold))
-                                                    .foregroundColor(.white)
-                                                    .padding(.horizontal, 10)
-                                                    .padding(.vertical, 5)
-                                                    .background(Color.manaViolet)
-                                                    .cornerRadius(8)
-                                            }
+                                            onSelectBusiness(item)
                                         } else {
-                                            Button(action: {
-                                                selectedUnonboardedBusiness = item
-                                            }) {
-                                                Text("Enquire Now")
-                                                    .font(.system(size: 10, weight: .bold))
-                                                    .foregroundColor(.white)
-                                                    .padding(.horizontal, 10)
-                                                    .padding(.vertical, 5)
-                                                    .background(Color.orange)
-                                                    .cornerRadius(8)
-                                            }
+                                            selectedUnonboardedBusiness = item
                                         }
+                                    }) {
+                                        HStack(spacing: 10) {
+                                            VStack(alignment: .leading, spacing: 3) {
+                                                HStack(spacing: 4) {
+                                                    Text(item.name)
+                                                        .font(.system(size: 14, weight: .bold))
+                                                        .foregroundColor(.manaTextPrimary)
+                                                        .lineLimit(1)
+
+                                                    if item.isVerified {
+                                                        HStack(spacing: 2) {
+                                                            Image(systemName: "checkmark.seal.fill")
+                                                                .font(.system(size: 9))
+                                                            Text("Verified")
+                                                                .font(.system(size: 9, weight: .bold))
+                                                        }
+                                                        .foregroundColor(.green)
+                                                        .padding(.horizontal, 5)
+                                                        .padding(.vertical, 2)
+                                                        .background(Color.green.opacity(0.12))
+                                                        .cornerRadius(6)
+                                                    }
+                                                }
+
+                                                HStack(spacing: 4) {
+                                                    if item.rating > 0 {
+                                                        HStack(spacing: 2) {
+                                                            Image(systemName: "star.fill")
+                                                                .font(.system(size: 8))
+                                                                .foregroundColor(.yellow)
+                                                            Text(String(format: "%.1f", item.rating))
+                                                                .font(.system(size: 10, weight: .bold))
+                                                                .foregroundColor(.white)
+                                                        }
+                                                        .padding(.horizontal, 4)
+                                                        .padding(.vertical, 1)
+                                                        .background(Color.green)
+                                                        .cornerRadius(4)
+                                                    }
+
+                                                    Text("• \(item.address.isEmpty ? selectedCity : item.address)")
+                                                        .font(.system(size: 11))
+                                                        .foregroundColor(.manaTextSecondary)
+                                                        .lineLimit(1)
+                                                }
+                                            }
+
+                                            Spacer()
+
+                                            Image(systemName: "chevron.right")
+                                                .font(.system(size: 12, weight: .bold))
+                                                .foregroundColor(.manaTextSecondary)
+                                        }
+                                        .padding(.horizontal, 14)
+                                        .padding(.vertical, 10)
+                                        .background(Color.manaSurfaceDark)
                                     }
-                                    .padding(12)
-                                    .background(Color.manaSurfaceDark)
-                                    .cornerRadius(12)
-                                    .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.manaBorder, lineWidth: 1))
-                                    .padding(.horizontal, 16)
+                                    Divider()
+                                        .padding(.leading, 14)
                                 }
                             }
+                            .background(Color.manaSurfaceDark)
+                            .cornerRadius(14)
+                            .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.manaBorder, lineWidth: 1))
+                            .padding(.horizontal, 16)
                         }
 
                         // Categories Grid
