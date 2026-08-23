@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import SearchBar from './SearchBar';
+import MobileSearchBar from './MobileSearchBar';
 import {
   MapPin,
   Heart,
@@ -143,7 +143,7 @@ export default function MobileHeader({ user, selectedCity = 'tirupati', onCityCh
 
       {/* Row 2: Full Width Mobile SearchBar */}
       <div style={{ padding: '0.5rem 0.85rem' }}>
-        <SearchBar selectedCity={selectedCity} />
+        <MobileSearchBar selectedCity={selectedCity} />
       </div>
 
       {/* Row 3: Horizontal Touch Category Bar */}

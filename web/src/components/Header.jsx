@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import SearchBar from './SearchBar';
+import DesktopSearchBar from './DesktopSearchBar';
 import MobileHeader from './MobileHeader';
 import {
   MapPin,
@@ -153,8 +153,8 @@ export default function Header({ user, selectedCity = 'tirupati', onCityChange }
           </div>
         </div>
 
-        {/* Center: Standalone Modular SearchBar Component */}
-        <SearchBar selectedCity={selectedCity} />
+        {/* Center: Desktop SearchBar Component */}
+        <DesktopSearchBar selectedCity={selectedCity} />
 
         {/* Right Action Controls */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '1.15rem', flexShrink: 0 }}>
