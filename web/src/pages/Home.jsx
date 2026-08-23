@@ -629,31 +629,31 @@ export default function Home({
                   key={item.id}
                   onClick={() => window.open(manacityProfileUrl, '_blank')}
                   style={{
-                    minWidth: '340px',
-                    maxWidth: '340px',
-                    height: '470px',
-                    maxHeight: '470px',
+                    minWidth: '310px',
+                    maxWidth: '310px',
+                    height: '350px',
+                    maxHeight: '350px',
                     backgroundColor: 'var(--bg-secondary)',
-                    borderRadius: '20px',
+                    borderRadius: '16px',
                     border: '1px solid var(--border-color)',
                     overflow: 'hidden',
                     display: 'flex',
                     flexDirection: 'column',
                     justifyContent: 'space-between',
-                    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05)',
+                    boxShadow: '0 4px 15px rgba(0, 0, 0, 0.04)',
                     position: 'relative',
                     cursor: 'pointer',
                     flexShrink: 0,
                     transition: 'transform 0.2s ease, boxShadow 0.2s ease'
                   }}
-                  onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-4px)'}
+                  onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-3px)'}
                   onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
                 >
                   {/* Top Banner Image with Badges */}
                   <div style={{
                     position: 'relative',
-                    height: '135px',
-                    minHeight: '135px',
+                    height: '105px',
+                    minHeight: '105px',
                     width: '100%',
                     backgroundImage: `url(${bannerImg})`,
                     backgroundSize: 'cover',
@@ -662,43 +662,43 @@ export default function Home({
                     <div style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.12)' }} />
                     
                     {/* Category & Verified Badges at Top Left */}
-                    <div style={{ position: 'absolute', top: '12px', left: '12px', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                    <div style={{ position: 'absolute', top: '8px', left: '8px', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
                       <span style={{
-                        fontSize: '0.74rem',
+                        fontSize: '0.68rem',
                         fontWeight: 800,
-                        padding: '0.25rem 0.75rem',
-                        borderRadius: '20px',
+                        padding: '0.18rem 0.55rem',
+                        borderRadius: '16px',
                         backgroundColor: '#eff6ff',
                         color: '#3b82f6',
-                        boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
+                        boxShadow: '0 2px 6px rgba(0,0,0,0.15)'
                       }}>
                         {item.category}
                       </span>
 
                       {item.verified !== false ? (
                         <span style={{
-                          fontSize: '0.72rem',
+                          fontSize: '0.66rem',
                           fontWeight: 800,
-                          padding: '0.25rem 0.65rem',
-                          borderRadius: '20px',
+                          padding: '0.18rem 0.5rem',
+                          borderRadius: '16px',
                           backgroundColor: '#10b981',
                           color: '#ffffff',
                           display: 'inline-flex',
                           alignItems: 'center',
-                          gap: '0.2rem',
-                          boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
+                          gap: '0.15rem',
+                          boxShadow: '0 2px 6px rgba(0,0,0,0.15)'
                         }}>
-                          <ShieldCheck size={12} /> Verified
+                          <ShieldCheck size={11} /> Verified
                         </span>
                       ) : (
                         <span style={{
-                          fontSize: '0.72rem',
+                          fontSize: '0.66rem',
                           fontWeight: 800,
-                          padding: '0.25rem 0.65rem',
-                          borderRadius: '20px',
+                          padding: '0.18rem 0.5rem',
+                          borderRadius: '16px',
                           backgroundColor: '#f59e0b',
                           color: '#ffffff',
-                          boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
+                          boxShadow: '0 2px 6px rgba(0,0,0,0.15)'
                         }}>
                           Unverified
                         </span>
@@ -714,36 +714,36 @@ export default function Home({
                       }}
                       style={{
                         position: 'absolute',
-                        top: '12px',
-                        right: '12px',
+                        top: '8px',
+                        right: '8px',
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '0.25rem',
+                        gap: '0.2rem',
                         backgroundColor: '#fff',
-                        padding: '0.25rem 0.65rem',
-                        borderRadius: '20px',
+                        padding: '0.18rem 0.5rem',
+                        borderRadius: '16px',
                         color: '#d97706',
-                        fontSize: '0.78rem',
+                        fontSize: '0.72rem',
                         fontWeight: 800,
                         cursor: 'pointer',
-                        boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
+                        boxShadow: '0 2px 6px rgba(0,0,0,0.15)'
                       }}
                     >
-                      <Star size={12} fill="#d97706" />
+                      <Star size={11} fill="#d97706" />
                       {item.rating} ({item.reviewCount})
-                      <ExternalLink size={10} color="#d97706" />
+                      <ExternalLink size={9} color="#d97706" />
                     </div>
 
                     {/* Circular Logo Badge Overlapping Banner */}
                     <div style={{
                       position: 'absolute',
-                      bottom: '-24px',
-                      left: '20px',
-                      width: '62px',
-                      height: '62px',
+                      bottom: '-18px',
+                      left: '14px',
+                      width: '46px',
+                      height: '46px',
                       borderRadius: '50%',
-                      border: '3px solid #ffffff',
-                      boxShadow: '0 4px 14px rgba(0,0,0,0.18)',
+                      border: '2.5px solid #ffffff',
+                      boxShadow: '0 3px 10px rgba(0,0,0,0.18)',
                       backgroundColor: '#ffffff',
                       zIndex: 3
                     }}>
@@ -751,7 +751,7 @@ export default function Home({
                         <img src={item.logo || item.logoUrl || item.profilePicture} alt={item.businessName} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
                       ) : (item.category || '').toLowerCase().includes('clinic') || (item.category || '').toLowerCase().includes('health') || (item.category || '').toLowerCase().includes('lab') ? (
                         <div style={{ width: '100%', height: '100%', borderRadius: '50%', backgroundColor: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round">
+                          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M12 2v20M2 12h20M7 7l10 10M17 7L7 17" />
                           </svg>
                         </div>
@@ -765,7 +765,7 @@ export default function Home({
                           alignItems: 'center',
                           justifyContent: 'center',
                           fontWeight: 900,
-                          fontSize: '1.3rem',
+                          fontSize: '1rem',
                           color: '#0d9488',
                           letterSpacing: '-0.5px'
                         }}>
@@ -786,33 +786,33 @@ export default function Home({
                           right: '0px',
                           backgroundColor: '#10b981',
                           borderRadius: '50%',
-                          width: '18px',
-                          height: '18px',
+                          width: '15px',
+                          height: '15px',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          border: '2px solid #ffffff'
+                          border: '1.5px solid #ffffff'
                         }}>
-                          <Check size={10} color="#ffffff" strokeWidth={3.5} />
+                          <Check size={9} color="#ffffff" strokeWidth={3.5} />
                         </div>
                       )}
                     </div>
                   </div>
 
                   {/* Card Content Body */}
-                  <div style={{ padding: '30px 1.25rem 1.25rem 1.25rem', display: 'flex', flexDirection: 'column', flexGrow: 1, justifyContent: 'space-between' }}>
+                  <div style={{ padding: '22px 0.85rem 0.75rem 0.85rem', display: 'flex', flexDirection: 'column', flexGrow: 1, justifyContent: 'space-between' }}>
                     <div>
                       <h3 style={{
-                        fontSize: '1.05rem',
+                        fontSize: '0.95rem',
                         fontWeight: 800,
-                        marginBottom: '0.35rem',
+                        marginBottom: '0.25rem',
                         color: 'var(--text-primary)',
                         display: '-webkit-box',
                         WebkitLineClamp: 2,
                         WebkitBoxOrient: 'vertical',
                         overflow: 'hidden',
-                        lineHeight: 1.3,
-                        height: '2.7rem'
+                        lineHeight: 1.25,
+                        height: '2.3rem'
                       }}>
                         {item.businessName}
                         {item.websiteUrl && (
@@ -822,37 +822,37 @@ export default function Home({
                               window.open(item.websiteUrl, '_blank');
                             }}
                             title="Open external website"
-                            style={{ display: 'inline-flex', cursor: 'pointer', marginLeft: '0.3rem' }}
+                            style={{ display: 'inline-flex', cursor: 'pointer', marginLeft: '0.25rem' }}
                           >
-                            <ExternalLink size={13} color="#0284c7" />
+                            <ExternalLink size={12} color="#0284c7" />
                           </span>
                         )}
                       </h3>
 
                       <p style={{
-                        fontSize: '0.78rem',
+                        fontSize: '0.74rem',
                         color: 'var(--text-secondary)',
                         display: 'flex',
                         alignItems: 'center',
                         gap: '0.35rem',
-                        marginBottom: '0.75rem',
+                        marginBottom: '0.4rem',
                         whiteSpace: 'nowrap',
                         overflow: 'hidden',
                         textOverflow: 'ellipsis'
                       }}>
-                        <MapPin size={13} color="var(--text-muted)" style={{ flexShrink: 0 }} />
+                        <MapPin size={12} color="var(--text-muted)" style={{ flexShrink: 0 }} />
                         <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.address}</span>
                       </p>
 
                       {/* Products & Services Single Row Horizontal Carousel */}
-                      <div style={{ marginBottom: '0.85rem' }}>
-                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.25rem', fontWeight: 600 }}>Products & Services:</span>
+                      <div style={{ marginBottom: '0.5rem' }}>
+                        <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.15rem', fontWeight: 600 }}>Products & Services:</span>
                         <div style={{
                           display: 'flex',
                           flexWrap: 'nowrap',
                           overflowX: 'auto',
-                          gap: '0.35rem',
-                          paddingBottom: '0.25rem',
+                          gap: '0.3rem',
+                          paddingBottom: '0.15rem',
                           scrollbarWidth: 'none',
                           msOverflowStyle: 'none'
                         }}>
@@ -860,11 +860,11 @@ export default function Home({
                             <span
                               key={idx}
                               style={{
-                                fontSize: '0.72rem',
+                                fontSize: '0.68rem',
                                 backgroundColor: 'var(--bg-tertiary, #f1f5f9)',
                                 color: 'var(--text-primary, #0f172a)',
-                                padding: '0.2rem 0.55rem',
-                                borderRadius: '6px',
+                                padding: '0.15rem 0.45rem',
+                                borderRadius: '5px',
                                 border: '1px solid var(--border-color, #cbd5e1)',
                                 fontWeight: 600,
                                 whiteSpace: 'nowrap',
@@ -879,13 +879,13 @@ export default function Home({
                     </div>
 
                     {/* Action Buttons */}
-                    <div onClick={(e) => e.stopPropagation()}>
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                        <button onClick={() => handleCallClick(item)} className="btn" style={{ backgroundColor: '#10b981', color: '#fff', fontSize: '0.82rem', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem', padding: '0.5rem', borderRadius: '10px', border: 'none', cursor: 'pointer' }}>
-                          <Phone size={14} /> Call Now
+                    <div onClick={(e) => e.stopPropagation()} style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.35rem' }}>
+                        <button onClick={() => handleCallClick(item)} className="btn" style={{ backgroundColor: '#10b981', color: '#fff', fontSize: '0.78rem', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.3rem', padding: '0.45rem', borderRadius: '8px', border: 'none', cursor: 'pointer' }}>
+                          <Phone size={13} /> Call Now
                         </button>
-                        <button onClick={() => handleWhatsAppClick(item)} className="btn" style={{ backgroundColor: '#25d366', color: '#fff', fontSize: '0.82rem', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem', padding: '0.5rem', borderRadius: '10px', border: 'none', cursor: 'pointer' }}>
-                          <MessageSquare size={14} /> WhatsApp
+                        <button onClick={() => handleWhatsAppClick(item)} className="btn" style={{ backgroundColor: '#25d366', color: '#fff', fontSize: '0.78rem', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.3rem', padding: '0.45rem', borderRadius: '8px', border: 'none', cursor: 'pointer' }}>
+                          <MessageSquare size={13} /> WhatsApp
                         </button>
                       </div>
 
@@ -893,21 +893,21 @@ export default function Home({
                         onClick={() => setSelectedLeadModal(item)}
                         style={{
                           width: '100%',
-                          padding: '0.55rem',
-                          borderRadius: '10px',
+                          padding: '0.45rem',
+                          borderRadius: '8px',
                           backgroundColor: '#eef2ff',
                           border: '1px solid #c7d2fe',
                           color: '#4f46e5',
-                          fontSize: '0.85rem',
+                          fontSize: '0.78rem',
                           fontWeight: 800,
                           cursor: 'pointer',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          gap: '0.4rem'
+                          gap: '0.3rem'
                         }}
                       >
-                        <Zap size={16} /> Get Best Quote
+                        <Sparkles size={13} color="#4f46e5" /> Get Best Quote
                       </button>
                     </div>
                   </div>
