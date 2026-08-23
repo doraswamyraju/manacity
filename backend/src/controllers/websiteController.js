@@ -3,6 +3,7 @@ const prisma = new PrismaClient();
 const { provisionLetsTrackTenant } = require('../services/letsTrackService');
 const { toPublicWebsiteDTO, toPublicBusinessDTO } = require('../services/dtoService');
 const { resolveBusinessGroupForRequest } = require('../services/tenantService');
+const domainService = require('../services/domainService');
 
 // Helper to slugify domain name
 const slugify = (text) => {
@@ -722,3 +723,106 @@ exports.getManifest = async (req, res) => {
     res.status(500).send('Internal Server Error');
   }
 };
+
+// 8. Connect Custom Domain (BYOD)
+exports.connectCustomDomain = async (req, res) => {
+  try {
+    const ownerId = req.user.id;
+    const { customDomain } = req.body;
+
+    if (!customDomain || !domainService.isValidDomainFormat(customDomain)) {
+      return res.status(400).json({ error: 'Please enter a valid domain name (e.g. rajugariventures.in or www.mycompany.com).' });
+    }
+
+    const cleanDomain = domainService.sanitizeDomain(customDomain);
+
+    // Check if domain is already claimed by another business
+    const existing = await prisma.website.findFirst({
+      where: {
+        customDomain: cleanDomain,
+        businessGroup: { ownerId: { not: ownerId } }
+      }
+    });
+
+    if (existing) {
+      return res.status(400).json({ error: 'This domain is already connected to another business website on ManaCity.' });
+    }
+
+    const businessGroup = await prisma.businessGroup.findFirst({ where: { ownerId } });
+    if (!businessGroup) {
+      return res.status(404).json({ error: 'Business group not found.' });
+    }
+
+    // Save custom domain
+    const website = await prisma.website.update({
+      where: { businessGroupId: businessGroup.id },
+      data: { customDomain: cleanDomain }
+    });
+
+    // Run initial DNS discovery check
+    const dnsStatus = await domainService.verifyDnsRecords(cleanDomain);
+
+    res.json({
+      status: 'success',
+      message: 'Custom domain configured successfully.',
+      website,
+      dnsStatus
+    });
+  } catch (error) {
+    console.error('Connect custom domain error:', error);
+    res.status(500).json({ error: 'Failed to connect custom domain.' });
+  }
+};
+
+// 9. Verify Live DNS Records for Custom Domain
+exports.verifyCustomDomainDns = async (req, res) => {
+  try {
+    const ownerId = req.user.id;
+    const businessGroup = await prisma.businessGroup.findFirst({ where: { ownerId } });
+    if (!businessGroup) {
+      return res.status(404).json({ error: 'Business group not found.' });
+    }
+
+    const website = await prisma.website.findUnique({ where: { businessGroupId: businessGroup.id } });
+    if (!website || !website.customDomain) {
+      return res.status(400).json({ error: 'No custom domain is currently attached to your website.' });
+    }
+
+    const dnsStatus = await domainService.verifyDnsRecords(website.customDomain);
+
+    res.json({
+      status: 'success',
+      customDomain: website.customDomain,
+      dnsStatus
+    });
+  } catch (error) {
+    console.error('Verify custom domain error:', error);
+    res.status(500).json({ error: 'Failed to verify DNS records.' });
+  }
+};
+
+// 10. Disconnect Custom Domain
+exports.disconnectCustomDomain = async (req, res) => {
+  try {
+    const ownerId = req.user.id;
+    const businessGroup = await prisma.businessGroup.findFirst({ where: { ownerId } });
+    if (!businessGroup) {
+      return res.status(404).json({ error: 'Business group not found.' });
+    }
+
+    const website = await prisma.website.update({
+      where: { businessGroupId: businessGroup.id },
+      data: { customDomain: null }
+    });
+
+    res.json({
+      status: 'success',
+      message: 'Custom domain disconnected successfully.',
+      website
+    });
+  } catch (error) {
+    console.error('Disconnect custom domain error:', error);
+    res.status(500).json({ error: 'Failed to disconnect custom domain.' });
+  }
+};
+

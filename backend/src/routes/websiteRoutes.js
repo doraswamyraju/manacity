@@ -9,10 +9,10 @@ router.get('/', auth, websiteController.getWebsite);
 router.get('/:locationId', auth, websiteController.getWebsite);
 router.post('/', auth, websiteController.saveWebsite);
 router.post('/publish', auth, websiteController.saveWebsite);
-router.post('/save', auth, websiteController.saveWebsite);
 router.post('/sections/save', auth, websiteController.saveWebsiteSections);
-
-
+router.post('/domain/connect', auth, websiteController.connectCustomDomain);
+router.post('/domain/verify-dns', auth, websiteController.verifyCustomDomainDns);
+router.post('/domain/disconnect', auth, websiteController.disconnectCustomDomain);
 
 // Public dynamic renderer & SEO files
 router.get('/public/:subdomain', websiteController.renderPublicWebsite);

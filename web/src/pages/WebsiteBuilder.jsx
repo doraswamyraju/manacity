@@ -20,13 +20,23 @@ export default function WebsiteBuilder({ onBack, theme: appTheme }) {
 
   // Editor states
   const [subdomain, setSubdomain] = useState('');
+  const [customDomain, setCustomDomain] = useState('');
   const [theme, setTheme] = useState('default');
   const [primaryColor, setPrimaryColor] = useState('#1976d2');
   const [secondaryColor, setSecondaryColor] = useState('#9c27b0');
   const [font, setFont] = useState('Outfit');
-  const [isPublished, setIsPublished] = useState(false);
   const [logoUrl, setLogoUrl] = useState('');
-  const [previewDevice, setPreviewDevice] = useState('desktop');
+  const [isPublished, setIsPublished] = useState(false);
+  const [previewDevice, setPreviewDevice] = useState('desktop'); // desktop, tablet, mobile
+
+  // Custom Domain BYOD States
+  const [showDomainModal, setShowDomainModal] = useState(false);
+  const [customDomainInput, setCustomDomainInput] = useState('');
+  const [connectingDomain, setConnectingDomain] = useState(false);
+  const [dnsStatus, setDnsStatus] = useState(null);
+  const [verifyingDns, setVerifyingDns] = useState(false);
+  const [domainSuccess, setDomainSuccess] = useState('');
+  const [domainError, setDomainError] = useState('');
 
   // SEO & Analytics
   const [metaTitle, setMetaTitle] = useState('');
@@ -232,6 +242,56 @@ export default function WebsiteBuilder({ onBack, theme: appTheme }) {
     setSections(updated);
   };
 
+  const handleConnectDomain = async () => {
+    if (!customDomainInput || !customDomainInput.trim()) return;
+    setConnectingDomain(true);
+    setDomainError('');
+    setDomainSuccess('');
+    try {
+      const res = await axios.post('/api/website/domain/connect', { customDomain: customDomainInput.trim() });
+      setCustomDomain(res.data.website.customDomain);
+      setDnsStatus(res.data.dnsStatus);
+      setDomainSuccess('Custom domain attached successfully! Complete DNS setup below.');
+    } catch (err) {
+      setDomainError(err.response?.data?.error || 'Failed to connect custom domain.');
+    } finally {
+      setConnectingDomain(false);
+    }
+  };
+
+  const handleVerifyDns = async () => {
+    setVerifyingDns(true);
+    setDomainError('');
+    setDomainSuccess('');
+    try {
+      const res = await axios.post('/api/website/domain/verify-dns');
+      setDnsStatus(res.data.dnsStatus);
+      if (res.data.dnsStatus?.isPointing) {
+        setDomainSuccess('✓ DNS Records Verified! Your custom domain is live and active.');
+      } else {
+        setDomainError('DNS Records not detected yet. Please ensure A Record or CNAME is set in your domain provider.');
+      }
+    } catch (err) {
+      setDomainError(err.response?.data?.error || 'Failed to verify DNS status.');
+    } finally {
+      setVerifyingDns(false);
+    }
+  };
+
+  const handleDisconnectDomain = async () => {
+    if (!window.confirm('Are you sure you want to disconnect your custom domain?')) return;
+    try {
+      await axios.post('/api/website/domain/disconnect');
+      setCustomDomain('');
+      setDnsStatus(null);
+      setDomainSuccess('Custom domain disconnected successfully.');
+      setShowDomainModal(false);
+    } catch (err) {
+      setDomainError('Failed to disconnect domain.');
+    }
+  };
+
+
   if (loading || !businessGroup) {
     return (
       <div className="glass-card" style={{ maxWidth: '600px', width: '100%', padding: '2.5rem', textAlign: 'center' }}>
@@ -289,7 +349,30 @@ export default function WebsiteBuilder({ onBack, theme: appTheme }) {
 
         {/* Domain Config */}
         <div style={editorSectionStyle}>
-          <h3 style={editorHeaderStyle}>Domain & Subdomain</h3>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h3 style={editorHeaderStyle}>Domain & Subdomain</h3>
+            <button 
+              type="button" 
+              onClick={() => {
+                setCustomDomainInput(customDomain || '');
+                setShowDomainModal(true);
+                if (customDomain) handleVerifyDns();
+              }}
+              style={{
+                fontSize: '0.78rem',
+                fontWeight: 800,
+                color: 'var(--accent-primary, #0284c7)',
+                backgroundColor: isAppDark ? 'rgba(2, 132, 199, 0.15)' : '#e0f2fe',
+                border: '1px solid #0284c7',
+                borderRadius: '6px',
+                padding: '0.35rem 0.75rem',
+                cursor: 'pointer'
+              }}
+            >
+              {customDomain ? '🌐 Manage Domain (BYOD)' : '🌐 Connect Existing Domain (BYOD)'}
+            </button>
+          </div>
+
           <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
             <input 
               type="text" 
@@ -300,6 +383,20 @@ export default function WebsiteBuilder({ onBack, theme: appTheme }) {
             />
             <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>.manacity.in</span>
           </div>
+
+          {customDomain && (
+            <div style={{ marginTop: '0.5rem', padding: '0.65rem 0.85rem', backgroundColor: isAppDark ? 'rgba(16, 185, 129, 0.1)' : '#ecfdf5', border: '1px solid #10b981', borderRadius: '8px', fontSize: '0.82rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <strong style={{ color: isAppDark ? '#34d399' : '#047857' }}>Custom Domain:</strong>{' '}
+                <a href={`https://${customDomain}`} target="_blank" rel="noreferrer" style={{ color: 'var(--accent-primary, #0284c7)', fontWeight: 700, textDecoration: 'underline' }}>
+                  {customDomain}
+                </a>
+              </div>
+              <span style={{ color: dnsStatus?.isPointing ? '#10b981' : '#f59e0b', fontWeight: 800 }}>
+                {dnsStatus?.isPointing ? '● Live Active' : '● Pending DNS'}
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Theme Engine Settings */}
@@ -581,6 +678,182 @@ export default function WebsiteBuilder({ onBack, theme: appTheme }) {
           />
         </div>
       </div>
+
+      {/* BYOD Domain Connect Setup Modal */}
+      {showDomainModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.75)',
+          backdropFilter: 'blur(6px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 9999,
+          padding: '1.5rem'
+        }}>
+          <div style={{
+            backgroundColor: isAppDark ? '#0f172a' : '#ffffff',
+            color: isAppDark ? '#ffffff' : '#0f172a',
+            border: `1px solid ${isAppDark ? 'rgba(255,255,255,0.15)' : '#cbd5e1'}`,
+            borderRadius: '16px',
+            width: '100%',
+            maxWidth: '580px',
+            padding: '2rem',
+            boxShadow: '0 20px 50px rgba(0,0,0,0.4)',
+            textAlign: 'left'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+              <h3 style={{ fontSize: '1.3rem', fontWeight: 800, margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                🌐 Connect Existing Custom Domain (BYOD)
+              </h3>
+              <button 
+                type="button" 
+                onClick={() => setShowDomainModal(false)}
+                style={{ background: 'none', border: 'none', color: isAppDark ? '#94a3b8' : '#64748b', fontSize: '1.3rem', cursor: 'pointer', fontWeight: 700 }}
+              >
+                ✕
+              </button>
+            </div>
+
+            <p style={{ fontSize: '0.85rem', color: isAppDark ? '#94a3b8' : '#64748b', marginBottom: '1.25rem', lineHeight: '1.5' }}>
+              Point your existing domain (GoDaddy, Hostinger, Namecheap, BigRock, etc.) to ManaCity for automatic SSL encryption and custom domain routing.
+            </p>
+
+            {domainError && (
+              <div style={{ backgroundColor: 'rgba(239, 68, 68, 0.15)', border: '1px solid #ef4444', color: '#ef4444', padding: '0.75rem 1rem', borderRadius: '10px', fontSize: '0.85rem', fontWeight: 700, marginBottom: '1rem' }}>
+                ⚠️ {domainError}
+              </div>
+            )}
+
+            {domainSuccess && (
+              <div style={{ backgroundColor: 'rgba(16, 185, 129, 0.15)', border: '1px solid #10b981', color: '#10b981', padding: '0.75rem 1rem', borderRadius: '10px', fontSize: '0.85rem', fontWeight: 700, marginBottom: '1rem' }}>
+                {domainSuccess}
+              </div>
+            )}
+
+            {/* Input Domain Form */}
+            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.25rem' }}>
+              <input
+                type="text"
+                value={customDomainInput}
+                onChange={(e) => setCustomDomainInput(e.target.value)}
+                placeholder="e.g. rajugariventures.in or www.mycompany.com"
+                style={dynamicInputStyle}
+              />
+              <button
+                type="button"
+                onClick={handleConnectDomain}
+                disabled={connectingDomain}
+                style={{
+                  backgroundColor: '#0284c7',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '6px',
+                  padding: '0.65rem 1.1rem',
+                  fontWeight: 800,
+                  fontSize: '0.85rem',
+                  cursor: 'pointer',
+                  whiteSpace: 'nowrap'
+                }}
+              >
+                {connectingDomain ? 'Attaching...' : 'Attach Domain'}
+              </button>
+            </div>
+
+            {/* 1-Click GoDaddy DomainConnect Option */}
+            {dnsStatus?.domainConnect?.supported && dnsStatus?.domainConnect?.domainConnectUrl && (
+              <div style={{ backgroundColor: 'rgba(2, 132, 199, 0.12)', border: '1px solid #0284c7', borderRadius: '12px', padding: '1rem', marginBottom: '1.25rem', textAlign: 'center' }}>
+                <div style={{ fontSize: '0.9rem', fontWeight: 800, color: '#38bdf8', marginBottom: '0.4rem' }}>
+                  ⚡ 1-Click Domain Connect Supported for your Registrar!
+                </div>
+                <div style={{ fontSize: '0.8rem', color: isAppDark ? '#cbd5e1' : '#334155', marginBottom: '0.75rem' }}>
+                  Authorize DNS changes automatically without copying IP addresses manually.
+                </div>
+                <a
+                  href={dnsStatus.domainConnect.domainConnectUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  style={{
+                    display: 'inline-block',
+                    backgroundColor: '#10b981',
+                    color: '#ffffff',
+                    padding: '0.55rem 1.25rem',
+                    borderRadius: '8px',
+                    fontWeight: 800,
+                    fontSize: '0.85rem',
+                    textDecoration: 'none'
+                  }}
+                >
+                  ⚡ Authorize via GoDaddy / 1-Click
+                </a>
+              </div>
+            )}
+
+            {/* Guided DNS Setup Copy Cards */}
+            <div style={{ backgroundColor: isAppDark ? '#1e293b' : '#f8fafc', border: `1px solid ${isAppDark ? 'rgba(255,255,255,0.1)' : '#cbd5e1'}`, borderRadius: '12px', padding: '1rem', marginBottom: '1.25rem' }}>
+              <div style={{ fontSize: '0.85rem', fontWeight: 800, marginBottom: '0.75rem', color: isAppDark ? '#f8fafc' : '#0f172a' }}>
+                📋 Required DNS Records (Add in your domain provider dashboard):
+              </div>
+              
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.82rem' }}>
+                {/* A Record */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: isAppDark ? '#0f172a' : '#ffffff', padding: '0.5rem 0.75rem', borderRadius: '6px', border: `1px solid ${isAppDark ? 'rgba(255,255,255,0.06)' : '#e2e8f0'}` }}>
+                  <div>
+                    <span style={{ fontWeight: 800, color: '#e1306c', marginRight: '0.5rem' }}>A Record</span>
+                    <span>Host: <code>@</code> ➔ Value: <code style={{ color: '#0284c7', fontWeight: 700 }}>147.93.107.21</code></span>
+                  </div>
+                  <button type="button" onClick={() => navigator.clipboard.writeText('147.93.107.21')} style={{ fontSize: '0.72rem', padding: '0.2rem 0.5rem', cursor: 'pointer', borderRadius: '4px', border: '1px solid #cbd5e1', backgroundColor: 'transparent', color: isAppDark ? '#fff' : '#0f172a' }}>Copy IP</button>
+                </div>
+
+                {/* CNAME Record */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: isAppDark ? '#0f172a' : '#ffffff', padding: '0.5rem 0.75rem', borderRadius: '6px', border: `1px solid ${isAppDark ? 'rgba(255,255,255,0.06)' : '#e2e8f0'}` }}>
+                  <div>
+                    <span style={{ fontWeight: 800, color: '#a855f7', marginRight: '0.5rem' }}>CNAME</span>
+                    <span>Host: <code>www</code> ➔ Value: <code style={{ color: '#0284c7', fontWeight: 700 }}>domains.manacity.in</code></span>
+                  </div>
+                  <button type="button" onClick={() => navigator.clipboard.writeText('domains.manacity.in')} style={{ fontSize: '0.72rem', padding: '0.2rem 0.5rem', cursor: 'pointer', borderRadius: '4px', border: '1px solid #cbd5e1', backgroundColor: 'transparent', color: isAppDark ? '#fff' : '#0f172a' }}>Copy CNAME</button>
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Actions */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              {customDomain ? (
+                <button
+                  type="button"
+                  onClick={handleDisconnectDomain}
+                  style={{ backgroundColor: 'rgba(239, 68, 68, 0.15)', color: '#ef4444', border: '1px solid #ef4444', padding: '0.55rem 1rem', borderRadius: '8px', fontSize: '0.82rem', fontWeight: 800, cursor: 'pointer' }}
+                >
+                  Disconnect Custom Domain
+                </button>
+              ) : <div />}
+
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <button
+                  type="button"
+                  onClick={handleVerifyDns}
+                  disabled={verifyingDns || !customDomain}
+                  style={{ backgroundColor: '#10b981', color: '#ffffff', border: 'none', padding: '0.55rem 1.1rem', borderRadius: '8px', fontSize: '0.85rem', fontWeight: 800, cursor: 'pointer' }}
+                >
+                  {verifyingDns ? 'Testing DNS...' : 'Verify Live DNS'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowDomainModal(false)}
+                  style={{ backgroundColor: isAppDark ? '#334155' : '#cbd5e1', color: isAppDark ? '#ffffff' : '#0f172a', border: 'none', padding: '0.55rem 1.1rem', borderRadius: '8px', fontSize: '0.85rem', fontWeight: 800, cursor: 'pointer' }}
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      )}
     </div>
   );
 }
