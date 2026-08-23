@@ -468,12 +468,11 @@ exports.renderPublicWebsite = async (req, res) => {
 
     const cleanSub = rawSubdomain.trim().toLowerCase();
 
-    // 1. Try finding website strictly matching subdomain or customDomain
+    // 1. Try finding Website directly by subdomain or customDomain
     let website = await prisma.website.findFirst({
       where: {
         OR: [
           { subdomain: cleanSub },
-          { subdomain: cleanSub.replace(/\./g, '-') },
           { customDomain: cleanSub }
         ]
       },
@@ -498,34 +497,55 @@ exports.renderPublicWebsite = async (req, res) => {
       }
     });
 
-    // 2. If website not found directly by website.subdomain, find BusinessGroup by directoryListing.slug, ID, subdomain, or name slug
+    // 2. If website not found by subdomain, look up DirectoryListing by slug
     if (!website) {
-      let bg = await prisma.businessGroup.findFirst({
-        where: {
-          OR: [
-            { directoryListing: { slug: cleanSub } },
-            { website: { subdomain: cleanSub } },
-            { id: cleanSub.length === 24 ? cleanSub : undefined }
-          ].filter(Boolean)
-        },
+      const dl = await prisma.directoryListing.findFirst({
+        where: { slug: cleanSub },
         include: {
-          directoryListing: true,
-          locations: {
+          businessGroup: {
             include: {
-              reviews: { orderBy: { createdAt: 'desc' } }
+              directoryListing: true,
+              locations: {
+                include: {
+                  reviews: { orderBy: { createdAt: 'desc' } }
+                }
+              },
+              services: {
+                include: { libraryItem: true }
+              },
+              products: {
+                include: { libraryItem: true }
+              }
             }
-          },
-          services: {
-            include: { libraryItem: true }
-          },
-          products: {
-            include: { libraryItem: true }
           }
         }
       });
 
-      // 3. Fallback: Search all business groups by name slug match
-      if (!bg) {
+      let targetBg = dl?.businessGroup;
+
+      // 3. If not found by DirectoryListing, try finding BusinessGroup by ID or name matching
+      if (!targetBg && cleanSub.length === 24) {
+        targetBg = await prisma.businessGroup.findUnique({
+          where: { id: cleanSub },
+          include: {
+            directoryListing: true,
+            locations: {
+              include: {
+                reviews: { orderBy: { createdAt: 'desc' } }
+              }
+            },
+            services: {
+              include: { libraryItem: true }
+            },
+            products: {
+              include: { libraryItem: true }
+            }
+          }
+        }).catch(() => null);
+      }
+
+      // 4. Fallback search across all BusinessGroups by name slug
+      if (!targetBg) {
         const allBgs = await prisma.businessGroup.findMany({
           include: {
             directoryListing: true,
@@ -543,7 +563,7 @@ exports.renderPublicWebsite = async (req, res) => {
           }
         });
 
-        bg = allBgs.find(b => {
+        targetBg = allBgs.find(b => {
           const dlSlug = b.directoryListing?.slug;
           const bgSlug = b.name ? b.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') : '';
           const shortBgSlug = bgSlug.substring(0, 30).replace(/-+$/, '');
@@ -551,17 +571,17 @@ exports.renderPublicWebsite = async (req, res) => {
         });
       }
 
-      if (bg) {
-        // Auto-initialize website for this business group if missing
+      if (targetBg) {
+        // Auto-initialize website for targetBg if missing
         let existingWeb = await prisma.website.findUnique({
-          where: { businessGroupId: bg.id },
+          where: { businessGroupId: targetBg.id },
           include: { sections: { orderBy: { displayOrder: 'asc' } } }
         });
 
         if (!existingWeb) {
           existingWeb = await prisma.website.create({
             data: {
-              businessGroupId: bg.id,
+              businessGroupId: targetBg.id,
               subdomain: cleanSub,
               theme: 'MODERN',
               primaryColor: '#3b82f6',
@@ -569,8 +589,8 @@ exports.renderPublicWebsite = async (req, res) => {
               isPublished: true,
               sections: {
                 create: [
-                  { type: 'HERO', enabled: true, displayOrder: 0, title: `Welcome to ${bg.name}`, subtitle: bg.description || `Official Google Business profile for ${bg.name}.` },
-                  { type: 'ABOUT', enabled: true, displayOrder: 1, title: 'About Us', subtitle: bg.description || `Trusted local provider in ${bg.city || 'Tirupati'}.` },
+                  { type: 'HERO', enabled: true, displayOrder: 0, title: `Welcome to ${targetBg.name}`, subtitle: targetBg.description || `Official Google Business profile for ${targetBg.name}.` },
+                  { type: 'ABOUT', enabled: true, displayOrder: 1, title: 'About Us', subtitle: targetBg.description || `Trusted local provider in ${targetBg.city || 'Tirupati'}.` },
                   { type: 'SERVICES', enabled: true, displayOrder: 2, settings: {} },
                   { type: 'PRODUCTS', enabled: true, displayOrder: 3, settings: {} },
                   { type: 'REVIEWS', enabled: true, displayOrder: 4, settings: {} },
@@ -584,11 +604,11 @@ exports.renderPublicWebsite = async (req, res) => {
         }
 
         website = existingWeb;
-        website.businessGroup = bg;
+        website.businessGroup = targetBg;
       }
     }
 
-    // 4. Ensure website is published so it is never blocked
+    // 5. Auto-publish website if unpublished
     if (website && !website.isPublished) {
       await prisma.website.update({
         where: { id: website.id },
