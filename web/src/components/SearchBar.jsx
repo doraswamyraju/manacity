@@ -278,12 +278,14 @@ export default function SearchBar({ selectedCity = 'tirupati' }) {
                   pointerEvents: 'none',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '0.35rem',
-                  fontSize: '0.86rem',
+                  gap: '0.25rem',
+                  fontSize: '0.82rem',
                   fontWeight: 600,
                   color: '#64748b',
                   whiteSpace: 'nowrap',
                   overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  maxWidth: '100%',
                   animation: 'keywordSlideUp 0.45s ease-out'
                 }}
               >
@@ -291,14 +293,13 @@ export default function SearchBar({ selectedCity = 'tirupati' }) {
                 <span style={{
                   backgroundColor: currentKw.bg,
                   color: currentKw.color,
-                  padding: '0.12rem 0.5rem',
+                  padding: '0.1rem 0.4rem',
                   borderRadius: '8px',
                   fontWeight: 800,
                   border: `1px solid ${currentKw.color}33`
                 }}>
                   {currentKw.highlight}
                 </span>
-                <span>in {cityCap}...</span>
               </div>
             )}
           </div>
