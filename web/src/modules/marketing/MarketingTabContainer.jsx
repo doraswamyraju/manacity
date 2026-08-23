@@ -197,8 +197,17 @@ export default function MarketingTabContainer({ businessGroup, activeTabOverride
     } finally {
       setSubscribingWebhook(false);
     }
+  const handleAiGenerateCaption = () => {
+    const businessName = businessGroup?.name || 'our business';
+    const city = businessGroup?.city || 'Tirupati';
+    const sampleCaptions = [
+      `🚀 Elevate your experience with ${businessName} in ${city}! ✨ We deliver top-quality service, trusted by local customers. Contact us today or visit our profile to learn more! 📲 #${city.replace(/\s+/g, '')} #${businessName.replace(/[^a-zA-Z0-9]/g, '')} #ManaCity #LocalBusiness`,
+      `🌟 Discover why ${businessName} is ${city}'s top choice! High ratings, verified reviews & dedicated customer support. Drop a comment below or tap the link in bio to connect! ⚡ #${city}Services #BusinessGrowth #InstaDaily`,
+      `🔥 Special Update from ${businessName}! We are bringing you exclusive solutions tailored for ${city}. DM us today for instant quotes & details! 📩 #${city}Business #LocalServices #CustomerFirst`
+    ];
+    const randomCap = sampleCaptions[Math.floor(Math.random() * sampleCaptions.length)];
+    setNewCaption(randomCap);
   };
-
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
@@ -207,7 +216,7 @@ export default function MarketingTabContainer({ businessGroup, activeTabOverride
       <div style={{
         display: 'flex',
         gap: '0.65rem',
-        borderBottom: '1px solid rgba(255,255,255,0.08)',
+        borderBottom: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid #cbd5e1',
         paddingBottom: '0.85rem',
         flexWrap: 'wrap'
       }}>
@@ -229,13 +238,14 @@ export default function MarketingTabContainer({ businessGroup, activeTabOverride
                 gap: '0.55rem',
                 padding: '0.65rem 1.15rem',
                 borderRadius: '12px',
-                border: isActive ? `1px solid ${sub.color}` : navBtnBorder,
-                backgroundColor: isActive ? `${sub.color}20` : navBtnBg,
-                color: isActive ? (isDark ? '#fff' : sub.color) : textMuted,
+                border: isActive ? `1.5px solid ${sub.color}` : navBtnBorder,
+                backgroundColor: isActive ? (isDark ? `${sub.color}25` : `${sub.color}15`) : navBtnBg,
+                color: isActive ? (isDark ? '#ffffff' : sub.color) : textMuted,
                 fontSize: '0.88rem',
                 fontWeight: 800,
                 cursor: 'pointer',
-                transition: 'all 0.2s ease'
+                transition: 'all 0.2s ease',
+                boxShadow: isActive ? `0 4px 12px ${sub.color}20` : 'none'
               }}
             >
               <Icon size={18} color={sub.color} />
@@ -261,9 +271,9 @@ export default function MarketingTabContainer({ businessGroup, activeTabOverride
                 gap: '0.55rem',
                 padding: '0.65rem 1.15rem',
                 borderRadius: '12px',
-                border: isActive ? `1px solid ${sub.color}` : navBtnBorder,
-                backgroundColor: isActive ? `${sub.color}20` : navBtnBg,
-                color: isActive ? (isDark ? '#fff' : sub.color) : textMuted,
+                border: isActive ? `1.5px solid ${sub.color}` : navBtnBorder,
+                backgroundColor: isActive ? (isDark ? `${sub.color}25` : `${sub.color}15`) : navBtnBg,
+                color: isActive ? (isDark ? '#ffffff' : sub.color) : textMuted,
                 fontSize: '0.88rem',
                 fontWeight: 800,
                 cursor: 'pointer',
@@ -293,9 +303,9 @@ export default function MarketingTabContainer({ businessGroup, activeTabOverride
                 gap: '0.55rem',
                 padding: '0.65rem 1.15rem',
                 borderRadius: '12px',
-                border: isActive ? `1px solid ${sub.color}` : navBtnBorder,
-                backgroundColor: isActive ? `${sub.color}20` : navBtnBg,
-                color: isActive ? (isDark ? '#fff' : sub.color) : textMuted,
+                border: isActive ? `1.5px solid ${sub.color}` : navBtnBorder,
+                backgroundColor: isActive ? (isDark ? `${sub.color}25` : `${sub.color}15`) : navBtnBg,
+                color: isActive ? (isDark ? '#ffffff' : sub.color) : textMuted,
                 fontSize: '0.88rem',
                 fontWeight: 800,
                 cursor: 'pointer',
@@ -335,32 +345,38 @@ export default function MarketingTabContainer({ businessGroup, activeTabOverride
             justifyContent: 'space-between',
             alignItems: 'center',
             flexWrap: 'wrap',
-            gap: '1rem'
+            gap: '1rem',
+            boxShadow: isDark ? '0 10px 30px rgba(0,0,0,0.3)' : '0 4px 15px rgba(0,0,0,0.03)'
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-              <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
-                <Instagram size={28} />
+              <div style={{ width: '52px', height: '52px', borderRadius: '14px', background: 'linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', boxShadow: '0 6px 18px rgba(225, 48, 108, 0.3)' }}>
+                <Instagram size={30} />
               </div>
               <div>
-                <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: textMain, margin: 0 }}>
-                  Instagram Business Hub {igData?.account?.username && <span style={{ color: '#e1306c', fontSize: '0.95rem' }}>({igData.account.username})</span>}
+                <h3 style={{ fontSize: '1.3rem', fontWeight: 800, color: textMain, margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  Instagram Business Hub 
+                  {igData?.account?.username && (
+                    <span style={{ backgroundColor: 'rgba(225, 48, 108, 0.1)', color: '#e1306c', padding: '0.2rem 0.6rem', borderRadius: '8px', fontSize: '0.85rem', fontWeight: 800 }}>
+                      @{igData.account.username}
+                    </span>
+                  )}
                 </h3>
-                <p style={{ fontSize: '0.85rem', color: textMuted, margin: '0.2rem 0 0 0' }}>
+                <p style={{ fontSize: '0.85rem', color: textMuted, margin: '0.25rem 0 0 0' }}>
                   Manage posts, view live Graph API insights & auto-sync DMs directly to LetsTrack live chat.
                 </p>
               </div>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
               {/* Sync Status Badge */}
               <div style={{
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.4rem',
-                backgroundColor: igData?.syncStatus === 'LIVE' ? 'rgba(16, 185, 129, 0.15)' : (igData?.syncStatus === 'PARTIAL' ? 'rgba(245, 158, 11, 0.15)' : 'rgba(239, 68, 68, 0.15)'),
-                border: `1px solid ${igData?.syncStatus === 'LIVE' ? 'rgba(16, 185, 129, 0.3)' : (igData?.syncStatus === 'PARTIAL' ? 'rgba(245, 158, 11, 0.3)' : 'rgba(239, 68, 68, 0.3)')}`,
-                color: igData?.syncStatus === 'LIVE' ? '#34d399' : (igData?.syncStatus === 'PARTIAL' ? '#fbbf24' : '#f87171'),
-                padding: '0.4rem 0.85rem',
+                backgroundColor: igData?.syncStatus === 'LIVE' ? (isDark ? 'rgba(16, 185, 129, 0.15)' : '#ecfdf5') : (igData?.syncStatus === 'PARTIAL' ? (isDark ? 'rgba(245, 158, 11, 0.15)' : '#fffbeb') : (isDark ? 'rgba(239, 68, 68, 0.15)' : '#fef2f2')),
+                border: `1px solid ${igData?.syncStatus === 'LIVE' ? '#10b981' : (igData?.syncStatus === 'PARTIAL' ? '#f59e0b' : '#ef4444')}`,
+                color: igData?.syncStatus === 'LIVE' ? (isDark ? '#34d399' : '#047857') : (igData?.syncStatus === 'PARTIAL' ? (isDark ? '#fbbf24' : '#b45309') : (isDark ? '#f87171' : '#b91c1c')),
+                padding: '0.45rem 0.9rem',
                 borderRadius: '20px',
                 fontSize: '0.82rem',
                 fontWeight: 800
@@ -368,24 +384,26 @@ export default function MarketingTabContainer({ businessGroup, activeTabOverride
                 ● Sync: {igData?.syncStatus || 'UNKNOWN'}
               </div>
 
+              {/* Refresh Button - Clean Contrast Fix for Light Mode */}
               <button
                 onClick={fetchInstagramStats}
                 disabled={loadingIg}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '0.4rem',
-                  backgroundColor: 'rgba(255,255,255,0.08)',
-                  border: '1px solid rgba(255,255,255,0.15)',
+                  gap: '0.45rem',
+                  backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : '#f1f5f9',
+                  border: isDark ? '1px solid rgba(255,255,255,0.15)' : '1px solid #cbd5e1',
                   borderRadius: '10px',
-                  padding: '0.5rem 0.85rem',
-                  color: '#fff',
+                  padding: '0.55rem 0.95rem',
+                  color: textMain,
                   fontSize: '0.82rem',
-                  fontWeight: 700,
-                  cursor: 'pointer'
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease'
                 }}
               >
-                <RefreshCw size={14} className={loadingIg ? 'animate-spin' : ''} />
+                <RefreshCw size={14} color={isDark ? '#38bdf8' : '#0284c7'} className={loadingIg ? 'animate-spin' : ''} />
                 {loadingIg ? 'Syncing...' : 'Refresh Meta Stats'}
               </button>
 
@@ -395,26 +413,26 @@ export default function MarketingTabContainer({ businessGroup, activeTabOverride
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '0.4rem',
-                  backgroundColor: 'rgba(16, 185, 129, 0.2)',
-                  border: '1px solid #10b981',
+                  gap: '0.45rem',
+                  backgroundColor: isDark ? 'rgba(16, 185, 129, 0.2)' : '#10b981',
+                  border: 'none',
                   borderRadius: '10px',
-                  padding: '0.5rem 0.9rem',
-                  color: '#34d399',
+                  padding: '0.55rem 1rem',
+                  color: '#ffffff',
                   fontSize: '0.82rem',
                   fontWeight: 800,
                   cursor: 'pointer',
-                  boxShadow: '0 4px 12px rgba(16, 185, 129, 0.2)'
+                  boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)'
                 }}
               >
-                <Zap size={14} color="#34d399" />
+                <Zap size={14} color="#ffffff" />
                 {subscribingWebhook ? 'Subscribing...' : 'Subscribe DMs to LetsTrack'}
               </button>
             </div>
           </div>
 
           {webhookSuccessMsg && (
-            <div style={{ backgroundColor: 'rgba(16, 185, 129, 0.15)', border: '1px solid rgba(16, 185, 129, 0.3)', color: '#34d399', padding: '0.75rem 1rem', borderRadius: '10px', fontSize: '0.85rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <div style={{ backgroundColor: isDark ? 'rgba(16, 185, 129, 0.15)' : '#ecfdf5', border: '1px solid #10b981', color: isDark ? '#34d399' : '#047857', padding: '0.75rem 1rem', borderRadius: '10px', fontSize: '0.85rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <CheckCircle2 size={18} /> {webhookSuccessMsg}
             </div>
           )}
@@ -428,9 +446,9 @@ export default function MarketingTabContainer({ businessGroup, activeTabOverride
               <div><strong>Graph API Version:</strong> {igData?.diagnostics?.apiVersion || 'v24.0'}</div>
               <div><strong>Page ID (Masked):</strong> {igData?.diagnostics?.pageIdMasked || 'N/A'}</div>
               <div><strong>Instagram Account ID (Masked):</strong> {igData?.diagnostics?.instagramIdMasked || 'N/A'}</div>
-              <div><strong>Sync Status:</strong> <span style={{ color: igData?.syncStatus === 'LIVE' ? '#34d399' : '#fbbf24' }}>{igData?.syncStatus || 'N/A'}</span></div>
+              <div><strong>Sync Status:</strong> <span style={{ color: igData?.syncStatus === 'LIVE' ? '#10b981' : '#f59e0b' }}>{igData?.syncStatus || 'N/A'}</span></div>
               <div><strong>Last Sync:</strong> {igData?.lastUpdated ? new Date(igData.lastUpdated).toLocaleTimeString() : 'N/A'}</div>
-              <div><strong>Error Details:</strong> <span style={{ color: '#f87171' }}>{igData?.diagnostics?.lastError ? `${igData.diagnostics.lastError} (Code: ${igData.diagnostics.errorCode || 'N/A'}, Type: ${igData.diagnostics.errorType || 'N/A'}, Trace: ${igData.diagnostics.fbtraceId || 'N/A'})` : 'None'}</span></div>
+              <div><strong>Error Details:</strong> <span style={{ color: '#ef4444' }}>{igData?.diagnostics?.lastError ? `${igData.diagnostics.lastError} (Code: ${igData.diagnostics.errorCode || 'N/A'}, Type: ${igData.diagnostics.errorType || 'N/A'}, Trace: ${igData.diagnostics.fbtraceId || 'N/A'})` : 'None'}</span></div>
             </div>
           </details>
 
@@ -505,24 +523,48 @@ export default function MarketingTabContainer({ businessGroup, activeTabOverride
             </div>
           )}
 
-          {/* Content Creation & Scheduled Post Form */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr', gap: '1.5rem' }}>
+          {/* Content Studio & Live Instagram Mobile Feed Mockup Preview */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: '1.5rem' }}>
             
-            {/* Create / Schedule Post Card */}
+            {/* Create / Schedule Post Form */}
             <div style={{ backgroundColor: cardBg, borderRadius: '16px', padding: '1.5rem', border: cardBorder }}>
-              <h4 style={{ fontSize: '1.1rem', fontWeight: 800, color: textMain, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <Send size={18} color="#e1306c" /> Create & Schedule Instagram Post
-              </h4>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                <h4 style={{ fontSize: '1.1rem', fontWeight: 800, color: textMain, margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <Send size={18} color="#e1306c" /> Create & Schedule Instagram Post
+                </h4>
+                <button
+                  type="button"
+                  onClick={handleAiGenerateCaption}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.4rem',
+                    backgroundColor: isDark ? 'rgba(168, 85, 247, 0.15)' : '#f3e8ff',
+                    border: '1px solid #a855f7',
+                    borderRadius: '8px',
+                    padding: '0.4rem 0.75rem',
+                    color: isDark ? '#c084fc' : '#7e22ce',
+                    fontSize: '0.78rem',
+                    fontWeight: 800,
+                    cursor: 'pointer'
+                  }}
+                >
+                  <Sparkles size={14} color="#a855f7" /> AI Caption Assistant
+                </button>
+              </div>
 
               {publishMessage && (
-                <div style={{ backgroundColor: 'rgba(16, 185, 129, 0.15)', border: '1px solid rgba(16, 185, 129, 0.3)', color: '#34d399', padding: '0.75rem 1rem', borderRadius: '10px', fontSize: '0.85rem', fontWeight: 700, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <div style={{ backgroundColor: isDark ? 'rgba(16, 185, 129, 0.15)' : '#ecfdf5', border: '1px solid #10b981', color: isDark ? '#34d399' : '#047857', padding: '0.75rem 1rem', borderRadius: '10px', fontSize: '0.85rem', fontWeight: 700, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <CheckCircle2 size={18} /> {publishMessage}
                 </div>
               )}
 
               <form onSubmit={handlePublishPost} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 <div>
-                  <label style={{ fontSize: '0.82rem', fontWeight: 700, color: textMuted, display: 'block', marginBottom: '0.35rem' }}>Post Caption</label>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.35rem' }}>
+                    <label style={{ fontSize: '0.82rem', fontWeight: 700, color: textMuted }}>Post Caption</label>
+                    <span style={{ fontSize: '0.75rem', color: textMuted }}>{newCaption.length}/2200</span>
+                  </div>
                   <textarea
                     rows={4}
                     value={newCaption}
@@ -533,12 +575,12 @@ export default function MarketingTabContainer({ businessGroup, activeTabOverride
                 </div>
 
                 <div>
-                  <label style={{ fontSize: '0.82rem', fontWeight: 700, color: textMuted, display: 'block', marginBottom: '0.35rem' }}>Image / Video URL</label>
+                  <label style={{ fontSize: '0.82rem', fontWeight: 700, color: textMuted, display: 'block', marginBottom: '0.35rem' }}>Image / Video Media URL</label>
                   <input
                     type="url"
                     value={mediaUrl}
                     onChange={(e) => setMediaUrl(e.target.value)}
-                    placeholder="https://images.unsplash.com/..."
+                    placeholder="https://images.unsplash.com/photo-..."
                     style={{ width: '100%', backgroundColor: inputBg, border: inputBorder, borderRadius: '10px', padding: '0.65rem', color: textMain, fontSize: '0.88rem', outline: 'none' }}
                   />
                 </div>
@@ -557,19 +599,20 @@ export default function MarketingTabContainer({ businessGroup, activeTabOverride
                   type="submit"
                   disabled={publishing}
                   style={{
-                    backgroundColor: '#e1306c',
-                    color: '#fff',
+                    background: 'linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366)',
+                    color: '#ffffff',
                     border: 'none',
                     borderRadius: '10px',
-                    padding: '0.8rem',
+                    padding: '0.85rem',
                     fontWeight: 800,
-                    fontSize: '0.9rem',
+                    fontSize: '0.92rem',
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     gap: '0.5rem',
-                    marginTop: '0.5rem'
+                    marginTop: '0.5rem',
+                    boxShadow: '0 4px 15px rgba(225, 48, 108, 0.3)'
                   }}
                 >
                   {publishing ? <RefreshCw size={18} className="animate-spin" /> : <><Send size={18} /> {scheduledDate ? 'Schedule Post' : 'Publish Live Now'}</>}
@@ -577,48 +620,90 @@ export default function MarketingTabContainer({ businessGroup, activeTabOverride
               </form>
             </div>
 
-            {/* Existing Posts Feed Grid */}
-            <div style={{ backgroundColor: cardBg, borderRadius: '16px', padding: '1.5rem', border: cardBorder }}>
-              <h4 style={{ fontSize: '1.1rem', fontWeight: 800, color: textMain, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <Instagram size={18} color="#e1306c" /> Recent Published Media & Activity
-              </h4>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                {[...(igData?.content?.posts || []), ...(igData?.content?.reels || [])].map(post => (
-                  <div key={post.id} style={{ display: 'flex', gap: '1rem', backgroundColor: innerCardBg, borderRadius: '12px', padding: '0.85rem', border: inputBorder }}>
-                    <img src={post.mediaUrl} alt="IG Post" style={{ width: '80px', height: '80px', borderRadius: '8px', objectFit: 'cover' }} />
-                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                      <p style={{ fontSize: '0.85rem', color: textMain, margin: 0, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', lineHeight: 1.4 }}>
-                        {post.caption}
-                      </p>
-
-                      <div style={{ display: 'flex', gap: '1.25rem', color: textMuted, fontSize: '0.78rem', fontWeight: 700, marginTop: '0.5rem' }}>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', color: '#f43f5e' }}>
-                          <Heart size={14} /> {post.metrics?.likes?.value !== undefined && post.metrics?.likes?.value !== null ? post.metrics.likes.value : 0} Likes
-                        </span>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', color: '#38bdf8' }}>
-                          <MessageCircle size={14} /> {post.metrics?.comments?.value !== undefined && post.metrics?.comments?.value !== null ? post.metrics.comments.value : 0} Comments
-                        </span>
-                        <span>{post.timestamp ? new Date(post.timestamp).toLocaleDateString('en-IN') : ''}</span>
-                      </div>
-                    </div>
+            {/* Real-time Instagram Phone Feed Mockup */}
+            <div style={{ backgroundColor: cardBg, borderRadius: '16px', padding: '1.25rem', border: cardBorder, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <div style={{ fontSize: '0.82rem', fontWeight: 800, color: textMuted, marginBottom: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.4rem', width: '100%' }}>
+                <Eye size={16} color="#e1306c" /> Instagram Feed Live Mockup
+              </div>
+              
+              <div style={{ width: '100%', maxWidth: '290px', backgroundColor: isDark ? '#020617' : '#ffffff', borderRadius: '20px', border: isDark ? '1px solid rgba(255,255,255,0.15)' : '1px solid #cbd5e1', overflow: 'hidden', boxShadow: isDark ? '0 12px 30px rgba(0,0,0,0.4)' : '0 8px 24px rgba(0,0,0,0.08)' }}>
+                {/* Header */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.65rem 0.85rem', borderBottom: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid #f1f5f9' }}>
+                  <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366)', padding: '2px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <img src={businessGroup?.logoUrl || '/logo.png'} onError={(e)=>{e.target.src='/logo.png'}} alt="Logo" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
                   </div>
-                ))}
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: '0.78rem', fontWeight: 800, color: textMain }}>{igData?.account?.username || 'your_business'}</div>
+                    <div style={{ fontSize: '0.68rem', color: textMuted }}>{businessGroup?.city || 'Tirupati'} • Official</div>
+                  </div>
+                </div>
+                {/* Media Image */}
+                <div style={{ width: '100%', height: '210px', backgroundColor: isDark ? '#1e293b' : '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                  {mediaUrl ? (
+                    <img src={mediaUrl} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e)=>{e.target.style.display='none'}} />
+                  ) : (
+                    <div style={{ textAlign: 'center', color: textMuted, padding: '1rem' }}>
+                      <ImageIcon size={36} color="#e1306c" style={{ opacity: 0.5, marginBottom: '0.3rem' }} />
+                      <div style={{ fontSize: '0.75rem', fontWeight: 600 }}>Media Image Preview</div>
+                    </div>
+                  )}
+                </div>
+                {/* Action Icons */}
+                <div style={{ display: 'flex', gap: '0.75rem', padding: '0.6rem 0.85rem', color: textMain }}>
+                  <Heart size={18} color="#f43f5e" />
+                  <MessageCircle size={18} />
+                  <Share2 size={18} />
+                </div>
+                {/* Caption Text */}
+                <div style={{ padding: '0 0.85rem 0.85rem 0.85rem', fontSize: '0.75rem', color: textMain, lineHeight: '1.35', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                  <strong style={{ marginRight: '0.4rem' }}>{igData?.account?.username || 'your_business'}</strong>
+                  {newCaption || 'Your engaging Instagram post caption will appear here... #Tirupati #ManaCity'}
+                </div>
               </div>
             </div>
 
+          </div>
+
+          {/* Existing Posts Feed Grid */}
+          <div style={{ backgroundColor: cardBg, borderRadius: '16px', padding: '1.5rem', border: cardBorder }}>
+            <h4 style={{ fontSize: '1.1rem', fontWeight: 800, color: textMain, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Instagram size={18} color="#e1306c" /> Recent Published Media & Activity
+            </h4>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              {[...(igData?.content?.posts || []), ...(igData?.content?.reels || [])].map(post => (
+                <div key={post.id} style={{ display: 'flex', gap: '1rem', backgroundColor: innerCardBg, borderRadius: '12px', padding: '0.85rem', border: inputBorder }}>
+                  <img src={post.mediaUrl} alt="IG Post" style={{ width: '80px', height: '80px', borderRadius: '8px', objectFit: 'cover' }} />
+                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                    <p style={{ fontSize: '0.85rem', color: textMain, margin: 0, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', lineHeight: 1.4 }}>
+                      {post.caption}
+                    </p>
+
+                    <div style={{ display: 'flex', gap: '1.25rem', color: textMuted, fontSize: '0.78rem', fontWeight: 700, marginTop: '0.5rem' }}>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', color: '#f43f5e' }}>
+                        <Heart size={14} /> {post.metrics?.likes?.value !== undefined && post.metrics?.likes?.value !== null ? post.metrics.likes.value : 0} Likes
+                      </span>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', color: '#38bdf8' }}>
+                        <MessageCircle size={14} /> {post.metrics?.comments?.value !== undefined && post.metrics?.comments?.value !== null ? post.metrics.comments.value : 0} Comments
+                      </span>
+                      <span>{post.timestamp ? new Date(post.timestamp).toLocaleDateString('en-IN') : ''}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
 
           {/* Live Comments & Response Manager Card */}
           <div style={{ backgroundColor: cardBg, borderRadius: '16px', padding: '1.5rem', border: cardBorder }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
               <h4 style={{ fontSize: '1.1rem', fontWeight: 800, color: textMain, margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <MessageSquare size={18} color="#34d399" /> Real-time Meta Post Comments & Response Console
+                <MessageSquare size={18} color="#10b981" /> Real-time Meta Post Comments & Response Console
               </h4>
               <button
                 onClick={fetchMetaComments}
                 disabled={loadingComments}
-                style={{ padding: '0.4rem 0.8rem', borderRadius: '8px', border: inputBorder, backgroundColor: innerCardBg, color: textMain, fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer' }}
+                style={{ padding: '0.45rem 0.9rem', borderRadius: '8px', border: inputBorder, backgroundColor: innerCardBg, color: textMain, fontSize: '0.78rem', fontWeight: 800, cursor: 'pointer' }}
               >
                 {loadingComments ? 'Refreshing...' : 'Refresh Comments'}
               </button>
@@ -633,10 +718,37 @@ export default function MarketingTabContainer({ businessGroup, activeTabOverride
                 {comments.map(c => (
                   <div key={c.commentId} style={{ backgroundColor: innerCardBg, borderRadius: '12px', padding: '1rem', border: inputBorder }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.35rem' }}>
-                      <strong style={{ color: '#38bdf8', fontSize: '0.88rem' }}>{c.senderName}</strong>
+                      <strong style={{ color: '#0284c7', fontSize: '0.88rem' }}>{c.senderName}</strong>
                       <span style={{ fontSize: '0.75rem', color: textMuted }}>{c.createdTime ? new Date(c.createdTime).toLocaleString() : ''}</span>
                     </div>
                     <p style={{ fontSize: '0.85rem', color: textMain, margin: '0 0 0.75rem 0' }}>"{c.text}"</p>
+
+                    {/* Quick Reply Chips */}
+                    <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap', marginBottom: '0.6rem' }}>
+                      {[
+                        "Thanks for reaching out! DM us for pricing details. 📲",
+                        "Thank you! Visit our website for full catalog & details. ✨",
+                        "We appreciate your feedback! Have a great day. 😊"
+                      ].map((tpl, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => setReplyTextMap(prev => ({ ...prev, [c.commentId]: tpl }))}
+                          style={{
+                            backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : '#f1f5f9',
+                            border: isDark ? '1px solid rgba(255,255,255,0.12)' : '1px solid #cbd5e1',
+                            borderRadius: '6px',
+                            padding: '0.25rem 0.55rem',
+                            fontSize: '0.72rem',
+                            fontWeight: 600,
+                            color: textMuted,
+                            cursor: 'pointer'
+                          }}
+                        >
+                          + {tpl.substring(0, 24)}...
+                        </button>
+                      ))}
+                    </div>
 
                     <div style={{ display: 'flex', gap: '0.5rem' }}>
                       <input
@@ -649,7 +761,7 @@ export default function MarketingTabContainer({ businessGroup, activeTabOverride
                       <button
                         onClick={() => handleReplyComment(c.commentId)}
                         disabled={replyingId === c.commentId}
-                        style={{ padding: '0.5rem 1rem', borderRadius: '8px', border: 'none', backgroundColor: '#10b981', color: '#fff', fontSize: '0.78rem', fontWeight: 800, cursor: 'pointer' }}
+                        style={{ padding: '0.5rem 1rem', borderRadius: '8px', border: 'none', backgroundColor: '#10b981', color: '#ffffff', fontSize: '0.78rem', fontWeight: 800, cursor: 'pointer' }}
                       >
                         {replyingId === c.commentId ? 'Sending...' : 'Reply'}
                       </button>
