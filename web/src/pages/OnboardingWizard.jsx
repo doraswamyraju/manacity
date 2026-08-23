@@ -963,8 +963,8 @@ function StepBusinessDetails({ initialData, onNext, onBack }) {
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-        <label style={{ fontSize: '0.9rem', fontWeight: 500 }}>Payment Methods</label>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+        <label style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-primary, #0f172a)' }}>Payment Methods Accepted</label>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.6rem' }}>
           {allPaymentMethods.map(method => {
             const selected = paymentMethods.includes(method);
             return (
@@ -973,16 +973,19 @@ function StepBusinessDetails({ initialData, onNext, onBack }) {
                 type="button"
                 onClick={() => handlePaymentToggle(method)}
                 style={{
-                  padding: '0.4rem 0.8rem',
-                  borderRadius: 'var(--radius-sm)',
-                  border: '1px solid var(--border-color)',
-                  backgroundColor: selected ? 'var(--accent-primary)' : 'rgba(255, 255, 255, 0.03)',
-                  color: '#fff',
+                  padding: '0.5rem 1rem',
+                  borderRadius: '10px',
+                  border: selected ? '2px solid #2563eb' : '1px solid #cbd5e1',
+                  backgroundColor: selected ? '#2563eb' : '#f8fafc',
+                  color: selected ? '#ffffff' : '#0f172a',
+                  fontWeight: selected ? 800 : 600,
                   cursor: 'pointer',
-                  fontSize: '0.85rem'
+                  fontSize: '0.85rem',
+                  boxShadow: selected ? '0 4px 12px rgba(37, 99, 235, 0.25)' : 'none',
+                  transition: 'all 0.15s ease'
                 }}
               >
-                {method}
+                {selected ? `✓ ${method}` : `+ ${method}`}
               </button>
             );
           })}
