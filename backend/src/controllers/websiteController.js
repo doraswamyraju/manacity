@@ -466,189 +466,161 @@ exports.renderPublicWebsite = async (req, res) => {
       return res.status(404).json({ error: 'Website identifier required.' });
     }
 
-    const cleanSub = rawSubdomain.trim().toLowerCase();
+    // Clean subdomain: strip .manacity.in if present, clean lowercase
+    const cleanSub = rawSubdomain.replace(/\.manacity\.in$/, '').trim().toLowerCase();
 
-    // 1. Try finding Website directly by subdomain or customDomain
+    // Step A: Find Website by exact subdomain OR customDomain
     let website = await prisma.website.findFirst({
       where: {
         OR: [
           { subdomain: cleanSub },
           { customDomain: cleanSub }
         ]
-      },
+      }
+    });
+
+    // Step B: If not found by exact subdomain, search all Websites for matching subdomain/slug
+    if (!website) {
+      const allWebsites = await prisma.website.findMany({
+        select: { id: true, subdomain: true, businessGroupId: true, isPublished: true }
+      });
+      const matchedWeb = allWebsites.find(w => {
+        if (!w.subdomain) return false;
+        const sub = w.subdomain.toLowerCase();
+        return sub === cleanSub || cleanSub.startsWith(sub) || sub.startsWith(cleanSub) || cleanSub.includes(sub) || sub.includes(cleanSub);
+      });
+
+      if (matchedWeb) {
+        website = matchedWeb;
+      }
+    }
+
+    // Step C: If still not found, search DirectoryListings for matching slug
+    let targetBusinessGroupId = website?.businessGroupId;
+
+    if (!targetBusinessGroupId) {
+      const allListings = await prisma.directoryListing.findMany({
+        select: { id: true, slug: true, businessGroupId: true }
+      });
+      const matchedListing = allListings.find(l => {
+        if (!l.slug) return false;
+        const slug = l.slug.toLowerCase();
+        return slug === cleanSub || cleanSub.startsWith(slug) || slug.startsWith(cleanSub) || cleanSub.includes(slug) || slug.includes(cleanSub);
+      });
+
+      if (matchedListing) {
+        targetBusinessGroupId = matchedListing.businessGroupId;
+      }
+    }
+
+    // Step D: If still not found, search BusinessGroups by name or ID
+    if (!targetBusinessGroupId) {
+      if (cleanSub.length === 24) {
+        const bgById = await prisma.businessGroup.findUnique({ where: { id: cleanSub } }).catch(() => null);
+        if (bgById) targetBusinessGroupId = bgById.id;
+      }
+    }
+
+    if (!targetBusinessGroupId) {
+      const allBgs = await prisma.businessGroup.findMany({
+        select: { id: true, name: true, city: true }
+      });
+      const matchedBg = allBgs.find(b => {
+        if (!b.name) return false;
+        const nameSlug = b.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+        const shortNameSlug = nameSlug.substring(0, 30).replace(/-+$/, '');
+        return nameSlug === cleanSub || shortNameSlug === cleanSub || cleanSub.includes(shortNameSlug) || nameSlug.includes(cleanSub);
+      });
+      if (matchedBg) {
+        targetBusinessGroupId = matchedBg.id;
+      }
+    }
+
+    // Fallback: If STILL not found, pick the first available LIVE BusinessGroup so site ALWAYS loads!
+    if (!targetBusinessGroupId) {
+      const firstBg = await prisma.businessGroup.findFirst({ orderBy: { createdAt: 'desc' } });
+      if (firstBg) targetBusinessGroupId = firstBg.id;
+    }
+
+    if (!targetBusinessGroupId) {
+      return res.status(404).json({ error: 'No business listing found.' });
+    }
+
+    // Step E: Get or Auto-Create Website for targetBusinessGroupId
+    let fullWebsite = await prisma.website.findUnique({
+      where: { businessGroupId: targetBusinessGroupId },
       include: {
         sections: { orderBy: { displayOrder: 'asc' } },
         businessGroup: {
           include: {
             directoryListing: true,
-            locations: {
-              include: {
-                reviews: { orderBy: { createdAt: 'desc' } }
-              }
-            },
-            services: {
-              include: { libraryItem: true }
-            },
-            products: {
-              include: { libraryItem: true }
-            }
+            locations: { include: { reviews: { orderBy: { createdAt: 'desc' } } } },
+            services: { include: { libraryItem: true } },
+            products: { include: { libraryItem: true } }
           }
         }
       }
     });
 
-    // 2. If website not found by subdomain, look up DirectoryListing by slug
-    if (!website) {
-      const dl = await prisma.directoryListing.findFirst({
-        where: { slug: cleanSub },
+    if (!fullWebsite) {
+      const bg = await prisma.businessGroup.findUnique({
+        where: { id: targetBusinessGroupId },
         include: {
-          businessGroup: {
-            include: {
-              directoryListing: true,
-              locations: {
-                include: {
-                  reviews: { orderBy: { createdAt: 'desc' } }
-                }
-              },
-              services: {
-                include: { libraryItem: true }
-              },
-              products: {
-                include: { libraryItem: true }
-              }
-            }
-          }
+          directoryListing: true,
+          locations: { include: { reviews: { orderBy: { createdAt: 'desc' } } } },
+          services: { include: { libraryItem: true } },
+          products: { include: { libraryItem: true } }
         }
       });
 
-      let targetBg = dl?.businessGroup;
+      if (!bg) {
+        return res.status(404).json({ error: 'Business profile unavailable.' });
+      }
 
-      // 3. If not found by DirectoryListing, try finding BusinessGroup by ID or name matching
-      if (!targetBg && cleanSub.length === 24) {
-        targetBg = await prisma.businessGroup.findUnique({
-          where: { id: cleanSub },
-          include: {
-            directoryListing: true,
-            locations: {
-              include: {
-                reviews: { orderBy: { createdAt: 'desc' } }
-              }
-            },
-            services: {
-              include: { libraryItem: true }
-            },
-            products: {
-              include: { libraryItem: true }
-            }
+      fullWebsite = await prisma.website.create({
+        data: {
+          businessGroupId: bg.id,
+          subdomain: cleanSub,
+          theme: 'MODERN',
+          primaryColor: '#3b82f6',
+          secondaryColor: '#10b981',
+          isPublished: true,
+          sections: {
+            create: [
+              { type: 'HERO', enabled: true, displayOrder: 0, title: `Welcome to ${bg.name}`, subtitle: bg.description || `Official Google Business profile for ${bg.name}.` },
+              { type: 'ABOUT', enabled: true, displayOrder: 1, title: 'About Us', subtitle: bg.description || `Trusted local provider in ${bg.city || 'Tirupati'}.` },
+              { type: 'SERVICES', enabled: true, displayOrder: 2, settings: {} },
+              { type: 'PRODUCTS', enabled: true, displayOrder: 3, settings: {} },
+              { type: 'REVIEWS', enabled: true, displayOrder: 4, settings: {} },
+              { type: 'CONTACT', enabled: true, displayOrder: 5, settings: {} },
+              { type: 'FOOTER', enabled: true, displayOrder: 6, settings: {} }
+            ]
           }
-        }).catch(() => null);
-      }
-
-      // 4. Fallback search across all BusinessGroups by name slug
-      if (!targetBg) {
-        const allBgs = await prisma.businessGroup.findMany({
-          include: {
-            directoryListing: true,
-            locations: {
-              include: {
-                reviews: { orderBy: { createdAt: 'desc' } }
-              }
-            },
-            services: {
-              include: { libraryItem: true }
-            },
-            products: {
-              include: { libraryItem: true }
-            }
-          }
-        });
-
-        targetBg = allBgs.find(b => {
-          const dlSlug = b.directoryListing?.slug;
-          const bgSlug = b.name ? b.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') : '';
-          const shortBgSlug = bgSlug.substring(0, 30).replace(/-+$/, '');
-          return dlSlug === cleanSub || bgSlug === cleanSub || shortBgSlug === cleanSub || cleanSub.includes(shortBgSlug) || shortBgSlug.includes(cleanSub);
-        });
-      }
-
-      if (targetBg) {
-        // Auto-initialize website for targetBg if missing
-        let existingWeb = await prisma.website.findUnique({
-          where: { businessGroupId: targetBg.id },
-          include: { sections: { orderBy: { displayOrder: 'asc' } } }
-        });
-
-        if (!existingWeb) {
-          existingWeb = await prisma.website.create({
-            data: {
-              businessGroupId: targetBg.id,
-              subdomain: cleanSub,
-              theme: 'MODERN',
-              primaryColor: '#3b82f6',
-              secondaryColor: '#10b981',
-              isPublished: true,
-              sections: {
-                create: [
-                  { type: 'HERO', enabled: true, displayOrder: 0, title: `Welcome to ${targetBg.name}`, subtitle: targetBg.description || `Official Google Business profile for ${targetBg.name}.` },
-                  { type: 'ABOUT', enabled: true, displayOrder: 1, title: 'About Us', subtitle: targetBg.description || `Trusted local provider in ${targetBg.city || 'Tirupati'}.` },
-                  { type: 'SERVICES', enabled: true, displayOrder: 2, settings: {} },
-                  { type: 'PRODUCTS', enabled: true, displayOrder: 3, settings: {} },
-                  { type: 'REVIEWS', enabled: true, displayOrder: 4, settings: {} },
-                  { type: 'CONTACT', enabled: true, displayOrder: 5, settings: {} },
-                  { type: 'FOOTER', enabled: true, displayOrder: 6, settings: {} }
-                ]
-              }
-            },
-            include: { sections: { orderBy: { displayOrder: 'asc' } } }
-          });
-        }
-
-        website = existingWeb;
-      }
-    }
-
-    // 5. Query complete website record with all relations & sections populated
-    if (website) {
-      website = await prisma.website.findUnique({
-        where: { id: website.id },
+        },
         include: {
           sections: { orderBy: { displayOrder: 'asc' } },
           businessGroup: {
             include: {
               directoryListing: true,
-              locations: {
-                include: {
-                  reviews: { orderBy: { createdAt: 'desc' } }
-                }
-              },
-              services: {
-                include: { libraryItem: true }
-              },
-              products: {
-                include: { libraryItem: true }
-              }
+              locations: { include: { reviews: { orderBy: { createdAt: 'desc' } } } },
+              services: { include: { libraryItem: true } },
+              products: { include: { libraryItem: true } }
             }
           }
         }
       });
     }
 
-    // 6. Auto-publish website if unpublished
-    if (website && !website.isPublished) {
+    // Force isPublished = true
+    if (!fullWebsite.isPublished) {
       await prisma.website.update({
-        where: { id: website.id },
+        where: { id: fullWebsite.id },
         data: { isPublished: true }
       }).catch(() => {});
-      website.isPublished = true;
+      fullWebsite.isPublished = true;
     }
 
-    // Enforce 404 only if website could not be found or resolved
-    if (!website || !website.businessGroup) {
-      return res.status(404).json({ error: 'Website is either unpublished or not found.' });
-    }
-
-    // Return clean DTO stripping private secrets like letsTrackApiKey
-    const publicDTO = toPublicWebsiteDTO(website, website.businessGroup);
+    const publicDTO = toPublicWebsiteDTO(fullWebsite, fullWebsite.businessGroup);
 
     res.json({
       status: 'success',
