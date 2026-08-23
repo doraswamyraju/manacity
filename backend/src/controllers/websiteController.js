@@ -622,13 +622,14 @@ exports.renderPublicWebsite = async (req, res) => {
     }
 
     const publicDTO = toPublicWebsiteDTO(fullWebsite, fullWebsite.businessGroup);
+    const publicBusinessDTO = toPublicBusinessDTO(fullWebsite.businessGroup);
 
     res.json({
       status: 'success',
       website: publicDTO,
-      businessGroup: publicDTO.businessGroup,
-      services: publicDTO.businessGroup?.services || [],
-      products: publicDTO.businessGroup?.products || []
+      businessGroup: publicBusinessDTO,
+      services: publicBusinessDTO?.services || [],
+      products: publicBusinessDTO?.products || []
     });
   } catch (error) {
     console.error('Render public site error:', error);
