@@ -221,7 +221,7 @@ exports.getOnboardingState = async (req, res) => {
     const targetBusinessGroupId = req.query.businessGroupId || req.query.targetBusinessGroupId;
 
     let businessGroup = null;
-    if (targetBusinessGroupId) {
+    if (targetBusinessGroupId && targetBusinessGroupId !== 'NEW') {
       businessGroup = await prisma.businessGroup.findUnique({
         where: { id: targetBusinessGroupId },
         include: {
@@ -233,6 +233,8 @@ exports.getOnboardingState = async (req, res) => {
           locations: true
         }
       });
+    } else if (targetBusinessGroupId === 'NEW') {
+      businessGroup = null;
     } else {
       businessGroup = await prisma.businessGroup.findFirst({
         where: { ownerId },
@@ -301,9 +303,13 @@ exports.saveOnboardingStep = async (req, res) => {
     }
 
     let businessGroup = null;
-    if (targetBusinessGroupId) {
+    if (targetBusinessGroupId && targetBusinessGroupId !== 'NEW') {
       businessGroup = await prisma.businessGroup.findUnique({
         where: { id: targetBusinessGroupId }
+      });
+    } else if (targetBusinessGroupId === 'NEW' || req.body.isNewProfile) {
+      businessGroup = await prisma.businessGroup.create({
+        data: { name: data.name || `${req.user.name}'s Business`, ownerId }
       });
     } else {
       businessGroup = await prisma.businessGroup.findFirst({

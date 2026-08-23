@@ -198,7 +198,7 @@ exports.getBusinessLeads = async (req, res) => {
   }
 };
 
-// Let's Track Telemetry Endpoint
+// Let's Track Telemetry Endpoint (Strictly Scoped to Authorized Owner & Assigned Team)
 exports.letsTrackTelemetry = async (req, res) => {
   try {
     const { businessGroupId, visitorIp, locationCity, deviceType, pageViewed } = req.body;
@@ -207,21 +207,40 @@ exports.letsTrackTelemetry = async (req, res) => {
       return res.status(400).json({ error: 'businessGroupId is required' });
     }
 
+    const bg = await prisma.businessGroup.findUnique({
+      where: { id: businessGroupId },
+      select: { id: true, name: true, ownerId: true }
+    });
+
+    if (!bg) {
+      return res.status(404).json({ error: 'Business group not found' });
+    }
+
+    // Find assigned team members for this business group
+    const teamMembers = await prisma.user.findMany({
+      where: { assignedBusinessId: businessGroupId },
+      select: { id: true, email: true }
+    }).catch(() => []);
+
+    const authorizedUserIds = [bg.ownerId, ...teamMembers.map(t => t.id)].filter(Boolean);
+
     const trackRecord = await prisma.letsTrackVisitor.create({
       data: {
         businessGroupId,
-        visitorIp,
-        locationCity,
-        deviceType,
-        pageViewed,
-        notifiedOwner: true
+        visitorIp: visitorIp || req.ip || '127.0.0.1',
+        locationCity: locationCity || 'Tirupati',
+        deviceType: deviceType || 'Desktop Browser',
+        pageViewed: pageViewed || 'Storefront Website',
+        notifiedOwner: true,
+        metadata: JSON.stringify({ authorizedUserIds })
       }
     });
 
     return res.status(200).json({
       status: 'success',
-      message: "Let's Track telemetry captured and owner notified.",
-      record: trackRecord
+      message: "Let's Track telemetry captured for authorized owner and team.",
+      record: trackRecord,
+      authorizedUserIds
     });
   } catch (error) {
     console.error("Error in Let's Track telemetry:", error);

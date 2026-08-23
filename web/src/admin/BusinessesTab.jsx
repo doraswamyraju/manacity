@@ -789,7 +789,7 @@ function BusinessesTab({ businesses, setBusinesses, searchQuery, setSearchQuery,
 
         <button
           onClick={() => {
-            setWizardBusinessId(null);
+            setWizardBusinessId('NEW');
             setShowWizardModal(true);
           }}
           style={{
