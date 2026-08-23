@@ -167,9 +167,10 @@ function App() {
       <Route path="/site/:subdomain" element={<PublicBusinessWebsite />} />
 
 
-      {/* Auth Routes */}
+      {/* Auth & Landing Routes */}
       <Route path="/login" element={<Login onAuthSuccess={handleAuthSuccess} onNavigateToRegister={() => navigate('/register')} />} />
-      <Route path="/register" element={<Register onAuthSuccess={handleAuthSuccess} onNavigateToLogin={() => navigate('/login')} />} />
+      <Route path="/register" element={<Register onAuthSuccess={handleAuthSuccess} onNavigateToLogin={() => navigate('/login')} user={user} />} />
+      <Route path="/list-your-business" element={<Register onAuthSuccess={handleAuthSuccess} onNavigateToLogin={() => navigate('/login')} user={user} />} />
 
       {/* Compliance / Landing Pages */}
       <Route path="/privacy" element={<PrivacyPolicy />} />
