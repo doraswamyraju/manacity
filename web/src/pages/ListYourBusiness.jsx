@@ -103,47 +103,65 @@ export default function ListYourBusiness({ onAuthSuccess, onNavigateToLogin, use
       description: 'Get the official ManaCity Verified Shield badge on your profile to build instant trust with 400% higher customer conversions.'
     },
     {
-      icon: Globe,
+      icon: MessageSquare,
       color: '#2563eb',
       bg: '#eff6ff',
-      title: 'Free Storefront & Website',
-      description: 'Get a mobile-optimized business webpage (yourname.manacity.in) complete with product catalog, gallery, map, and WhatsApp ordering.'
+      title: 'Unified Multi-Channel Inbox',
+      description: 'Centralize all customer enquiries, WhatsApp messages, phone calls, and lead quotes into one unified inbox in your Admin Console.'
+    },
+    {
+      icon: TrendingUp,
+      color: '#7c3aed',
+      bg: '#f5f3ff',
+      title: 'Lead Management System (LMS)',
+      description: 'Track customer leads through a visual sales pipeline (NEW → CONTACTED → QUOTED → WON) with automated follow-up alerts.'
+    },
+    {
+      icon: Globe,
+      color: '#0284c7',
+      bg: '#f0f9ff',
+      title: 'Meta Assets & Ads Campaign Hub',
+      description: 'Connect your Facebook Page, Instagram profile & Meta Pixel to launch hyper-targeted local ad campaigns right from ManaCity.'
     },
     {
       icon: Zap,
       color: '#d97706',
       bg: '#fffbeb',
-      title: 'Direct Instant Leads (0% Commission)',
-      description: 'Customers connect with you directly via WhatsApp and Phone. No middlemen, no commission fees on sales.'
+      title: 'LetsTrack GPS & Field Staff Tracking',
+      description: 'Track your service technicians, delivery staff, and field team live in real-time with integrated LetsTrack GPS tracking.'
     },
     {
       icon: Star,
-      color: '#7c3aed',
-      bg: '#f5f3ff',
+      color: '#ec4899',
+      bg: '#fdf2f8',
       title: 'Auto Google Reviews & QR Standees',
-      description: 'Generate print-ready QR code posters for your shop counter to collect 5-star Google Reviews automatically from customers.'
+      description: 'Generate print-ready QR code standees for your shop counter to collect 5-star Google Reviews automatically from customers.'
     },
     {
       icon: Search,
-      color: '#0284c7',
-      bg: '#f0f9ff',
-      title: 'Local Area Search Dominance',
+      color: '#10b981',
+      bg: '#ecfdf5',
+      title: 'Local SEO & Search Dominance',
       description: 'Rank #1 on ManaCity search when customers in Tirupati, Hyderabad, Vijayawada & Vizag search for your products or services.'
     },
     {
-      icon: TrendingUp,
-      color: '#ea580c',
-      bg: '#fff7ed',
-      title: 'Business Analytics & Lead Tracking',
-      description: 'Track customer views, enquiry calls, quote requests, and performance metrics in your dedicated Business Admin Console.'
+      icon: Building2,
+      color: '#8b5cf6',
+      bg: '#f5f3ff',
+      title: 'Free Custom Storefront Website',
+      description: 'Get a mobile-optimized business website (yourname.manacity.in) complete with product catalog, photo gallery, and WhatsApp ordering.'
     }
   ];
 
   const comparisonItems = [
-    { feature: 'Direct Customer Calls & WhatsApp', manacity: 'YES (Instant 0% Commission)', traditional: 'No (Masked Numbers / Paid Calls)' },
+    { feature: 'Direct Phone & WhatsApp Customer Leads', manacity: 'YES (Instant 0% Commission)', traditional: 'No (Masked Numbers / Paid Calls)' },
+    { feature: 'Unified Multi-Channel Customer Inbox', manacity: 'YES (WhatsApp, Calls, DMs & Quotes)', traditional: 'Not Provided' },
+    { feature: 'Lead Management System (LMS Pipeline)', manacity: 'YES (Visual Pipeline & Follow-ups)', traditional: 'Not Provided' },
+    { feature: 'LetsTrack Live GPS Field Staff Tracking', manacity: 'YES (Integrated Tracking)', traditional: 'Not Provided' },
+    { feature: 'Meta (Facebook & IG) Ad Manager Integration', manacity: 'YES (Asset Hub & Campaigns)', traditional: 'Not Provided' },
     { feature: 'Verified Business Shield Badge', manacity: 'YES (Free Verification)', traditional: 'Expensive Premium Upgrade' },
-    { feature: 'Free Mobile Storefront Website', manacity: 'YES (subdomain.manacity.in)', traditional: 'Not Provided' },
-    { feature: 'Google Review QR Standee Generator', manacity: 'YES (Print-Ready Posters)', traditional: 'Not Provided' },
+    { feature: 'Free Storefront Website (subdomain.manacity.in)', manacity: 'YES (Free Mobile Webpage)', traditional: 'Not Provided' },
+    { feature: 'Google Review QR Poster Generator', manacity: 'YES (Print-Ready Standees)', traditional: 'Not Provided' },
     { feature: 'Commission Fee per Lead/Sale', manacity: '0% (Zero Commission)', traditional: '15% to 30% Commission' }
   ];
 
