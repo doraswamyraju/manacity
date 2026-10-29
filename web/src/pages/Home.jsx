@@ -274,7 +274,8 @@ export default function Home({
         background: 'linear-gradient(180deg, #e0f2fe 0%, #f0f7ff 60%, #ffffff 100%)',
         padding: '3.5rem 1.5rem 4rem',
         borderBottom: '1px solid #e2e8f0',
-        overflow: 'hidden'
+        overflow: 'visible',
+        zIndex: 50
       }}>
         {/* Subtle decorative background watermarks */}
         <div style={{
@@ -363,7 +364,7 @@ export default function Home({
             </div>
 
             {/* Hero Main Search Box: Using the EXACT IDENTICAL DesktopSearchBar with Rainbow Glow */}
-            <div ref={heroSearchRef} style={{ position: 'relative', maxWidth: '620px' }}>
+            <div ref={heroSearchRef} style={{ position: 'relative', maxWidth: '620px', zIndex: 100 }}>
               <DesktopSearchBar
                 selectedCity={selectedCity}
                 customStyle={{ flex: '1 1 auto', width: '100%', maxWidth: '100%' }}

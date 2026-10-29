@@ -62,7 +62,7 @@ const parseAddressParts = (rawAddr) => {
   return { city, state, pinCode, country, street };
 };
 
-// Google Places Autocomplete API (Live Type-Ahead Predictions)
+// Google Places Autocomplete & Smart Text Search API
 exports.autocompleteGooglePlaces = async (req, res) => {
   try {
     const { input } = req.query;
@@ -72,11 +72,22 @@ exports.autocompleteGooglePlaces = async (req, res) => {
       return res.status(200).json({ predictions: [] });
     }
 
+    const trimmedInput = input.trim();
+
     if (apiKey) {
+      // 1. Try Places API (New v1) Autocomplete with Tirupati Location Biasing
       try {
         const apiRes = await axios.post(
           'https://places.googleapis.com/v1/places:autocomplete',
-          { input: input.trim() },
+          {
+            input: trimmedInput,
+            locationBias: {
+              circle: {
+                center: { latitude: 13.6288, longitude: 79.4192 },
+                radius: 45000.0 // 45km radius around Tirupati & Chittoor district
+              }
+            }
+          },
           {
             headers: {
               'Content-Type': 'application/json',
@@ -98,45 +109,62 @@ exports.autocompleteGooglePlaces = async (req, res) => {
           }
         }
       } catch (newErr) {
-        console.warn('Places API (New v1) autocomplete warning, trying legacy:', newErr.message);
-        try {
-          const legacyRes = await axios.get(`https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(input)}&key=${apiKey}`);
-          if (legacyRes.data && legacyRes.data.status === 'OK' && legacyRes.data.predictions) {
-            const predictions = legacyRes.data.predictions.map(p => ({
-              placeId: p.place_id,
-              name: p.structured_formatting?.main_text || p.description,
-              description: p.description
-            }));
-            if (predictions.length > 0) {
-              return res.status(200).json({ predictions });
+        console.warn('Places API (New v1) autocomplete warning:', newErr.message);
+      }
+
+      // 2. Fallback to Places Text Search (e.g. finds 'Sri Garuda Paints and Hardwares' when searching 'garuda paints tirupati')
+      try {
+        const searchText = trimmedInput.toLowerCase().includes('tirupati') ? trimmedInput : `${trimmedInput} Tirupati`;
+        const textSearchRes = await axios.post(
+          'https://places.googleapis.com/v1/places:searchText',
+          {
+            textQuery: searchText,
+            locationBias: {
+              circle: {
+                center: { latitude: 13.6288, longitude: 79.4192 },
+                radius: 45000.0
+              }
+            }
+          },
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              'X-Goog-Api-Key': apiKey,
+              'X-Goog-FieldMask': 'places.id,places.displayName,places.formattedAddress'
             }
           }
-        } catch (legacyErr) {
-          console.warn('Legacy Places Autocomplete warning:', legacyErr.message);
+        );
+
+        if (textSearchRes.data?.places && textSearchRes.data.places.length > 0) {
+          const textPredictions = textSearchRes.data.places.slice(0, 5).map(p => ({
+            placeId: p.id,
+            name: p.displayName?.text || trimmedInput,
+            description: p.formattedAddress || 'Tirupati, Andhra Pradesh'
+          }));
+          return res.status(200).json({ predictions: textPredictions });
         }
+      } catch (txtErr) {
+        console.warn('Places TextSearch fallback warning:', txtErr.message);
+      }
+
+      // 3. Legacy TextSearch fallback
+      try {
+        const legacyRes = await axios.get(`https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(trimmedInput + ' Tirupati')}&key=${apiKey}`);
+        if (legacyRes.data?.results && legacyRes.data.results.length > 0) {
+          const legacyPredictions = legacyRes.data.results.slice(0, 5).map(p => ({
+            placeId: p.place_id,
+            name: p.name,
+            description: p.formatted_address
+          }));
+          return res.status(200).json({ predictions: legacyPredictions });
+        }
+      } catch (legErr) {
+        console.warn('Legacy Places Search warning:', legErr.message);
       }
     }
 
-    // Smart Fallback predictions if Google API returns empty or key is missing
-    const formatted = input
-      .split(' ')
-      .map(w => w.charAt(0).toUpperCase() + w.slice(1))
-      .join(' ');
-    
-    const fallbackPredictions = [
-      {
-        placeId: `gp-${Date.now()}-1`,
-        name: formatted,
-        description: `${formatted}, Commercial Hub, Tirupati, Andhra Pradesh, India`
-      },
-      {
-        placeId: `gp-${Date.now()}-2`,
-        name: `${formatted} Outlet & Services`,
-        description: `Main Road, Near Railway Station, Tirupati, Andhra Pradesh, India`
-      }
-    ];
-
-    return res.status(200).json({ predictions: fallbackPredictions });
+    // Never return fake dummy data — return empty array so UI cleanly triggers the "Manual Onboarding" option
+    return res.status(200).json({ predictions: [] });
   } catch (error) {
     console.error('Autocomplete error:', error);
     return res.status(200).json({ predictions: [] });

@@ -272,14 +272,36 @@ function StepBusinessInfo({ initialData, onNext, onAutoFill }) {
       <h3 style={{ fontSize: '1.35rem', fontWeight: 800, color: 'var(--text-primary, #0f172a)' }}>Step 1: Business Information & Google Places Import</h3>
       
       {/* Google Places 1-Click Auto Import Box */}
-      <div style={{ backgroundColor: 'rgba(99, 102, 241, 0.08)', border: '1.5px solid #6366f1', padding: '1rem', borderRadius: '10px', marginBottom: '0.5rem' }}>
-        <label style={{ fontSize: '0.85rem', fontWeight: 700, color: '#6366f1', display: 'block', marginBottom: '0.4rem' }}>
-          ⚡ 1-Click Import from Google Places API
-        </label>
+      <div style={{ backgroundColor: 'rgba(99, 102, 241, 0.08)', border: '1.5px solid #6366f1', padding: '1.25rem', borderRadius: '12px', marginBottom: '1rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.4rem' }}>
+          <label style={{ fontSize: '0.85rem', fontWeight: 700, color: '#6366f1' }}>
+            ⚡ 1-Click Import from Google Places API (Auto-fills Name, Address & Ratings)
+          </label>
+          <button
+            type="button"
+            onClick={() => {
+              setShowDropdown(false);
+              const nameEl = document.getElementById('manual-business-name');
+              if (nameEl) nameEl.focus();
+            }}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: '#4f46e5',
+              fontSize: '0.78rem',
+              fontWeight: 700,
+              cursor: 'pointer',
+              textDecoration: 'underline'
+            }}
+          >
+            Don't have a Google Profile? Fill Manually ↓
+          </button>
+        </div>
+
         <div style={{ display: 'flex', gap: '0.5rem', position: 'relative' }}>
           <input
             type="text"
-            placeholder="Type your business name (e.g. Rajugari Ventures)..."
+            placeholder="Search business name in Tirupati (e.g. Sri Garuda Paints, Rajugari Ventures)..."
             value={placesQuery}
             onChange={e => {
               setPlacesQuery(e.target.value);
@@ -315,12 +337,12 @@ function StepBusinessInfo({ initialData, onNext, onAutoFill }) {
               boxShadow: '0 12px 30px rgba(0,0,0,0.18)',
               zIndex: 9999,
               marginTop: '6px',
-              maxHeight: '250px',
+              maxHeight: '260px',
               overflowY: 'auto'
             }}>
               {searchingPredictions && (
                 <div style={{ padding: '0.6rem 0.8rem', fontSize: '0.8rem', color: '#6366f1', fontWeight: 700 }}>
-                  🔍 Searching Google Places matching profiles...
+                  🔍 Searching Google Places in Tirupati...
                 </div>
               )}
               {predictions.map((p) => (
@@ -345,9 +367,39 @@ function StepBusinessInfo({ initialData, onNext, onAutoFill }) {
           )}
         </div>
 
+        {/* Helper when profile is not found */}
+        {showDropdown && !searchingPredictions && predictions.length === 0 && placesQuery.trim().length >= 3 && (
+          <div style={{ marginTop: '0.75rem', padding: '0.65rem', backgroundColor: '#fef3c7', borderRadius: '8px', border: '1px solid #fde68a', fontSize: '0.82rem', color: '#92400e' }}>
+            <span>Profile not showing on Google? No worries! Click below to enter your business details manually.</span>
+            <button
+              type="button"
+              onClick={() => {
+                setName(placesQuery.trim());
+                setShowDropdown(false);
+                const descEl = document.getElementById('manual-business-name');
+                if (descEl) descEl.focus();
+              }}
+              style={{
+                display: 'block',
+                marginTop: '0.35rem',
+                backgroundColor: '#d97706',
+                color: '#ffffff',
+                border: 'none',
+                borderRadius: '6px',
+                padding: '0.3rem 0.75rem',
+                fontSize: '0.78rem',
+                fontWeight: 700,
+                cursor: 'pointer'
+              }}
+            >
+              Use "{placesQuery}" & Fill Manually
+            </button>
+          </div>
+        )}
+
         {importSuccess && (
           <span style={{ fontSize: '0.85rem', color: '#10b981', marginTop: '0.5rem', display: 'block', fontWeight: 600 }}>
-            ✓ Successfully imported business name, address & rating from Google Places! Redirecting...
+            ✓ Successfully imported business name, address & rating from Google Places!
           </span>
         )}
       </div>
