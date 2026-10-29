@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import Header from '../components/Header';
+import DesktopSearchBar from '../components/DesktopSearchBar';
 import ClaimBusinessModal from '../components/ClaimBusinessModal';
 import UnonboardedEnquiryModal from '../components/UnonboardedEnquiryModal';
 import PhoneCollectionModal from '../components/PhoneCollectionModal';
@@ -34,7 +35,9 @@ import {
   Send,
   X,
   QrCode,
-  Tag
+  Tag,
+  Compass,
+  Briefcase
 } from 'lucide-react';
 
 export default function Home({
@@ -46,7 +49,6 @@ export default function Home({
   onNavigateToSuperAdmin,
   user
 }) {
-  const [query, setQuery] = useState('');
   const [selectedCity, setSelectedCity] = useState('tirupati');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [listings, setListings] = useState([]);
@@ -79,11 +81,6 @@ export default function Home({
   const [quoteSubmitted, setQuoteSubmitted] = useState(false);
   const [quoteSubmitting, setQuoteSubmitting] = useState(false);
 
-  // Top search suggestions
-  const [suggestions, setSuggestions] = useState([]);
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const [searchingSuggestions, setSearchingSuggestions] = useState(false);
-
   const [leadForm, setLeadForm] = useState({ name: '', phone: '', email: '', message: '' });
   const [leadSubmitted, setLeadSubmitted] = useState(false);
 
@@ -99,7 +96,6 @@ export default function Home({
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-        // When hero search bar leaves viewport (scrolled past), show search bar in sticky header
         setShowHeaderSearch(!entry.isIntersecting);
       },
       { threshold: 0.1 }
@@ -114,7 +110,7 @@ export default function Home({
     setLoading(true);
     try {
       const res = await axios.get(
-        `/api/phase1/directory/${selectedCity}/all?query=${encodeURIComponent(query)}&category=${encodeURIComponent(selectedCategory)}`
+        `/api/phase1/directory/${selectedCity}/all?category=${encodeURIComponent(selectedCategory)}`
       );
       setListings(res.data?.listings || []);
     } catch (err) {
@@ -137,43 +133,6 @@ export default function Home({
     }
     setSelectedCity(city);
   };
-
-  // Autocomplete / Search suggestions
-  useEffect(() => {
-    if (!query || query.trim().length < 2) {
-      setSuggestions([]);
-      setShowSuggestions(false);
-      return;
-    }
-
-    const timer = setTimeout(async () => {
-      setSearchingSuggestions(true);
-      try {
-        const unifiedRes = await axios.get(
-          `/api/phase1/search-unified?city=${encodeURIComponent(selectedCity)}&query=${encodeURIComponent(query)}`
-        );
-        const mItems = (unifiedRes.data?.masterItems || []).map(m => ({
-          id: m.id || m.slug,
-          businessName: m.name,
-          category: m.category || 'Service',
-          isMasterItem: true,
-          slug: m.slug
-        }));
-        const bItems = (unifiedRes.data?.businesses || []).map(b => ({
-          ...b,
-          isVerifiedManaCity: true
-        }));
-        setSuggestions([...mItems, ...bItems]);
-        setShowSuggestions(true);
-      } catch (err) {
-        console.error('Search error:', err);
-      } finally {
-        setSearchingSuggestions(false);
-      }
-    }, 250);
-
-    return () => clearTimeout(timer);
-  }, [query, selectedCity]);
 
   // Auth Guard for Leads
   const handleEnquiryAuthGuard = (actionCallback) => {
@@ -312,7 +271,7 @@ export default function Home({
       {/* 2. Hero Section - Tirupati Regional Hub with rich scenic background */}
       <section style={{
         position: 'relative',
-        background: 'linear-gradient(180deg, #e8f4fc 0%, #f4f9fd 50%, #ffffff 100%)',
+        background: 'linear-gradient(180deg, #e0f2fe 0%, #f0f7ff 60%, #ffffff 100%)',
         padding: '3.5rem 1.5rem 4rem',
         borderBottom: '1px solid #e2e8f0',
         overflow: 'hidden'
@@ -403,149 +362,38 @@ export default function Home({
               </span>
             </div>
 
-            {/* Hero Main Search Box with ref for Scroll Detection */}
+            {/* Hero Main Search Box: Using the EXACT IDENTICAL DesktopSearchBar with Rainbow Glow */}
             <div ref={heroSearchRef} style={{ position: 'relative', maxWidth: '620px' }}>
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                backgroundColor: '#ffffff',
-                border: '2px solid #2563eb',
-                borderRadius: '50px',
-                padding: '0.45rem 0.6rem 0.45rem 1.25rem',
-                boxShadow: '0 12px 30px -5px rgba(37, 99, 235, 0.2)',
-                gap: '0.75rem'
-              }}>
-                <Search size={22} color="#64748b" />
-                <input
-                  type="text"
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === 'Enter') fetchListings(); }}
-                  placeholder="Search for AC repair, restaurants, doctors, real estate..."
-                  style={{
-                    flex: 1,
-                    border: 'none',
-                    outline: 'none',
-                    fontSize: '0.94rem',
-                    color: '#0f172a',
-                    fontWeight: 500,
-                    backgroundColor: 'transparent'
-                  }}
-                />
-
-                {/* City Locked Indicator */}
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.3rem',
-                  padding: '0.4rem 0.85rem',
-                  backgroundColor: '#f1f5f9',
-                  borderRadius: '20px',
-                  fontSize: '0.82rem',
-                  fontWeight: 800,
-                  color: '#0f172a'
-                }}>
-                  <MapPin size={14} color="#2563eb" />
-                  <span>Tirupati</span>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={fetchListings}
-                  style={{
-                    backgroundColor: '#2563eb',
-                    color: '#ffffff',
-                    border: 'none',
-                    borderRadius: '40px',
-                    padding: '0.75rem 1.6rem',
-                    fontSize: '0.94rem',
-                    fontWeight: 800,
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.4rem',
-                    transition: 'all 0.2s',
-                    boxShadow: '0 4px 14px rgba(37, 99, 235, 0.35)'
-                  }}
-                >
-                  Search
-                </button>
-              </div>
-
-              {/* Autocomplete Dropdown */}
-              {showSuggestions && suggestions.length > 0 && (
-                <div style={{
-                  position: 'absolute',
-                  top: '115%',
-                  left: 0,
-                  right: 0,
-                  backgroundColor: '#ffffff',
-                  borderRadius: '16px',
-                  boxShadow: '0 20px 40px rgba(0,0,0,0.14)',
-                  border: '1px solid #e2e8f0',
-                  zIndex: 50,
-                  overflow: 'hidden',
-                  maxHeight: '320px',
-                  overflowY: 'auto'
-                }}>
-                  {suggestions.map((item, idx) => (
-                    <div
-                      key={idx}
-                      onClick={() => {
-                        setQuery(item.businessName);
-                        setShowSuggestions(false);
-                        fetchListings();
-                      }}
-                      style={{
-                        padding: '0.75rem 1.25rem',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        cursor: 'pointer',
-                        borderBottom: '1px solid #f8fafc',
-                        transition: 'background 0.15s'
-                      }}
-                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f8fafc'}
-                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#ffffff'}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-                        <Search size={15} color="#94a3b8" />
-                        <span style={{ fontSize: '0.88rem', fontWeight: 600, color: '#1e293b' }}>{item.businessName}</span>
-                      </div>
-                      <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#2563eb', backgroundColor: '#eff6ff', padding: '0.2rem 0.5rem', borderRadius: '12px' }}>
-                        {item.category || 'Listing'}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              )}
+              <DesktopSearchBar
+                selectedCity={selectedCity}
+                customStyle={{ flex: '1 1 auto', width: '100%', maxWidth: '100%' }}
+              />
 
               {/* Popular Search Pills */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '1.1rem', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '1.25rem', flexWrap: 'wrap' }}>
                 <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#64748b' }}>Popular:</span>
                 {popularKeywords.map((word) => (
                   <button
                     key={word}
                     type="button"
                     onClick={() => {
-                      setQuery(word);
-                      setSelectedCategory('All');
-                      fetchListings();
+                      const targetSlug = word.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+                      window.location.href = `/${selectedCity}/service/${targetSlug}`;
                     }}
                     style={{
                       backgroundColor: '#ffffff',
                       color: '#475569',
-                      border: '1px solid #e2e8f0',
+                      border: '1px solid #cbd5e1',
                       borderRadius: '16px',
                       padding: '0.35rem 0.8rem',
                       fontSize: '0.78rem',
                       fontWeight: 600,
                       cursor: 'pointer',
                       transition: 'all 0.15s',
-                      boxShadow: '0 1px 2px rgba(0,0,0,0.03)'
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
                     }}
                     onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#eff6ff'; e.currentTarget.style.borderColor = '#2563eb'; e.currentTarget.style.color = '#1d4ed8'; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#ffffff'; e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.color = '#475569'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#ffffff'; e.currentTarget.style.borderColor = '#cbd5e1'; e.currentTarget.style.color = '#475569'; }}
                   >
                     {word}
                   </button>
@@ -946,11 +794,12 @@ export default function Home({
         ) : (
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-            gap: '1.5rem'
+            gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+            gap: '1.75rem'
           }}>
             {listings.map((item) => {
-              const bgImage = item.coverImageUrl || item.photos?.[0] || 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&auto=format&fit=crop&q=80';
+              const bgImage = item.coverImage || item.coverImageUrl || item.photos?.[0] || 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&auto=format&fit=crop&q=80';
+              const logoSrc = item.logoUrl || null;
               const profileUrl = `/site/${item.slug || item.id}`;
 
               return (
@@ -964,26 +813,31 @@ export default function Home({
                     display: 'flex',
                     flexDirection: 'column',
                     justifyContent: 'space-between',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.03)',
-                    transition: 'all 0.2s'
+                    boxShadow: '0 4px 14px rgba(0,0,0,0.04)',
+                    transition: 'all 0.25s'
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-4px)';
-                    e.currentTarget.style.boxShadow = '0 16px 30px rgba(0,0,0,0.08)';
+                    e.currentTarget.style.transform = 'translateY(-5px)';
+                    e.currentTarget.style.boxShadow = '0 18px 32px rgba(0,0,0,0.09)';
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.03)';
+                    e.currentTarget.style.boxShadow = '0 4px 14px rgba(0,0,0,0.04)';
                   }}
                 >
                   <div>
-                    {/* Card Cover Header */}
-                    <div style={{ position: 'relative', height: '165px', overflow: 'hidden' }}>
+                    {/* Card Cover Header with Real Images & Logo Overlay */}
+                    <div style={{ position: 'relative', height: '175px', overflow: 'hidden', backgroundColor: '#f1f5f9' }}>
                       <img
                         src={bgImage}
                         alt={item.businessName}
                         style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        onError={(e) => {
+                          e.currentTarget.src = 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&auto=format&fit=crop&q=80';
+                        }}
                       />
+                      
+                      {/* Verified Badge */}
                       <div style={{
                         position: 'absolute',
                         top: '0.75rem',
@@ -992,35 +846,64 @@ export default function Home({
                         color: '#ffffff',
                         fontSize: '0.72rem',
                         fontWeight: 800,
-                        padding: '0.25rem 0.6rem',
+                        padding: '0.25rem 0.65rem',
                         borderRadius: '12px',
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '0.3rem'
+                        gap: '0.3rem',
+                        boxShadow: '0 2px 6px rgba(0,0,0,0.15)'
                       }}>
                         <ShieldCheck size={12} /> Verified
                       </div>
 
+                      {/* Favorite Button */}
                       <div style={{
                         position: 'absolute',
                         top: '0.75rem',
                         right: '0.75rem',
-                        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                        backgroundColor: 'rgba(255, 255, 255, 0.92)',
                         borderRadius: '50%',
-                        width: '32px',
-                        height: '32px',
+                        width: '34px',
+                        height: '34px',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        cursor: 'pointer'
+                        cursor: 'pointer',
+                        boxShadow: '0 2px 6px rgba(0,0,0,0.1)'
                       }}>
                         <Heart size={16} color="#ef4444" />
                       </div>
+
+                      {/* Uploaded Business Logo Avatar Badge */}
+                      {logoSrc && (
+                        <div style={{
+                          position: 'absolute',
+                          bottom: '0.75rem',
+                          left: '0.85rem',
+                          width: '46px',
+                          height: '46px',
+                          borderRadius: '12px',
+                          backgroundColor: '#ffffff',
+                          border: '2px solid #ffffff',
+                          boxShadow: '0 4px 10px rgba(0,0,0,0.2)',
+                          overflow: 'hidden',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}>
+                          <img
+                            src={logoSrc}
+                            alt="Logo"
+                            style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                            onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                          />
+                        </div>
+                      )}
                     </div>
 
                     {/* Card Info */}
                     <div style={{ padding: '1.1rem 1.25rem 0.5rem' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.35rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.4rem' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.2rem', backgroundColor: '#fef3c7', color: '#d97706', padding: '0.15rem 0.45rem', borderRadius: '8px', fontSize: '0.76rem', fontWeight: 800 }}>
                           <Star size={12} fill="#d97706" />
                           <span>{item.rating || 4.9}</span>
@@ -1030,12 +913,12 @@ export default function Home({
                         <span style={{ fontSize: '0.74rem', color: '#2563eb', fontWeight: 700 }}>{item.category}</span>
                       </div>
 
-                      <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: '#0f172a', margin: '0 0 0.4rem', lineHeight: 1.3 }}>
+                      <h3 style={{ fontSize: '1.08rem', fontWeight: 800, color: '#0f172a', margin: '0 0 0.45rem', lineHeight: 1.3 }}>
                         {item.businessName}
                       </h3>
 
-                      <p style={{ fontSize: '0.8rem', color: '#64748b', margin: 0, display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                        <MapPin size={13} color="#94a3b8" />
+                      <p style={{ fontSize: '0.82rem', color: '#64748b', margin: 0, display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                        <MapPin size={14} color="#94a3b8" />
                         <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                           {item.address || 'Tirupati, Andhra Pradesh'}
                         </span>
@@ -1115,29 +998,114 @@ export default function Home({
         )}
       </section>
 
-      {/* 6. Tirupati in Your Pocket - App Section with QR Code (Matching Reference Screenshot 3) */}
+      {/* 6. Tirupati in Your Pocket - Enhanced Rich Presentation (Matching Reference Screenshot 3) */}
       <section style={{
-        backgroundColor: '#f8fafc',
+        background: 'linear-gradient(180deg, #f8fafc 0%, #edf4fc 100%)',
         borderTop: '1px solid #e2e8f0',
         borderBottom: '1px solid #e2e8f0',
-        padding: '4.5rem 1.5rem'
+        padding: '5rem 1.5rem',
+        position: 'relative',
+        overflow: 'hidden'
       }}>
-        <div style={{ maxWidth: '1240px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '3rem', alignItems: 'center' }}>
+        {/* Scenic Tirupati Gopuram Background Watermark */}
+        <div style={{
+          position: 'absolute',
+          right: '5%',
+          top: '50%',
+          transform: 'translateY(-50%)',
+          width: '450px',
+          height: '450px',
+          opacity: 0.12,
+          backgroundImage: 'url(https://images.unsplash.com/photo-1609766857041-ed402ea8069a?w=800&auto=format&fit=crop&q=80)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          borderRadius: '50%',
+          filter: 'grayscale(100%)',
+          pointerEvents: 'none'
+        }} />
+
+        <div style={{
+          maxWidth: '1240px',
+          margin: '0 auto',
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+          gap: '3.5rem',
+          alignItems: 'center',
+          position: 'relative',
+          zIndex: 1
+        }}>
           
-          {/* Mobile Mockup Visual */}
-          <div style={{ textAlign: 'center' }}>
+          {/* Mobile Mockup Visual with Surrounding Floating Feature Bubbles */}
+          <div style={{ position: 'relative', textAlign: 'center', display: 'flex', justifyContent: 'center' }}>
+            
+            {/* Floating Bubble 1: Nearby Businesses */}
             <div style={{
-              width: '280px',
-              height: '520px',
+              position: 'absolute',
+              top: '15%',
+              left: '5%',
+              backgroundColor: '#ffffff',
+              borderRadius: '20px',
+              padding: '0.6rem 1rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              boxShadow: '0 10px 25px rgba(0,0,0,0.08)',
+              border: '1px solid #e2e8f0',
+              zIndex: 3
+            }}>
+              <Compass size={18} color="#2563eb" />
+              <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#0f172a' }}>Nearby Businesses</span>
+            </div>
+
+            {/* Floating Bubble 2: Instant Directions */}
+            <div style={{
+              position: 'absolute',
+              top: '45%',
+              right: '2%',
+              backgroundColor: '#ffffff',
+              borderRadius: '20px',
+              padding: '0.6rem 1rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              boxShadow: '0 10px 25px rgba(0,0,0,0.08)',
+              border: '1px solid #e2e8f0',
+              zIndex: 3
+            }}>
+              <MapPin size={18} color="#ef4444" />
+              <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#0f172a' }}>Instant Directions</span>
+            </div>
+
+            {/* Floating Bubble 3: Real Reviews */}
+            <div style={{
+              position: 'absolute',
+              bottom: '12%',
+              left: '8%',
+              backgroundColor: '#ffffff',
+              borderRadius: '20px',
+              padding: '0.6rem 1rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              boxShadow: '0 10px 25px rgba(0,0,0,0.08)',
+              border: '1px solid #e2e8f0',
+              zIndex: 3
+            }}>
+              <Star size={18} fill="#f59e0b" color="#f59e0b" />
+              <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#0f172a' }}>Real Reviews</span>
+            </div>
+
+            {/* Central Phone Device */}
+            <div style={{
+              width: '300px',
+              height: '560px',
               backgroundColor: '#0f172a',
               borderRadius: '44px',
               padding: '12px',
-              boxShadow: '0 25px 50px -12px rgba(15, 23, 42, 0.35)',
-              margin: '0 auto',
+              boxShadow: '0 30px 60px -15px rgba(15, 23, 42, 0.4)',
               border: '4px solid #334155',
               position: 'relative'
             }}>
-              {/* Screen Inner */}
               <div style={{
                 backgroundColor: '#ffffff',
                 borderRadius: '34px',
@@ -1147,30 +1115,32 @@ export default function Home({
                 display: 'flex',
                 flexDirection: 'column'
               }}>
-                {/* Header in Phone */}
+                {/* Phone Header */}
                 <div style={{ backgroundColor: '#2563eb', padding: '1.25rem 1rem 0.75rem', color: '#ffffff', textAlign: 'left' }}>
                   <div style={{ fontSize: '0.72rem', opacity: 0.85 }}>ManaCity Mobile</div>
                   <div style={{ fontSize: '1rem', fontWeight: 900 }}>Tirupati</div>
                 </div>
-                {/* Search mock */}
+
+                {/* Search in Phone */}
                 <div style={{ padding: '0.75rem' }}>
-                  <div style={{ backgroundColor: '#f1f5f9', borderRadius: '12px', padding: '0.45rem 0.75rem', fontSize: '0.72rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                    <Search size={13} /> Search in Tirupati...
+                  <div style={{ backgroundColor: '#f1f5f9', borderRadius: '12px', padding: '0.5rem 0.75rem', fontSize: '0.74rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                    <Search size={14} /> Search in Tirupati...
                   </div>
                 </div>
-                {/* Mini cards */}
-                <div style={{ flex: 1, padding: '0.5rem 0.75rem', display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
-                  <div style={{ backgroundColor: '#eff6ff', borderRadius: '12px', padding: '0.65rem' }}>
-                    <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#1e40af' }}>Top Doctors & Clinics</div>
-                    <div style={{ fontSize: '0.65rem', color: '#64748b' }}>Book consultation fast</div>
+
+                {/* Live App Service Items */}
+                <div style={{ flex: 1, padding: '0.5rem 0.75rem', display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+                  <div style={{ backgroundColor: '#eff6ff', borderRadius: '14px', padding: '0.75rem', border: '1px solid #dbeafe' }}>
+                    <div style={{ fontSize: '0.78rem', fontWeight: 800, color: '#1e40af' }}>Top Doctors & Clinics</div>
+                    <div style={{ fontSize: '0.68rem', color: '#64748b' }}>Book consultation fast</div>
                   </div>
-                  <div style={{ backgroundColor: '#f0fdf4', borderRadius: '12px', padding: '0.65rem' }}>
-                    <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#166534' }}>AC & Electrical Repairs</div>
-                    <div style={{ fontSize: '0.65rem', color: '#64748b' }}>Verified vendors nearby</div>
+                  <div style={{ backgroundColor: '#f0fdf4', borderRadius: '14px', padding: '0.75rem', border: '1px solid #dcfce7' }}>
+                    <div style={{ fontSize: '0.78rem', fontWeight: 800, color: '#166534' }}>AC & Electrical Repairs</div>
+                    <div style={{ fontSize: '0.68rem', color: '#64748b' }}>Verified vendors nearby</div>
                   </div>
-                  <div style={{ backgroundColor: '#fff7ed', borderRadius: '12px', padding: '0.65rem' }}>
-                    <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#9a3412' }}>Restaurants & Catering</div>
-                    <div style={{ fontSize: '0.65rem', color: '#64748b' }}>Explore menus & ratings</div>
+                  <div style={{ backgroundColor: '#fff7ed', borderRadius: '14px', padding: '0.75rem', border: '1px solid #ffedd5' }}>
+                    <div style={{ fontSize: '0.78rem', fontWeight: 800, color: '#9a3412' }}>Restaurants & Catering</div>
+                    <div style={{ fontSize: '0.68rem', color: '#64748b' }}>Explore menus & ratings</div>
                   </div>
                 </div>
               </div>
@@ -1185,7 +1155,7 @@ export default function Home({
               gap: '0.4rem',
               backgroundColor: '#e0f2fe',
               color: '#0369a1',
-              padding: '0.25rem 0.75rem',
+              padding: '0.3rem 0.85rem',
               borderRadius: '16px',
               fontSize: '0.75rem',
               fontWeight: 800,
@@ -1194,78 +1164,80 @@ export default function Home({
               LOCAL CONVENIENCE
             </div>
 
-            <h2 style={{ fontSize: 'clamp(2rem, 4vw, 2.6rem)', fontWeight: 900, color: '#0f172a', margin: '0 0 1rem', lineHeight: 1.2 }}>
+            <h2 style={{ fontSize: 'clamp(2rem, 4vw, 2.7rem)', fontWeight: 900, color: '#0f172a', margin: '0 0 1rem', lineHeight: 1.2 }}>
               Tirupati in <span style={{ color: '#2563eb' }}>Your Pocket</span>
             </h2>
 
-            <p style={{ fontSize: '1rem', color: '#475569', lineHeight: 1.6, margin: '0 0 1.75rem' }}>
+            <p style={{ fontSize: '1.02rem', color: '#475569', lineHeight: 1.6, margin: '0 0 1.75rem' }}>
               Discover, connect and grow with the ManaCity app experience. Find local businesses, book services, get quotes, directions and more — all in one place.
             </p>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '2rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                <div style={{ width: '38px', height: '38px', borderRadius: '50%', backgroundColor: '#eff6ff', color: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '2.25rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+                <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: '#eff6ff', color: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <MapPin size={18} />
                 </div>
-                <span style={{ fontSize: '0.9rem', fontWeight: 700, color: '#1e293b' }}>Find nearby services</span>
+                <span style={{ fontSize: '0.92rem', fontWeight: 700, color: '#1e293b' }}>Find nearby services</span>
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                <div style={{ width: '38px', height: '38px', borderRadius: '50%', backgroundColor: '#fef3c7', color: '#d97706', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+                <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: '#fef3c7', color: '#d97706', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <Sparkles size={18} />
                 </div>
-                <span style={{ fontSize: '0.9rem', fontWeight: 700, color: '#1e293b' }}>Get best quotes</span>
+                <span style={{ fontSize: '0.92rem', fontWeight: 700, color: '#1e293b' }}>Get best quotes</span>
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                <div style={{ width: '38px', height: '38px', borderRadius: '50%', backgroundColor: '#dcfce7', color: '#16a34a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+                <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: '#dcfce7', color: '#16a34a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <Star size={18} />
                 </div>
-                <span style={{ fontSize: '0.9rem', fontWeight: 700, color: '#1e293b' }}>Read real reviews</span>
+                <span style={{ fontSize: '0.92rem', fontWeight: 700, color: '#1e293b' }}>Read real reviews</span>
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                <div style={{ width: '38px', height: '38px', borderRadius: '50%', backgroundColor: '#fee2e2', color: '#dc2626', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+                <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: '#fee2e2', color: '#dc2626', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <Phone size={18} />
                 </div>
-                <span style={{ fontSize: '0.9rem', fontWeight: 700, color: '#1e293b' }}>Chat & call directly</span>
+                <span style={{ fontSize: '0.92rem', fontWeight: 700, color: '#1e293b' }}>Chat & call directly</span>
               </div>
             </div>
 
             {/* App Store Buttons & QR Code */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', flexWrap: 'wrap' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                 <div style={{
                   backgroundColor: '#0f172a',
                   color: '#ffffff',
-                  padding: '0.65rem 1.25rem',
-                  borderRadius: '12px',
+                  padding: '0.7rem 1.4rem',
+                  borderRadius: '14px',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '0.75rem',
-                  cursor: 'pointer'
+                  gap: '0.85rem',
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
                 }}>
-                  <div style={{ width: '22px', height: '22px', backgroundColor: '#ffffff', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0f172a', fontWeight: 900, fontSize: '0.8rem' }}>▶</div>
+                  <div style={{ width: '24px', height: '24px', backgroundColor: '#ffffff', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0f172a', fontWeight: 900, fontSize: '0.85rem' }}>▶</div>
                   <div>
                     <div style={{ fontSize: '0.62rem', textTransform: 'uppercase', opacity: 0.8 }}>GET IT ON</div>
-                    <div style={{ fontSize: '0.92rem', fontWeight: 800 }}>Google Play</div>
+                    <div style={{ fontSize: '0.94rem', fontWeight: 800 }}>Google Play</div>
                   </div>
                 </div>
 
                 <div style={{
                   backgroundColor: '#0f172a',
                   color: '#ffffff',
-                  padding: '0.65rem 1.25rem',
-                  borderRadius: '12px',
+                  padding: '0.7rem 1.4rem',
+                  borderRadius: '14px',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '0.75rem',
-                  cursor: 'pointer'
+                  gap: '0.85rem',
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
                 }}>
-                  <div style={{ width: '22px', height: '22px', backgroundColor: '#ffffff', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0f172a', fontWeight: 900, fontSize: '0.8rem' }}></div>
+                  <div style={{ width: '24px', height: '24px', backgroundColor: '#ffffff', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0f172a', fontWeight: 900, fontSize: '0.85rem' }}></div>
                   <div>
                     <div style={{ fontSize: '0.62rem', textTransform: 'uppercase', opacity: 0.8 }}>DOWNLOAD ON THE</div>
-                    <div style={{ fontSize: '0.92rem', fontWeight: 800 }}>App Store</div>
+                    <div style={{ fontSize: '0.94rem', fontWeight: 800 }}>App Store</div>
                   </div>
                 </div>
               </div>
@@ -1274,15 +1246,15 @@ export default function Home({
               <div style={{
                 backgroundColor: '#ffffff',
                 border: '1px solid #e2e8f0',
-                borderRadius: '16px',
-                padding: '0.85rem',
+                borderRadius: '18px',
+                padding: '1rem',
                 textAlign: 'center',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.04)'
+                boxShadow: '0 6px 16px rgba(0,0,0,0.06)'
               }}>
-                <div style={{ width: '80px', height: '80px', backgroundColor: '#f1f5f9', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 0.4rem' }}>
-                  <QrCode size={56} color="#0f172a" />
+                <div style={{ width: '84px', height: '84px', backgroundColor: '#f1f5f9', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 0.5rem' }}>
+                  <QrCode size={60} color="#0f172a" />
                 </div>
-                <div style={{ fontSize: '0.7rem', fontWeight: 800, color: '#475569' }}>Scan QR to<br />Download App</div>
+                <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#475569' }}>Scan QR to<br />Download App</div>
               </div>
             </div>
           </div>
@@ -1467,46 +1439,56 @@ export default function Home({
         </div>
       </section>
 
-      {/* 10. Comprehensive Footer */}
-      <footer style={{ backgroundColor: '#ffffff', borderTop: '1px solid #e2e8f0', padding: '4.5rem 1.5rem 2rem', marginTop: 'auto' }}>
-        <div style={{ maxWidth: '1240px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '2.5rem', marginBottom: '3rem' }}>
+      {/* 10. Comprehensive Rich Footer with Social Links & Tirupati Focus */}
+      <footer style={{ backgroundColor: '#ffffff', borderTop: '1px solid #e2e8f0', padding: '4.5rem 1.5rem 2.5rem', marginTop: 'auto' }}>
+        <div style={{ maxWidth: '1240px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '2.5rem', marginBottom: '3.5rem' }}>
           
           <div>
-            <img src="/logo-horizontal.png" alt="ManaCity Logo" style={{ height: '48px', objectFit: 'contain', marginBottom: '1rem' }} />
-            <p style={{ fontSize: '0.88rem', color: '#64748b', lineHeight: 1.6, margin: '0 0 1rem' }}>
-              Your trusted local platform to discover, connect and grow in Tirupati.
+            <img src="/logo-horizontal.png" alt="ManaCity Logo" style={{ height: '48px', objectFit: 'contain', marginBottom: '1.25rem' }} />
+            <p style={{ fontSize: '0.88rem', color: '#475569', lineHeight: 1.6, margin: '0 0 1.25rem' }}>
+              Your trusted local platform to discover, connect and grow in Tirupati. Explore verified restaurants, clinics, technicians, real estate and more.
             </p>
-            <div style={{ fontSize: '0.82rem', color: '#94a3b8' }}>
-              Currently live exclusively in <strong>Tirupati, Andhra Pradesh</strong>.
+            <div style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.4rem',
+              backgroundColor: '#eff6ff',
+              color: '#1d4ed8',
+              padding: '0.35rem 0.75rem',
+              borderRadius: '12px',
+              fontSize: '0.78rem',
+              fontWeight: 800
+            }}>
+              <MapPin size={13} /> Tirupati, Andhra Pradesh, India
             </div>
           </div>
 
           <div>
-            <h4 style={{ fontSize: '0.92rem', fontWeight: 800, color: '#0f172a', margin: '0 0 1rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Quick Links</h4>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem', fontSize: '0.86rem', color: '#64748b' }}>
-              <span style={{ cursor: 'pointer' }} onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>Home</span>
-              <span style={{ cursor: 'pointer' }} onClick={() => setSelectedCategory('All')}>Browse Categories</span>
-              <span style={{ cursor: 'pointer' }} onClick={() => onNavigateToRegister ? onNavigateToRegister() : null}>List Your Business</span>
-              <span style={{ cursor: 'pointer' }} onClick={() => onNavigateToLogin ? onNavigateToLogin() : null}>Business Login</span>
+            <h4 style={{ fontSize: '0.92rem', fontWeight: 800, color: '#0f172a', margin: '0 0 1.15rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Quick Links</h4>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.88rem', color: '#475569' }}>
+              <span style={{ cursor: 'pointer', transition: 'color 0.15s' }} onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} onMouseEnter={e => e.currentTarget.style.color = '#2563eb'} onMouseLeave={e => e.currentTarget.style.color = '#475569'}>Home</span>
+              <span style={{ cursor: 'pointer', transition: 'color 0.15s' }} onClick={() => setSelectedCategory('All')} onMouseEnter={e => e.currentTarget.style.color = '#2563eb'} onMouseLeave={e => e.currentTarget.style.color = '#475569'}>Browse Categories</span>
+              <span style={{ cursor: 'pointer', transition: 'color 0.15s' }} onClick={() => onNavigateToRegister ? onNavigateToRegister() : null} onMouseEnter={e => e.currentTarget.style.color = '#2563eb'} onMouseLeave={e => e.currentTarget.style.color = '#475569'}>List Your Business</span>
+              <span style={{ cursor: 'pointer', transition: 'color 0.15s' }} onClick={() => onNavigateToLogin ? onNavigateToLogin() : null} onMouseEnter={e => e.currentTarget.style.color = '#2563eb'} onMouseLeave={e => e.currentTarget.style.color = '#475569'}>Business Login</span>
             </div>
           </div>
 
           <div>
-            <h4 style={{ fontSize: '0.92rem', fontWeight: 800, color: '#0f172a', margin: '0 0 1rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Top Categories</h4>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem', fontSize: '0.86rem', color: '#64748b' }}>
-              <span style={{ cursor: 'pointer' }} onClick={() => setSelectedCategory('Restaurants')}>Restaurants & Food</span>
-              <span style={{ cursor: 'pointer' }} onClick={() => setSelectedCategory('Doctors')}>Doctors & Clinics</span>
-              <span style={{ cursor: 'pointer' }} onClick={() => setSelectedCategory('Home Services')}>AC & Home Repairs</span>
-              <span style={{ cursor: 'pointer' }} onClick={() => setSelectedCategory('Real Estate')}>Real Estate & Plots</span>
+            <h4 style={{ fontSize: '0.92rem', fontWeight: 800, color: '#0f172a', margin: '0 0 1.15rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Top Categories</h4>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.88rem', color: '#475569' }}>
+              <span style={{ cursor: 'pointer', transition: 'color 0.15s' }} onClick={() => setSelectedCategory('Restaurants')} onMouseEnter={e => e.currentTarget.style.color = '#2563eb'} onMouseLeave={e => e.currentTarget.style.color = '#475569'}>Restaurants & Cafes</span>
+              <span style={{ cursor: 'pointer', transition: 'color 0.15s' }} onClick={() => setSelectedCategory('Doctors')} onMouseEnter={e => e.currentTarget.style.color = '#2563eb'} onMouseLeave={e => e.currentTarget.style.color = '#475569'}>Doctors & Hospitals</span>
+              <span style={{ cursor: 'pointer', transition: 'color 0.15s' }} onClick={() => setSelectedCategory('Home Services')} onMouseEnter={e => e.currentTarget.style.color = '#2563eb'} onMouseLeave={e => e.currentTarget.style.color = '#475569'}>AC & Home Repairs</span>
+              <span style={{ cursor: 'pointer', transition: 'color 0.15s' }} onClick={() => setSelectedCategory('Real Estate')} onMouseEnter={e => e.currentTarget.style.color = '#2563eb'} onMouseLeave={e => e.currentTarget.style.color = '#475569'}>Real Estate & Builders</span>
             </div>
           </div>
 
           <div>
-            <h4 style={{ fontSize: '0.92rem', fontWeight: 800, color: '#0f172a', margin: '0 0 1rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Legal & Support</h4>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem', fontSize: '0.86rem', color: '#64748b' }}>
-              <button onClick={onNavigateToPrivacy} style={{ background: 'none', border: 'none', padding: 0, textAlign: 'left', color: '#64748b', cursor: 'pointer', fontSize: '0.86rem' }}>Privacy Policy</button>
-              <button onClick={onNavigateToTerms} style={{ background: 'none', border: 'none', padding: 0, textAlign: 'left', color: '#64748b', cursor: 'pointer', fontSize: '0.86rem' }}>Terms of Service</button>
-              <button onClick={onNavigateToDelete} style={{ background: 'none', border: 'none', padding: 0, textAlign: 'left', color: '#64748b', cursor: 'pointer', fontSize: '0.86rem' }}>Delete Account</button>
+            <h4 style={{ fontSize: '0.92rem', fontWeight: 800, color: '#0f172a', margin: '0 0 1.15rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Legal & App</h4>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.88rem', color: '#475569' }}>
+              <button onClick={onNavigateToPrivacy} style={{ background: 'none', border: 'none', padding: 0, textAlign: 'left', color: '#475569', cursor: 'pointer', fontSize: '0.88rem' }}>Privacy Policy</button>
+              <button onClick={onNavigateToTerms} style={{ background: 'none', border: 'none', padding: 0, textAlign: 'left', color: '#475569', cursor: 'pointer', fontSize: '0.88rem' }}>Terms of Service</button>
+              <button onClick={onNavigateToDelete} style={{ background: 'none', border: 'none', padding: 0, textAlign: 'left', color: '#475569', cursor: 'pointer', fontSize: '0.88rem' }}>Delete Account</button>
               {onNavigateToSuperAdmin && (
                 <button onClick={onNavigateToSuperAdmin} style={{ background: 'none', border: 'none', padding: 0, textAlign: 'left', color: '#94a3b8', cursor: 'pointer', fontSize: '0.8rem' }}>Super Admin</button>
               )}
@@ -1514,8 +1496,13 @@ export default function Home({
           </div>
         </div>
 
-        <div style={{ maxWidth: '1240px', margin: '0 auto', borderTop: '1px solid #f1f5f9', paddingTop: '1.75rem', textAlign: 'center', fontSize: '0.82rem', color: '#94a3b8' }}>
-          © 2026 ManaCity Platform. All rights reserved. Exclusively serving Tirupati, India.
+        <div style={{ maxWidth: '1240px', margin: '0 auto', borderTop: '1px solid #f1f5f9', paddingTop: '2rem', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', fontSize: '0.84rem', color: '#94a3b8' }}>
+          <div>© 2026 ManaCity Platform. All rights reserved. Exclusively serving Tirupati, India.</div>
+          <div style={{ display: 'flex', gap: '1rem' }}>
+            <span>Privacy</span>
+            <span>Terms</span>
+            <span>Sitemap</span>
+          </div>
         </div>
       </footer>
 

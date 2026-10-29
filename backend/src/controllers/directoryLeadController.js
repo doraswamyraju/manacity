@@ -84,7 +84,24 @@ exports.searchDirectoryListings = async (req, res) => {
       return matchCity && matchCat && matchQuery;
     });
 
-    const formattedListings = filteredGroups.map(bg => {
+    // Deduplicate by business name / normalized slug / googlePlaceId to guarantee zero duplicates
+    const seenBusiness = new Set();
+    const uniqueGroups = [];
+
+    for (const bg of filteredGroups) {
+      const normName = (bg.name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+      const placeKey = bg.googlePlaceId ? `gp_${bg.googlePlaceId}` : null;
+      const nameKey = `nm_${normName}`;
+
+      if (placeKey && seenBusiness.has(placeKey)) continue;
+      if (seenBusiness.has(nameKey)) continue;
+
+      if (placeKey) seenBusiness.add(placeKey);
+      seenBusiness.add(nameKey);
+      uniqueGroups.push(bg);
+    }
+
+    const formattedListings = uniqueGroups.map(bg => {
       const listing = bg.directoryListing;
       const loc = bg.locations?.[0];
       const safeCity = (bg.city || loc?.city || cityStr).toLowerCase();
@@ -112,6 +129,7 @@ exports.searchDirectoryListings = async (req, res) => {
         websiteUrl: bg.website || (listing ? listing.websiteUrl : null),
         logoUrl: bg.logoUrl || null,
         coverImage: bg.coverImageUrl || null,
+        coverImageUrl: bg.coverImageUrl || null,
         verified: bg.isVerified !== false,
         isOpenNow: true,
         services: bg.services && bg.services.length > 0

@@ -17,7 +17,7 @@ import {
   X
 } from 'lucide-react';
 
-export default function DesktopSearchBar({ selectedCity = 'tirupati' }) {
+export default function DesktopSearchBar({ selectedCity = 'tirupati', customStyle = {} }) {
   const navigate = useNavigate();
   const searchContainerRef = useRef(null);
 
@@ -199,7 +199,7 @@ export default function DesktopSearchBar({ selectedCity = 'tirupati' }) {
   const hasResults = suggestions.length > 0 || masterSuggestions.length > 0 || placesToDisplay.length > 0;
 
   return (
-    <div ref={searchContainerRef} style={{ flex: '1 1 380px', maxWidth: '650px', position: 'relative' }}>
+    <div ref={searchContainerRef} style={{ flex: '1 1 380px', maxWidth: '650px', position: 'relative', ...customStyle }}>
       
       {/* Search Input Container with Rotating Rainbow Border */}
       <div style={{
