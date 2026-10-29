@@ -20,4 +20,8 @@ router.get('/public/:subdomain/sitemap.xml', websiteController.getSitemap);
 router.get('/public/:subdomain/robots.txt', websiteController.getRobots);
 router.get('/public/:subdomain/manifest.json', websiteController.getManifest);
 
+// In-Builder Domain Search & Buying (ResellerClub)
+router.get('/domains/search', authMiddleware, websiteController.searchDomainToBuy);
+router.post('/domains/order', authMiddleware, websiteController.orderNewDomain);
+
 module.exports = router;

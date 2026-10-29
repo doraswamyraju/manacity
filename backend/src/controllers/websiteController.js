@@ -1,3 +1,4 @@
+const resellerClubService = require('../services/resellerClubService');
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const { provisionLetsTrackTenant } = require('../services/letsTrackService');
@@ -826,3 +827,60 @@ exports.disconnectCustomDomain = async (req, res) => {
   }
 };
 
+
+
+// 10. In-Builder Domain Search (ResellerClub API + Margin Pricing)
+exports.searchDomainToBuy = async (req, res) => {
+  try {
+    const { query } = req.query;
+    if (!query || !query.trim()) {
+      return res.status(400).json({ error: 'Please enter a domain name to search.' });
+    }
+
+    const searchRes = await resellerClubService.searchDomainAvailability(query);
+    res.json({ status: 'success', ...searchRes });
+  } catch (error) {
+    console.error('Domain search error:', error);
+    res.status(500).json({ error: 'Failed to search domain availability.' });
+  }
+};
+
+// 11. Record Domain Purchase Order
+exports.orderNewDomain = async (req, res) => {
+  try {
+    const ownerId = req.user.id;
+    const { domain, costPriceInr, sellingPriceInr, paymentRef } = req.body;
+
+    if (!domain) {
+      return res.status(400).json({ error: 'Domain name is required.' });
+    }
+
+    const businessGroup = await prisma.businessGroup.findFirst({ where: { ownerId } });
+    if (!businessGroup) {
+      return res.status(404).json({ error: 'Business profile not found.' });
+    }
+
+    const order = await resellerClubService.recordDomainPurchaseIntent({
+      businessGroupId: businessGroup.id,
+      domain,
+      costPriceInr: Number(costPriceInr) || 499,
+      sellingPriceInr: Number(sellingPriceInr) || 799,
+      paymentRef: paymentRef || null
+    });
+
+    // Also auto-connect domain to their website profile
+    await prisma.website.update({
+      where: { businessGroupId: businessGroup.id },
+      data: { customDomain: domain }
+    });
+
+    res.json({
+      status: 'success',
+      message: `Domain "${domain}" order registered successfully!`,
+      order
+    });
+  } catch (error) {
+    console.error('Domain order error:', error);
+    res.status(500).json({ error: 'Failed to record domain order.' });
+  }
+};

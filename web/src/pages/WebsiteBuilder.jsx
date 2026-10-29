@@ -33,6 +33,11 @@ export default function WebsiteBuilder({ onBack, theme: appTheme }) {
   const [showDomainModal, setShowDomainModal] = useState(false);
   const [customDomainInput, setCustomDomainInput] = useState('');
   const [connectingDomain, setConnectingDomain] = useState(false);
+  const [domainModalTab, setDomainModalTab] = useState('BYOD');
+  const [domainSearchQuery, setDomainSearchQuery] = useState('');
+  const [searchingDomain, setSearchingDomain] = useState(false);
+  const [domainSearchResults, setDomainSearchResults] = useState([]);
+  const [orderingDomain, setOrderingDomain] = useState(null);
   const [dnsStatus, setDnsStatus] = useState(null);
   const [verifyingDns, setVerifyingDns] = useState(false);
   const [domainSuccess, setDomainSuccess] = useState('');
@@ -269,6 +274,46 @@ export default function WebsiteBuilder({ onBack, theme: appTheme }) {
       setDomainError(err.response?.data?.error || 'Failed to connect custom domain.');
     } finally {
       setConnectingDomain(false);
+    }
+  };
+
+  const handleSearchDomainToBuy = async () => {
+    if (!domainSearchQuery.trim()) return;
+    setSearchingDomain(true);
+    setDomainError('');
+    try {
+      const res = await axios.get("/api/website/domains/search?query=" + encodeURIComponent(domainSearchQuery.trim()));
+      if (res.data && res.data.results) {
+        setDomainSearchResults(res.data.results);
+      }
+    } catch (err) {
+      setDomainError(err.response?.data?.error || "Failed to search domain availability.");
+    } finally {
+      setSearchingDomain(false);
+    }
+  };
+
+  const handleBuyDomainOrder = async (domainItem) => {
+    setOrderingDomain(domainItem.domain);
+    setDomainError('');
+    try {
+      const res = await axios.post("/api/website/domains/order", {
+        domain: domainItem.domain,
+        costPriceInr: domainItem.costPriceInr,
+        sellingPriceInr: domainItem.sellingPriceInr,
+        paymentRef: "PAY_" + Date.now()
+      });
+      setDomainSuccess(res.data?.message || "Domain order placed successfully! DNS configured automatically.");
+      setCustomDomain(domainItem.domain);
+      setCustomDomainInput(domainItem.domain);
+      setTimeout(() => {
+        setDomainModalTab('BYOD');
+        handleVerifyDns();
+      }, 1500);
+    } catch (err) {
+      setDomainError(err.response?.data?.error || "Failed to process domain purchase order.");
+    } finally {
+      setOrderingDomain(null);
     }
   };
 
@@ -748,6 +793,100 @@ export default function WebsiteBuilder({ onBack, theme: appTheme }) {
               </div>
             )}
 
+            {/* TAB 1: BUY NEW DOMAIN VIA RESELLERCLUB */}
+            {domainModalTab === 'BUY' && (
+              <div style={{ marginBottom: '1.5rem' }}>
+                <p style={{ fontSize: '0.85rem', color: isAppDark ? '#94a3b8' : '#64748b', marginBottom: '0.85rem' }}>
+                  Search and register your official business domain. DNS records and SSL certificates are provisioned automatically.
+                </p>
+
+                <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.25rem' }}>
+                  <input
+                    type="text"
+                    value={domainSearchQuery}
+                    onChange={(e) => setDomainSearchQuery(e.target.value)}
+                    placeholder="Search domain name (e.g. srigangatech, rajugariventures)..."
+                    onKeyDown={(e) => { if (e.key === 'Enter') handleSearchDomainToBuy(); }}
+                    style={dynamicInputStyle}
+                  />
+                  <button
+                    type="button"
+                    onClick={handleSearchDomainToBuy}
+                    disabled={searchingDomain}
+                    style={{
+                      backgroundColor: '#10b981',
+                      color: '#ffffff',
+                      border: 'none',
+                      borderRadius: '6px',
+                      padding: '0.65rem 1.25rem',
+                      fontWeight: 800,
+                      fontSize: '0.85rem',
+                      cursor: 'pointer',
+                      whiteSpace: 'nowrap'
+                    }}
+                  >
+                    {searchingDomain ? 'Searching...' : 'Check Availability'}
+                  </button>
+                </div>
+
+                {domainSearchResults.length > 0 && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+                    {domainSearchResults.map((item) => (
+                      <div
+                        key={item.domain}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          padding: '0.75rem 1rem',
+                          backgroundColor: isAppDark ? '#0f172a' : '#f8fafc',
+                          border: item.available ? '1.5px solid #10b981' : ('1px solid ' + (isAppDark ? '#334155' : '#cbd5e1')),
+                          borderRadius: '10px'
+                        }}
+                      >
+                        <div>
+                          <strong style={{ fontSize: '0.95rem', color: isAppDark ? '#ffffff' : '#0f172a' }}>
+                            {item.domain}
+                          </strong>
+                          <div style={{ fontSize: '0.74rem', color: item.available ? '#10b981' : '#ef4444', fontWeight: 700 }}>
+                            {item.available ? '● Available for Registration' : '● Already Taken'}
+                          </div>
+                        </div>
+
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                          <span style={{ fontSize: '1.05rem', fontWeight: 900, color: '#10b981' }}>
+                            ₹{item.sellingPriceInr} <span style={{ fontSize: '0.75rem', fontWeight: 600, color: isAppDark ? '#94a3b8' : '#64748b' }}>/yr</span>
+                          </span>
+                          {item.available && (
+                            <button
+                              type="button"
+                              onClick={() => handleBuyDomainOrder(item)}
+                              disabled={orderingDomain === item.domain}
+                              style={{
+                                backgroundColor: '#10b981',
+                                color: '#ffffff',
+                                border: 'none',
+                                borderRadius: '6px',
+                                padding: '0.45rem 0.95rem',
+                                fontSize: '0.82rem',
+                                fontWeight: 800,
+                                cursor: 'pointer'
+                              }}
+                            >
+                              {orderingDomain === item.domain ? 'Securing...' : 'Register Now'}
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* TAB 2: CONNECT EXISTING DOMAIN (BYOD) */}
+            {domainModalTab === 'BYOD' && (
+              <div>
             {/* Input Domain Form */}
             <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.25rem' }}>
               <input
@@ -869,6 +1008,8 @@ export default function WebsiteBuilder({ onBack, theme: appTheme }) {
                 </button>
               </div>
             </div>
+            </div>
+            )}
 
           </div>
         </div>
