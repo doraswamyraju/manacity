@@ -510,3 +510,55 @@ exports.getSubscriptions = async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch subscriptions.' });
   }
 };
+
+
+// 8b. Fetch Configurable Subscription & Builder Plans
+exports.getSubscriptionPlans = async (req, res) => {
+  try {
+    const plans = await prisma.platformPlanPriceConfig.findMany({
+      orderBy: { priceInr: 'asc' }
+    });
+    res.json({ status: 'success', plans });
+  } catch (error) {
+    console.error('Error fetching subscription plans:', error);
+    res.status(500).json({ error: 'Failed to fetch plan configs.' });
+  }
+};
+
+// 8c. Create or Update Subscription & Builder Plan Pricing
+exports.upsertSubscriptionPlan = async (req, res) => {
+  try {
+    const { planKey, title, description, priceInr, interval, features, isActive, discountPercentage } = req.body;
+    if (!planKey || !title) {
+      return res.status(400).json({ error: 'planKey and title are required.' });
+    }
+
+    const updatedPlan = await prisma.platformPlanPriceConfig.upsert({
+      where: { planKey },
+      update: {
+        title,
+        description: description || null,
+        priceInr: Number(priceInr) || 0,
+        interval: interval || 'ANNUAL',
+        features: Array.isArray(features) ? features : [],
+        isActive: isActive !== undefined ? Boolean(isActive) : true,
+        discountPercentage: Number(discountPercentage) || 0
+      },
+      create: {
+        planKey,
+        title,
+        description: description || null,
+        priceInr: Number(priceInr) || 0,
+        interval: interval || 'ANNUAL',
+        features: Array.isArray(features) ? features : [],
+        isActive: isActive !== undefined ? Boolean(isActive) : true,
+        discountPercentage: Number(discountPercentage) || 0
+      }
+    });
+
+    res.json({ status: 'success', plan: updatedPlan });
+  } catch (error) {
+    console.error('Error saving subscription plan:', error);
+    res.status(500).json({ error: 'Failed to save subscription plan configuration.' });
+  }
+};

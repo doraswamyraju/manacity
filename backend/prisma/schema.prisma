@@ -208,16 +208,19 @@ enum SubscriptionStatus {
 }
 
 model Subscription {
-  id              String             @id @default(auto()) @map("_id") @db.ObjectId
-  businessGroupId String             @db.ObjectId
-  businessGroup   BusinessGroup      @relation(fields: [businessGroupId], references: [id], onDelete: Cascade)
-  tier            SubscriptionTier   @default(FREE)
-  status          SubscriptionStatus @default(ACTIVE)
-  expiresAt       DateTime?
-  locationLimit   Int                @default(1)
-  websiteLimit    Int                @default(1)
-  createdAt       DateTime           @default(now())
-  updatedAt       DateTime           @updatedAt
+  id                  String             @id @default(auto()) @map("_id") @db.ObjectId
+  businessGroupId     String             @db.ObjectId
+  businessGroup       BusinessGroup      @relation(fields: [businessGroupId], references: [id], onDelete: Cascade)
+  tier                SubscriptionTier   @default(FREE)
+  status              SubscriptionStatus @default(ACTIVE)
+  expiresAt           DateTime?
+  locationLimit       Int                @default(1)
+  websiteLimit        Int                @default(1)
+  hasAdvancedBuilder  Boolean            @default(false)
+  advancedBuilderPlan String?            // 'ANNUAL' or 'LIFETIME'
+  builderExpiresAt    DateTime?
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
 }
 
 model Location {
@@ -863,4 +866,57 @@ model CityWaitlist {
   status           String   @default("PENDING")
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
+}
+
+
+// Super Admin Configurable Subscription & Addon Pricing
+model PlatformPlanPriceConfig {
+  id                     String   @id @default(auto()) @map("_id") @db.ObjectId
+  planKey                String   @unique // 'FREE', 'PRO_MONTHLY', 'PRO_ANNUAL', 'BUILDER_ANNUAL', 'BUILDER_LIFETIME'
+  title                  String
+  description            String?
+  priceInr               Float
+  interval               String   @default("ANNUAL") // MONTHLY, ANNUAL, LIFETIME
+  features               String[]
+  isActive               Boolean  @default(true)
+  discountPercentage     Float    @default(0.0)
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+}
+
+// Super Admin Dynamic Website Block & Layout Library (Headers, Heroes, About, Services, etc.)
+model WebsiteBlockLibrary {
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  category       String   // 'HEADER', 'HERO', 'ABOUT', 'SERVICES', 'FEATURES', 'CTA', 'FOOTER'
+  name           String   // e.g. 'Modern Minimal Header 1', 'Floating Badge Hero'
+  blockKey       String   @unique // e.g. 'header-1', 'hero-3'
+  previewImgUrl  String?
+  description    String?
+  defaultProps   Json?    // Default configurations/labels
+  isPremium      Boolean  @default(false)
+  status         String   @default("ACTIVE") // ACTIVE, DRAFT, ARCHIVED
+  sortOrder      Int      @default(0)
+  createdById    String?  @db.ObjectId
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+// ResellerClub Domain Orders & Margin Tracking
+model DomainOrder {
+  id                 String   @id @default(auto()) @map("_id") @db.ObjectId
+  businessGroupId    String   @db.ObjectId
+  domain             String   @unique
+  tld                String   // '.in', '.co.in', '.com'
+  years              Int      @default(1)
+  costPriceInr       Float    // Wholesale price charged by ResellerClub
+  sellingPriceInr    Float    // Price charged to business
+  profitMarginInr    Float    // sellingPriceInr - costPriceInr
+  resellerOrderId    String?  // ResellerClub internal order ID
+  paymentGateway     String   @default("RAZORPAY")
+  paymentRef         String?  // Razorpay payment ID
+  orderStatus        String   @default("PENDING") // PENDING, PAID, PROVISIONED, FAILED
+  autoDnsConfigured  Boolean  @default(false)
+  expiresAt          DateTime?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 }

@@ -41,6 +41,8 @@ router.delete('/catalog/:id', adminController.deleteMasterCatalogItem);
 
 // Subscriptions
 router.get('/subscriptions', adminController.getSubscriptions);
+router.get('/subscription-plans', adminController.getSubscriptionPlans);
+router.post('/subscription-plans', adminController.upsertSubscriptionPlan);
 
 // URL Structure & SEO Settings (Super Admin Stacked Control)
 router.get('/settings/url-structure', systemSettingsController.getUrlSettings);
