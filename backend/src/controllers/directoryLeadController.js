@@ -132,9 +132,14 @@ exports.searchDirectoryListings = async (req, res) => {
         coverImageUrl: bg.coverImageUrl || null,
         verified: bg.isVerified !== false,
         isOpenNow: true,
+        googleMapsLink: bg.googleMapsLink || loc?.googleMapsLink || (bg.googlePlaceId ? ('https://www.google.com/maps/place/?q=place_id:' + bg.googlePlaceId) : null),
+        googleReviewUrl: bg.googleReviewUrl || (bg.googlePlaceId ? ('https://search.google.com/local/writereview?placeid=' + bg.googlePlaceId) : null),
         services: bg.services && bg.services.length > 0
           ? bg.services.map(s => s.name)
-          : ['Direct Service Delivery', 'Verified Local Business', 'Customer Support']
+          : ['Direct Service Delivery', 'Verified Local Business', 'Customer Support'],
+        products: bg.products && bg.products.length > 0
+          ? bg.products.map(p => p.name)
+          : []
       };
     });
 

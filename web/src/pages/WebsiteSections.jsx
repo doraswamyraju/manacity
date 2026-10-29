@@ -335,7 +335,7 @@ export function HeaderSection({ businessGroup, settings, theme }) {
         {/* Brand Logo & Name */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           {logo ? (
-            <img src={logo} alt={name} style={{ width: '38px', height: '38px', borderRadius: '8px', objectFit: 'cover', border: '1.5px solid var(--primary-color, #6366f1)' }} />
+            <div style={{ width: '42px', height: '42px', borderRadius: '8px', backgroundColor: '#ffffff', border: '1.5px solid var(--primary-color, #6366f1)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2px', overflow: 'hidden', flexShrink: 0 }}><img src={logo} alt={name} style={{ maxWidth: '100%', maxHeight: '100%', width: 'auto', height: 'auto', objectFit: 'contain' }} /></div>
           ) : (
             <div style={{ width: '38px', height: '38px', borderRadius: '8px', backgroundColor: 'var(--primary-color, #6366f1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 800, fontSize: '1.1rem' }}>
               {name.charAt(0)}
@@ -769,10 +769,7 @@ export function ServicesSection({ businessGroup, settings, theme }) {
   const isLight = themeIsLight(theme);
   const [selectedService, setSelectedService] = useState(null);
 
-  const userServices = (businessGroup?.services || []).filter(srv => {
-    const p = srv.price !== null && srv.price !== undefined && srv.price !== '' ? srv.price : srv.libraryItem?.defaultPrice;
-    return p !== null && p !== undefined && p !== '';
-  });
+  const userServices = (businessGroup?.services || []);
   if (userServices.length === 0) return null;
 
   const getServiceImage = (srv) => {
@@ -902,10 +899,7 @@ export function ProductsSection({ businessGroup, settings, theme }) {
   const isLight = themeIsLight(theme);
   const [selectedProduct, setSelectedProduct] = useState(null);
 
-  const userProducts = (businessGroup?.products || []).filter(prod => {
-    const p = prod.price !== null && prod.price !== undefined && prod.price !== '' ? prod.price : prod.libraryItem?.defaultPrice;
-    return p !== null && p !== undefined && p !== '';
-  });
+  const userProducts = (businessGroup?.products || []);
   if (userProducts.length === 0) return null;
 
   const getProductImage = (prod) => {

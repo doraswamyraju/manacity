@@ -800,7 +800,11 @@ export default function Home({
             {listings.map((item) => {
               const bgImage = item.coverImage || item.coverImageUrl || item.photos?.[0] || 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&auto=format&fit=crop&q=80';
               const logoSrc = item.logoUrl || null;
-              const profileUrl = `/site/${item.slug || item.id}`;
+              const profileUrl = item.subdomain
+                ? `https://${item.subdomain}.manacity.in`
+                : `/site/${item.slug || item.id}`;
+              const mapsUrl = item.googleMapsLink || item.googleReviewUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.businessName + ' ' + (item.address || 'Tirupati'))}`;
+              const allTags = [...(item.services || []), ...(item.products || [])].filter(Boolean).slice(0, 3);
 
               return (
                 <div
@@ -826,12 +830,15 @@ export default function Home({
                   }}
                 >
                   <div>
-                    {/* Card Cover Header with Real Images & Logo Overlay */}
-                    <div style={{ position: 'relative', height: '175px', overflow: 'hidden', backgroundColor: '#f1f5f9' }}>
+                    {/* Card Cover Header with Real Images & Logo Overlay - Click to open business page */}
+                    <div
+                      onClick={() => window.open(profileUrl, '_blank')}
+                      style={{ position: 'relative', height: '175px', overflow: 'hidden', backgroundColor: '#f1f5f9', cursor: 'pointer' }}
+                    >
                       <img
                         src={bgImage}
                         alt={item.businessName}
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.3s ease' }}
                         onError={(e) => {
                           e.currentTarget.src = 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&auto=format&fit=crop&q=80';
                         }}
@@ -857,20 +864,23 @@ export default function Home({
                       </div>
 
                       {/* Favorite Button */}
-                      <div style={{
-                        position: 'absolute',
-                        top: '0.75rem',
-                        right: '0.75rem',
-                        backgroundColor: 'rgba(255, 255, 255, 0.92)',
-                        borderRadius: '50%',
-                        width: '34px',
-                        height: '34px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        cursor: 'pointer',
-                        boxShadow: '0 2px 6px rgba(0,0,0,0.1)'
-                      }}>
+                      <div
+                        onClick={(e) => { e.stopPropagation(); }}
+                        style={{
+                          position: 'absolute',
+                          top: '0.75rem',
+                          right: '0.75rem',
+                          backgroundColor: 'rgba(255, 255, 255, 0.92)',
+                          borderRadius: '50%',
+                          width: '34px',
+                          height: '34px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          cursor: 'pointer',
+                          boxShadow: '0 2px 6px rgba(0,0,0,0.1)'
+                        }}
+                      >
                         <Heart size={16} color="#ef4444" />
                       </div>
 
@@ -880,21 +890,22 @@ export default function Home({
                           position: 'absolute',
                           bottom: '0.75rem',
                           left: '0.85rem',
-                          width: '46px',
-                          height: '46px',
+                          width: '48px',
+                          height: '48px',
                           borderRadius: '12px',
                           backgroundColor: '#ffffff',
                           border: '2px solid #ffffff',
-                          boxShadow: '0 4px 10px rgba(0,0,0,0.2)',
+                          boxShadow: '0 4px 12px rgba(0,0,0,0.18)',
                           overflow: 'hidden',
                           display: 'flex',
                           alignItems: 'center',
-                          justifyContent: 'center'
+                          justifyContent: 'center',
+                          padding: '2px'
                         }}>
                           <img
                             src={logoSrc}
                             alt="Logo"
-                            style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                            style={{ maxWidth: '100%', maxHeight: '100%', width: 'auto', height: 'auto', objectFit: 'contain' }}
                             onError={(e) => { e.currentTarget.style.display = 'none'; }}
                           />
                         </div>
@@ -903,26 +914,85 @@ export default function Home({
 
                     {/* Card Info */}
                     <div style={{ padding: '1.1rem 1.25rem 0.5rem' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.4rem' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.2rem', backgroundColor: '#fef3c7', color: '#d97706', padding: '0.15rem 0.45rem', borderRadius: '8px', fontSize: '0.76rem', fontWeight: 800 }}>
-                          <Star size={12} fill="#d97706" />
-                          <span>{item.rating || 4.9}</span>
-                        </div>
-                        <span style={{ fontSize: '0.74rem', color: '#64748b' }}>({item.reviewCount || 45})</span>
-                        <span style={{ fontSize: '0.74rem', color: '#cbd5e1' }}>•</span>
-                        <span style={{ fontSize: '0.74rem', color: '#2563eb', fontWeight: 700 }}>{item.category}</span>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.4rem', marginBottom: '0.45rem' }}>
+                        {/* Google Reviews Clickable Link */}
+                        <a
+                          href={mapsUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          title="View reviews on Google Maps"
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '0.35rem',
+                            textDecoration: 'none',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.2rem', backgroundColor: '#fef3c7', color: '#d97706', padding: '0.2rem 0.5rem', borderRadius: '8px', fontSize: '0.76rem', fontWeight: 800 }}>
+                            <Star size={12} fill="#d97706" />
+                            <span>{item.rating || 4.9}</span>
+                          </div>
+                          <span style={{ fontSize: '0.74rem', color: '#2563eb', fontWeight: 700, textDecoration: 'underline' }}>
+                            ({item.reviewCount || 45})
+                          </span>
+                          <ExternalLink size={11} color="#2563eb" />
+                        </a>
+
+                        <span style={{ fontSize: '0.74rem', color: '#64748b', fontWeight: 700, backgroundColor: '#f1f5f9', padding: '0.15rem 0.55rem', borderRadius: '12px' }}>
+                          {item.category}
+                        </span>
                       </div>
 
-                      <h3 style={{ fontSize: '1.08rem', fontWeight: 800, color: '#0f172a', margin: '0 0 0.45rem', lineHeight: 1.3 }}>
+                      {/* Clickable Business Name */}
+                      <h3
+                        onClick={() => window.open(profileUrl, '_blank')}
+                        style={{
+                          fontSize: '1.08rem',
+                          fontWeight: 800,
+                          color: '#0f172a',
+                          margin: '0 0 0.45rem',
+                          lineHeight: 1.3,
+                          cursor: 'pointer'
+                        }}
+                        onMouseEnter={(e) => { e.currentTarget.style.color = '#2563eb'; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.color = '#0f172a'; }}
+                      >
                         {item.businessName}
                       </h3>
 
-                      <p style={{ fontSize: '0.82rem', color: '#64748b', margin: 0, display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                      <p style={{ fontSize: '0.82rem', color: '#64748b', margin: '0 0 0.65rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
                         <MapPin size={14} color="#94a3b8" />
                         <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                           {item.address || 'Tirupati, Andhra Pradesh'}
                         </span>
                       </p>
+
+                      {/* Showcase Services / Products added in Onboarding */}
+                      {allTags.length > 0 && (
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem', marginBottom: '0.5rem' }}>
+                          {allTags.map((tag, tIdx) => (
+                            <span
+                              key={tIdx}
+                              style={{
+                                fontSize: '0.72rem',
+                                color: '#334155',
+                                backgroundColor: '#f8fafc',
+                                border: '1px solid #e2e8f0',
+                                padding: '0.18rem 0.5rem',
+                                borderRadius: '6px',
+                                fontWeight: 600,
+                                whiteSpace: 'nowrap',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                maxWidth: '170px'
+                              }}
+                            >
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
 
