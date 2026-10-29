@@ -83,7 +83,8 @@ function SuperAdminSidebar({
         { id: 'library-attributes', label: 'Attributes', icon: Settings },
         { id: 'library-tags', label: 'Tags & Labels', icon: FileText },
         { id: 'library-units', label: 'Units & Pricing', icon: CreditCard },
-        { id: 'library-media', label: 'Media Library', icon: List }
+        { id: 'library-media', label: 'Media Library', icon: List },
+        { id: 'library-blocks', label: 'Website Blocks & Layouts', icon: Layers }
       ]
     },
     {

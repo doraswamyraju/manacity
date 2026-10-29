@@ -44,6 +44,11 @@ router.get('/subscriptions', adminController.getSubscriptions);
 router.get('/subscription-plans', adminController.getSubscriptionPlans);
 router.post('/subscription-plans', adminController.upsertSubscriptionPlan);
 
+// Dynamic Website Block Library (Headers, Heroes, Custom Layouts)
+router.get('/website-blocks', adminController.getWebsiteBlocks);
+router.post('/website-blocks', adminController.upsertWebsiteBlock);
+router.delete('/website-blocks/:id', adminController.deleteWebsiteBlock);
+
 // URL Structure & SEO Settings (Super Admin Stacked Control)
 router.get('/settings/url-structure', systemSettingsController.getUrlSettings);
 router.put('/settings/url-structure', systemSettingsController.updateUrlSettings);

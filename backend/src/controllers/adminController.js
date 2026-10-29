@@ -562,3 +562,102 @@ exports.upsertSubscriptionPlan = async (req, res) => {
     res.status(500).json({ error: 'Failed to save subscription plan configuration.' });
   }
 };
+
+
+// ========================================================================
+// 9. SUPER ADMIN DYNAMIC WEBSITE BLOCK & LAYOUT LIBRARY MANAGEMENT
+// ========================================================================
+
+// 9a. Get all website blocks (with optional category filter)
+exports.getWebsiteBlocks = async (req, res) => {
+  try {
+    const { category, status } = req.query;
+    const filter = {};
+    if (category && category !== 'ALL') filter.category = category.toUpperCase();
+    if (status && status !== 'ALL') filter.status = status.toUpperCase();
+
+    const blocks = await prisma.websiteBlockLibrary.findMany({
+      where: filter,
+      orderBy: [{ category: 'asc' }, { sortOrder: 'asc' }]
+    });
+
+    res.json({ status: 'success', count: blocks.length, blocks });
+  } catch (error) {
+    console.error('Error fetching website blocks:', error);
+    res.status(500).json({ error: 'Failed to fetch block library.' });
+  }
+};
+
+// 9b. Create or Update a Website Block (Header, Hero, About, Services)
+exports.upsertWebsiteBlock = async (req, res) => {
+  try {
+    const { id, category, name, blockKey, previewImgUrl, description, defaultProps, isPremium, status, sortOrder } = req.body;
+
+    if (!category || !name || !blockKey) {
+      return res.status(400).json({ error: 'Category, name, and unique blockKey are required.' });
+    }
+
+    const cleanBlockKey = blockKey.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '');
+
+    let savedBlock;
+    if (id) {
+      savedBlock = await prisma.websiteBlockLibrary.update({
+        where: { id },
+        data: {
+          category: category.toUpperCase(),
+          name: name.trim(),
+          blockKey: cleanBlockKey,
+          previewImgUrl: previewImgUrl || null,
+          description: description || null,
+          defaultProps: defaultProps || {},
+          isPremium: isPremium !== undefined ? Boolean(isPremium) : false,
+          status: status || 'ACTIVE',
+          sortOrder: sortOrder !== undefined ? Number(sortOrder) : 0
+        }
+      });
+    } else {
+      savedBlock = await prisma.websiteBlockLibrary.upsert({
+        where: { blockKey: cleanBlockKey },
+        update: {
+          category: category.toUpperCase(),
+          name: name.trim(),
+          previewImgUrl: previewImgUrl || null,
+          description: description || null,
+          defaultProps: defaultProps || {},
+          isPremium: isPremium !== undefined ? Boolean(isPremium) : false,
+          status: status || 'ACTIVE',
+          sortOrder: sortOrder !== undefined ? Number(sortOrder) : 0
+        },
+        create: {
+          category: category.toUpperCase(),
+          name: name.trim(),
+          blockKey: cleanBlockKey,
+          previewImgUrl: previewImgUrl || null,
+          description: description || null,
+          defaultProps: defaultProps || {},
+          isPremium: isPremium !== undefined ? Boolean(isPremium) : false,
+          status: status || 'ACTIVE',
+          sortOrder: sortOrder !== undefined ? Number(sortOrder) : 0,
+          createdById: req.user?.id || null
+        }
+      });
+    }
+
+    res.json({ status: 'success', block: savedBlock });
+  } catch (error) {
+    console.error('Error saving website block:', error);
+    res.status(500).json({ error: 'Failed to save website block.' });
+  }
+};
+
+// 9c. Delete a Website Block
+exports.deleteWebsiteBlock = async (req, res) => {
+  try {
+    const { id } = req.params;
+    await prisma.websiteBlockLibrary.delete({ where: { id } });
+    res.json({ status: 'success', message: 'Block deleted successfully.' });
+  } catch (error) {
+    console.error('Error deleting website block:', error);
+    res.status(500).json({ error: 'Failed to delete block.' });
+  }
+};

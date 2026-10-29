@@ -11,6 +11,7 @@ import UsersTab from '../admin/UsersTab';
 import BusinessesTab from '../admin/BusinessesTab';
 import CatalogTab from '../admin/CatalogTab';
 import SubscriptionsTab from '../admin/SubscriptionsTab';
+import WebsiteBlocksTab from '../admin/WebsiteBlocksTab';
 import AuditLogsTab from '../admin/AuditLogsTab';
 
 // LMS Module Tabs
@@ -321,6 +322,7 @@ function SuperAdminDashboardLayout({ user, onLogout }) {
               {activeTab === 'library-tags' && <TagsLabelsTab theme={theme} />}
               {activeTab === 'library-units' && <UnitsPricingTab theme={theme} />}
               {activeTab === 'library-media' && <MediaLibraryTab theme={theme} />}
+              {activeTab === 'library-blocks' && <WebsiteBlocksTab theme={theme} />}
 
               {/* LMS Submodules */}
               {(activeTab === 'lms' || activeTab === 'lms-all') && <LMSAllLeadsTab theme={theme} />}
