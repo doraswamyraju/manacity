@@ -689,3 +689,57 @@ exports.masterServicesSearch = async (req, res) => {
     return res.json([]);
   }
 };
+
+// Join City Waitlist when non-supported city is selected
+const { MongoClient } = require('mongodb');
+let rawMongoClient = null;
+async function getMongoDb() {
+  if (!rawMongoClient) {
+    const mongoUri = process.env.DATABASE_URL || 'mongodb://127.0.0.1:27017/reviewflow';
+    rawMongoClient = new MongoClient(mongoUri);
+    await rawMongoClient.connect();
+  }
+  return rawMongoClient.db();
+}
+
+exports.joinCityWaitlist = async (req, res) => {
+  try {
+    const { name, phone, email, city, businessName, businessCategory } = req.body;
+    if (!name || !phone || !email || !city || !businessName || !businessCategory) {
+      return res.status(400).json({ error: 'All fields are required.' });
+    }
+
+    const entry = {
+      name: String(name).trim(),
+      phone: String(phone).trim(),
+      email: String(email).trim().toLowerCase(),
+      city: String(city).trim().toLowerCase(),
+      businessName: String(businessName).trim(),
+      businessCategory: String(businessCategory).trim(),
+      status: 'PENDING',
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+
+    let insertedId;
+    try {
+      const waitlistEntry = await prisma.cityWaitlist.create({ data: entry });
+      insertedId = waitlistEntry.id;
+    } catch (prismaErr) {
+      // Direct MongoDB fallback if standalone MongoDB without replica set is used
+      const db = await getMongoDb();
+      const rawRes = await db.collection('CityWaitlist').insertOne(entry);
+      insertedId = rawRes.insertedId;
+    }
+
+    console.log(`[CITY WAITLIST] New entry for city ${city}: ${businessName} (${name}, ${phone})`);
+    return res.status(201).json({
+      success: true,
+      message: `Thank you for joining our waitlist for ${city}! We will notify you as soon as we launch.`,
+      data: { id: insertedId, ...entry }
+    });
+  } catch (err) {
+    console.error('Error joining city waitlist:', err);
+    return res.status(500).json({ error: 'Failed to join waitlist. Please try again.' });
+  }
+};

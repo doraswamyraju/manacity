@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import MobileSearchBar from './MobileSearchBar';
+import CityWaitlistModal from './CityWaitlistModal';
 import {
   MapPin,
   Heart,
@@ -19,6 +20,7 @@ import {
 
 export default function MobileHeader({ user, selectedCity = 'tirupati', onCityChange }) {
   const navigate = useNavigate();
+  const [waitlistModalCity, setWaitlistModalCity] = useState(null);
 
   const cities = [
     { id: 'tirupati', name: 'Tirupati' },
@@ -43,6 +45,10 @@ export default function MobileHeader({ user, selectedCity = 'tirupati', onCityCh
 
   const handleCitySelect = (e) => {
     const newCity = e.target.value;
+    if (newCity && newCity.toLowerCase() !== 'tirupati') {
+      setWaitlistModalCity(newCity);
+      return;
+    }
     if (onCityChange) {
       onCityChange(newCity);
     } else {
@@ -178,6 +184,11 @@ export default function MobileHeader({ user, selectedCity = 'tirupati', onCityCh
         ))}
       </div>
 
+      <CityWaitlistModal
+        isOpen={!!waitlistModalCity}
+        onClose={() => setWaitlistModalCity(null)}
+        selectedCity={waitlistModalCity}
+      />
     </div>
   );
 }

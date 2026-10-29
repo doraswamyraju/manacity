@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DesktopSearchBar from './DesktopSearchBar';
 import MobileHeader from './MobileHeader';
+import CityWaitlistModal from './CityWaitlistModal';
 import {
   MapPin,
   Heart,
@@ -23,6 +24,7 @@ export default function Header({ user, selectedCity = 'tirupati', onCityChange }
 
   // Responsive device check hook
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  const [waitlistModalCity, setWaitlistModalCity] = useState(null);
 
   useEffect(() => {
     const handleResize = () => {
@@ -55,6 +57,10 @@ export default function Header({ user, selectedCity = 'tirupati', onCityChange }
 
   const handleCitySelect = (e) => {
     const newCity = e.target.value;
+    if (newCity && newCity.toLowerCase() !== 'tirupati') {
+      setWaitlistModalCity(newCity);
+      return;
+    }
     if (onCityChange) {
       onCityChange(newCity);
     } else {
@@ -69,6 +75,7 @@ export default function Header({ user, selectedCity = 'tirupati', onCityChange }
 
   // DESKTOP VIEW (Width > 768px) - Pristine 1-Row Layout
   return (
+    <>
     <header style={{
       display: 'flex',
       flexDirection: 'column',
@@ -256,5 +263,12 @@ export default function Header({ user, selectedCity = 'tirupati', onCityChange }
         ))}
       </div>
     </header>
+
+    <CityWaitlistModal
+      isOpen={!!waitlistModalCity}
+      onClose={() => setWaitlistModalCity(null)}
+      selectedCity={waitlistModalCity}
+    />
+    </>
   );
 }
