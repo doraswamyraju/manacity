@@ -307,13 +307,11 @@ exports.saveOnboardingStep = async (req, res) => {
       businessGroup = await prisma.businessGroup.findUnique({
         where: { id: targetBusinessGroupId }
       });
-    } else if (targetBusinessGroupId === 'NEW' || req.body.isNewProfile) {
-      businessGroup = await prisma.businessGroup.create({
-        data: { name: data.name || `${req.user.name}'s Business`, ownerId }
-      });
     } else {
+      // Find user's existing business group to update, avoid duplicate creation
       businessGroup = await prisma.businessGroup.findFirst({
-        where: { ownerId }
+        where: { ownerId },
+        orderBy: { createdAt: 'desc' }
       });
     }
 

@@ -19,7 +19,7 @@ import {
   MoreHorizontal
 } from 'lucide-react';
 
-export default function Header({ user, selectedCity = 'tirupati', onCityChange }) {
+export default function Header({ user, selectedCity = 'tirupati', onCityChange, showHeaderSearch = true }) {
   const navigate = useNavigate();
 
   // Responsive device check hook
@@ -70,7 +70,7 @@ export default function Header({ user, selectedCity = 'tirupati', onCityChange }
 
   // If viewing on a Mobile Device (Width <= 768px), render dedicated MobileHeader
   if (isMobile) {
-    return <MobileHeader user={user} selectedCity={selectedCity} onCityChange={onCityChange} />;
+    return <MobileHeader user={user} selectedCity={selectedCity} onCityChange={onCityChange} showHeaderSearch={showHeaderSearch} />;
   }
 
   // DESKTOP VIEW (Width > 768px) - Pristine 1-Row Layout
@@ -160,8 +160,17 @@ export default function Header({ user, selectedCity = 'tirupati', onCityChange }
           </div>
         </div>
 
-        {/* Center: Desktop SearchBar Component */}
-        <DesktopSearchBar selectedCity={selectedCity} />
+        {/* Center: Desktop SearchBar Component - Revealed when scrolling past hero */}
+        <div style={{
+          flex: 1,
+          maxWidth: '560px',
+          opacity: showHeaderSearch ? 1 : 0,
+          transform: showHeaderSearch ? 'translateY(0)' : 'translateY(-10px)',
+          pointerEvents: showHeaderSearch ? 'auto' : 'none',
+          transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
+        }}>
+          <DesktopSearchBar selectedCity={selectedCity} />
+        </div>
 
         {/* Right Action Controls */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '1.15rem', flexShrink: 0 }}>

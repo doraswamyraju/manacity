@@ -33,8 +33,8 @@ import {
   Clock,
   Send,
   X,
-  Share2,
-  Bookmark
+  QrCode,
+  Tag
 } from 'lucide-react';
 
 export default function Home({
@@ -51,6 +51,10 @@ export default function Home({
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(false);
+
+  // Dynamic header search state based on hero search visibility
+  const [showHeaderSearch, setShowHeaderSearch] = useState(false);
+  const heroSearchRef = useRef(null);
 
   // Waitlist modal state for city lock
   const [waitlistModalCity, setWaitlistModalCity] = useState(null);
@@ -86,6 +90,23 @@ export default function Home({
   useEffect(() => {
     document.body.classList.add('light-mode');
     document.body.setAttribute('data-theme', 'light');
+  }, []);
+
+  // IntersectionObserver to show header search only when scrolled past hero search bar
+  useEffect(() => {
+    const target = heroSearchRef.current;
+    if (!target) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        // When hero search bar leaves viewport (scrolled past), show search bar in sticky header
+        setShowHeaderSearch(!entry.isIntersecting);
+      },
+      { threshold: 0.1 }
+    );
+
+    observer.observe(target);
+    return () => observer.disconnect();
   }, []);
 
   // Fetch verified directory listings strictly live from database for Tirupati
@@ -249,7 +270,7 @@ export default function Home({
     }
   };
 
-  // Quick popular search pills
+  // Quick popular search pills matching reference image
   const popularKeywords = [
     'AC Repair',
     'Restaurants',
@@ -261,7 +282,7 @@ export default function Home({
     'Cabs'
   ];
 
-  // Category Icon List matching design
+  // 9 Primary Category Tiles matching reference image exactly
   const categoryTiles = [
     { name: 'Restaurants', subtitle: 'Food & Cafes', icon: Utensils, color: '#f97316', bg: '#fff7ed' },
     { name: 'Doctors', subtitle: 'Clinics & Hospitals', icon: Heart, color: '#0284c7', bg: '#f0f9ff' },
@@ -280,22 +301,43 @@ export default function Home({
   return (
     <div style={{ width: '100%', minHeight: '100vh', backgroundColor: '#ffffff', color: '#0f172a', display: 'flex', flexDirection: 'column', fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
       
-      {/* 1. Global Header with Tirupati City Guard */}
+      {/* 1. Global Header (Search bar appears dynamically when scrolled past hero) */}
       <Header
         user={user}
         selectedCity={selectedCity}
         onCityChange={handleCityChange}
+        showHeaderSearch={showHeaderSearch}
       />
 
-      {/* 2. Hero Section - Tirupati Regional Hub */}
+      {/* 2. Hero Section - Tirupati Regional Hub with rich scenic background */}
       <section style={{
         position: 'relative',
-        background: 'linear-gradient(180deg, #f0f7ff 0%, #ffffff 100%)',
-        padding: '3rem 1.5rem 4rem',
+        background: 'linear-gradient(180deg, #e8f4fc 0%, #f4f9fd 50%, #ffffff 100%)',
+        padding: '3.5rem 1.5rem 4rem',
         borderBottom: '1px solid #e2e8f0',
         overflow: 'hidden'
       }}>
-        <div style={{ maxWidth: '1240px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'minmax(0, 1.25fr) minmax(0, 0.95fr)', gap: '2.5rem', alignItems: 'center' }}>
+        {/* Subtle decorative background watermarks */}
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          right: 0,
+          bottom: 0,
+          width: '50%',
+          backgroundImage: 'radial-gradient(circle at 75% 30%, rgba(37,99,235,0.08) 0%, transparent 60%)',
+          pointerEvents: 'none'
+        }} />
+
+        <div style={{
+          maxWidth: '1240px',
+          margin: '0 auto',
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+          gap: '2.5rem',
+          alignItems: 'center',
+          position: 'relative',
+          zIndex: 1
+        }}>
           
           {/* Left Column: Heading, Badges, Search Bar */}
           <div>
@@ -303,22 +345,23 @@ export default function Home({
               display: 'inline-flex',
               alignItems: 'center',
               gap: '0.45rem',
-              backgroundColor: '#e0f2fe',
-              color: '#0369a1',
+              backgroundColor: '#dbeafe',
+              color: '#1d4ed8',
               padding: '0.35rem 0.85rem',
               borderRadius: '20px',
               fontSize: '0.75rem',
               fontWeight: 800,
               letterSpacing: '0.05em',
               textTransform: 'uppercase',
-              marginBottom: '1rem'
+              marginBottom: '1rem',
+              boxShadow: '0 2px 4px rgba(37, 99, 235, 0.08)'
             }}>
-              <Sparkles size={14} color="#0284c7" />
+              <Sparkles size={14} color="#2563eb" />
               TIRUPATI'S TRUSTED LOCAL PLATFORM
             </div>
 
             <h1 style={{
-              fontSize: '3.1rem',
+              fontSize: 'clamp(2.4rem, 5vw, 3.4rem)',
               fontWeight: 900,
               lineHeight: 1.15,
               color: '#0f172a',
@@ -326,7 +369,7 @@ export default function Home({
               margin: '0 0 1rem'
             }}>
               Your City.<br />
-              <span style={{ color: '#2563eb' }}>Everything</span> You Need.
+              <span style={{ color: '#2563eb', background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Everything</span> You Need.
             </h1>
 
             <p style={{
@@ -336,10 +379,10 @@ export default function Home({
               margin: '0 0 1.5rem',
               maxWidth: '520px'
             }}>
-              Discover trusted local businesses, services, places and offers in <strong>Tirupati</strong>.
+              Discover trusted local businesses, services, places and offers around you in <strong>Tirupati</strong>.
             </p>
 
-            {/* 4 Feature Trust Badges */}
+            {/* 4 Trust Badges */}
             <div style={{
               display: 'flex',
               flexWrap: 'wrap',
@@ -360,19 +403,19 @@ export default function Home({
               </span>
             </div>
 
-            {/* Hero Main Search Box */}
-            <div style={{ position: 'relative', maxWidth: '580px' }}>
+            {/* Hero Main Search Box with ref for Scroll Detection */}
+            <div ref={heroSearchRef} style={{ position: 'relative', maxWidth: '620px' }}>
               <div style={{
                 display: 'flex',
                 alignItems: 'center',
                 backgroundColor: '#ffffff',
                 border: '2px solid #2563eb',
                 borderRadius: '50px',
-                padding: '0.4rem 0.5rem 0.4rem 1.25rem',
-                boxShadow: '0 10px 25px -5px rgba(37, 99, 235, 0.15)',
+                padding: '0.45rem 0.6rem 0.45rem 1.25rem',
+                boxShadow: '0 12px 30px -5px rgba(37, 99, 235, 0.2)',
                 gap: '0.75rem'
               }}>
-                <Search size={20} color="#64748b" />
+                <Search size={22} color="#64748b" />
                 <input
                   type="text"
                   value={query}
@@ -383,7 +426,7 @@ export default function Home({
                     flex: 1,
                     border: 'none',
                     outline: 'none',
-                    fontSize: '0.92rem',
+                    fontSize: '0.94rem',
                     color: '#0f172a',
                     fontWeight: 500,
                     backgroundColor: 'transparent'
@@ -395,7 +438,7 @@ export default function Home({
                   display: 'flex',
                   alignItems: 'center',
                   gap: '0.3rem',
-                  padding: '0.35rem 0.75rem',
+                  padding: '0.4rem 0.85rem',
                   backgroundColor: '#f1f5f9',
                   borderRadius: '20px',
                   fontSize: '0.82rem',
@@ -414,19 +457,18 @@ export default function Home({
                     color: '#ffffff',
                     border: 'none',
                     borderRadius: '40px',
-                    padding: '0.7rem 1.5rem',
-                    fontSize: '0.92rem',
+                    padding: '0.75rem 1.6rem',
+                    fontSize: '0.94rem',
                     fontWeight: 800,
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
                     gap: '0.4rem',
                     transition: 'all 0.2s',
-                    boxShadow: '0 4px 12px rgba(37, 99, 235, 0.3)'
+                    boxShadow: '0 4px 14px rgba(37, 99, 235, 0.35)'
                   }}
                 >
                   Search
-                  <ArrowRight size={16} />
                 </button>
               </div>
 
@@ -434,12 +476,12 @@ export default function Home({
               {showSuggestions && suggestions.length > 0 && (
                 <div style={{
                   position: 'absolute',
-                  top: '110%',
+                  top: '115%',
                   left: 0,
                   right: 0,
                   backgroundColor: '#ffffff',
                   borderRadius: '16px',
-                  boxShadow: '0 20px 40px rgba(0,0,0,0.12)',
+                  boxShadow: '0 20px 40px rgba(0,0,0,0.14)',
                   border: '1px solid #e2e8f0',
                   zIndex: 50,
                   overflow: 'hidden',
@@ -479,8 +521,8 @@ export default function Home({
               )}
 
               {/* Popular Search Pills */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '1rem', flexWrap: 'wrap' }}>
-                <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#64748b' }}>Popular:</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '1.1rem', flexWrap: 'wrap' }}>
+                <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#64748b' }}>Popular:</span>
                 {popularKeywords.map((word) => (
                   <button
                     key={word}
@@ -491,18 +533,19 @@ export default function Home({
                       fetchListings();
                     }}
                     style={{
-                      backgroundColor: '#f1f5f9',
+                      backgroundColor: '#ffffff',
                       color: '#475569',
-                      border: 'none',
+                      border: '1px solid #e2e8f0',
                       borderRadius: '16px',
-                      padding: '0.3rem 0.75rem',
+                      padding: '0.35rem 0.8rem',
                       fontSize: '0.78rem',
                       fontWeight: 600,
                       cursor: 'pointer',
-                      transition: 'all 0.15s'
+                      transition: 'all 0.15s',
+                      boxShadow: '0 1px 2px rgba(0,0,0,0.03)'
                     }}
-                    onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#e0f2fe'; e.currentTarget.style.color = '#0369a1'; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#f1f5f9'; e.currentTarget.style.color = '#475569'; }}
+                    onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#eff6ff'; e.currentTarget.style.borderColor = '#2563eb'; e.currentTarget.style.color = '#1d4ed8'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#ffffff'; e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.color = '#475569'; }}
                   >
                     {word}
                   </button>
@@ -511,17 +554,17 @@ export default function Home({
             </div>
           </div>
 
-          {/* Right Column: Tirupati Heritage & Verified Badge Showcase */}
+          {/* Right Column: Reference Visual Collage (Tirupati Temple + Floating Badges) */}
           <div style={{ position: 'relative', display: 'flex', justifyContent: 'center' }}>
             <div style={{
               position: 'relative',
               width: '100%',
               maxWidth: '460px',
-              height: '380px',
+              height: '420px',
               borderRadius: '24px',
               overflow: 'hidden',
-              boxShadow: '0 20px 40px -10px rgba(15, 23, 42, 0.25)',
-              border: '3px solid #ffffff'
+              boxShadow: '0 25px 50px -12px rgba(15, 23, 42, 0.25)',
+              border: '4px solid #ffffff'
             }}>
               {/* High-res Tirupati Gopuram image */}
               <img
@@ -535,14 +578,31 @@ export default function Home({
                 left: 0,
                 right: 0,
                 bottom: 0,
-                background: 'linear-gradient(180deg, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.65) 100%)'
+                background: 'linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.7) 100%)'
               }} />
+
+              {/* Callout Handwriting Text Note */}
+              <div style={{
+                position: 'absolute',
+                top: '1.25rem',
+                left: '1.25rem',
+                color: '#ffffff',
+                textShadow: '0 2px 4px rgba(0,0,0,0.8)',
+                fontSize: '0.85rem',
+                fontWeight: 800,
+                lineHeight: 1.3,
+                fontStyle: 'italic'
+              }}>
+                Explore • Shop • Eat<br />
+                Travel • Get Services<br />
+                in Tirupati! ♡
+              </div>
 
               {/* Top Verified Floating Badge */}
               <div style={{
                 position: 'absolute',
-                top: '1rem',
-                right: '1rem',
+                top: '1.25rem',
+                right: '1.25rem',
                 backgroundColor: 'rgba(255, 255, 255, 0.95)',
                 backdropFilter: 'blur(8px)',
                 borderRadius: '16px',
@@ -550,14 +610,14 @@ export default function Home({
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.6rem',
-                boxShadow: '0 10px 20px rgba(0,0,0,0.12)'
+                boxShadow: '0 10px 20px rgba(0,0,0,0.2)'
               }}>
-                <div style={{ backgroundColor: '#eff6ff', borderRadius: '50%', width: '34px', height: '34px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <ShieldCheck size={20} color="#2563eb" />
+                <div style={{ backgroundColor: '#eff6ff', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <ShieldCheck size={22} color="#2563eb" />
                 </div>
                 <div>
-                  <div style={{ fontSize: '0.88rem', fontWeight: 900, color: '#0f172a' }}>5,000+</div>
-                  <div style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 600 }}>Verified Businesses</div>
+                  <div style={{ fontSize: '0.92rem', fontWeight: 900, color: '#0f172a' }}>5,000+</div>
+                  <div style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 700 }}>Verified Businesses</div>
                 </div>
               </div>
 
@@ -567,19 +627,20 @@ export default function Home({
                 bottom: '1.25rem',
                 left: '1.25rem',
                 right: '1.25rem',
-                backgroundColor: 'rgba(255, 255, 255, 0.92)',
+                backgroundColor: 'rgba(255, 255, 255, 0.95)',
                 backdropFilter: 'blur(10px)',
                 borderRadius: '18px',
                 padding: '1rem 1.25rem',
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'space-between'
+                justifyContent: 'space-between',
+                boxShadow: '0 10px 25px rgba(0,0,0,0.15)'
               }}>
                 <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: '#2563eb', fontSize: '0.92rem', fontWeight: 900 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: '#2563eb', fontSize: '0.94rem', fontWeight: 900 }}>
                     Our Tirupati <Heart size={16} fill="#ef4444" color="#ef4444" />
                   </div>
-                  <div style={{ fontSize: '0.75rem', color: '#475569', fontWeight: 600 }}>
+                  <div style={{ fontSize: '0.76rem', color: '#475569', fontWeight: 600 }}>
                     Our Businesses • Our Community
                   </div>
                 </div>
@@ -594,8 +655,8 @@ export default function Home({
                     color: '#ffffff',
                     border: 'none',
                     borderRadius: '10px',
-                    padding: '0.5rem 1rem',
-                    fontSize: '0.8rem',
+                    padding: '0.55rem 1.1rem',
+                    fontSize: '0.82rem',
                     fontWeight: 800,
                     cursor: 'pointer'
                   }}
@@ -608,12 +669,12 @@ export default function Home({
         </div>
       </section>
 
-      {/* 3. Category Tiles Grid */}
-      <section style={{ maxWidth: '1240px', margin: '0 auto', padding: '3rem 1.5rem 2rem', width: '100%', boxSizing: 'border-box' }}>
+      {/* 3. Category Tiles Grid (Matching Reference Screenshot 2) */}
+      <section style={{ maxWidth: '1240px', margin: '0 auto', padding: '3.5rem 1.5rem 2rem', width: '100%', boxSizing: 'border-box' }}>
         <div style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(115px, 1fr))',
-          gap: '1rem',
+          gap: '1.15rem',
           textAlign: 'center'
         }}>
           {categoryTiles.map((cat, idx) => (
@@ -631,43 +692,44 @@ export default function Home({
               style={{
                 backgroundColor: '#ffffff',
                 border: '1px solid #e2e8f0',
-                borderRadius: '16px',
-                padding: '1.25rem 0.5rem 1rem',
+                borderRadius: '18px',
+                padding: '1.35rem 0.6rem 1.1rem',
                 cursor: 'pointer',
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: '0.65rem',
-                transition: 'all 0.2s',
-                boxShadow: '0 2px 6px rgba(0,0,0,0.02)'
+                gap: '0.75rem',
+                transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+                boxShadow: '0 4px 10px rgba(0,0,0,0.03)'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-4px)';
+                e.currentTarget.style.transform = 'translateY(-6px)';
                 e.currentTarget.style.borderColor = cat.color;
-                e.currentTarget.style.boxShadow = '0 12px 24px -6px rgba(0,0,0,0.08)';
+                e.currentTarget.style.boxShadow = `0 14px 28px -6px ${cat.color}25`;
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.transform = 'translateY(0)';
                 e.currentTarget.style.borderColor = '#e2e8f0';
-                e.currentTarget.style.boxShadow = '0 2px 6px rgba(0,0,0,0.02)';
+                e.currentTarget.style.boxShadow = '0 4px 10px rgba(0,0,0,0.03)';
               }}
             >
               <div style={{
-                width: '52px',
-                height: '52px',
+                width: '56px',
+                height: '56px',
                 borderRadius: '50%',
                 backgroundColor: cat.bg,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: cat.color
+                color: cat.color,
+                transition: 'transform 0.2s'
               }}>
-                <cat.icon size={26} />
+                <cat.icon size={28} />
               </div>
               <div>
-                <div style={{ fontSize: '0.88rem', fontWeight: 800, color: '#0f172a' }}>{cat.name}</div>
-                <div style={{ fontSize: '0.68rem', color: '#64748b', marginTop: '0.15rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '105px' }}>
+                <div style={{ fontSize: '0.9rem', fontWeight: 800, color: '#0f172a' }}>{cat.name}</div>
+                <div style={{ fontSize: '0.7rem', color: '#64748b', marginTop: '0.2rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '105px' }}>
                   {cat.subtitle}
                 </div>
               </div>
@@ -676,18 +738,20 @@ export default function Home({
         </div>
       </section>
 
-      {/* 4. Get Multiple Quotes Banner */}
-      <section style={{ maxWidth: '1240px', margin: '1rem auto 2.5rem', padding: '0 1.5rem', width: '100%', boxSizing: 'border-box' }}>
+      {/* 4. Get Multiple Quotes Banner (Matching Reference Screenshot 2 with floating price tags) */}
+      <section style={{ maxWidth: '1240px', margin: '1.5rem auto 3rem', padding: '0 1.5rem', width: '100%', boxSizing: 'border-box' }}>
         <div style={{
-          background: 'linear-gradient(135deg, #fffbeb 0%, #fef3c7 50%, #fed7aa 100%)',
-          border: '1px solid #fde68a',
+          background: 'linear-gradient(135deg, #fef3c7 0%, #fed7aa 60%, #fdba74 100%)',
+          border: '1px solid #fcd34d',
           borderRadius: '24px',
-          padding: '2rem 2.5rem',
+          padding: '2.5rem',
           display: 'grid',
-          gridTemplateColumns: 'minmax(0, 1.2fr) minmax(0, 1fr)',
-          gap: '2rem',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+          gap: '2.5rem',
           alignItems: 'center',
-          boxShadow: '0 10px 25px -5px rgba(245, 158, 11, 0.12)'
+          boxShadow: '0 15px 35px -5px rgba(245, 158, 11, 0.18)',
+          position: 'relative',
+          overflow: 'hidden'
         }}>
           <div>
             <div style={{
@@ -696,21 +760,22 @@ export default function Home({
               gap: '0.4rem',
               backgroundColor: '#16a34a',
               color: '#ffffff',
-              padding: '0.25rem 0.65rem',
+              padding: '0.3rem 0.75rem',
               borderRadius: '16px',
-              fontSize: '0.72rem',
+              fontSize: '0.75rem',
               fontWeight: 800,
-              marginBottom: '0.75rem'
+              marginBottom: '1rem',
+              boxShadow: '0 2px 6px rgba(22, 163, 74, 0.25)'
             }}>
-              <Check size={13} />
+              <Check size={14} />
               BEST DEAL GUARANTEE
             </div>
 
-            <h2 style={{ fontSize: '1.9rem', fontWeight: 900, color: '#78350f', margin: '0 0 0.5rem', lineHeight: 1.25 }}>
+            <h2 style={{ fontSize: 'clamp(1.7rem, 3vw, 2.2rem)', fontWeight: 900, color: '#78350f', margin: '0 0 0.6rem', lineHeight: 1.25 }}>
               Get Multiple Quotes from Verified Professionals
             </h2>
-            <p style={{ fontSize: '0.95rem', color: '#92400e', margin: '0 0 1.5rem' }}>
-              Compare prices, read real verified reviews, and choose the best service provider in Tirupati.
+            <p style={{ fontSize: '0.98rem', color: '#92400e', margin: '0 0 1.75rem', lineHeight: 1.5 }}>
+              Compare prices, read reviews, and choose the best service provider in Tirupati.
             </p>
 
             <button
@@ -721,14 +786,14 @@ export default function Home({
                 color: '#ffffff',
                 border: 'none',
                 borderRadius: '12px',
-                padding: '0.85rem 1.75rem',
+                padding: '0.85rem 2rem',
                 fontSize: '0.95rem',
                 fontWeight: 800,
                 cursor: 'pointer',
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '0.5rem',
-                boxShadow: '0 8px 18px rgba(37, 99, 235, 0.3)'
+                boxShadow: '0 8px 20px rgba(37, 99, 235, 0.35)'
               }}
             >
               Get Free Quotes
@@ -736,62 +801,78 @@ export default function Home({
             </button>
           </div>
 
-          {/* 3 Step Workflow Graphic */}
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-around',
-            backgroundColor: 'rgba(255, 255, 255, 0.85)',
-            backdropFilter: 'blur(8px)',
-            borderRadius: '20px',
-            padding: '1.5rem',
-            border: '1px solid rgba(255, 255, 255, 0.9)'
-          }}>
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ width: '44px', height: '44px', borderRadius: '50%', backgroundColor: '#eff6ff', color: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 0.5rem' }}>
-                <Send size={20} />
+          {/* Right: Step Workflow + Live Price Floating Cards */}
+          <div style={{ position: 'relative' }}>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-around',
+              backgroundColor: 'rgba(255, 255, 255, 0.92)',
+              backdropFilter: 'blur(10px)',
+              borderRadius: '20px',
+              padding: '1.75rem 1.25rem',
+              border: '1px solid rgba(255, 255, 255, 0.95)',
+              boxShadow: '0 10px 25px rgba(0,0,0,0.06)'
+            }}>
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ width: '48px', height: '48px', borderRadius: '50%', backgroundColor: '#eff6ff', color: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 0.6rem' }}>
+                  <Send size={22} />
+                </div>
+                <div style={{ fontSize: '0.8rem', fontWeight: 800, color: '#0f172a' }}>Post Requirement</div>
               </div>
-              <div style={{ fontSize: '0.78rem', fontWeight: 800, color: '#0f172a' }}>Post Requirement</div>
+
+              <ChevronRight size={20} color="#cbd5e1" />
+
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ width: '48px', height: '48px', borderRadius: '50%', backgroundColor: '#fef3c7', color: '#d97706', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 0.6rem' }}>
+                  <MessageSquare size={22} />
+                </div>
+                <div style={{ fontSize: '0.8rem', fontWeight: 800, color: '#0f172a' }}>Receive Quotes</div>
+              </div>
+
+              <ChevronRight size={20} color="#cbd5e1" />
+
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ width: '48px', height: '48px', borderRadius: '50%', backgroundColor: '#dcfce7', color: '#16a34a', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 0.6rem' }}>
+                  <CheckCircle size={22} />
+                </div>
+                <div style={{ fontSize: '0.8rem', fontWeight: 800, color: '#0f172a' }}>Compare & Choose</div>
+              </div>
             </div>
 
-            <ChevronRight size={18} color="#94a3b8" />
-
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ width: '44px', height: '44px', borderRadius: '50%', backgroundColor: '#fef3c7', color: '#d97706', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 0.5rem' }}>
-                <MessageSquare size={20} />
+            {/* Live Floating Price Bubbles */}
+            <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1rem', justifyContent: 'center' }}>
+              <div style={{ backgroundColor: '#ffffff', padding: '0.45rem 0.85rem', borderRadius: '14px', fontSize: '0.78rem', fontWeight: 800, color: '#d97706', boxShadow: '0 4px 10px rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                <Tag size={13} /> ₹800 AC Service
               </div>
-              <div style={{ fontSize: '0.78rem', fontWeight: 800, color: '#0f172a' }}>Receive Quotes</div>
-            </div>
-
-            <ChevronRight size={18} color="#94a3b8" />
-
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ width: '44px', height: '44px', borderRadius: '50%', backgroundColor: '#dcfce7', color: '#16a34a', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 0.5rem' }}>
-                <CheckCircle size={20} />
+              <div style={{ backgroundColor: '#ffffff', padding: '0.45rem 0.85rem', borderRadius: '14px', fontSize: '0.78rem', fontWeight: 800, color: '#16a34a', boxShadow: '0 4px 10px rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                <Tag size={13} /> ₹450 Plumbing Visit
               </div>
-              <div style={{ fontSize: '0.78rem', fontWeight: 800, color: '#0f172a' }}>Compare & Choose</div>
+              <div style={{ backgroundColor: '#ffffff', padding: '0.45rem 0.85rem', borderRadius: '14px', fontSize: '0.78rem', fontWeight: 800, color: '#2563eb', boxShadow: '0 4px 10px rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                <Tag size={13} /> ₹950 Car Detailing
+              </div>
             </div>
           </div>
         </div>
       </section>
 
       {/* 5. Trending in Tirupati - Live Database Only */}
-      <section id="trending-section" style={{ maxWidth: '1240px', margin: '0 auto', padding: '2rem 1.5rem 3.5rem', width: '100%', boxSizing: 'border-box' }}>
-        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', marginBottom: '1.5rem' }}>
+      <section id="trending-section" style={{ maxWidth: '1240px', margin: '0 auto', padding: '2rem 1.5rem 4rem', width: '100%', boxSizing: 'border-box' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', marginBottom: '1.75rem' }}>
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
-              <h2 style={{ fontSize: '1.75rem', fontWeight: 900, color: '#0f172a', margin: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <h2 style={{ fontSize: '1.9rem', fontWeight: 900, color: '#0f172a', margin: 0 }}>
                 Trending in Tirupati
               </h2>
-              <Flame size={24} color="#f97316" fill="#f97316" />
+              <Flame size={26} color="#f97316" fill="#f97316" />
             </div>
-            <p style={{ fontSize: '0.88rem', color: '#64748b', margin: '0.35rem 0 0' }}>
+            <p style={{ fontSize: '0.9rem', color: '#64748b', margin: '0.35rem 0 0' }}>
               Most popular verified businesses loved by our local community
             </p>
           </div>
 
           {/* Category Filter Pills */}
-          <div style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', paddingBottom: '0.35rem' }}>
+          <div style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', paddingBottom: '0.35rem', WebkitOverflowScrolling: 'touch' }}>
             {trendingTabs.map((tab) => (
               <button
                 key={tab}
@@ -801,9 +882,9 @@ export default function Home({
                   backgroundColor: selectedCategory === tab ? '#2563eb' : '#f1f5f9',
                   color: selectedCategory === tab ? '#ffffff' : '#475569',
                   border: 'none',
-                  borderRadius: '20px',
-                  padding: '0.45rem 1rem',
-                  fontSize: '0.82rem',
+                  borderRadius: '24px',
+                  padding: '0.5rem 1.15rem',
+                  fontSize: '0.84rem',
                   fontWeight: 700,
                   cursor: 'pointer',
                   transition: 'all 0.15s',
@@ -819,8 +900,8 @@ export default function Home({
         {/* Live Database Listings Container */}
         {loading ? (
           <div style={{ textAlign: 'center', padding: '4rem 1rem', color: '#64748b' }}>
-            <div style={{ display: 'inline-block', width: '32px', height: '32px', border: '3px solid #cbd5e1', borderTopColor: '#2563eb', borderRadius: '50%', animation: 'spin 0.8s linear infinite', marginBottom: '0.75rem' }} />
-            <div style={{ fontSize: '0.92rem', fontWeight: 600 }}>Loading verified Tirupati businesses from database...</div>
+            <div style={{ display: 'inline-block', width: '36px', height: '36px', border: '3px solid #cbd5e1', borderTopColor: '#2563eb', borderRadius: '50%', animation: 'spin 0.8s linear infinite', marginBottom: '0.85rem' }} />
+            <div style={{ fontSize: '0.95rem', fontWeight: 600 }}>Loading verified Tirupati businesses from database...</div>
           </div>
         ) : listings.length === 0 ? (
           <div style={{
@@ -849,8 +930,8 @@ export default function Home({
                 color: '#ffffff',
                 border: 'none',
                 borderRadius: '12px',
-                padding: '0.75rem 1.75rem',
-                fontSize: '0.9rem',
+                padding: '0.8rem 1.85rem',
+                fontSize: '0.92rem',
                 fontWeight: 800,
                 cursor: 'pointer',
                 display: 'inline-flex',
@@ -897,7 +978,7 @@ export default function Home({
                 >
                   <div>
                     {/* Card Cover Header */}
-                    <div style={{ position: 'relative', height: '160px', overflow: 'hidden' }}>
+                    <div style={{ position: 'relative', height: '165px', overflow: 'hidden' }}>
                       <img
                         src={bgImage}
                         alt={item.businessName}
@@ -938,7 +1019,7 @@ export default function Home({
                     </div>
 
                     {/* Card Info */}
-                    <div style={{ padding: '1rem 1.25rem 0.5rem' }}>
+                    <div style={{ padding: '1.1rem 1.25rem 0.5rem' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.35rem' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.2rem', backgroundColor: '#fef3c7', color: '#d97706', padding: '0.15rem 0.45rem', borderRadius: '8px', fontSize: '0.76rem', fontWeight: 800 }}>
                           <Star size={12} fill="#d97706" />
@@ -973,7 +1054,7 @@ export default function Home({
                         color: '#ffffff',
                         border: 'none',
                         borderRadius: '10px',
-                        padding: '0.55rem',
+                        padding: '0.6rem',
                         fontSize: '0.82rem',
                         fontWeight: 700,
                         cursor: 'pointer',
@@ -995,7 +1076,7 @@ export default function Home({
                         color: '#ffffff',
                         border: 'none',
                         borderRadius: '10px',
-                        padding: '0.55rem',
+                        padding: '0.6rem',
                         fontSize: '0.82rem',
                         fontWeight: 700,
                         cursor: 'pointer',
@@ -1016,7 +1097,7 @@ export default function Home({
                         color: '#475569',
                         border: 'none',
                         borderRadius: '10px',
-                        padding: '0.55rem 0.75rem',
+                        padding: '0.6rem 0.8rem',
                         cursor: 'pointer',
                         display: 'flex',
                         alignItems: 'center',
@@ -1034,14 +1115,14 @@ export default function Home({
         )}
       </section>
 
-      {/* 6. Tirupati in Your Pocket - App Section */}
+      {/* 6. Tirupati in Your Pocket - App Section with QR Code (Matching Reference Screenshot 3) */}
       <section style={{
         backgroundColor: '#f8fafc',
         borderTop: '1px solid #e2e8f0',
         borderBottom: '1px solid #e2e8f0',
-        padding: '4rem 1.5rem'
+        padding: '4.5rem 1.5rem'
       }}>
-        <div style={{ maxWidth: '1240px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1.2fr)', gap: '3rem', alignItems: 'center' }}>
+        <div style={{ maxWidth: '1240px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '3rem', alignItems: 'center' }}>
           
           {/* Mobile Mockup Visual */}
           <div style={{ textAlign: 'center' }}>
@@ -1096,7 +1177,7 @@ export default function Home({
             </div>
           </div>
 
-          {/* App Value Props */}
+          {/* App Value Props + Scannable QR Code */}
           <div>
             <div style={{
               display: 'inline-flex',
@@ -1113,143 +1194,166 @@ export default function Home({
               LOCAL CONVENIENCE
             </div>
 
-            <h2 style={{ fontSize: '2.4rem', fontWeight: 900, color: '#0f172a', margin: '0 0 1rem', lineHeight: 1.2 }}>
+            <h2 style={{ fontSize: 'clamp(2rem, 4vw, 2.6rem)', fontWeight: 900, color: '#0f172a', margin: '0 0 1rem', lineHeight: 1.2 }}>
               Tirupati in <span style={{ color: '#2563eb' }}>Your Pocket</span>
             </h2>
 
             <p style={{ fontSize: '1rem', color: '#475569', lineHeight: 1.6, margin: '0 0 1.75rem' }}>
-              Discover, connect and grow with ManaCity mobile web & app experience. Find local businesses, book services, get instant quotes and directions — all in one place.
+              Discover, connect and grow with the ManaCity app experience. Find local businesses, book services, get quotes, directions and more — all in one place.
             </p>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '2rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                <div style={{ width: '36px', height: '36px', borderRadius: '50%', backgroundColor: '#eff6ff', color: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ width: '38px', height: '38px', borderRadius: '50%', backgroundColor: '#eff6ff', color: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <MapPin size={18} />
                 </div>
-                <span style={{ fontSize: '0.88rem', fontWeight: 700, color: '#1e293b' }}>Find nearby services</span>
+                <span style={{ fontSize: '0.9rem', fontWeight: 700, color: '#1e293b' }}>Find nearby services</span>
               </div>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                <div style={{ width: '36px', height: '36px', borderRadius: '50%', backgroundColor: '#fef3c7', color: '#d97706', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ width: '38px', height: '38px', borderRadius: '50%', backgroundColor: '#fef3c7', color: '#d97706', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <Sparkles size={18} />
                 </div>
-                <span style={{ fontSize: '0.88rem', fontWeight: 700, color: '#1e293b' }}>Get best quotes</span>
+                <span style={{ fontSize: '0.9rem', fontWeight: 700, color: '#1e293b' }}>Get best quotes</span>
               </div>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                <div style={{ width: '36px', height: '36px', borderRadius: '50%', backgroundColor: '#dcfce7', color: '#16a34a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ width: '38px', height: '38px', borderRadius: '50%', backgroundColor: '#dcfce7', color: '#16a34a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <Star size={18} />
                 </div>
-                <span style={{ fontSize: '0.88rem', fontWeight: 700, color: '#1e293b' }}>Read real reviews</span>
+                <span style={{ fontSize: '0.9rem', fontWeight: 700, color: '#1e293b' }}>Read real reviews</span>
               </div>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                <div style={{ width: '36px', height: '36px', borderRadius: '50%', backgroundColor: '#fee2e2', color: '#dc2626', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ width: '38px', height: '38px', borderRadius: '50%', backgroundColor: '#fee2e2', color: '#dc2626', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <Phone size={18} />
                 </div>
-                <span style={{ fontSize: '0.88rem', fontWeight: 700, color: '#1e293b' }}>Chat & call directly</span>
+                <span style={{ fontSize: '0.9rem', fontWeight: 700, color: '#1e293b' }}>Chat & call directly</span>
               </div>
             </div>
 
-            {/* Badges / Download preview */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
-              <div style={{
-                backgroundColor: '#0f172a',
-                color: '#ffffff',
-                padding: '0.65rem 1.25rem',
-                borderRadius: '12px',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.6rem',
-                cursor: 'pointer'
-              }}>
-                <div style={{ fontSize: '0.68rem', textTransform: 'uppercase', opacity: 0.8 }}>GET IT ON</div>
-                <div style={{ fontSize: '0.92rem', fontWeight: 800 }}>Google Play</div>
+            {/* App Store Buttons & QR Code */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+                <div style={{
+                  backgroundColor: '#0f172a',
+                  color: '#ffffff',
+                  padding: '0.65rem 1.25rem',
+                  borderRadius: '12px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.75rem',
+                  cursor: 'pointer'
+                }}>
+                  <div style={{ width: '22px', height: '22px', backgroundColor: '#ffffff', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0f172a', fontWeight: 900, fontSize: '0.8rem' }}>▶</div>
+                  <div>
+                    <div style={{ fontSize: '0.62rem', textTransform: 'uppercase', opacity: 0.8 }}>GET IT ON</div>
+                    <div style={{ fontSize: '0.92rem', fontWeight: 800 }}>Google Play</div>
+                  </div>
+                </div>
+
+                <div style={{
+                  backgroundColor: '#0f172a',
+                  color: '#ffffff',
+                  padding: '0.65rem 1.25rem',
+                  borderRadius: '12px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.75rem',
+                  cursor: 'pointer'
+                }}>
+                  <div style={{ width: '22px', height: '22px', backgroundColor: '#ffffff', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0f172a', fontWeight: 900, fontSize: '0.8rem' }}></div>
+                  <div>
+                    <div style={{ fontSize: '0.62rem', textTransform: 'uppercase', opacity: 0.8 }}>DOWNLOAD ON THE</div>
+                    <div style={{ fontSize: '0.92rem', fontWeight: 800 }}>App Store</div>
+                  </div>
+                </div>
               </div>
 
+              {/* QR Code Container matching reference */}
               <div style={{
-                backgroundColor: '#0f172a',
-                color: '#ffffff',
-                padding: '0.65rem 1.25rem',
-                borderRadius: '12px',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.6rem',
-                cursor: 'pointer'
+                backgroundColor: '#ffffff',
+                border: '1px solid #e2e8f0',
+                borderRadius: '16px',
+                padding: '0.85rem',
+                textAlign: 'center',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.04)'
               }}>
-                <div style={{ fontSize: '0.68rem', textTransform: 'uppercase', opacity: 0.8 }}>DOWNLOAD ON THE</div>
-                <div style={{ fontSize: '0.92rem', fontWeight: 800 }}>App Store</div>
+                <div style={{ width: '80px', height: '80px', backgroundColor: '#f1f5f9', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 0.4rem' }}>
+                  <QrCode size={56} color="#0f172a" />
+                </div>
+                <div style={{ fontSize: '0.7rem', fontWeight: 800, color: '#475569' }}>Scan QR to<br />Download App</div>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* 7. How ManaCity Works */}
-      <section style={{ maxWidth: '1240px', margin: '0 auto', padding: '4rem 1.5rem', width: '100%', boxSizing: 'border-box', textAlign: 'center' }}>
-        <h2 style={{ fontSize: '2.2rem', fontWeight: 900, color: '#0f172a', margin: '0 0 0.5rem' }}>
+      {/* 7. How ManaCity Works (Matching Reference Screenshot 4) */}
+      <section style={{ maxWidth: '1240px', margin: '0 auto', padding: '4.5rem 1.5rem', width: '100%', boxSizing: 'border-box', textAlign: 'center' }}>
+        <h2 style={{ fontSize: '2.3rem', fontWeight: 900, color: '#0f172a', margin: '0 0 0.5rem' }}>
           How ManaCity Works?
         </h2>
-        <p style={{ fontSize: '0.95rem', color: '#64748b', margin: '0 0 3rem' }}>
+        <p style={{ fontSize: '0.98rem', color: '#64748b', margin: '0 0 3.5rem' }}>
           Get what you need in just a few simple steps
         </p>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: '2rem' }}>
           {/* Step 1 */}
           <div style={{ textAlign: 'center' }}>
-            <div style={{ width: '60px', height: '60px', borderRadius: '50%', backgroundColor: '#eff6ff', color: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.25rem', fontSize: '1.25rem', fontWeight: 900 }}>
+            <div style={{ width: '64px', height: '64px', borderRadius: '50%', backgroundColor: '#eff6ff', color: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.25rem', fontSize: '1.3rem', fontWeight: 900, border: '2px solid #bfdbfe' }}>
               1
             </div>
-            <h4 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0f172a', margin: '0 0 0.4rem' }}>Search or Post</h4>
-            <p style={{ fontSize: '0.85rem', color: '#64748b', lineHeight: 1.5, margin: 0 }}>
-              Find businesses or post your specific service requirement.
+            <h4 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#0f172a', margin: '0 0 0.45rem' }}>Search or Post Requirement</h4>
+            <p style={{ fontSize: '0.88rem', color: '#64748b', lineHeight: 1.55, margin: 0 }}>
+              Find businesses or post your service requirement in Tirupati.
             </p>
           </div>
 
           {/* Step 2 */}
           <div style={{ textAlign: 'center' }}>
-            <div style={{ width: '60px', height: '60px', borderRadius: '50%', backgroundColor: '#fef3c7', color: '#d97706', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.25rem', fontSize: '1.25rem', fontWeight: 900 }}>
+            <div style={{ width: '64px', height: '64px', borderRadius: '50%', backgroundColor: '#fef3c7', color: '#d97706', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.25rem', fontSize: '1.3rem', fontWeight: 900, border: '2px solid #fde68a' }}>
               2
             </div>
-            <h4 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0f172a', margin: '0 0 0.4rem' }}>Get Quotes</h4>
-            <p style={{ fontSize: '0.85rem', color: '#64748b', lineHeight: 1.5, margin: 0 }}>
-              Receive competitive quotes from verified Tirupati professionals.
+            <h4 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#0f172a', margin: '0 0 0.45rem' }}>Get Quotes & Compare</h4>
+            <p style={{ fontSize: '0.88rem', color: '#64748b', lineHeight: 1.55, margin: 0 }}>
+              Receive competitive quotes from verified professionals.
             </p>
           </div>
 
           {/* Step 3 */}
           <div style={{ textAlign: 'center' }}>
-            <div style={{ width: '60px', height: '60px', borderRadius: '50%', backgroundColor: '#fce7f3', color: '#db2777', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.25rem', fontSize: '1.25rem', fontWeight: 900 }}>
+            <div style={{ width: '64px', height: '64px', borderRadius: '50%', backgroundColor: '#fce7f3', color: '#db2777', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.25rem', fontSize: '1.3rem', fontWeight: 900, border: '2px solid #fbcfe8' }}>
               3
             </div>
-            <h4 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0f172a', margin: '0 0 0.4rem' }}>Check Reviews</h4>
-            <p style={{ fontSize: '0.85rem', color: '#64748b', lineHeight: 1.5, margin: 0 }}>
-              Read genuine feedback from fellow residents and customers.
+            <h4 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#0f172a', margin: '0 0 0.45rem' }}>Check Reviews</h4>
+            <p style={{ fontSize: '0.88rem', color: '#64748b', lineHeight: 1.55, margin: 0 }}>
+              Read real customer reviews and ratings from fellow residents.
             </p>
           </div>
 
           {/* Step 4 */}
           <div style={{ textAlign: 'center' }}>
-            <div style={{ width: '60px', height: '60px', borderRadius: '50%', backgroundColor: '#dcfce7', color: '#16a34a', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.25rem', fontSize: '1.25rem', fontWeight: 900 }}>
+            <div style={{ width: '64px', height: '64px', borderRadius: '50%', backgroundColor: '#dcfce7', color: '#16a34a', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.25rem', fontSize: '1.3rem', fontWeight: 900, border: '2px solid #bbf7d0' }}>
               4
             </div>
-            <h4 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0f172a', margin: '0 0 0.4rem' }}>Connect & Done</h4>
-            <p style={{ fontSize: '0.85rem', color: '#64748b', lineHeight: 1.5, margin: 0 }}>
-              Call, chat or book instantly and get your service accomplished.
+            <h4 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#0f172a', margin: '0 0 0.45rem' }}>Connect & Get It Done</h4>
+            <p style={{ fontSize: '0.88rem', color: '#64748b', lineHeight: 1.55, margin: 0 }}>
+              Call, chat or book instantly and get the service done.
             </p>
           </div>
         </div>
       </section>
 
-      {/* 8. List Your Business on ManaCity Banner */}
-      <section style={{ maxWidth: '1240px', margin: '0 auto 4rem', padding: '0 1.5rem', width: '100%', boxSizing: 'border-box' }}>
+      {/* 8. List Your Business on ManaCity Banner (Matching Reference Screenshot 4) */}
+      <section style={{ maxWidth: '1240px', margin: '0 auto 4.5rem', padding: '0 1.5rem', width: '100%', boxSizing: 'border-box' }}>
         <div style={{
-          background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)',
-          border: '1px solid #bfdbfe',
+          background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 50%, #bfdbfe 100%)',
+          border: '1.5px solid #93c5fd',
           borderRadius: '24px',
           padding: '2.5rem',
           display: 'grid',
-          gridTemplateColumns: 'minmax(0, 1.4fr) minmax(0, 1fr)',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
           gap: '2.5rem',
           alignItems: 'center'
         }}>
@@ -1260,106 +1364,111 @@ export default function Home({
               gap: '0.4rem',
               backgroundColor: '#2563eb',
               color: '#ffffff',
-              padding: '0.25rem 0.75rem',
+              padding: '0.3rem 0.8rem',
               borderRadius: '16px',
               fontSize: '0.75rem',
               fontWeight: 800,
               marginBottom: '1rem'
             }}>
-              FOR BUSINESS OWNERS IN TIRUPATI
+              GROW YOUR BUSINESS IN TIRUPATI
             </div>
 
-            <h2 style={{ fontSize: '2.2rem', fontWeight: 900, color: '#0f172a', margin: '0 0 0.75rem', lineHeight: 1.25 }}>
+            <h2 style={{ fontSize: 'clamp(1.8rem, 3.5vw, 2.3rem)', fontWeight: 900, color: '#0f172a', margin: '0 0 0.75rem', lineHeight: 1.25 }}>
               List Your Business on ManaCity
             </h2>
-            <p style={{ fontSize: '0.98rem', color: '#475569', margin: '0 0 1.75rem' }}>
-              Get more customers, increase visibility and grow your business with Tirupati's dedicated local directory platform.
+            <p style={{ fontSize: '1rem', color: '#334155', margin: '0 0 1.75rem', lineHeight: 1.55 }}>
+              Get more customers, increase visibility and grow your business with Tirupati's trusted local platform.
             </p>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '2rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', fontSize: '0.88rem', fontWeight: 700, color: '#1e3a8a' }}>
-                <CheckCircle size={16} color="#2563eb" /> Reach local customers
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.85rem', marginBottom: '2rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', fontWeight: 700, color: '#1e3a8a' }}>
+                <CheckCircle size={17} color="#2563eb" /> Reach local customers
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', fontSize: '0.88rem', fontWeight: 700, color: '#1e3a8a' }}>
-                <CheckCircle size={16} color="#2563eb" /> Get verified badge
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', fontWeight: 700, color: '#1e3a8a' }}>
+                <CheckCircle size={17} color="#2563eb" /> Get verified badge
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', fontSize: '0.88rem', fontWeight: 700, color: '#1e3a8a' }}>
-                <CheckCircle size={16} color="#2563eb" /> Showcase your services
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', fontWeight: 700, color: '#1e3a8a' }}>
+                <CheckCircle size={17} color="#2563eb" /> Showcase your services
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', fontSize: '0.88rem', fontWeight: 700, color: '#1e3a8a' }}>
-                <CheckCircle size={16} color="#2563eb" /> Receive genuine leads
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', fontWeight: 700, color: '#1e3a8a' }}>
+                <CheckCircle size={17} color="#2563eb" /> Receive genuine leads
               </div>
             </div>
 
-            <button
-              type="button"
-              onClick={() => onNavigateToRegister ? onNavigateToRegister() : window.location.href = '/register'}
-              style={{
-                backgroundColor: '#2563eb',
-                color: '#ffffff',
-                border: 'none',
-                borderRadius: '12px',
-                padding: '0.85rem 2rem',
-                fontSize: '0.95rem',
-                fontWeight: 800,
-                cursor: 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                boxShadow: '0 8px 18px rgba(37, 99, 235, 0.25)'
-              }}
-            >
-              List Your Business Now
-              <ArrowRight size={17} />
-            </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                onClick={() => onNavigateToRegister ? onNavigateToRegister() : window.location.href = '/register'}
+                style={{
+                  backgroundColor: '#2563eb',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '12px',
+                  padding: '0.9rem 2.25rem',
+                  fontSize: '0.95rem',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  boxShadow: '0 8px 20px rgba(37, 99, 235, 0.3)'
+                }}
+              >
+                List Your Business Now
+                <ArrowRight size={17} />
+              </button>
+              <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#64748b' }}>
+                Free Listing • Easy Setup • More Customers
+              </span>
+            </div>
           </div>
 
           {/* Business Showcase Illustration Box */}
           <div style={{
             backgroundColor: '#ffffff',
             borderRadius: '20px',
-            padding: '2rem',
-            boxShadow: '0 12px 28px rgba(37, 99, 235, 0.1)',
+            padding: '2.25rem',
+            boxShadow: '0 15px 35px rgba(37, 99, 235, 0.12)',
             border: '1px solid #e2e8f0',
             textAlign: 'center'
           }}>
-            <div style={{ width: '70px', height: '70px', borderRadius: '50%', backgroundColor: '#eff6ff', color: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem' }}>
-              <Building2 size={36} />
+            <div style={{ width: '72px', height: '72px', borderRadius: '50%', backgroundColor: '#eff6ff', color: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem' }}>
+              <Building2 size={38} />
             </div>
-            <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0f172a', margin: '0 0 0.5rem' }}>
-              Zero Commission Listing
+            <h3 style={{ fontSize: '1.3rem', fontWeight: 800, color: '#0f172a', margin: '0 0 0.5rem' }}>
+              Direct Leads • Zero Commission
             </h3>
-            <p style={{ fontSize: '0.85rem', color: '#64748b', lineHeight: 1.5, margin: 0 }}>
+            <p style={{ fontSize: '0.88rem', color: '#64748b', lineHeight: 1.55, margin: 0 }}>
               Create your business profile, upload catalogs, collect direct customer enquiries via WhatsApp and phone calls without any middlemen.
             </p>
           </div>
         </div>
       </section>
 
-      {/* 9. Metrics & Community Feedback */}
+      {/* 9. Metrics Bar (Matching Reference Screenshot 5) */}
       <section style={{ backgroundColor: '#0f172a', color: '#ffffff', padding: '3.5rem 1.5rem' }}>
-        <div style={{ maxWidth: '1240px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '2rem', textAlign: 'center' }}>
+        <div style={{ maxWidth: '1240px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '2.5rem', textAlign: 'center' }}>
           <div>
-            <div style={{ fontSize: '2.5rem', fontWeight: 900, color: '#38bdf8', marginBottom: '0.35rem' }}>5,000+</div>
-            <div style={{ fontSize: '0.9rem', color: '#94a3b8', fontWeight: 600 }}>Verified Businesses</div>
+            <div style={{ fontSize: '2.6rem', fontWeight: 900, color: '#38bdf8', marginBottom: '0.35rem' }}>5,000+</div>
+            <div style={{ fontSize: '0.92rem', color: '#94a3b8', fontWeight: 600 }}>Verified Businesses</div>
           </div>
           <div>
-            <div style={{ fontSize: '2.5rem', fontWeight: 900, color: '#a855f7', marginBottom: '0.35rem' }}>50,000+</div>
-            <div style={{ fontSize: '0.9rem', color: '#94a3b8', fontWeight: 600 }}>Happy Customers</div>
+            <div style={{ fontSize: '2.6rem', fontWeight: 900, color: '#a855f7', marginBottom: '0.35rem' }}>50,000+</div>
+            <div style={{ fontSize: '0.92rem', color: '#94a3b8', fontWeight: 600 }}>Happy Customers</div>
           </div>
           <div>
-            <div style={{ fontSize: '2.5rem', fontWeight: 900, color: '#34d399', marginBottom: '0.35rem' }}>15+</div>
-            <div style={{ fontSize: '0.9rem', color: '#94a3b8', fontWeight: 600 }}>Categories Covered</div>
+            <div style={{ fontSize: '2.6rem', fontWeight: 900, color: '#34d399', marginBottom: '0.35rem' }}>15+</div>
+            <div style={{ fontSize: '0.92rem', color: '#94a3b8', fontWeight: 600 }}>Categories Covered</div>
           </div>
           <div>
-            <div style={{ fontSize: '2.5rem', fontWeight: 900, color: '#facc15', marginBottom: '0.35rem' }}>4.8 ★</div>
-            <div style={{ fontSize: '0.9rem', color: '#94a3b8', fontWeight: 600 }}>Average Platform Rating</div>
+            <div style={{ fontSize: '2.6rem', fontWeight: 900, color: '#facc15', marginBottom: '0.35rem' }}>4.8 ★</div>
+            <div style={{ fontSize: '0.92rem', color: '#94a3b8', fontWeight: 600 }}>Average Platform Rating</div>
           </div>
         </div>
       </section>
 
       {/* 10. Comprehensive Footer */}
-      <footer style={{ backgroundColor: '#ffffff', borderTop: '1px solid #e2e8f0', padding: '4rem 1.5rem 2rem', marginTop: 'auto' }}>
+      <footer style={{ backgroundColor: '#ffffff', borderTop: '1px solid #e2e8f0', padding: '4.5rem 1.5rem 2rem', marginTop: 'auto' }}>
         <div style={{ maxWidth: '1240px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '2.5rem', marginBottom: '3rem' }}>
           
           <div>
@@ -1367,14 +1476,14 @@ export default function Home({
             <p style={{ fontSize: '0.88rem', color: '#64748b', lineHeight: 1.6, margin: '0 0 1rem' }}>
               Your trusted local platform to discover, connect and grow in Tirupati.
             </p>
-            <div style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
+            <div style={{ fontSize: '0.82rem', color: '#94a3b8' }}>
               Currently live exclusively in <strong>Tirupati, Andhra Pradesh</strong>.
             </div>
           </div>
 
           <div>
             <h4 style={{ fontSize: '0.92rem', fontWeight: 800, color: '#0f172a', margin: '0 0 1rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Quick Links</h4>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', fontSize: '0.85rem', color: '#64748b' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem', fontSize: '0.86rem', color: '#64748b' }}>
               <span style={{ cursor: 'pointer' }} onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>Home</span>
               <span style={{ cursor: 'pointer' }} onClick={() => setSelectedCategory('All')}>Browse Categories</span>
               <span style={{ cursor: 'pointer' }} onClick={() => onNavigateToRegister ? onNavigateToRegister() : null}>List Your Business</span>
@@ -1384,7 +1493,7 @@ export default function Home({
 
           <div>
             <h4 style={{ fontSize: '0.92rem', fontWeight: 800, color: '#0f172a', margin: '0 0 1rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Top Categories</h4>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', fontSize: '0.85rem', color: '#64748b' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem', fontSize: '0.86rem', color: '#64748b' }}>
               <span style={{ cursor: 'pointer' }} onClick={() => setSelectedCategory('Restaurants')}>Restaurants & Food</span>
               <span style={{ cursor: 'pointer' }} onClick={() => setSelectedCategory('Doctors')}>Doctors & Clinics</span>
               <span style={{ cursor: 'pointer' }} onClick={() => setSelectedCategory('Home Services')}>AC & Home Repairs</span>
@@ -1394,10 +1503,10 @@ export default function Home({
 
           <div>
             <h4 style={{ fontSize: '0.92rem', fontWeight: 800, color: '#0f172a', margin: '0 0 1rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Legal & Support</h4>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', fontSize: '0.85rem', color: '#64748b' }}>
-              <button onClick={onNavigateToPrivacy} style={{ background: 'none', border: 'none', padding: 0, textAlign: 'left', color: '#64748b', cursor: 'pointer', fontSize: '0.85rem' }}>Privacy Policy</button>
-              <button onClick={onNavigateToTerms} style={{ background: 'none', border: 'none', padding: 0, textAlign: 'left', color: '#64748b', cursor: 'pointer', fontSize: '0.85rem' }}>Terms of Service</button>
-              <button onClick={onNavigateToDelete} style={{ background: 'none', border: 'none', padding: 0, textAlign: 'left', color: '#64748b', cursor: 'pointer', fontSize: '0.85rem' }}>Delete Account</button>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem', fontSize: '0.86rem', color: '#64748b' }}>
+              <button onClick={onNavigateToPrivacy} style={{ background: 'none', border: 'none', padding: 0, textAlign: 'left', color: '#64748b', cursor: 'pointer', fontSize: '0.86rem' }}>Privacy Policy</button>
+              <button onClick={onNavigateToTerms} style={{ background: 'none', border: 'none', padding: 0, textAlign: 'left', color: '#64748b', cursor: 'pointer', fontSize: '0.86rem' }}>Terms of Service</button>
+              <button onClick={onNavigateToDelete} style={{ background: 'none', border: 'none', padding: 0, textAlign: 'left', color: '#64748b', cursor: 'pointer', fontSize: '0.86rem' }}>Delete Account</button>
               {onNavigateToSuperAdmin && (
                 <button onClick={onNavigateToSuperAdmin} style={{ background: 'none', border: 'none', padding: 0, textAlign: 'left', color: '#94a3b8', cursor: 'pointer', fontSize: '0.8rem' }}>Super Admin</button>
               )}
@@ -1405,7 +1514,7 @@ export default function Home({
           </div>
         </div>
 
-        <div style={{ maxWidth: '1240px', margin: '0 auto', borderTop: '1px solid #f1f5f9', paddingTop: '1.5rem', textAlign: 'center', fontSize: '0.82rem', color: '#94a3b8' }}>
+        <div style={{ maxWidth: '1240px', margin: '0 auto', borderTop: '1px solid #f1f5f9', paddingTop: '1.75rem', textAlign: 'center', fontSize: '0.82rem', color: '#94a3b8' }}>
           © 2026 ManaCity Platform. All rights reserved. Exclusively serving Tirupati, India.
         </div>
       </footer>

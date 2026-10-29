@@ -313,11 +313,28 @@ exports.importGooglePlaces = async (req, res) => {
 
     const descString = fetchedData.description || `Official Google Business profile for ${fetchedData.name}.`;
 
-    // Create or update business group (Support UNLIMITED profiles per user/super admin)
+    // Create or update business group (Check by googlePlaceId OR owner's existing placeholder/single business)
     let businessGroup = null;
-    const existingGroup = resolvedPlaceId ? await prisma.businessGroup.findFirst({
+    let existingGroup = resolvedPlaceId ? await prisma.businessGroup.findFirst({
       where: { googlePlaceId: resolvedPlaceId }
     }) : null;
+
+    if (!existingGroup && ownerId) {
+      // Check if user has an initial/unconfigured business group from registration to update rather than duplicating
+      const userGroups = await prisma.businessGroup.findMany({
+        where: { ownerId },
+        orderBy: { createdAt: 'asc' }
+      });
+      if (userGroups.length > 0) {
+        // Prefer an empty/placeholder group, or the primary group if only 1 exists and has no googlePlaceId
+        const placeholder = userGroups.find(g => !g.googlePlaceId && (!g.isSetupComplete || g.name.endsWith("'s Businesses") || g.name.endsWith("'s Business")));
+        if (placeholder) {
+          existingGroup = placeholder;
+        } else if (userGroups.length === 1 && !userGroups[0].googlePlaceId) {
+          existingGroup = userGroups[0];
+        }
+      }
+    }
 
     if (existingGroup) {
       try {

@@ -18,7 +18,7 @@ import {
   MoreHorizontal
 } from 'lucide-react';
 
-export default function MobileHeader({ user, selectedCity = 'tirupati', onCityChange }) {
+export default function MobileHeader({ user, selectedCity = 'tirupati', onCityChange, showHeaderSearch = true }) {
   const navigate = useNavigate();
   const [waitlistModalCity, setWaitlistModalCity] = useState(null);
 
@@ -147,10 +147,12 @@ export default function MobileHeader({ user, selectedCity = 'tirupati', onCityCh
         </div>
       </div>
 
-      {/* Row 2: Full Width Mobile SearchBar */}
-      <div style={{ padding: '0.5rem 0.85rem' }}>
-        <MobileSearchBar selectedCity={selectedCity} />
-      </div>
+      {/* Row 2: Full Width Mobile SearchBar (Visible when scrolled past hero or on deep pages) */}
+      {showHeaderSearch && (
+        <div style={{ padding: '0.45rem 0.85rem', backgroundColor: '#ffffff', borderTop: '1px solid #f8fafc' }}>
+          <MobileSearchBar selectedCity={selectedCity} />
+        </div>
+      )}
 
       {/* Row 3: Horizontal Touch Category Bar */}
       <div style={{
