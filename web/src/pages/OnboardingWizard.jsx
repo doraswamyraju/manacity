@@ -48,7 +48,7 @@ export function extractColorsFromLogo(imageSrc) {
 }
 
 // --- Step 1: Business Information & Google Places Importer ---
-function StepBusinessInfo({ initialData, onNext, onAutoFill }) {
+function StepBusinessInfo({ initialData, onNext, onAutoFill, onExistingBusinessClaim }) {
   const [name, setName] = useState(initialData.name || '');
   const [category, setCategory] = useState(initialData.category || 'Digital Marketing');
   const [description, setDescription] = useState(initialData.description || '');
@@ -165,10 +165,10 @@ function StepBusinessInfo({ initialData, onNext, onAutoFill }) {
         const checkRes = await axios.get(`/api/claims/check-exists?googlePlaceId=${selectedPlaceId}`);
         if (checkRes.data?.exists) {
           setImporting(false);
-          if (props.onExistingBusinessClaim) {
-            props.onExistingBusinessClaim(checkRes.data.businessInfo);
+          if (onExistingBusinessClaim) {
+            onExistingBusinessClaim(checkRes.data.businessInfo);
           } else {
-            setError(`${checkRes.data.message} You can claim ownership of this business profile using proof of business document.`);
+            setError(`${checkRes.data.message || 'This business has already been claimed.'} You can claim ownership of this business profile using proof of business document.`);
           }
           return;
         }
