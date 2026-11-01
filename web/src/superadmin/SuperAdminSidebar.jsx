@@ -24,7 +24,9 @@ import {
   Sparkles,
   ShieldCheck,
   Share2,
-  Layers
+  Layers,
+  Compass,
+  Code2
 } from 'lucide-react';
 
 function SuperAdminSidebar({
@@ -39,6 +41,7 @@ function SuperAdminSidebar({
 }) {
   // Submenu accordion toggle state (auto-expand parent on load if activeTab is a sub-item)
   const [openSubmenu, setOpenSubmenu] = useState(() => {
+    if (activeTab && (activeTab.startsWith('website-') || activeTab === 'website-builder')) return 'website-builder';
     if (activeTab && activeTab.startsWith('lms')) return 'lms';
     if (activeTab && (activeTab.startsWith('library') || activeTab === 'catalog')) return 'library';
     if (activeTab && (activeTab.startsWith('url-') || activeTab === 'url-settings')) return 'url-settings';
@@ -70,6 +73,19 @@ function SuperAdminSidebar({
 
     { id: 'businesses', label: 'Business Directory', icon: Building2, badge: metrics?.totalBusinessGroups || metrics?.totalLocations, color: '#34d399' },
     { id: 'referrals-admin', label: 'Referral Program', icon: Share2, badge: 'PRO', color: '#34d399' },
+    {
+      id: 'website-builder',
+      label: 'Website Builder Studio',
+      icon: Compass,
+      color: '#818cf8',
+      badge: '3999',
+      subItems: [
+        { id: 'website-studio-composer', label: '3-Column Studio', icon: Compass },
+        { id: 'website-studio-library', label: 'Component Tiers', icon: Layers },
+        { id: 'website-studio-sandbox', label: 'Code & Props Sandbox', icon: Code2 },
+        { id: 'website-studio-businesses', label: 'Builder Permissions', icon: Users }
+      ]
+    },
     {
       id: 'library',
       label: 'Library Management',

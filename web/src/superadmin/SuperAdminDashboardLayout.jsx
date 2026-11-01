@@ -12,6 +12,7 @@ import BusinessesTab from '../admin/BusinessesTab';
 import CatalogTab from '../admin/CatalogTab';
 import SubscriptionsTab from '../admin/SubscriptionsTab';
 import WebsiteBlocksTab from '../admin/WebsiteBlocksTab';
+import WebsiteStudioTab from './WebsiteStudioTab';
 import AuditLogsTab from '../admin/AuditLogsTab';
 
 // LMS Module Tabs
@@ -323,6 +324,20 @@ function SuperAdminDashboardLayout({ user, onLogout }) {
               {activeTab === 'library-units' && <UnitsPricingTab theme={theme} />}
               {activeTab === 'library-media' && <MediaLibraryTab theme={theme} />}
               {activeTab === 'library-blocks' && <WebsiteBlocksTab theme={theme} />}
+
+              {/* Dedicated Website Builder Studio (Project 3999) */}
+              {(activeTab === 'website-builder' || activeTab === 'website-studio-composer') && (
+                <WebsiteStudioTab theme={theme} initialSubTab="composer" />
+              )}
+              {activeTab === 'website-studio-library' && (
+                <WebsiteStudioTab theme={theme} initialSubTab="library" />
+              )}
+              {activeTab === 'website-studio-sandbox' && (
+                <WebsiteStudioTab theme={theme} initialSubTab="sandbox" />
+              )}
+              {activeTab === 'website-studio-businesses' && (
+                <WebsiteStudioTab theme={theme} initialSubTab="businesses" />
+              )}
 
               {/* LMS Submodules */}
               {(activeTab === 'lms' || activeTab === 'lms-all') && <LMSAllLeadsTab theme={theme} />}

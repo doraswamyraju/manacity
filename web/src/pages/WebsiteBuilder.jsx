@@ -2,6 +2,11 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import * as Sections from './WebsiteSections';
 import { extractColorsFromLogo } from './OnboardingWizard';
+import { default3999Blocks } from '../builder/masterRegistry.jsx';
+import BlockRenderer from '../builder/BlockRenderer.jsx';
+import FocusCustomizer from '../builder/FocusCustomizer.jsx';
+import LivePreviewPane from '../builder/LivePreviewPane.jsx';
+import { Compass, Sliders, Check, Lock, Sparkles, Monitor, Smartphone, Search } from 'lucide-react';
 
 export default function WebsiteBuilder({ onBack, theme: appTheme }) {
   const [loading, setLoading] = useState(true);
@@ -62,6 +67,18 @@ export default function WebsiteBuilder({ onBack, theme: appTheme }) {
 
   // Section configs state
   const [sections, setSections] = useState([]);
+
+  // Mode Switcher: 'single-page' (Free default) vs 'project-3999-studio' (Pro Visual Studio)
+  const [builderStudioMode, setBuilderStudioMode] = useState('single-page');
+  const [selectedStudioBlocks, setSelectedStudioBlocks] = useState({
+    header: default3999Blocks.find(b => b.blockKey === 'header-1'),
+    hero: default3999Blocks.find(b => b.blockKey === 'hero-1'),
+    aboutUs: default3999Blocks.find(b => b.blockKey === 'about-1'),
+    services: default3999Blocks.find(b => b.blockKey === 'services-1')
+  });
+  const [studioActiveSection, setStudioActiveSection] = useState('HEADER');
+  const [studioFocusBlock, setStudioFocusBlock] = useState(null);
+  const [studioPreviewMode, setStudioPreviewMode] = useState('desktop');
 
   useEffect(() => {
     // 1. Fetch onboarding state for content fallback
@@ -462,12 +479,223 @@ export default function WebsiteBuilder({ onBack, theme: appTheme }) {
   };
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', width: '100%', maxWidth: '1400px', boxSizing: 'border-box' }}>
+    <div style={{ width: '100%', maxWidth: '1600px', margin: '0 auto', boxSizing: 'border-box' }}>
+      {/* Top Experience Switcher Banner */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem 1.25rem', backgroundColor: isAppDark ? '#0f172a' : '#ffffff', border: isAppDark ? '1px solid #1e293b' : '1px solid #e2e8f0', borderRadius: '12px', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.75rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <div style={{ padding: '0.5rem', borderRadius: '10px', backgroundColor: builderStudioMode === 'project-3999-studio' ? '#6366f1' : '#0284c7', color: '#fff' }}>
+            <Compass style={{ width: '20px', height: '20px' }} />
+          </div>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <span style={{ fontSize: '0.95rem', fontWeight: 800, color: isAppDark ? '#f8fafc' : '#0f172a' }}>
+                {builderStudioMode === 'project-3999-studio' ? 'Project 3999 Visual Composer Studio' : 'ManaCity Single-Page Microsite'}
+              </span>
+              <span style={{ fontSize: '0.7rem', fontWeight: 800, padding: '0.15rem 0.5rem', borderRadius: '10px', backgroundColor: hasAdvancedBuilder ? 'rgba(16,185,129,0.15)' : 'rgba(245,158,11,0.15)', color: hasAdvancedBuilder ? '#10b981' : '#f59e0b', border: `1px solid ${hasAdvancedBuilder ? '#10b981' : '#f59e0b'}` }}>
+                {hasAdvancedBuilder ? '⚡ Pro Builder Active' : '✨ Free Microsite Plan'}
+              </span>
+            </div>
+            <p style={{ fontSize: '0.76rem', color: isAppDark ? '#94a3b8' : '#64748b', margin: '0.15rem 0 0' }}>
+              {builderStudioMode === 'project-3999-studio' 
+                ? 'Full 3-column Visual Studio with multi-block selection, focus customizers, and device frame preview' 
+                : 'Free fast-loading single-page profile with direct Google sync, contact actions, and custom themes'}
+            </p>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+          <button
+            type="button"
+            onClick={() => setBuilderStudioMode('single-page')}
+            style={{
+              padding: '0.45rem 0.95rem',
+              borderRadius: '8px',
+              fontSize: '0.8rem',
+              fontWeight: 700,
+              cursor: 'pointer',
+              border: builderStudioMode === 'single-page' ? '1px solid #0284c7' : (isAppDark ? '1px solid #334155' : '1px solid #cbd5e1'),
+              backgroundColor: builderStudioMode === 'single-page' ? '#0284c7' : 'transparent',
+              color: builderStudioMode === 'single-page' ? '#ffffff' : (isAppDark ? '#cbd5e1' : '#475569')
+            }}
+          >
+            Single-Page Mode
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              if (!hasAdvancedBuilder) {
+                setShowUpgradeModal(true);
+              } else {
+                setBuilderStudioMode('project-3999-studio');
+              }
+            }}
+            style={{
+              padding: '0.45rem 0.95rem',
+              borderRadius: '8px',
+              fontSize: '0.8rem',
+              fontWeight: 700,
+              cursor: 'pointer',
+              border: builderStudioMode === 'project-3999-studio' ? '1px solid #6366f1' : '1px solid #818cf8',
+              backgroundColor: builderStudioMode === 'project-3999-studio' ? '#6366f1' : 'rgba(99,102,241,0.1)',
+              color: builderStudioMode === 'project-3999-studio' ? '#ffffff' : '#818cf8',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.4rem'
+            }}
+          >
+            <Sparkles style={{ width: '14px', height: '14px' }} />
+            {hasAdvancedBuilder ? '3-Column Visual Studio' : 'Unlock Visual Studio (Pro)'}
+          </button>
+
+          <button className="btn btn-secondary" onClick={onBack} style={{ padding: '0.45rem 0.95rem', fontSize: '0.8rem' }}>Exit</button>
+        </div>
+      </div>
+
+      {builderStudioMode === 'project-3999-studio' ? (
+        /* ===================================================================
+           PROJECT 3999 EXACT USER PANEL STUDIO EXPERIENCE
+        =================================================================== */
+        <div style={{ height: 'calc(88vh - 40px)', backgroundColor: '#020617', borderRadius: '16px', overflow: 'hidden', border: '1px solid #1e293b' }}>
+          <div className="grid grid-cols-12 h-full text-white">
+            {/* Left Column: Pages & Section Context */}
+            <div className="col-span-2 bg-slate-900 border-r border-slate-800 p-4 flex flex-col justify-between">
+              <div>
+                <h4 className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-3">Website Sections</h4>
+                <div className="space-y-1.5">
+                  {[
+                    { key: 'HEADER', label: 'Headers' },
+                    { key: 'HERO', label: 'Hero Banners' },
+                    { key: 'ABOUT', label: 'About Us' },
+                    { key: 'SERVICES', label: 'Services' }
+                  ].map(sec => (
+                    <button
+                      key={sec.key}
+                      onClick={() => {
+                        setStudioActiveSection(sec.key);
+                        setStudioFocusBlock(null);
+                      }}
+                      className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
+                        studioActiveSection === sec.key
+                          ? 'bg-indigo-600 text-white font-bold'
+                          : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                      }`}
+                    >
+                      <span>{sec.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="p-3 rounded-xl bg-slate-950 border border-slate-800 text-xs">
+                <div className="font-bold text-slate-300 mb-1">Live Subdomain</div>
+                <div className="text-[11px] text-indigo-400 truncate">{subdomain ? `${subdomain}.manacity.in` : 'manacity.in'}</div>
+              </div>
+            </div>
+
+            {/* Center Column: Block Marketplace OR Focus Mode */}
+            <div className="col-span-6 bg-slate-950 p-6 overflow-y-auto">
+              {studioFocusBlock ? (
+                <FocusCustomizer
+                  blockDef={studioFocusBlock}
+                  currentData={studioFocusBlock.defaultData}
+                  isPremium={studioFocusBlock.isPremium}
+                  onTogglePremium={() => {}}
+                  onSave={(customData) => {
+                    const sec = studioActiveSection === 'HEADER' ? 'header' :
+                                studioActiveSection === 'HERO' ? 'hero' :
+                                studioActiveSection === 'ABOUT' ? 'aboutUs' : 'services';
+                    setSelectedStudioBlocks(prev => ({
+                      ...prev,
+                      [sec]: { ...studioFocusBlock, defaultData: customData }
+                    }));
+                    setStudioFocusBlock(null);
+                  }}
+                  onClose={() => setStudioFocusBlock(null)}
+                />
+              ) : (
+                <div className="space-y-6">
+                  <div className="flex items-center justify-between bg-slate-900 p-3 rounded-xl border border-slate-800">
+                    <span className="text-xs font-bold text-slate-300">Choose {studioActiveSection} Layout</span>
+                    <button
+                      onClick={() => setCustomDomainInput(customDomain || '') || setShowDomainModal(true)}
+                      className="text-xs text-indigo-400 hover:underline"
+                    >
+                      Connect Domain
+                    </button>
+                  </div>
+
+                  <div className="space-y-4">
+                    {default3999Blocks
+                      .filter(b => b.category === studioActiveSection)
+                      .map(block => {
+                        const sec = studioActiveSection === 'HEADER' ? 'header' :
+                                    studioActiveSection === 'HERO' ? 'hero' :
+                                    studioActiveSection === 'ABOUT' ? 'aboutUs' : 'services';
+                        const isCurrent = selectedStudioBlocks[sec]?.blockKey === block.blockKey;
+
+                        return (
+                          <div key={block.blockKey} className={`rounded-xl border bg-slate-900 overflow-hidden shadow-md ${isCurrent ? 'border-indigo-500 ring-2 ring-indigo-500/20' : 'border-slate-800'}`}>
+                            <div className="p-3 bg-slate-950 flex items-center justify-between border-b border-slate-800">
+                              <div>
+                                <span className="font-bold text-xs text-white">{block.name}</span>
+                                <span className="text-[11px] text-slate-400 ml-2">— {block.title}</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <button
+                                  onClick={() => setSelectedStudioBlocks(prev => ({ ...prev, [sec]: block }))}
+                                  className={`text-xs px-3 py-1 rounded-lg font-bold ${isCurrent ? 'bg-emerald-600 text-white' : 'bg-indigo-600 text-white hover:bg-indigo-700'}`}
+                                >
+                                  {isCurrent ? 'Applied' : 'Select'}
+                                </button>
+                                <button
+                                  onClick={() => setStudioFocusBlock(block)}
+                                  className="text-xs px-2.5 py-1 bg-slate-800 hover:bg-slate-700 rounded-lg text-slate-200"
+                                >
+                                  Customize
+                                </button>
+                              </div>
+                            </div>
+
+                            <div className="h-48 overflow-y-auto bg-white text-slate-900">
+                              <BlockRenderer
+                                blockDef={block}
+                                content={block.defaultData}
+                                previewMode="desktop"
+                                isPreview={true}
+                                branding={{ business_name: businessGroup?.name, phone_number: businessGroup?.mobileNumber, logo_url: logoUrl }}
+                              />
+                            </div>
+                          </div>
+                        );
+                      })}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Right Column: Live Synchronized Preview Pane */}
+            <div className="col-span-4 h-full overflow-hidden">
+              <LivePreviewPane
+                pageStructure={selectedStudioBlocks}
+                allBlocks={default3999Blocks}
+                activePreview={studioPreviewMode}
+                setActivePreview={setStudioPreviewMode}
+                branding={{ business_name: businessGroup?.name, phone_number: businessGroup?.mobileNumber, logo_url: logoUrl }}
+              />
+            </div>
+          </div>
+        </div>
+      ) : (
+        /* ===================================================================
+           EXISTING SINGLE-PAGE MICROSITE FREE BUILDER
+        =================================================================== */
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', width: '100%', boxSizing: 'border-box' }}>
       
       {/* Editor Panel (Left) */}
       <div className="glass-card" style={{ padding: '2rem', textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '1.5rem', maxHeight: '85vh', overflowY: 'auto' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h2 style={{ fontSize: '1.6rem', fontWeight: 700 }}>Smart Website Builder</h2>
+          <h2 style={{ fontSize: '1.6rem', fontWeight: 700 }}>Single-Page Website Editor</h2>
           <button className="btn btn-secondary" onClick={onBack}>Exit</button>
         </div>
 
@@ -911,6 +1139,8 @@ export default function WebsiteBuilder({ onBack, theme: appTheme }) {
           />
         </div>
       </div>
+      </div>
+      )}
 
       {/* BYOD Domain Connect Setup Modal */}
       {showDomainModal && (
