@@ -187,8 +187,8 @@ exports.importGooglePlaces = async (req, res) => {
       address: 'Tirupati, Andhra Pradesh',
       phone: '',
       website: '',
-      rating: 4.9,
-      reviewCount: 63,
+      rating: null,
+      reviewCount: null,
       category: 'General Business'
     };
 
@@ -417,8 +417,8 @@ exports.importGooglePlaces = async (req, res) => {
               city: safeCity,
               googleReviewUrl: computedReviewUrl,
               googlePlaceId: resolvedPlaceId || null,
-              googleRating: fetchedData.rating || null,
-              googleReviewCount: fetchedData.reviewCount || null,
+              googleRating: fetchedData.rating !== null && fetchedData.rating !== undefined ? fetchedData.rating : null,
+              googleReviewCount: fetchedData.reviewCount !== null && fetchedData.reviewCount !== undefined ? fetchedData.reviewCount : null,
               isSetupComplete: true,
               setupStep: 6
             }
@@ -529,6 +529,8 @@ exports.importGooglePlaces = async (req, res) => {
             contactPhone: fetchedData.phone || existingListing.contactPhone,
             whatsAppNumber: fetchedData.phone || existingListing.whatsAppNumber,
             websiteUrl: fetchedData.website || existingListing.websiteUrl,
+            rating: fetchedData.rating !== null && fetchedData.rating !== undefined ? fetchedData.rating : existingListing.rating,
+            reviewCount: fetchedData.reviewCount !== null && fetchedData.reviewCount !== undefined ? fetchedData.reviewCount : existingListing.reviewCount,
             reviews: { rating: fetchedData.rating, reviewCount: fetchedData.reviewCount }
           }
         });
@@ -542,6 +544,8 @@ exports.importGooglePlaces = async (req, res) => {
             contactPhone: fetchedData.phone,
             whatsAppNumber: fetchedData.phone,
             websiteUrl: fetchedData.website,
+            rating: fetchedData.rating !== null && fetchedData.rating !== undefined ? fetchedData.rating : 4.9,
+            reviewCount: fetchedData.reviewCount !== null && fetchedData.reviewCount !== undefined ? fetchedData.reviewCount : 0,
             reviews: { rating: fetchedData.rating, reviewCount: fetchedData.reviewCount }
           }
         });
@@ -571,8 +575,8 @@ exports.importGooglePlaces = async (req, res) => {
             phone: fetchedData.phone || targetLocation.phone || '',
             category: fetchedData.category || targetLocation.category,
             googlePlaceId: resolvedPlaceId || targetLocation.googlePlaceId,
-            googleRating: fetchedData.rating || targetLocation.googleRating,
-            googleReviewCount: fetchedData.reviewCount || targetLocation.googleReviewCount
+            googleRating: fetchedData.rating !== null && fetchedData.rating !== undefined ? fetchedData.rating : targetLocation.googleRating,
+            googleReviewCount: fetchedData.reviewCount !== null && fetchedData.reviewCount !== undefined ? fetchedData.reviewCount : targetLocation.googleReviewCount
           }
         });
       } else {
@@ -592,8 +596,8 @@ exports.importGooglePlaces = async (req, res) => {
               phone: fetchedData.phone || '',
               category: fetchedData.category,
               googlePlaceId: resolvedPlaceId || null,
-              googleRating: fetchedData.rating || null,
-              googleReviewCount: fetchedData.reviewCount || null
+              googleRating: fetchedData.rating !== null && fetchedData.rating !== undefined ? fetchedData.rating : null,
+              googleReviewCount: fetchedData.reviewCount !== null && fetchedData.reviewCount !== undefined ? fetchedData.reviewCount : null
             }
           });
         } else if (targetLocation) {
@@ -607,8 +611,8 @@ exports.importGooglePlaces = async (req, res) => {
               phone: fetchedData.phone || targetLocation.phone || '',
               category: fetchedData.category || targetLocation.category,
               googlePlaceId: resolvedPlaceId || targetLocation.googlePlaceId,
-              googleRating: fetchedData.rating || targetLocation.googleRating,
-              googleReviewCount: fetchedData.reviewCount || targetLocation.googleReviewCount
+              googleRating: fetchedData.rating !== null && fetchedData.rating !== undefined ? fetchedData.rating : targetLocation.googleRating,
+              googleReviewCount: fetchedData.reviewCount !== null && fetchedData.reviewCount !== undefined ? fetchedData.reviewCount : targetLocation.googleReviewCount
             }
           });
         }

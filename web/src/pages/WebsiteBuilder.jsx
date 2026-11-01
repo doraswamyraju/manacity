@@ -43,6 +43,14 @@ export default function WebsiteBuilder({ onBack, theme: appTheme }) {
   const [domainSuccess, setDomainSuccess] = useState('');
   const [domainError, setDomainError] = useState('');
 
+  // Dynamic Blocks & Modular Builder Upgrade States
+  const [availableBlocks, setAvailableBlocks] = useState([]);
+  const [hasAdvancedBuilder, setHasAdvancedBuilder] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [upgradePlans, setUpgradePlans] = useState([]);
+  const [upgradingBuilder, setUpgradingBuilder] = useState(false);
+  const [activeBlockCategory, setActiveBlockCategory] = useState('HEADER');
+
   // SEO & Analytics
   const [metaTitle, setMetaTitle] = useState('');
   const [metaDescription, setMetaDescription] = useState('');
@@ -111,6 +119,25 @@ export default function WebsiteBuilder({ onBack, theme: appTheme }) {
       })
       .catch(err => console.error('Failed to load website config:', err))
       .finally(() => setLoading(false));
+
+    // 3. Fetch Dynamic Available Blocks & Builder Subscription Status
+    axios.get('/api/website/blocks/available')
+      .then(res => {
+        if (res.data) {
+          setAvailableBlocks(res.data.blocks || []);
+          setHasAdvancedBuilder(Boolean(res.data.hasAdvancedBuilder));
+        }
+      })
+      .catch(err => console.error('Failed to fetch available blocks:', err));
+
+    // 4. Fetch Pricing Plans for Paywall Upgrade Modal
+    axios.get('/api/website/plans/pricing')
+      .then(res => {
+        if (res.data && res.data.plans) {
+          setUpgradePlans(res.data.plans.filter(p => p.priceInr > 0));
+        }
+      })
+      .catch(err => console.error('Failed to fetch builder plans:', err));
   }, []);
 
   const handleLogoExtractColors = async (targetLogoUrl) => {
@@ -205,6 +232,9 @@ export default function WebsiteBuilder({ onBack, theme: appTheme }) {
       setSections(sortedSec);
       setSuccess('Section orders and layouts updated successfully.');
     } catch (err) {
+      if (err.response?.data?.isPaywall) {
+        setShowUpgradeModal(true);
+      }
       setError(err.response?.data?.error || 'Failed to update page layout.');
     } finally {
       setSaving(false);
@@ -245,6 +275,45 @@ export default function WebsiteBuilder({ onBack, theme: appTheme }) {
     // Re-assign displayOrder numbers
     const updated = newSections.map((sec, idx) => ({ ...sec, displayOrder: idx + 1 }));
     setSections(updated);
+  };
+
+  const handleSelectBlockLayout = (secType, block) => {
+    if (block.isPremium && !hasAdvancedBuilder) {
+      setShowUpgradeModal(true);
+      return;
+    }
+    setSections(prevSections => prevSections.map(s => {
+      if (s.type === secType) {
+        return {
+          ...s,
+          settings: {
+            ...(s.settings || {}),
+            blockKey: block.blockKey,
+            layoutName: block.name
+          }
+        };
+      }
+      return s;
+    }));
+    setSuccess(`Selected "${block.name}" for ${secType}. Click "Save Layout Order" to apply.`);
+  };
+
+  const handleUpgradeModularBuilder = async (plan) => {
+    setUpgradingBuilder(true);
+    setError('');
+    try {
+      const res = await axios.post('/api/website/upgrade-builder', {
+        planKey: plan.planKey,
+        interval: plan.interval
+      });
+      setHasAdvancedBuilder(true);
+      setShowUpgradeModal(false);
+      setSuccess('🎉 Modular Builder upgraded successfully! Pro blocks unlocked.');
+    } catch (err) {
+      setError(err.response?.data?.error || 'Failed to complete upgrade.');
+    } finally {
+      setUpgradingBuilder(false);
+    }
   };
 
   const getCleanDomain = (str) => {
@@ -626,6 +695,112 @@ export default function WebsiteBuilder({ onBack, theme: appTheme }) {
           >
             {publishing ? 'Toggling...' : isPublished ? 'Unpublish Site' : 'Publish Live'}
           </button>
+        </div>
+
+        {/* Dynamic Modular Block Library Selector */}
+        <div style={editorSectionStyle}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h3 style={editorHeaderStyle}>Dynamic Modular Block Library</h3>
+            <span style={{ fontSize: '0.78rem', fontWeight: 800, color: hasAdvancedBuilder ? '#10b981' : '#f59e0b', backgroundColor: hasAdvancedBuilder ? 'rgba(16,185,129,0.12)' : 'rgba(245,158,11,0.12)', padding: '0.2rem 0.55rem', borderRadius: '12px', border: `1px solid ${hasAdvancedBuilder ? '#10b981' : '#f59e0b'}` }}>
+              {hasAdvancedBuilder ? '✨ Pro Modular Active' : '🔒 Free Microsite Plan'}
+            </span>
+          </div>
+
+          <p style={{ fontSize: '0.8rem', color: isAppDark ? '#94a3b8' : '#64748b', margin: '0 0 0.5rem' }}>
+            Choose header, hero, and section templates from the central block library. Pro blocks can be unlocked with the Modular Builder add-on.
+          </p>
+
+          {/* Category Tabs for Blocks */}
+          <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', marginBottom: '0.75rem' }}>
+            {['HEADER', 'HERO', 'SERVICES', 'ABOUT', 'FOOTER'].map(cat => (
+              <button
+                key={cat}
+                type="button"
+                onClick={() => setActiveBlockCategory(cat)}
+                style={{
+                  padding: '0.35rem 0.75rem',
+                  fontSize: '0.75rem',
+                  fontWeight: 700,
+                  borderRadius: '20px',
+                  border: activeBlockCategory === cat ? '1px solid #6366f1' : (isAppDark ? '1px solid #334155' : '1px solid #cbd5e1'),
+                  backgroundColor: activeBlockCategory === cat ? '#6366f1' : 'transparent',
+                  color: activeBlockCategory === cat ? '#ffffff' : (isAppDark ? '#cbd5e1' : '#475569'),
+                  cursor: 'pointer'
+                }}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+
+          {/* Available Blocks in Active Category */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '0.65rem' }}>
+            {availableBlocks
+              .filter(b => b.category === activeBlockCategory)
+              .map(block => {
+                const currentSec = sections.find(s => s.type === block.category);
+                const isSelected = currentSec?.settings?.blockKey === block.blockKey;
+                const isLocked = block.isPremium && !hasAdvancedBuilder;
+
+                return (
+                  <div
+                    key={block.id || block.blockKey}
+                    onClick={() => handleSelectBlockLayout(block.category, block)}
+                    style={{
+                      border: isSelected ? '2px solid #6366f1' : (isAppDark ? '1px solid #334155' : '1px solid #e2e8f0'),
+                      borderRadius: '10px',
+                      padding: '0.75rem',
+                      backgroundColor: isSelected ? (isAppDark ? 'rgba(99,102,241,0.15)' : '#eef2ff') : (isAppDark ? '#1e293b' : '#ffffff'),
+                      cursor: 'pointer',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      gap: '0.75rem',
+                      transition: 'all 0.15s'
+                    }}
+                  >
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+                        <span style={{ fontSize: '0.88rem', fontWeight: 800, color: isAppDark ? '#f8fafc' : '#0f172a' }}>{block.name}</span>
+                        {block.isPremium ? (
+                          <span style={{ fontSize: '0.7rem', fontWeight: 800, color: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.15)', padding: '0.1rem 0.4rem', borderRadius: '8px' }}>
+                            {isLocked ? '🔒 PRO' : '✨ PRO'}
+                          </span>
+                        ) : (
+                          <span style={{ fontSize: '0.7rem', fontWeight: 800, color: '#10b981', backgroundColor: 'rgba(16,185,129,0.15)', padding: '0.1rem 0.4rem', borderRadius: '8px' }}>
+                            FREE
+                          </span>
+                        )}
+                      </div>
+                      <div style={{ fontSize: '0.76rem', color: isAppDark ? '#94a3b8' : '#64748b', marginTop: '0.2rem' }}>
+                        {block.description || 'Pre-designed high-conversion modular block'}
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleSelectBlockLayout(block.category, block);
+                      }}
+                      style={{
+                        padding: '0.35rem 0.75rem',
+                        fontSize: '0.75rem',
+                        fontWeight: 700,
+                        borderRadius: '6px',
+                        border: 'none',
+                        backgroundColor: isSelected ? '#10b981' : isLocked ? '#f59e0b' : '#6366f1',
+                        color: '#ffffff',
+                        cursor: 'pointer',
+                        whiteSpace: 'nowrap'
+                      }}
+                    >
+                      {isSelected ? '✓ Selected' : isLocked ? '🔒 Unlock' : 'Select'}
+                    </button>
+                  </div>
+                );
+              })}
+          </div>
         </div>
 
         <hr style={{ border: 'none', borderTop: '1px solid var(--border-color)', margin: '0.5rem 0' }} />
@@ -1011,6 +1186,152 @@ export default function WebsiteBuilder({ onBack, theme: appTheme }) {
             </div>
             )}
 
+          </div>
+        </div>
+      )}
+      {/* Modular Builder Pro Upgrade Modal */}
+      {showUpgradeModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.75)',
+          backdropFilter: 'blur(8px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 9999,
+          padding: '1.5rem'
+        }}>
+          <div style={{
+            backgroundColor: isAppDark ? '#0f172a' : '#ffffff',
+            border: `1.5px solid ${isAppDark ? '#334155' : '#cbd5e1'}`,
+            borderRadius: '20px',
+            maxWidth: '680px',
+            width: '100%',
+            padding: '2.5rem',
+            textAlign: 'left',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.45)',
+            maxHeight: '90vh',
+            overflowY: 'auto'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+                <span style={{ fontSize: '1.8rem' }}>✨</span>
+                <div>
+                  <h3 style={{ fontSize: '1.35rem', fontWeight: 900, color: isAppDark ? '#f8fafc' : '#0f172a', margin: 0 }}>
+                    Upgrade to Smart Modular Builder
+                  </h3>
+                  <p style={{ fontSize: '0.84rem', color: isAppDark ? '#94a3b8' : '#64748b', margin: '0.2rem 0 0' }}>
+                    Unlock pro header variations, split showcase heroes, and advanced layout controls.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowUpgradeModal(false)}
+                style={{ background: 'none', border: 'none', fontSize: '1.5rem', color: isAppDark ? '#94a3b8' : '#64748b', cursor: 'pointer' }}
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Plans Comparison Grid */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1.25rem', margin: '1.75rem 0' }}>
+              {upgradePlans.map(plan => {
+                const isLifetime = plan.interval === 'LIFETIME' || plan.planKey?.includes('lifetime');
+
+                return (
+                  <div
+                    key={plan.id || plan.planKey}
+                    style={{
+                      backgroundColor: isAppDark ? '#1e293b' : '#f8fafc',
+                      border: isLifetime ? '2px solid #6366f1' : `1.5px solid ${isAppDark ? '#334155' : '#e2e8f0'}`,
+                      borderRadius: '16px',
+                      padding: '1.5rem',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                      position: 'relative'
+                    }}
+                  >
+                    {isLifetime && (
+                      <div style={{
+                        position: 'absolute',
+                        top: '-12px',
+                        right: '1rem',
+                        backgroundColor: '#6366f1',
+                        color: '#ffffff',
+                        fontSize: '0.72rem',
+                        fontWeight: 900,
+                        padding: '0.2rem 0.65rem',
+                        borderRadius: '12px'
+                      }}>
+                        BEST VALUE (LIFETIME)
+                      </div>
+                    )}
+
+                    <div>
+                      <h4 style={{ fontSize: '1.1rem', fontWeight: 800, color: isAppDark ? '#f8fafc' : '#0f172a', margin: '0 0 0.35rem' }}>
+                        {plan.title}
+                      </h4>
+                      <p style={{ fontSize: '0.78rem', color: isAppDark ? '#94a3b8' : '#64748b', margin: '0 0 1rem' }}>
+                        {plan.description || 'Full access to all current and future modular components'}
+                      </p>
+
+                      <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.35rem', margin: '0.75rem 0 1.25rem' }}>
+                        <span style={{ fontSize: '1.85rem', fontWeight: 900, color: '#6366f1' }}>
+                          ₹{plan.priceInr.toLocaleString('en-IN')}
+                        </span>
+                        <span style={{ fontSize: '0.82rem', color: isAppDark ? '#94a3b8' : '#64748b' }}>
+                          /{plan.interval === 'LIFETIME' ? 'one-time' : 'year'}
+                        </span>
+                      </div>
+
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem', marginBottom: '1.5rem' }}>
+                        {(plan.features || []).map((feat, fIdx) => (
+                          <div key={fIdx} style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', fontSize: '0.8rem', color: isAppDark ? '#cbd5e1' : '#334155' }}>
+                            <span style={{ color: '#10b981', fontWeight: 900 }}>✓</span>
+                            <span>{feat}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => handleUpgradeModularBuilder(plan)}
+                      disabled={upgradingBuilder}
+                      style={{
+                        backgroundColor: isLifetime ? '#6366f1' : '#0284c7',
+                        color: '#ffffff',
+                        border: 'none',
+                        padding: '0.75rem 1.25rem',
+                        borderRadius: '10px',
+                        fontSize: '0.9rem',
+                        fontWeight: 800,
+                        cursor: 'pointer',
+                        width: '100%',
+                        transition: 'opacity 0.2s'
+                      }}
+                    >
+                      {upgradingBuilder ? 'Activating...' : `Activate ${plan.interval === 'LIFETIME' ? 'Lifetime Deal' : 'Annual Plan'}`}
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div style={{ textAlign: 'center', marginTop: '1rem' }}>
+              <span
+                onClick={() => setShowUpgradeModal(false)}
+                style={{ fontSize: '0.85rem', color: isAppDark ? '#94a3b8' : '#64748b', cursor: 'pointer', textDecoration: 'underline' }}
+              >
+                No thanks, continue with Free Single-Page Layouts
+              </span>
+            </div>
           </div>
         </div>
       )}

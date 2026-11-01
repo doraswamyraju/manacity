@@ -245,8 +245,16 @@ function StepBusinessInfo({ initialData, onNext, onAutoFill }) {
 
       const response = await axios.post('/api/business/media', { base64Data });
       if (response.data && response.data.url) {
-        if (type === 'logo') setLogoUrl(response.data.url);
-        else setCoverImageUrl(response.data.url);
+        const uploadedUrl = response.data.url;
+        if (type === 'logo') {
+          setLogoUrl(uploadedUrl);
+          extractColorsFromLogo(uploadedUrl).then(palette => {
+            setPrimaryColor(palette.primaryColor);
+            setSecondaryColor(palette.secondaryColor);
+          });
+        } else {
+          setCoverImageUrl(uploadedUrl);
+        }
       }
     } catch (err) {
       console.error('Upload error:', err);
@@ -258,12 +266,19 @@ function StepBusinessInfo({ initialData, onNext, onAutoFill }) {
   };
 
   const handleNext = () => {
+    if (uploadingLogo || uploadingCover) {
+      setError('Please wait until your images have finished uploading.');
+      return;
+    }
     if (!name.trim()) {
       setError('Business Name is required.');
       return;
     }
     setError('');
-    const data = { name, category, description, yearStarted, logoUrl, coverImageUrl, primaryColor, secondaryColor };
+    // Ensure blob URLs are not passed if upload is somehow cancelled
+    const cleanLogo = (logoUrl && logoUrl.startsWith('blob:')) ? '' : logoUrl;
+    const cleanCover = (coverImageUrl && coverImageUrl.startsWith('blob:')) ? '' : coverImageUrl;
+    const data = { name, category, description, yearStarted, logoUrl: cleanLogo, coverImageUrl: cleanCover, primaryColor, secondaryColor };
     onNext(data);
   };
 
@@ -469,7 +484,14 @@ function StepBusinessInfo({ initialData, onNext, onAutoFill }) {
       </div>
 
       <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' }}>
-        <button className="btn btn-primary" onClick={handleNext}>Next Step</button>
+        <button 
+          className="btn btn-primary" 
+          onClick={handleNext}
+          disabled={uploadingLogo || uploadingCover}
+          style={{ opacity: (uploadingLogo || uploadingCover) ? 0.6 : 1 }}
+        >
+          {(uploadingLogo || uploadingCover) ? 'Uploading Images...' : 'Next Step'}
+        </button>
       </div>
     </div>
   );
@@ -1320,7 +1342,7 @@ export default function OnboardingWizard({ businessGroupId, onCompleteOnboarding
     try {
       await axios.post('/api/business/save-step', {
         step: nextStep,
-        data: updatedData,
+        data: newFormData,
         businessGroupId
       });
       setStep(nextStep);

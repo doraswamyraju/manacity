@@ -395,6 +395,35 @@ exports.saveWebsiteSections = async (req, res) => {
       return res.status(404).json({ error: 'Website profile not found.' });
     }
 
+    // Check if business has advanced builder upgrade or if any section is premium
+    const activeSub = await prisma.subscription.findFirst({
+      where: { businessGroupId: businessGroup.id, status: 'ACTIVE' },
+      orderBy: { createdAt: 'desc' }
+    });
+    const hasAdvancedBuilder = activeSub?.hasAdvancedBuilder || false;
+
+    // Check if any section uses a premium block layout
+    const submittedBlockKeys = sections
+      .map(s => s.settings?.blockKey)
+      .filter(Boolean);
+
+    if (submittedBlockKeys.length > 0 && !hasAdvancedBuilder) {
+      const premiumBlocks = await prisma.websiteBlockLibrary.findMany({
+        where: {
+          blockKey: { in: submittedBlockKeys },
+          isPremium: true
+        }
+      });
+
+      if (premiumBlocks.length > 0) {
+        return res.status(403).json({
+          error: `Block "${premiumBlocks[0].name}" is a Pro modular component. Please upgrade to Smart Modular Builder to use this layout.`,
+          isPaywall: true,
+          requiredFeature: 'hasAdvancedBuilder'
+        });
+      }
+    }
+
     const validSubmittedTypes = new Set(sections.map(s => s.type).filter(Boolean));
 
     // Execute atomic transaction for section re-ordering and cleanup
@@ -882,5 +911,169 @@ exports.orderNewDomain = async (req, res) => {
   } catch (error) {
     console.error('Domain order error:', error);
     res.status(500).json({ error: 'Failed to record domain order.' });
+  }
+};
+
+// 12. Get Available Website Blocks for the Builder UI
+exports.getAvailableBlocks = async (req, res) => {
+  try {
+    const ownerId = req.user.id;
+    const businessGroup = await prisma.businessGroup.findFirst({ where: { ownerId } });
+
+    let hasAdvancedBuilder = false;
+    if (businessGroup) {
+      const activeSub = await prisma.subscription.findFirst({
+        where: { businessGroupId: businessGroup.id, status: 'ACTIVE' },
+        orderBy: { createdAt: 'desc' }
+      });
+      hasAdvancedBuilder = Boolean(activeSub?.hasAdvancedBuilder);
+    }
+
+    let blocks = await prisma.websiteBlockLibrary.findMany({
+      where: { status: 'ACTIVE' },
+      orderBy: [{ category: 'asc' }, { sortOrder: 'asc' }]
+    });
+
+    // If table is completely empty, auto-seed default core blocks
+    if (blocks.length === 0) {
+      const coreSeeds = [
+        { category: 'HEADER', name: 'Minimal Header (Logo & Nav)', blockKey: 'header-minimal', isPremium: false, description: 'Clean navbar with phone & contact CTA', sortOrder: 1 },
+        { category: 'HEADER', name: 'Pro Header with Announcement Bar', blockKey: 'header-pro-bar', isPremium: true, description: 'Top announcement bar with social links and multi-tier CTA', sortOrder: 2 },
+        { category: 'HERO', name: 'Modern Hero (Gradient & Quick Quote)', blockKey: 'hero-gradient-quote', isPremium: false, description: 'Hero banner with headline, badges, and quote modal trigger', sortOrder: 1 },
+        { category: 'HERO', name: 'Split Showcase Hero with Video & Stats', blockKey: 'hero-split-stats', isPremium: true, description: 'Split-screen layout with interactive counter and video preview', sortOrder: 2 },
+        { category: 'SERVICES', name: 'Standard 3-Column Service Grid', blockKey: 'services-grid-std', isPremium: false, description: 'Clean responsive service cards with pricing and details', sortOrder: 1 },
+        { category: 'SERVICES', name: 'Interactive Pricing Tier & Tabs', blockKey: 'services-pricing-tabs', isPremium: true, description: 'Categorized service catalog with instant checkout integration', sortOrder: 2 },
+        { category: 'ABOUT', name: 'Classic Story & Accreditation Badges', blockKey: 'about-classic-story', isPremium: false, description: 'Company history, mission, and verified trust badges', sortOrder: 1 },
+        { category: 'FOOTER', name: 'Comprehensive Multi-Column Footer', blockKey: 'footer-multi-col', isPremium: false, description: 'Footer with sitemap, hours, social links, and copyright', sortOrder: 1 }
+      ];
+
+      for (const s of coreSeeds) {
+        await prisma.websiteBlockLibrary.upsert({
+          where: { blockKey: s.blockKey },
+          update: s,
+          create: s
+        });
+      }
+
+      blocks = await prisma.websiteBlockLibrary.findMany({
+        where: { status: 'ACTIVE' },
+        orderBy: [{ category: 'asc' }, { sortOrder: 'asc' }]
+      });
+    }
+
+    res.json({
+      status: 'success',
+      hasAdvancedBuilder,
+      blocks
+    });
+  } catch (error) {
+    console.error('Get available blocks error:', error);
+    res.status(500).json({ error: 'Failed to load website block library.' });
+  }
+};
+
+// 13. Get Builder Pricing Plans (Configured in Super Admin)
+exports.getBuilderPricingPlans = async (req, res) => {
+  try {
+    let plans = await prisma.platformPlanPriceConfig.findMany({
+      where: { isActive: true },
+      orderBy: { priceInr: 'asc' }
+    });
+
+    if (plans.length === 0) {
+      // Default fallback pricing plans
+      plans = [
+        {
+          id: 'default-plan-free',
+          planKey: 'free_microsite',
+          title: 'Free Microsite',
+          description: 'Single-page business profile with verified directory presence',
+          priceInr: 0,
+          interval: 'FREE',
+          features: ['Single-Page Microsite', 'Tirupati Directory Listing', 'Basic Contact & WhatsApp Lead capture', 'Standard Header & Hero'],
+          isActive: true
+        },
+        {
+          id: 'default-plan-builder',
+          planKey: 'smart_modular_builder',
+          title: 'Smart Modular Builder Add-On',
+          description: 'Full access to dynamic custom block library, pro headers, and layout customization',
+          priceInr: 1999,
+          interval: 'ANNUAL',
+          features: ['Unlock all Pro Headers & Split Heroes', 'Dynamic Block Layout Re-ordering', 'Custom Domain (BYOD & 1-Click SSL)', 'Color Palette Auto-Extractor', 'SEO & Analytics Integration'],
+          isActive: true
+        },
+        {
+          id: 'default-plan-lifetime',
+          planKey: 'smart_modular_builder_lifetime',
+          title: 'Smart Modular Builder (Lifetime Deal)',
+          description: 'One-time payment for lifetime access to all future modular blocks and builder features',
+          priceInr: 4999,
+          interval: 'LIFETIME',
+          features: ['All Annual Builder Features', 'Lifetime Access & Zero Renewals', 'Priority Support & Free Domain Setup', 'All Future Pro Components'],
+          isActive: true
+        }
+      ];
+    }
+
+    res.json({ status: 'success', plans });
+  } catch (error) {
+    console.error('Get builder pricing plans error:', error);
+    res.status(500).json({ error: 'Failed to retrieve pricing plans.' });
+  }
+};
+
+// 14. Upgrade / Activate Modular Builder Subscription
+exports.upgradeModularBuilder = async (req, res) => {
+  try {
+    const ownerId = req.user.id;
+    const { planKey, interval } = req.body;
+
+    const businessGroup = await prisma.businessGroup.findFirst({ where: { ownerId } });
+    if (!businessGroup) {
+      return res.status(404).json({ error: 'Business profile not found.' });
+    }
+
+    const planInterval = interval || (planKey?.includes('lifetime') ? 'LIFETIME' : 'ANNUAL');
+    const expiry = planInterval === 'LIFETIME' ? null : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
+
+    // Upsert or update active subscription
+    const existingSub = await prisma.subscription.findFirst({
+      where: { businessGroupId: businessGroup.id },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    let subscription;
+    if (existingSub) {
+      subscription = await prisma.subscription.update({
+        where: { id: existingSub.id },
+        data: {
+          hasAdvancedBuilder: true,
+          advancedBuilderPlan: planInterval,
+          builderExpiresAt: expiry,
+          status: 'ACTIVE'
+        }
+      });
+    } else {
+      subscription = await prisma.subscription.create({
+        data: {
+          businessGroupId: businessGroup.id,
+          tier: 'STARTER',
+          status: 'ACTIVE',
+          hasAdvancedBuilder: true,
+          advancedBuilderPlan: planInterval,
+          builderExpiresAt: expiry
+        }
+      });
+    }
+
+    res.json({
+      status: 'success',
+      message: 'Modular Builder upgraded successfully! Pro blocks are now unlocked.',
+      subscription
+    });
+  } catch (error) {
+    console.error('Upgrade builder error:', error);
+    res.status(500).json({ error: 'Failed to upgrade subscription.' });
   }
 };

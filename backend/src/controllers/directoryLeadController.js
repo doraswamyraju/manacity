@@ -114,6 +114,9 @@ exports.searchDirectoryListings = async (req, res) => {
 
       const slug = listing?.slug || cleanSlug;
 
+      const rawRating = bg.googleRating !== null && bg.googleRating !== undefined ? bg.googleRating : (listing?.rating !== null && listing?.rating !== undefined ? listing.rating : 4.9);
+      const rawReviewCount = bg.googleReviewCount !== null && bg.googleReviewCount !== undefined ? bg.googleReviewCount : (listing?.reviewCount !== null && listing?.reviewCount !== undefined ? listing.reviewCount : 0);
+
       return {
         id: bg.id,
         businessName: bg.name,
@@ -121,15 +124,15 @@ exports.searchDirectoryListings = async (req, res) => {
         city: safeCity,
         slug,
         subdomain: bg.subdomain || slug,
-        rating: bg.googleRating || listing?.rating || 4.9,
-        reviewCount: bg.googleReviewCount || listing?.reviewCount || 45,
+        rating: rawRating,
+        reviewCount: rawReviewCount,
         phone: bg.mobileNumber || bg.whatsAppNumber || loc?.phone || '9876543210',
         whatsApp: bg.whatsAppNumber || bg.mobileNumber || '9876543210',
         address: bg.address || loc?.address || `${safeCity.charAt(0).toUpperCase() + safeCity.slice(1)}, Andhra Pradesh`,
         websiteUrl: bg.website || (listing ? listing.websiteUrl : null),
         logoUrl: bg.logoUrl || null,
-        coverImage: bg.coverImageUrl || null,
-        coverImageUrl: bg.coverImageUrl || null,
+        coverImage: bg.coverImageUrl || (loc?.photos && loc.photos.length > 0 ? loc.photos[0] : null),
+        coverImageUrl: bg.coverImageUrl || (loc?.photos && loc.photos.length > 0 ? loc.photos[0] : null),
         verified: bg.isVerified !== false,
         isOpenNow: true,
         googleMapsLink: bg.googleMapsLink || loc?.googleMapsLink || (bg.googlePlaceId ? ('https://www.google.com/maps/place/?q=place_id:' + bg.googlePlaceId) : null),

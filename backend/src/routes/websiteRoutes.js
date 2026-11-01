@@ -24,4 +24,9 @@ router.get('/public/:subdomain/manifest.json', websiteController.getManifest);
 router.get('/domains/search', auth, websiteController.searchDomainToBuy);
 router.post('/domains/order', auth, websiteController.orderNewDomain);
 
+// Dynamic Website Blocks & Plans for Builder UI
+router.get('/blocks/available', auth, websiteController.getAvailableBlocks);
+router.get('/plans/pricing', auth, websiteController.getBuilderPricingPlans);
+router.post('/upgrade-builder', auth, websiteController.upgradeModularBuilder);
+
 module.exports = router;

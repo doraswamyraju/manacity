@@ -329,8 +329,8 @@ exports.saveOnboardingStep = async (req, res) => {
     if (data.name) updateData.name = data.name;
     if (data.description !== undefined) updateData.description = data.description;
     if (data.yearStarted !== undefined && data.yearStarted !== '') updateData.yearStarted = Number(data.yearStarted) || null;
-    if (data.logoUrl !== undefined) updateData.logoUrl = data.logoUrl;
-    if (data.coverImageUrl !== undefined) updateData.coverImageUrl = data.coverImageUrl;
+    if (data.logoUrl !== undefined && data.logoUrl !== null && data.logoUrl !== '') updateData.logoUrl = data.logoUrl;
+    if (data.coverImageUrl !== undefined && data.coverImageUrl !== null && data.coverImageUrl !== '') updateData.coverImageUrl = data.coverImageUrl;
     if (data.mobileNumber !== undefined) updateData.mobileNumber = data.mobileNumber;
     if (data.whatsAppNumber !== undefined) updateData.whatsAppNumber = data.whatsAppNumber;
     if (data.email !== undefined) updateData.email = data.email;
@@ -345,6 +345,8 @@ exports.saveOnboardingStep = async (req, res) => {
     if (data.googleMapsLink !== undefined) updateData.googleMapsLink = data.googleMapsLink;
     if (data.googleReviewUrl !== undefined) updateData.googleReviewUrl = data.googleReviewUrl;
     if (data.googlePlaceId !== undefined) updateData.googlePlaceId = data.googlePlaceId;
+    if (data.googleRating !== undefined && data.googleRating !== null) updateData.googleRating = Number(data.googleRating);
+    if (data.googleReviewCount !== undefined && data.googleReviewCount !== null) updateData.googleReviewCount = Number(data.googleReviewCount);
     if (data.socialFacebook !== undefined) updateData.socialFacebook = data.socialFacebook;
     if (data.socialInstagram !== undefined) updateData.socialInstagram = data.socialInstagram;
     if (data.socialYouTube !== undefined) updateData.socialYouTube = data.socialYouTube;
@@ -578,8 +580,8 @@ exports.completeOnboarding = async (req, res) => {
           city: cleanCity,
           address: updatedGroup.address || `${cleanCity}, AP`,
           phone: updatedGroup.mobileNumber || '9876543210',
-          rating: updatedGroup.googleRating || 4.9,
-          reviewCount: updatedGroup.googleReviewCount || 45,
+          rating: updatedGroup.googleRating !== null && updatedGroup.googleRating !== undefined ? updatedGroup.googleRating : 4.9,
+          reviewCount: updatedGroup.googleReviewCount !== null && updatedGroup.googleReviewCount !== undefined ? updatedGroup.googleReviewCount : 0,
           status: 'LIVE',
           isVerified: true
         }
@@ -593,6 +595,8 @@ exports.completeOnboarding = async (req, res) => {
           city: cleanCity,
           address: updatedGroup.address || existingListing.address,
           phone: updatedGroup.mobileNumber || existingListing.phone,
+          rating: updatedGroup.googleRating !== null && updatedGroup.googleRating !== undefined ? updatedGroup.googleRating : existingListing.rating,
+          reviewCount: updatedGroup.googleReviewCount !== null && updatedGroup.googleReviewCount !== undefined ? updatedGroup.googleReviewCount : existingListing.reviewCount,
           status: 'LIVE'
         }
       }).catch(() => {});
