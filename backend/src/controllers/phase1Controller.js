@@ -529,8 +529,6 @@ exports.importGooglePlaces = async (req, res) => {
             contactPhone: fetchedData.phone || existingListing.contactPhone,
             whatsAppNumber: fetchedData.phone || existingListing.whatsAppNumber,
             websiteUrl: fetchedData.website || existingListing.websiteUrl,
-            rating: fetchedData.rating !== null && fetchedData.rating !== undefined ? fetchedData.rating : existingListing.rating,
-            reviewCount: fetchedData.reviewCount !== null && fetchedData.reviewCount !== undefined ? fetchedData.reviewCount : existingListing.reviewCount,
             reviews: { rating: fetchedData.rating, reviewCount: fetchedData.reviewCount }
           }
         });
@@ -544,8 +542,6 @@ exports.importGooglePlaces = async (req, res) => {
             contactPhone: fetchedData.phone,
             whatsAppNumber: fetchedData.phone,
             websiteUrl: fetchedData.website,
-            rating: fetchedData.rating !== null && fetchedData.rating !== undefined ? fetchedData.rating : 4.9,
-            reviewCount: fetchedData.reviewCount !== null && fetchedData.reviewCount !== undefined ? fetchedData.reviewCount : 0,
             reviews: { rating: fetchedData.rating, reviewCount: fetchedData.reviewCount }
           }
         });
