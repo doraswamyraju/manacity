@@ -23,7 +23,8 @@ import {
   Star,
   Sparkles,
   ShieldCheck,
-  Share2
+  Share2,
+  Layers
 } from 'lucide-react';
 
 function SuperAdminSidebar({
