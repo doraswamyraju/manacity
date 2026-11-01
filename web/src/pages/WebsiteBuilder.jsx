@@ -6,7 +6,8 @@ import { default3999Blocks } from '../builder/masterRegistry.jsx';
 import BlockRenderer from '../builder/BlockRenderer.jsx';
 import FocusCustomizer from '../builder/FocusCustomizer.jsx';
 import LivePreviewPane from '../builder/LivePreviewPane.jsx';
-import { Compass, Sliders, Check, Lock, Sparkles, Monitor, Smartphone, Search } from 'lucide-react';
+import SectionNavbar from '../builder/SectionNavbar.jsx';
+import { Compass, Sliders, Check, Lock, Sparkles, Monitor, Smartphone, Search, RefreshCw, X, ChevronRight, CheckCircle2 } from 'lucide-react';
 
 export default function WebsiteBuilder({ onBack, theme: appTheme }) {
   const [loading, setLoading] = useState(true);
@@ -32,7 +33,7 @@ export default function WebsiteBuilder({ onBack, theme: appTheme }) {
   const [font, setFont] = useState('Outfit');
   const [logoUrl, setLogoUrl] = useState('');
   const [isPublished, setIsPublished] = useState(false);
-  const [previewDevice, setPreviewDevice] = useState('desktop'); // desktop, tablet, mobile
+  const [previewDevice, setPreviewDevice] = useState('desktop');
 
   // Custom Domain BYOD States
   const [showDomainModal, setShowDomainModal] = useState(false);
@@ -48,1581 +49,592 @@ export default function WebsiteBuilder({ onBack, theme: appTheme }) {
   const [domainSuccess, setDomainSuccess] = useState('');
   const [domainError, setDomainError] = useState('');
 
-  // Dynamic Blocks & Modular Builder Upgrade States
-  const [availableBlocks, setAvailableBlocks] = useState([]);
-  const [hasAdvancedBuilder, setHasAdvancedBuilder] = useState(false);
-  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
-  const [upgradePlans, setUpgradePlans] = useState([]);
-  const [upgradingBuilder, setUpgradingBuilder] = useState(false);
-  const [activeBlockCategory, setActiveBlockCategory] = useState('HEADER');
+  // Section States
+  const [headerConfig, setHeaderConfig] = useState({ title: '', subtitle: '', ctaText: '', ctaLink: '', bgImage: '', alignment: 'center' });
+  const [aboutConfig, setAboutConfig] = useState({ title: '', content: '', image: '', bulletPoints: [] });
+  const [servicesConfig, setServicesConfig] = useState({ title: '', items: [] });
+  const [galleryConfig, setGalleryConfig] = useState({ title: '', images: [] });
+  const [contactConfig, setContactConfig] = useState({ email: '', phone: '', address: '', showMap: true });
+  const [activeTab, setActiveTab] = useState('header');
 
-  // SEO & Analytics
-  const [metaTitle, setMetaTitle] = useState('');
-  const [metaDescription, setMetaDescription] = useState('');
-  const [keywords, setKeywords] = useState('');
-  const [googleAnalyticsId, setGoogleAnalyticsId] = useState('');
-  const [searchConsoleId, setSearchConsoleId] = useState('');
-  const [metaPixelId, setMetaPixelId] = useState('');
-  const [clarityId, setClarityId] = useState('');
+  // --- PROJECT 3999 STUDIO STATES ---
+  const [builderStudioMode, setBuilderStudioMode] = useState('project-3999-studio');
+  const [studioActiveSection, setStudioActiveSection] = useState('HEADER');
+  const [studioSearchQuery, setStudioSearchQuery] = useState('');
+  const [studioFilterStyle, setStudioFilterStyle] = useState('ALL');
+  const [studioFilterFeature, setStudioFilterFeature] = useState('ALL');
 
-  // Section configs state
-  const [sections, setSections] = useState([]);
-
-  // Mode Switcher: 'single-page' (Free default) vs 'project-3999-studio' (Pro Visual Studio)
-  const [builderStudioMode, setBuilderStudioMode] = useState('single-page');
   const [selectedStudioBlocks, setSelectedStudioBlocks] = useState({
     header: default3999Blocks.find(b => b.blockKey === 'header-1'),
     hero: default3999Blocks.find(b => b.blockKey === 'hero-1'),
     aboutUs: default3999Blocks.find(b => b.blockKey === 'about-1'),
     services: default3999Blocks.find(b => b.blockKey === 'services-1')
   });
-  const [studioActiveSection, setStudioActiveSection] = useState('HEADER');
+
   const [studioFocusBlock, setStudioFocusBlock] = useState(null);
-  const [studioPreviewMode, setStudioPreviewMode] = useState('desktop');
+
+  // Business Permissions for Pro Builder
+  const [hasAdvancedBuilder, setHasAdvancedBuilder] = useState(true);
 
   useEffect(() => {
-    // 1. Fetch onboarding state for content fallback
-    axios.get('/api/business/onboarding-state')
-      .then(res => {
-        if (res.data.businessGroup) {
-          setBusinessGroup(prev => prev || res.data.businessGroup);
-          setLogoUrl(res.data.businessGroup.logoUrl || '');
-        }
-      })
-      .catch(err => console.error('Failed to load business profile:', err));
-
-    // 2. Fetch website configurations
-    axios.get('/api/website')
-      .then(res => {
-        const web = res.data.website;
-        setWebsite(web);
-        if (web.businessGroup) {
-          setBusinessGroup(web.businessGroup);
-          if (web.businessGroup.logoUrl) setLogoUrl(web.businessGroup.logoUrl);
-        }
-        setSubdomain(web.subdomain || '');
-        setTheme(web.theme || 'default');
-        setPrimaryColor(web.primaryColor || '#1976d2');
-        setSecondaryColor(web.secondaryColor || '#9c27b0');
-        setFont(web.font || 'Outfit');
-        setIsPublished(web.isPublished || false);
-        setMetaTitle(web.metaTitle || '');
-        setMetaDescription(web.metaDescription || '');
-        setKeywords(web.keywords || '');
-        setGoogleAnalyticsId(web.googleAnalyticsId || '');
-        setSearchConsoleId(web.searchConsoleId || '');
-        setMetaPixelId(web.metaPixelId || '');
-        setClarityId(web.clarityId || '');
-
-        // Sort sections by displayOrder, or fallback to default 12-section layout if empty
-        let sortedSec = (web.sections || []).sort((a, b) => a.displayOrder - b.displayOrder);
-        if (sortedSec.length === 0) {
-          sortedSec = [
-            { type: 'HEADER', enabled: true, displayOrder: 1, settings: {} },
-            { type: 'HERO', enabled: true, displayOrder: 2, settings: {} },
-            { type: 'FEATURES', enabled: true, displayOrder: 3, settings: {} },
-            { type: 'ABOUT', enabled: true, displayOrder: 4, settings: {} },
-            { type: 'SERVICES', enabled: true, displayOrder: 5, settings: {} },
-            { type: 'PRODUCTS', enabled: true, displayOrder: 6, settings: {} },
-            { type: 'GALLERY', enabled: true, displayOrder: 7, settings: {} },
-            { type: 'REVIEWS', enabled: true, displayOrder: 8, settings: {} },
-            { type: 'CONTACT', enabled: true, displayOrder: 9, settings: {} },
-            { type: 'FAQ', enabled: true, displayOrder: 10, settings: {} },
-            { type: 'CTA', enabled: true, displayOrder: 11, settings: {} },
-            { type: 'FOOTER', enabled: true, displayOrder: 12, settings: {} }
-          ];
-        }
-        setSections(sortedSec);
-      })
-      .catch(err => console.error('Failed to load website config:', err))
-      .finally(() => setLoading(false));
-
-    // 3. Fetch Dynamic Available Blocks & Builder Subscription Status
-    axios.get('/api/website/blocks/available')
-      .then(res => {
-        if (res.data) {
-          setAvailableBlocks(res.data.blocks || []);
-          setHasAdvancedBuilder(Boolean(res.data.hasAdvancedBuilder));
-        }
-      })
-      .catch(err => console.error('Failed to fetch available blocks:', err));
-
-    // 4. Fetch Pricing Plans for Paywall Upgrade Modal
-    axios.get('/api/website/plans/pricing')
-      .then(res => {
-        if (res.data && res.data.plans) {
-          setUpgradePlans(res.data.plans.filter(p => p.priceInr > 0));
-        }
-      })
-      .catch(err => console.error('Failed to fetch builder plans:', err));
+    fetchWebsiteData();
   }, []);
 
-  const handleLogoExtractColors = async (targetLogoUrl) => {
-    const urlToUse = targetLogoUrl || logoUrl;
-    if (!urlToUse) {
-      setError('Please upload or enter a logo URL first to extract color palette.');
+  const fetchWebsiteData = async () => {
+    try {
+      setLoading(true);
+      const res = await axios.get('/api/website');
+      if (res.data) {
+        setWebsite(res.data.website);
+        setBusinessGroup(res.data.businessGroup);
+
+        if (res.data.businessGroup?.hasAdvancedWebsiteBuilder !== undefined) {
+          setHasAdvancedBuilder(Boolean(res.data.businessGroup.hasAdvancedWebsiteBuilder));
+        }
+
+        const wb = res.data.website;
+        if (wb) {
+          setSubdomain(wb.subdomain || '');
+          setCustomDomain(wb.customDomain || '');
+          setTheme(wb.theme || 'default');
+          setPrimaryColor(wb.primaryColor || '#1976d2');
+          setSecondaryColor(wb.secondaryColor || '#9c27b0');
+          setFont(wb.font || 'Outfit');
+          setLogoUrl(wb.logoUrl || res.data.businessGroup?.logoUrl || '');
+          setIsPublished(wb.isPublished || false);
+
+          if (wb.headerConfig) setHeaderConfig(wb.headerConfig);
+          if (wb.aboutConfig) setAboutConfig(wb.aboutConfig);
+          if (wb.servicesConfig) setServicesConfig(wb.servicesConfig);
+          if (wb.galleryConfig) setGalleryConfig(wb.galleryConfig);
+          if (wb.contactConfig) setContactConfig(wb.contactConfig);
+
+          if (wb.themeConfig?.studioBlocks) {
+            setSelectedStudioBlocks(prev => ({ ...prev, ...wb.themeConfig.studioBlocks }));
+          }
+        } else if (res.data.businessGroup) {
+          const bg = res.data.businessGroup;
+          setHeaderConfig(prev => ({
+            ...prev,
+            title: bg.name || '',
+            subtitle: bg.description || '',
+            ctaText: 'Contact Us',
+            ctaLink: '#contact'
+          }));
+          setAboutConfig(prev => ({
+            ...prev,
+            title: `About ${bg.name || 'Us'}`,
+            content: bg.description || ''
+          }));
+          setContactConfig(prev => ({
+            ...prev,
+            email: bg.email || '',
+            phone: bg.mobileNumber || '',
+            address: bg.address || ''
+          }));
+          setLogoUrl(bg.logoUrl || '');
+          if (bg.name) {
+            setSubdomain(bg.name.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, ''));
+          }
+        }
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to load website configuration');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSaveWebsite = async (publishStatus = isPublished) => {
+    try {
+      setSaving(true);
+      setError('');
+      setSuccess('');
+
+      const payload = {
+        subdomain,
+        customDomain,
+        theme,
+        primaryColor,
+        secondaryColor,
+        font,
+        logoUrl,
+        isPublished: publishStatus,
+        headerConfig,
+        aboutConfig,
+        servicesConfig,
+        galleryConfig,
+        contactConfig,
+        themeConfig: {
+          builderMode: builderStudioMode,
+          studioBlocks: selectedStudioBlocks
+        }
+      };
+
+      const res = await axios.post('/api/website', payload);
+      setWebsite(res.data.website);
+      setIsPublished(publishStatus);
+      setSuccess(publishStatus ? 'Website published successfully!' : 'Changes saved successfully!');
+      setTimeout(() => setSuccess(''), 4000);
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to save website');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleAutoColorExtraction = async () => {
+    if (!logoUrl) {
+      setError('Please provide a logo URL or image first to extract colors.');
       return;
     }
-    setExtractingColors(true);
-    setError('');
     try {
-      const palette = await extractColorsFromLogo(urlToUse);
-      setPrimaryColor(palette.primaryColor);
-      setSecondaryColor(palette.secondaryColor);
-      setSuccess(`Extracted logo color palette: Primary ${palette.primaryColor}, Secondary ${palette.secondaryColor}`);
-    } catch (e) {
-      setError('Failed to extract colors from logo.');
+      setExtractingColors(true);
+      setError('');
+      const colors = await extractColorsFromLogo(logoUrl);
+      if (colors.primary) setPrimaryColor(colors.primary);
+      if (colors.secondary) setSecondaryColor(colors.secondary);
+      setSuccess(`Extracted Colors: Primary (${colors.primary}), Secondary (${colors.secondary})`);
+      setTimeout(() => setSuccess(''), 4000);
+    } catch (err) {
+      setError('Could not extract colors from the provided logo.');
     } finally {
       setExtractingColors(false);
     }
   };
 
-  const handleLogoFileUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    try {
-      const previewUrl = URL.createObjectURL(file);
-      setLogoUrl(previewUrl);
-      setBusinessGroup(prev => prev ? { ...prev, logoUrl: previewUrl } : { logoUrl: previewUrl });
-
-      const base64Data = await new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result);
-        reader.onerror = (err) => reject(err);
-        reader.readAsDataURL(file);
-      });
-
-      const response = await axios.post('/api/business/media', { base64Data });
-      if (response.data && response.data.url) {
-        const newUrl = response.data.url;
-        setLogoUrl(newUrl);
-        setBusinessGroup(prev => prev ? { ...prev, logoUrl: newUrl } : { logoUrl: newUrl });
-        await handleLogoExtractColors(newUrl);
-      }
-    } catch (err) {
-      console.error('Logo upload error:', err);
-      setError('Logo upload failed.');
-    }
+  // Skip section to next section
+  const handleSkipSection = () => {
+    if (studioActiveSection === 'HEADER') setStudioActiveSection('HERO');
+    else if (studioActiveSection === 'HERO') setStudioActiveSection('ABOUT');
+    else if (studioActiveSection === 'ABOUT') setStudioActiveSection('SERVICES');
+    else if (studioActiveSection === 'SERVICES') setStudioActiveSection('HEADER');
   };
 
-  const handleSaveSettings = async () => {
-    setSaving(true);
-    setError('');
-    setSuccess('');
-    try {
-      const response = await axios.post('/api/website/save', {
-        theme,
-        primaryColor,
-        secondaryColor,
-        font,
-        subdomain,
-        metaTitle,
-        metaDescription,
-        keywords,
-        googleAnalyticsId,
-        searchConsoleId,
-        metaPixelId,
-        clarityId,
-        isPublished,
-        logoUrl
-      });
-      setWebsite(response.data.website);
-      setSuccess('Core settings saved successfully.');
-    } catch (err) {
-      setError(err.response?.data?.error || 'Failed to update website configurations.');
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleSaveSections = async () => {
-    setSaving(true);
-    setError('');
-    setSuccess('');
-    try {
-      const response = await axios.post('/api/website/sections/save', {
-        sections
-      });
-      const web = response.data.website;
-      setWebsite(web);
-      const sortedSec = (web.sections || []).sort((a, b) => a.displayOrder - b.displayOrder);
-      setSections(sortedSec);
-      setSuccess('Section orders and layouts updated successfully.');
-    } catch (err) {
-      if (err.response?.data?.isPaywall) {
-        setShowUpgradeModal(true);
-      }
-      setError(err.response?.data?.error || 'Failed to update page layout.');
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handlePublishToggle = async () => {
-    setPublishing(true);
-    try {
-      const response = await axios.post('/api/website/save', {
-        isPublished: !isPublished
-      });
-      setIsPublished(response.data.website.isPublished);
-      setSuccess(response.data.website.isPublished ? 'Website published live!' : 'Website unpublished.');
-    } catch (err) {
-      setError('Failed to toggle publication status.');
-    } finally {
-      setPublishing(false);
-    }
-  };
-
-  const handleSectionToggle = (type) => {
-    setSections(sections.map(sec => sec.type === type ? { ...sec, enabled: !sec.enabled } : sec));
-  };
-
-  const handleMoveSection = (index, direction) => {
-    const newSections = [...sections];
-    if (direction === 'up' && index > 0) {
-      const temp = newSections[index];
-      newSections[index] = newSections[index - 1];
-      newSections[index - 1] = temp;
-    } else if (direction === 'down' && index < newSections.length - 1) {
-      const temp = newSections[index];
-      newSections[index] = newSections[index + 1];
-      newSections[index + 1] = temp;
-    }
-
-    // Re-assign displayOrder numbers
-    const updated = newSections.map((sec, idx) => ({ ...sec, displayOrder: idx + 1 }));
-    setSections(updated);
-  };
-
-  const handleSelectBlockLayout = (secType, block) => {
-    if (block.isPremium && !hasAdvancedBuilder) {
-      setShowUpgradeModal(true);
-      return;
-    }
-    setSections(prevSections => prevSections.map(s => {
-      if (s.type === secType) {
-        return {
-          ...s,
-          settings: {
-            ...(s.settings || {}),
-            blockKey: block.blockKey,
-            layoutName: block.name
-          }
-        };
-      }
-      return s;
+  const handleSelectBlockForSection = (block) => {
+    const sec = studioActiveSection === 'HEADER' ? 'header' :
+                studioActiveSection === 'HERO' ? 'hero' :
+                studioActiveSection === 'ABOUT' ? 'aboutUs' : 'services';
+    setSelectedStudioBlocks(prev => ({
+      ...prev,
+      [sec]: block
     }));
-    setSuccess(`Selected "${block.name}" for ${secType}. Click "Save Layout Order" to apply.`);
   };
 
-  const handleUpgradeModularBuilder = async (plan) => {
-    setUpgradingBuilder(true);
-    setError('');
-    try {
-      const res = await axios.post('/api/website/upgrade-builder', {
-        planKey: plan.planKey,
-        interval: plan.interval
-      });
-      setHasAdvancedBuilder(true);
-      setShowUpgradeModal(false);
-      setSuccess('🎉 Modular Builder upgraded successfully! Pro blocks unlocked.');
-    } catch (err) {
-      setError(err.response?.data?.error || 'Failed to complete upgrade.');
-    } finally {
-      setUpgradingBuilder(false);
-    }
+  const handleAddAndProceed = (block) => {
+    handleSelectBlockForSection(block);
+    handleSkipSection();
   };
 
-  const getCleanDomain = (str) => {
-    if (!str) return '';
-    return str
-      .trim()
-      .toLowerCase()
-      .replace(/^https?:\/\//i, '')
-      .replace(/\/.*$/, '')
-      .replace(/^www\./i, '')
-      .replace(/[^a-z0-9\.\-]/g, '');
+  const currentSectionKey = studioActiveSection === 'HEADER' ? 'header' :
+                           studioActiveSection === 'HERO' ? 'hero' :
+                           studioActiveSection === 'ABOUT' ? 'aboutUs' : 'services';
+
+  const currentSelectedBlock = selectedStudioBlocks[currentSectionKey];
+
+  const visibleBlocks = default3999Blocks.filter(b => {
+    const matchCat = b.category === studioActiveSection;
+    const matchSearch = !studioSearchQuery || b.name.toLowerCase().includes(studioSearchQuery.toLowerCase()) || b.title.toLowerCase().includes(studioSearchQuery.toLowerCase());
+    return matchCat && matchSearch;
+  });
+
+  const brandingPayload = {
+    business_name: businessGroup?.name || 'My Business',
+    companyName: businessGroup?.name || 'My Business',
+    phone_number: businessGroup?.mobileNumber || '+91 87907 91101',
+    email: businessGroup?.email || 'contact@manacity.in',
+    logo_url: logoUrl || businessGroup?.logoUrl || 'https://placehold.co/140x48/1e3a8a/ffffff?text=My+Logo'
   };
 
-  const handleConnectDomain = async () => {
-    const cleanInput = getCleanDomain(customDomainInput);
-    if (!cleanInput) return;
-    setConnectingDomain(true);
-    setDomainError('');
-    setDomainSuccess('');
-    try {
-      const res = await axios.post('/api/website/domain/connect', { customDomain: cleanInput });
-      setCustomDomain(res.data.website.customDomain);
-      setCustomDomainInput(res.data.website.customDomain);
-      setDnsStatus(res.data.dnsStatus);
-      setDomainSuccess('Custom domain attached successfully! Complete DNS setup below.');
-    } catch (err) {
-      setDomainError(err.response?.data?.error || 'Failed to connect custom domain.');
-    } finally {
-      setConnectingDomain(false);
-    }
-  };
-
-  const handleSearchDomainToBuy = async () => {
-    if (!domainSearchQuery.trim()) return;
-    setSearchingDomain(true);
-    setDomainError('');
-    try {
-      const res = await axios.get("/api/website/domains/search?query=" + encodeURIComponent(domainSearchQuery.trim()));
-      if (res.data && res.data.results) {
-        setDomainSearchResults(res.data.results);
-      }
-    } catch (err) {
-      setDomainError(err.response?.data?.error || "Failed to search domain availability.");
-    } finally {
-      setSearchingDomain(false);
-    }
-  };
-
-  const handleBuyDomainOrder = async (domainItem) => {
-    setOrderingDomain(domainItem.domain);
-    setDomainError('');
-    try {
-      const res = await axios.post("/api/website/domains/order", {
-        domain: domainItem.domain,
-        costPriceInr: domainItem.costPriceInr,
-        sellingPriceInr: domainItem.sellingPriceInr,
-        paymentRef: "PAY_" + Date.now()
-      });
-      setDomainSuccess(res.data?.message || "Domain order placed successfully! DNS configured automatically.");
-      setCustomDomain(domainItem.domain);
-      setCustomDomainInput(domainItem.domain);
-      setTimeout(() => {
-        setDomainModalTab('BYOD');
-        handleVerifyDns();
-      }, 1500);
-    } catch (err) {
-      setDomainError(err.response?.data?.error || "Failed to process domain purchase order.");
-    } finally {
-      setOrderingDomain(null);
-    }
-  };
-
-  const handleVerifyDns = async () => {
-    setVerifyingDns(true);
-    setDomainError('');
-    setDomainSuccess('');
-    try {
-      const res = await axios.post('/api/website/domain/verify-dns');
-      setDnsStatus(res.data.dnsStatus);
-      if (res.data.dnsStatus?.isPointing) {
-        setDomainSuccess('✓ DNS Records Verified! Your custom domain is live and active.');
-      } else {
-        setDomainError('DNS Records not detected yet. Please ensure A Record or CNAME is set in your domain provider.');
-      }
-    } catch (err) {
-      setDomainError(err.response?.data?.error || 'Failed to verify DNS status.');
-    } finally {
-      setVerifyingDns(false);
-    }
-  };
-
-  const handleDisconnectDomain = async () => {
-    if (!window.confirm('Are you sure you want to disconnect your custom domain?')) return;
-    try {
-      await axios.post('/api/website/domain/disconnect');
-      setCustomDomain('');
-      setDnsStatus(null);
-      setDomainSuccess('Custom domain disconnected successfully.');
-      setShowDomainModal(false);
-    } catch (err) {
-      setDomainError('Failed to disconnect domain.');
-    }
-  };
-
-
-  if (loading || !businessGroup) {
+  if (loading) {
     return (
-      <div className="glass-card" style={{ maxWidth: '600px', width: '100%', padding: '2.5rem', textAlign: 'center' }}>
-        <h3>Loading Web Builder Console...</h3>
+      <div className="flex items-center justify-center h-96">
+        <div className="w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
 
-  // Dynamic input and button style generators matching dashboard theme
-  const dynamicInputStyle = {
-    padding: '0.65rem 0.85rem',
-    backgroundColor: isAppDark ? 'rgba(255, 255, 255, 0.03)' : '#ffffff',
-    border: `1px solid ${isAppDark ? 'var(--border-color)' : '#cbd5e1'}`,
-    borderRadius: 'var(--radius-sm)',
-    color: isAppDark ? '#ffffff' : '#0f172a',
-    fontSize: '0.9rem',
-    outline: 'none',
-    fontFamily: 'var(--font-sans)',
-    width: '100%',
-    boxSizing: 'border-box'
-  };
-
-  const dynamicIconBtnStyle = {
-    padding: '0.2rem 0.4rem',
-    fontSize: '0.75rem',
-    backgroundColor: isAppDark ? 'rgba(255,255,255,0.03)' : '#f1f5f9',
-    border: `1px solid ${isAppDark ? 'var(--border-color)' : '#cbd5e1'}`,
-    color: isAppDark ? '#fff' : '#0f172a',
-    borderRadius: '4px',
-    cursor: 'pointer'
-  };
-
-  const dynamicDeviceBtnStyle = {
-    padding: '0.3rem 0.65rem',
-    fontSize: '0.75rem',
-    fontWeight: 700,
-    border: isAppDark ? '1px solid rgba(255,255,255,0.15)' : '1px solid #cbd5e1',
-    borderRadius: '6px',
-    cursor: 'pointer',
-    transition: 'all 0.2s ease'
-  };
-
   return (
-    <div style={{ width: '100%', maxWidth: '1600px', margin: '0 auto', boxSizing: 'border-box' }}>
-      {/* Top Experience Switcher Banner */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem 1.25rem', backgroundColor: isAppDark ? '#0f172a' : '#ffffff', border: isAppDark ? '1px solid #1e293b' : '1px solid #e2e8f0', borderRadius: '12px', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.75rem' }}>
+    <div className="website-builder-container" style={{ maxWidth: '1600px', margin: '0 auto', paddingBottom: '2rem' }}>
+      {/* Top Banner / Breadcrumb */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'between', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '1rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <div style={{ padding: '0.5rem', borderRadius: '10px', backgroundColor: builderStudioMode === 'project-3999-studio' ? '#6366f1' : '#0284c7', color: '#fff' }}>
-            <Compass style={{ width: '20px', height: '20px' }} />
+          <div style={{ padding: '0.6rem', borderRadius: '12px', backgroundColor: '#4f46e5', color: '#fff', display: 'flex' }}>
+            <Compass size={22} />
           </div>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <span style={{ fontSize: '0.95rem', fontWeight: 800, color: isAppDark ? '#f8fafc' : '#0f172a' }}>
-                {builderStudioMode === 'project-3999-studio' ? 'Project 3999 Visual Composer Studio' : 'ManaCity Single-Page Microsite'}
-              </span>
-              <span style={{ fontSize: '0.7rem', fontWeight: 800, padding: '0.15rem 0.5rem', borderRadius: '10px', backgroundColor: hasAdvancedBuilder ? 'rgba(16,185,129,0.15)' : 'rgba(245,158,11,0.15)', color: hasAdvancedBuilder ? '#10b981' : '#f59e0b', border: `1px solid ${hasAdvancedBuilder ? '#10b981' : '#f59e0b'}` }}>
-                {hasAdvancedBuilder ? '⚡ Pro Builder Active' : '✨ Free Microsite Plan'}
+              <h1 style={{ margin: 0, fontSize: '1.3rem', fontWeight: 800 }}>Website Builder Studio</h1>
+              <span style={{ fontSize: '0.7rem', padding: '0.15rem 0.5rem', borderRadius: '999px', backgroundColor: '#e0e7ff', color: '#4338ca', fontWeight: 700 }}>
+                Project 3999 Architecture
               </span>
             </div>
-            <p style={{ fontSize: '0.76rem', color: isAppDark ? '#94a3b8' : '#64748b', margin: '0.15rem 0 0' }}>
-              {builderStudioMode === 'project-3999-studio' 
-                ? 'Full 3-column Visual Studio with multi-block selection, focus customizers, and device frame preview' 
-                : 'Free fast-loading single-page profile with direct Google sync, contact actions, and custom themes'}
+            <p style={{ margin: 0, fontSize: '0.8rem', color: '#64748b' }}>
+              Create and preview your high-converting business website with live modular blocks
             </p>
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+        {/* Studio Mode Selector Switch */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginLeft: 'auto' }}>
+          <button
+            type="button"
+            onClick={() => setBuilderStudioMode('project-3999-studio')}
+            style={{
+              padding: '0.45rem 1rem',
+              borderRadius: '8px',
+              fontSize: '0.8rem',
+              fontWeight: 700,
+              cursor: 'pointer',
+              border: builderStudioMode === 'project-3999-studio' ? '1px solid #4f46e5' : '1px solid #cbd5e1',
+              backgroundColor: builderStudioMode === 'project-3999-studio' ? '#4f46e5' : '#ffffff',
+              color: builderStudioMode === 'project-3999-studio' ? '#ffffff' : '#475569',
+              boxShadow: builderStudioMode === 'project-3999-studio' ? '0 4px 6px -1px rgba(79, 70, 229, 0.2)' : 'none'
+            }}
+          >
+            ★ Visual Composer Studio (3999)
+          </button>
+
           <button
             type="button"
             onClick={() => setBuilderStudioMode('single-page')}
             style={{
-              padding: '0.45rem 0.95rem',
+              padding: '0.45rem 1rem',
               borderRadius: '8px',
               fontSize: '0.8rem',
               fontWeight: 700,
               cursor: 'pointer',
-              border: builderStudioMode === 'single-page' ? '1px solid #0284c7' : (isAppDark ? '1px solid #334155' : '1px solid #cbd5e1'),
-              backgroundColor: builderStudioMode === 'single-page' ? '#0284c7' : 'transparent',
-              color: builderStudioMode === 'single-page' ? '#ffffff' : (isAppDark ? '#cbd5e1' : '#475569')
+              border: builderStudioMode === 'single-page' ? '1px solid #0284c7' : '1px solid #cbd5e1',
+              backgroundColor: builderStudioMode === 'single-page' ? '#0284c7' : '#ffffff',
+              color: builderStudioMode === 'single-page' ? '#ffffff' : '#475569'
             }}
           >
-            Single-Page Mode
+            Single-Page Microsite Form
           </button>
 
           <button
             type="button"
-            onClick={() => {
-              if (!hasAdvancedBuilder) {
-                setShowUpgradeModal(true);
-              } else {
-                setBuilderStudioMode('project-3999-studio');
-              }
-            }}
+            onClick={() => handleSaveWebsite(isPublished)}
+            disabled={saving}
             style={{
-              padding: '0.45rem 0.95rem',
+              padding: '0.45rem 1.25rem',
               borderRadius: '8px',
               fontSize: '0.8rem',
               fontWeight: 700,
               cursor: 'pointer',
-              border: builderStudioMode === 'project-3999-studio' ? '1px solid #6366f1' : '1px solid #818cf8',
-              backgroundColor: builderStudioMode === 'project-3999-studio' ? '#6366f1' : 'rgba(99,102,241,0.1)',
-              color: builderStudioMode === 'project-3999-studio' ? '#ffffff' : '#818cf8',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.4rem'
+              backgroundColor: '#10b981',
+              color: '#ffffff',
+              border: 'none',
+              boxShadow: '0 4px 6px -1px rgba(16, 185, 129, 0.2)'
             }}
           >
-            <Sparkles style={{ width: '14px', height: '14px' }} />
-            {hasAdvancedBuilder ? '3-Column Visual Studio' : 'Unlock Visual Studio (Pro)'}
+            {saving ? 'Saving...' : 'Save Website'}
           </button>
 
-          <button className="btn btn-secondary" onClick={onBack} style={{ padding: '0.45rem 0.95rem', fontSize: '0.8rem' }}>Exit</button>
+          {onBack && (
+            <button
+              type="button"
+              onClick={onBack}
+              style={{
+                padding: '0.45rem 0.9rem',
+                borderRadius: '8px',
+                fontSize: '0.8rem',
+                fontWeight: 600,
+                cursor: 'pointer',
+                backgroundColor: '#f1f5f9',
+                color: '#475569',
+                border: '1px solid #cbd5e1'
+              }}
+            >
+              Exit
+            </button>
+          )}
         </div>
       </div>
 
+      {success && (
+        <div style={{ padding: '0.75rem 1rem', marginBottom: '1rem', borderRadius: '8px', backgroundColor: '#dcfce7', border: '1px solid #86efac', color: '#166534', fontSize: '0.85rem', fontWeight: 600 }}>
+          {success}
+        </div>
+      )}
+      {error && (
+        <div style={{ padding: '0.75rem 1rem', marginBottom: '1rem', borderRadius: '8px', backgroundColor: '#fee2e2', border: '1px solid #fca5a5', color: '#991b1b', fontSize: '0.85rem', fontWeight: 600 }}>
+          {error}
+        </div>
+      )}
+
+      {/* ===================================================================
+          PROJECT 3999 EXACT USER PANEL STUDIO EXPERIENCE
+      =================================================================== */}
       {builderStudioMode === 'project-3999-studio' ? (
-        /* ===================================================================
-           PROJECT 3999 EXACT USER PANEL STUDIO EXPERIENCE
-        =================================================================== */
-        <div style={{ height: 'calc(88vh - 40px)', backgroundColor: '#020617', borderRadius: '16px', overflow: 'hidden', border: '1px solid #1e293b' }}>
-          <div className="grid grid-cols-12 h-full text-white">
-            {/* Left Column: Pages & Section Context */}
-            <div className="col-span-2 bg-slate-900 border-r border-slate-800 p-4 flex flex-col justify-between">
+        <div className="grid grid-cols-12 rounded-2xl overflow-hidden border border-gray-300 shadow-xl bg-gray-100 min-h-[750px]">
+          {/* Main Workspace: 9 Columns on XL, 8 Columns on LG */}
+          <div className="col-span-12 lg:col-span-8 xl:col-span-9 p-6 overflow-y-auto">
+            {studioFocusBlock ? (
+              <FocusCustomizer
+                blockDef={studioFocusBlock}
+                currentData={studioFocusBlock.defaultData}
+                isPremium={studioFocusBlock.isPremium}
+                onTogglePremium={() => {}}
+                onSave={(customData) => {
+                  const sec = studioActiveSection === 'HEADER' ? 'header' :
+                              studioActiveSection === 'HERO' ? 'hero' :
+                              studioActiveSection === 'ABOUT' ? 'aboutUs' : 'services';
+                  setSelectedStudioBlocks(prev => ({
+                    ...prev,
+                    [sec]: { ...studioFocusBlock, defaultData: customData }
+                  }));
+                  setStudioFocusBlock(null);
+                }}
+                onClose={() => setStudioFocusBlock(null)}
+              />
+            ) : (
               <div>
-                <h4 className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-3">Website Sections</h4>
-                <div className="space-y-1.5">
-                  {[
-                    { key: 'HEADER', label: 'Headers' },
-                    { key: 'HERO', label: 'Hero Banners' },
-                    { key: 'ABOUT', label: 'About Us' },
-                    { key: 'SERVICES', label: 'Services' }
-                  ].map(sec => (
-                    <button
-                      key={sec.key}
-                      onClick={() => {
-                        setStudioActiveSection(sec.key);
-                        setStudioFocusBlock(null);
-                      }}
-                      className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
-                        studioActiveSection === sec.key
-                          ? 'bg-indigo-600 text-white font-bold'
-                          : 'text-slate-400 hover:text-white hover:bg-slate-800'
-                      }`}
-                    >
-                      <span>{sec.label}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="p-3 rounded-xl bg-slate-950 border border-slate-800 text-xs">
-                <div className="font-bold text-slate-300 mb-1">Live Subdomain</div>
-                <div className="text-[11px] text-indigo-400 truncate">{subdomain ? `${subdomain}.manacity.in` : 'manacity.in'}</div>
-              </div>
-            </div>
-
-            {/* Center Column: Block Marketplace OR Focus Mode */}
-            <div className="col-span-6 bg-slate-950 p-6 overflow-y-auto">
-              {studioFocusBlock ? (
-                <FocusCustomizer
-                  blockDef={studioFocusBlock}
-                  currentData={studioFocusBlock.defaultData}
-                  isPremium={studioFocusBlock.isPremium}
-                  onTogglePremium={() => {}}
-                  onSave={(customData) => {
-                    const sec = studioActiveSection === 'HEADER' ? 'header' :
-                                studioActiveSection === 'HERO' ? 'hero' :
-                                studioActiveSection === 'ABOUT' ? 'aboutUs' : 'services';
-                    setSelectedStudioBlocks(prev => ({
-                      ...prev,
-                      [sec]: { ...studioFocusBlock, defaultData: customData }
-                    }));
+                {/* 1. Horizontal Section Navbar with Exact 3999 Icons & Active Indigo State */}
+                <SectionNavbar
+                  activeSection={studioActiveSection}
+                  onSelectSection={(sec) => {
+                    setStudioActiveSection(sec);
                     setStudioFocusBlock(null);
                   }}
-                  onClose={() => setStudioFocusBlock(null)}
+                  onFinalize={() => handleSaveWebsite(true)}
                 />
-              ) : (
-                <div className="space-y-6">
-                  <div className="flex items-center justify-between bg-slate-900 p-3 rounded-xl border border-slate-800">
-                    <span className="text-xs font-bold text-slate-300">Choose {studioActiveSection} Layout</span>
-                    <button
-                      onClick={() => setCustomDomainInput(customDomain || '') || setShowDomainModal(true)}
-                      className="text-xs text-indigo-400 hover:underline"
-                    >
-                      Connect Domain
-                    </button>
-                  </div>
 
-                  <div className="space-y-4">
-                    {default3999Blocks
-                      .filter(b => b.category === studioActiveSection)
-                      .map(block => {
-                        const sec = studioActiveSection === 'HEADER' ? 'header' :
-                                    studioActiveSection === 'HERO' ? 'hero' :
-                                    studioActiveSection === 'ABOUT' ? 'aboutUs' : 'services';
-                        const isCurrent = selectedStudioBlocks[sec]?.blockKey === block.blockKey;
+                {/* 2. Sticky Filter & Search Bar with Red Skip Section Button */}
+                <div className="p-4 bg-white rounded-xl shadow-md border border-gray-200 mb-8 sticky top-0 z-10">
+                  <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
+                    <div className="relative md:col-span-4">
+                      <input
+                        type="text"
+                        value={studioSearchQuery}
+                        onChange={(e) => setStudioSearchQuery(e.target.value)}
+                        placeholder="Search blocks..."
+                        className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-sm text-gray-800 placeholder-gray-400 bg-white"
+                      />
+                      <Search className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                    </div>
 
-                        return (
-                          <div key={block.blockKey} className={`rounded-xl border bg-slate-900 overflow-hidden shadow-md ${isCurrent ? 'border-indigo-500 ring-2 ring-indigo-500/20' : 'border-slate-800'}`}>
-                            <div className="p-3 bg-slate-950 flex items-center justify-between border-b border-slate-800">
-                              <div>
-                                <span className="font-bold text-xs text-white">{block.name}</span>
-                                <span className="text-[11px] text-slate-400 ml-2">— {block.title}</span>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <button
-                                  onClick={() => setSelectedStudioBlocks(prev => ({ ...prev, [sec]: block }))}
-                                  className={`text-xs px-3 py-1 rounded-lg font-bold ${isCurrent ? 'bg-emerald-600 text-white' : 'bg-indigo-600 text-white hover:bg-indigo-700'}`}
-                                >
-                                  {isCurrent ? 'Applied' : 'Select'}
-                                </button>
-                                <button
-                                  onClick={() => setStudioFocusBlock(block)}
-                                  className="text-xs px-2.5 py-1 bg-slate-800 hover:bg-slate-700 rounded-lg text-slate-200"
-                                >
-                                  Customize
-                                </button>
-                              </div>
-                            </div>
+                    <div className="md:col-span-3">
+                      <select
+                        value={studioFilterStyle}
+                        onChange={(e) => setStudioFilterStyle(e.target.value)}
+                        className="w-full py-2 px-4 border rounded-lg bg-white focus:ring-indigo-500 focus:border-indigo-500 text-sm text-gray-700"
+                      >
+                        <option value="ALL">Filter by Style (All)</option>
+                        <option value="MINIMAL">Minimalist</option>
+                        <option value="MODERN">Modern Corporate</option>
+                        <option value="BOLD">High Tech</option>
+                      </select>
+                    </div>
 
-                            <div className="h-48 overflow-y-auto bg-white text-slate-900">
-                              <BlockRenderer
-                                blockDef={block}
-                                content={block.defaultData}
-                                previewMode="desktop"
-                                isPreview={true}
-                                branding={{ business_name: businessGroup?.name, phone_number: businessGroup?.mobileNumber, logo_url: logoUrl }}
-                              />
-                            </div>
-                          </div>
-                        );
-                      })}
+                    <div className="md:col-span-3">
+                      <select
+                        value={studioFilterFeature}
+                        onChange={(e) => setStudioFilterFeature(e.target.value)}
+                        className="w-full py-2 px-4 border rounded-lg bg-white focus:ring-indigo-500 focus:border-indigo-500 text-sm text-gray-700"
+                      >
+                        <option value="ALL">Filter by Feature (All)</option>
+                        <option value="DROPDOWN">Dropdown Nav</option>
+                        <option value="METRICS">Metrics Bar</option>
+                        <option value="STICKY">Sticky Nav</option>
+                      </select>
+                    </div>
+
+                    <div className="md:col-span-2">
+                      <button
+                        type="button"
+                        onClick={handleSkipSection}
+                        className="w-full py-2 px-4 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition-colors shadow-sm cursor-pointer text-sm"
+                      >
+                        Skip Section
+                      </button>
+                    </div>
                   </div>
                 </div>
-              )}
-            </div>
 
-            {/* Right Column: Live Synchronized Preview Pane */}
-            <div className="col-span-4 h-full overflow-hidden">
-              <LivePreviewPane
-                pageStructure={selectedStudioBlocks}
-                allBlocks={default3999Blocks}
-                activePreview={studioPreviewMode}
-                setActivePreview={setStudioPreviewMode}
-                branding={{ business_name: businessGroup?.name, phone_number: businessGroup?.mobileNumber, logo_url: logoUrl }}
-              />
-            </div>
+                {/* 3. Top Active Live Edit Card with Indigo Highlight Border */}
+                {currentSelectedBlock && (
+                  <div className="mb-8 p-4 bg-white rounded-xl shadow-2xl border-4 border-indigo-400/80">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-xl font-bold text-gray-800">
+                        Current Block: {currentSelectedBlock.name} (Live Edit)
+                      </h3>
+                      <button
+                        type="button"
+                        onClick={() => setStudioFocusBlock(currentSelectedBlock)}
+                        className="px-3.5 py-1.5 bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-lg text-xs font-bold hover:bg-indigo-100 transition-colors flex items-center gap-1.5 cursor-pointer"
+                      >
+                        <Sliders className="w-4 h-4" />
+                        Customize Current Block
+                      </button>
+                    </div>
+                    <div className="relative border border-gray-300 rounded-lg overflow-hidden bg-white">
+                      <BlockRenderer
+                        blockDef={currentSelectedBlock}
+                        content={currentSelectedBlock.defaultData}
+                        previewMode="desktop"
+                        isPreview={true}
+                        branding={brandingPayload}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* 4. Block Selection Cards Grid */}
+                <div className="space-y-8">
+                  {visibleBlocks.map((blockDef) => {
+                    const isSelected = currentSelectedBlock?.blockKey === blockDef.blockKey;
+
+                    return (
+                      <div
+                        key={blockDef.blockKey}
+                        className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden transition-all duration-300 hover:shadow-2xl hover:border-indigo-300 flex flex-col"
+                      >
+                        <div className="p-3.5 bg-gray-50 border-b border-gray-200 flex justify-between items-center">
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-bold text-gray-800 text-base">{blockDef.name}</h3>
+                            <span className="text-xs text-gray-500">— {blockDef.title}</span>
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => handleSelectBlockForSection(blockDef)}
+                              className={`flex items-center text-xs px-3.5 py-1.5 rounded-full transition-colors shadow-sm font-semibold cursor-pointer ${
+                                isSelected
+                                  ? 'bg-emerald-600 text-white'
+                                  : 'bg-green-500 text-white hover:bg-green-600'
+                              }`}
+                              title="Select this block to preview it on the right"
+                            >
+                              <Check className="w-3.5 h-3.5 mr-1" />
+                              {isSelected ? 'Active on Page' : 'Select'}
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Block Preview Canvas (384px height matching 3999 h-96) */}
+                        <div className="relative h-96 border-b border-gray-200 bg-gray-50 overflow-y-auto">
+                          <BlockRenderer
+                            blockDef={blockDef}
+                            content={blockDef.defaultData}
+                            previewMode="desktop"
+                            isPreview={true}
+                            branding={brandingPayload}
+                          />
+                        </div>
+
+                        {/* Card Footer: Customize & Add to Page */}
+                        <div className="p-3 bg-gray-50 flex justify-end items-center space-x-3">
+                          <button
+                            type="button"
+                            onClick={() => setStudioFocusBlock(blockDef)}
+                            className="flex items-center text-xs px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors shadow-sm font-semibold cursor-pointer"
+                          >
+                            <Sliders className="w-3.5 h-3.5 mr-1.5 text-indigo-500" />
+                            Customize
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleAddAndProceed(blockDef)}
+                            className="flex items-center text-xs px-4 py-2 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition-colors shadow-md cursor-pointer"
+                          >
+                            <ChevronRight className="w-3.5 h-3.5 mr-1" />
+                            Add & Proceed
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Right Column: Exact 3999 Persistent Dark Preview Pane (Phone Chassis + Laptop Link Modal) */}
+          <div className="hidden lg:block col-span-4 xl:col-span-3">
+            <LivePreviewPane
+              pageStructure={selectedStudioBlocks}
+              branding={brandingPayload}
+            />
           </div>
         </div>
       ) : (
         /* ===================================================================
-           EXISTING SINGLE-PAGE MICROSITE FREE BUILDER
+           LEGACY SINGLE-PAGE MICROSITE FORM BUILDER
         =================================================================== */
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', width: '100%', boxSizing: 'border-box' }}>
-      
-      {/* Editor Panel (Left) */}
-      <div className="glass-card" style={{ padding: '2rem', textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '1.5rem', maxHeight: '85vh', overflowY: 'auto' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h2 style={{ fontSize: '1.6rem', fontWeight: 700 }}>Single-Page Website Editor</h2>
-          <button className="btn btn-secondary" onClick={onBack}>Exit</button>
-        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(320px, 480px) 1fr', gap: '1.5rem', alignItems: 'start' }}>
+          {/* Controls Panel */}
+          <div style={{ backgroundColor: isAppDark ? '#1e293b' : '#ffffff', padding: '1.5rem', borderRadius: '12px', border: isAppDark ? '1px solid #334155' : '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)' }}>
+            <h3 style={{ margin: '0 0 1rem 0', fontSize: '1.1rem', fontWeight: 700 }}>Microsite General Settings</h3>
+            <div style={{ marginBottom: '1rem' }}>
+              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#64748b', marginBottom: '0.35rem' }}>Subdomain</label>
+              <div style={{ display: 'flex', alignItems: 'center' }}>
+                <input
+                  type="text"
+                  value={subdomain}
+                  onChange={(e) => setSubdomain(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                  className="input-field"
+                  placeholder="my-business"
+                  style={{ flex: 1, padding: '0.5rem', borderRadius: '6px 0 0 6px', border: '1px solid #cbd5e1' }}
+                />
+                <span style={{ padding: '0.5rem 0.75rem', backgroundColor: '#f1f5f9', border: '1px solid #cbd5e1', borderLeft: 'none', borderRadius: '0 6px 6px 0', fontSize: '0.85rem', color: '#64748b' }}>
+                  .manacity.in
+                </span>
+              </div>
+            </div>
 
-        {error && <div style={{ color: 'var(--accent-error)', fontSize: '0.9rem' }}>{error}</div>}
-        {success && <div style={{ color: '#4caf50', fontSize: '0.9rem' }}>{success}</div>}
+            <div style={{ marginBottom: '1rem' }}>
+              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#64748b', marginBottom: '0.35rem' }}>Brand Logo URL</label>
+              <input
+                type="text"
+                value={logoUrl}
+                onChange={(e) => setLogoUrl(e.target.value)}
+                className="input-field"
+                placeholder="https://..."
+                style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+              />
+            </div>
 
-        {/* Domain Config */}
-        <div style={editorSectionStyle}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h3 style={editorHeaderStyle}>Domain & Subdomain</h3>
-            <button 
-              type="button" 
-              onClick={() => {
-                setCustomDomainInput(customDomain || '');
-                setShowDomainModal(true);
-                if (customDomain) handleVerifyDns();
-              }}
-              style={{
-                fontSize: '0.78rem',
-                fontWeight: 800,
-                color: 'var(--accent-primary, #0284c7)',
-                backgroundColor: isAppDark ? 'rgba(2, 132, 199, 0.15)' : '#e0f2fe',
-                border: '1px solid #0284c7',
-                borderRadius: '6px',
-                padding: '0.35rem 0.75rem',
-                cursor: 'pointer'
-              }}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#64748b', marginBottom: '0.35rem' }}>Primary Color</label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <input type="color" value={primaryColor} onChange={(e) => setPrimaryColor(e.target.value)} style={{ width: '38px', height: '38px', border: 'none', borderRadius: '4px', cursor: 'pointer' }} />
+                  <span style={{ fontSize: '0.85rem', fontFamily: 'monospace' }}>{primaryColor}</span>
+                </div>
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#64748b', marginBottom: '0.35rem' }}>Secondary Color</label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <input type="color" value={secondaryColor} onChange={(e) => setSecondaryColor(e.target.value)} style={{ width: '38px', height: '38px', border: 'none', borderRadius: '4px', cursor: 'pointer' }} />
+                  <span style={{ fontSize: '0.85rem', fontFamily: 'monospace' }}>{secondaryColor}</span>
+                </div>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleAutoColorExtraction}
+              disabled={extractingColors}
+              style={{ width: '100%', padding: '0.55rem', borderRadius: '6px', backgroundColor: '#f8fafc', border: '1px dashed #cbd5e1', color: '#475569', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', marginBottom: '1.5rem' }}
             >
-              {customDomain ? '🌐 Manage Domain (BYOD)' : '🌐 Connect Existing Domain (BYOD)'}
+              {extractingColors ? 'Extracting...' : 'Auto-Extract Colors from Logo'}
             </button>
           </div>
 
-          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-            <input 
-              type="text" 
-              value={subdomain} 
-              onChange={(e) => setSubdomain(e.target.value)} 
-              placeholder="subdomain"
-              style={dynamicInputStyle}
-            />
-            <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>.manacity.in</span>
-          </div>
-
-          {customDomain && (
-            <div style={{ marginTop: '0.5rem', padding: '0.65rem 0.85rem', backgroundColor: isAppDark ? 'rgba(16, 185, 129, 0.1)' : '#ecfdf5', border: '1px solid #10b981', borderRadius: '8px', fontSize: '0.82rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div>
-                <strong style={{ color: isAppDark ? '#34d399' : '#047857' }}>Custom Domain:</strong>{' '}
-                <a href={`https://${customDomain}`} target="_blank" rel="noreferrer" style={{ color: 'var(--accent-primary, #0284c7)', fontWeight: 700, textDecoration: 'underline' }}>
-                  {customDomain}
-                </a>
+          {/* Simple Preview Pane for Single-Page */}
+          <div style={{ backgroundColor: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', padding: '1.5rem', minHeight: '500px' }}>
+            <h4 style={{ margin: '0 0 1rem 0', color: '#64748b', fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase' }}>Live Single-Page Preview</h4>
+            <div style={{ border: '1px solid #cbd5e1', borderRadius: '8px', overflow: 'hidden' }}>
+              <div style={{ padding: '2rem', textAlign: 'center', backgroundColor: primaryColor, color: '#ffffff' }}>
+                <h1 style={{ margin: 0, fontSize: '1.75rem', fontWeight: 800 }}>{headerConfig.title || businessGroup?.name || 'Your Business Title'}</h1>
+                <p style={{ margin: '0.5rem 0 0 0', opacity: 0.9 }}>{headerConfig.subtitle || 'Your compelling headline or slogan goes here'}</p>
               </div>
-              <span style={{ color: dnsStatus?.isPointing ? '#10b981' : '#f59e0b', fontWeight: 800 }}>
-                {dnsStatus?.isPointing ? '● Live Active' : '● Pending DNS'}
-              </span>
-            </div>
-          )}
-        </div>
-
-        {/* Theme Engine Settings */}
-        <div style={editorSectionStyle}>
-          <h3 style={editorHeaderStyle}>Theme & Colors</h3>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', gridColumn: '1 / -1' }}>
-              <label style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--accent-primary, #0284c7)' }}>Select Website Template</label>
-              <select value={theme} onChange={async (e) => {
-                const newTheme = e.target.value;
-                setTheme(newTheme);
-                const colors = {
-                  'ca-corporate-elite': '#0f2b48',
-                  'ca-modern-trust': '#059669',
-                  'modern-corporate': '#6366f1',
-                  'light-minimal': '#0ea5e9'
-                };
-                const pColor = colors[newTheme] || primaryColor;
-                if (colors[newTheme]) setPrimaryColor(colors[newTheme]);
-                // Immediate auto-save so live iframe updates theme instantly
-                try {
-                  await axios.post('/api/website/save', { theme: newTheme, primaryColor: pColor });
-                } catch (err) {}
-              }} style={{ ...dynamicInputStyle, fontWeight: 700, backgroundColor: isAppDark ? '#0f172a' : '#ffffff', color: isAppDark ? '#ffffff' : '#0f172a' }}>
-                <option value="ca-corporate-elite">🏛️ 1. CA Template A: Elite Corporate CA & Audit Firm (Navy & Gold)</option>
-                <option value="ca-modern-trust">⚡ 2. CA Template B: Modern Digital CA & Tax Advisory (Emerald Tech)</option>
-                <option value="modern-corporate">3. Dark Mode Template (Sleek Dark & Glass)</option>
-                <option value="light-minimal">4. Light Mode Template (Clean White & Vibrant)</option>
-              </select>
-
-              {/* Visual Template Cards */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.75rem', marginTop: '0.5rem' }}>
-                {[
-                  { id: 'ca-corporate-elite', name: 'Elite Corporate CA', color: '#d97706', desc: 'Navy & Gold Audit Firm' },
-                  { id: 'ca-modern-trust', name: 'Modern Digital CA', color: '#10b981', desc: 'Emerald Tax Advisory' },
-                  { id: 'modern-corporate', name: 'Dark Mode Template', color: '#6366f1', desc: 'Glass Dark' },
-                  { id: 'light-minimal', name: 'Light Mode Template', color: '#0ea5e9', desc: 'Clean Light' }
-                ].map(tmpl => (
-                  <div
-                    key={tmpl.id}
-                    onClick={async () => {
-                      setTheme(tmpl.id);
-                      const colors = {
-                        'ca-corporate-elite': '#0f2b48',
-                        'ca-modern-trust': '#059669',
-                        'modern-corporate': '#6366f1',
-                        'light-minimal': '#0ea5e9'
-                      };
-                      const targetColor = colors[tmpl.id] || tmpl.color;
-                      setPrimaryColor(targetColor);
-                      // Immediate auto-save so live iframe updates theme instantly
-                      try {
-                        await axios.post('/api/website/save', { theme: tmpl.id, primaryColor: targetColor });
-                      } catch (err) {}
-                    }}
-                    style={{
-                      border: theme === tmpl.id ? `2px solid ${tmpl.color}` : (isAppDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid #cbd5e1'),
-                      backgroundColor: theme === tmpl.id ? `${tmpl.color}20` : (isAppDark ? '#0f172a' : '#f8fafc'),
-                      borderRadius: '8px',
-                      padding: '0.65rem 0.5rem',
-                      textAlign: 'center',
-                      cursor: 'pointer',
-                      fontSize: '0.8rem',
-                      fontWeight: 700,
-                      color: theme === tmpl.id ? (isAppDark ? '#fff' : tmpl.color) : (isAppDark ? '#94a3b8' : '#334155')
-                    }}
-                  >
-                    <div style={{ width: '100%', height: '4px', backgroundColor: tmpl.color, borderRadius: '2px', marginBottom: '0.35rem' }} />
-                    <div>{tmpl.name}</div>
-                    <div style={{ fontSize: '0.68rem', color: tmpl.color, opacity: 0.9, marginTop: '0.15rem' }}>{tmpl.desc}</div>
-                  </div>
-                ))}
+              <div style={{ padding: '2rem', backgroundColor: '#f8fafc' }}>
+                <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#1e293b' }}>{aboutConfig.title || 'About Us'}</h2>
+                <p style={{ color: '#475569', lineHeight: 1.6 }}>{aboutConfig.content || 'Share your story, services, and why customers should choose you.'}</p>
               </div>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', marginTop: '0.5rem' }}>
-              <label style={{ fontSize: '0.85rem' }}>Primary Font</label>
-              <select value={font} onChange={(e) => setFont(e.target.value)} style={dynamicInputStyle}>
-                <option value="Outfit">Outfit</option>
-                <option value="sans-serif">Sans-Serif</option>
-                <option value="Georgia">Serif</option>
-                <option value="monospace">Monospace</option>
-              </select>
-            </div>
-
-          </div>
-
-          {/* Logo & Brand Color Palette Auto-Extractor Box */}
-          <div style={{ backgroundColor: isAppDark ? 'rgba(99, 102, 241, 0.08)' : 'rgba(99, 102, 241, 0.05)', border: '1px solid rgba(99, 102, 241, 0.25)', padding: '1rem', borderRadius: '8px', marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            <label style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--accent-primary, #0284c7)' }}>Logo & Auto Color Palette</label>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
-              {logoUrl ? (
-                <img src={logoUrl} alt="Business Logo" style={{ width: '48px', height: '48px', borderRadius: '8px', objectFit: 'cover', border: '1.5px solid var(--primary-color)' }} />
-              ) : (
-                <div style={{ width: '48px', height: '48px', borderRadius: '8px', backgroundColor: isAppDark ? '#1e293b' : '#f1f5f9', border: '1px border-dashed #64748b', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', color: isAppDark ? '#94a3b8' : '#64748b' }}>No Logo</div>
-              )}
-              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-                <input type="file" onChange={handleLogoFileUpload} accept="image/*" style={{ fontSize: '0.8rem', color: isAppDark ? '#cbd5e1' : '#334155' }} />
-                <button
-                  type="button"
-                  onClick={() => handleLogoExtractColors()}
-                  disabled={extractingColors}
-                  style={{
-                    backgroundColor: '#6366f1',
-                    color: '#fff',
-                    border: 'none',
-                    borderRadius: '6px',
-                    padding: '0.4rem 0.8rem',
-                    fontSize: '0.8rem',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    alignSelf: 'flex-start'
-                  }}
-                >
-                  {extractingColors ? 'Extracting Palette...' : '⚡ Extract Colors from Logo'}
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '1rem' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-              <label style={{ fontSize: '0.85rem' }}>Primary Color</label>
-              <input type="color" value={primaryColor} onChange={(e) => setPrimaryColor(e.target.value)} style={{ ...dynamicInputStyle, padding: '0.2rem' }} />
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-              <label style={{ fontSize: '0.85rem' }}>Secondary Color</label>
-              <input type="color" value={secondaryColor} onChange={(e) => setSecondaryColor(e.target.value)} style={{ ...dynamicInputStyle, padding: '0.2rem' }} />
-            </div>
-          </div>
-        </div>
-
-        {/* SEO Management */}
-        <div style={editorSectionStyle}>
-          <h3 style={editorHeaderStyle}>SEO Settings</h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            <input type="text" value={metaTitle} onChange={(e) => setMetaTitle(e.target.value)} placeholder="Meta Title" style={dynamicInputStyle} />
-            <input type="text" value={metaDescription} onChange={(e) => setMetaDescription(e.target.value)} placeholder="Meta Description" style={dynamicInputStyle} />
-            <input type="text" value={keywords} onChange={(e) => setKeywords(e.target.value)} placeholder="Keywords (comma separated)" style={dynamicInputStyle} />
-          </div>
-        </div>
-
-        {/* Analytics Configurations */}
-        <div style={editorSectionStyle}>
-          <h3 style={editorHeaderStyle}>Analytics Integrations (Optional)</h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            <input type="text" value={googleAnalyticsId} onChange={(e) => setGoogleAnalyticsId(e.target.value)} placeholder="Google Analytics Tag (e.g. G-XXXXX)" style={dynamicInputStyle} />
-            <input type="text" value={searchConsoleId} onChange={(e) => setSearchConsoleId(e.target.value)} placeholder="Google Search Console verification ID" style={dynamicInputStyle} />
-            <input type="text" value={metaPixelId} onChange={(e) => setMetaPixelId(e.target.value)} placeholder="Meta Pixel ID" style={dynamicInputStyle} />
-            <input type="text" value={clarityId} onChange={(e) => setClarityId(e.target.value)} placeholder="Microsoft Clarity ID" style={dynamicInputStyle} />
-          </div>
-        </div>
-
-        {/* Action Controls */}
-        <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
-          <button className="btn btn-primary" onClick={handleSaveSettings} disabled={saving} style={{ flex: 1 }}>
-            {saving ? 'Saving...' : 'Save Settings'}
-          </button>
-          <button 
-            className="btn btn-secondary" 
-            onClick={handlePublishToggle} 
-            disabled={publishing}
-            style={{ 
-              flex: 1, 
-              backgroundColor: isPublished ? 'rgba(239, 68, 68, 0.1)' : 'rgba(76, 175, 80, 0.1)', 
-              borderColor: isPublished ? 'var(--accent-error)' : '#4caf50',
-              color: isPublished ? 'var(--accent-error)' : '#4caf50' 
-            }}
-          >
-            {publishing ? 'Toggling...' : isPublished ? 'Unpublish Site' : 'Publish Live'}
-          </button>
-        </div>
-
-        {/* Dynamic Modular Block Library Selector */}
-        <div style={editorSectionStyle}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h3 style={editorHeaderStyle}>Dynamic Modular Block Library</h3>
-            <span style={{ fontSize: '0.78rem', fontWeight: 800, color: hasAdvancedBuilder ? '#10b981' : '#f59e0b', backgroundColor: hasAdvancedBuilder ? 'rgba(16,185,129,0.12)' : 'rgba(245,158,11,0.12)', padding: '0.2rem 0.55rem', borderRadius: '12px', border: `1px solid ${hasAdvancedBuilder ? '#10b981' : '#f59e0b'}` }}>
-              {hasAdvancedBuilder ? '✨ Pro Modular Active' : '🔒 Free Microsite Plan'}
-            </span>
-          </div>
-
-          <p style={{ fontSize: '0.8rem', color: isAppDark ? '#94a3b8' : '#64748b', margin: '0 0 0.5rem' }}>
-            Choose header, hero, and section templates from the central block library. Pro blocks can be unlocked with the Modular Builder add-on.
-          </p>
-
-          {/* Category Tabs for Blocks */}
-          <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', marginBottom: '0.75rem' }}>
-            {['HEADER', 'HERO', 'SERVICES', 'ABOUT', 'FOOTER'].map(cat => (
-              <button
-                key={cat}
-                type="button"
-                onClick={() => setActiveBlockCategory(cat)}
-                style={{
-                  padding: '0.35rem 0.75rem',
-                  fontSize: '0.75rem',
-                  fontWeight: 700,
-                  borderRadius: '20px',
-                  border: activeBlockCategory === cat ? '1px solid #6366f1' : (isAppDark ? '1px solid #334155' : '1px solid #cbd5e1'),
-                  backgroundColor: activeBlockCategory === cat ? '#6366f1' : 'transparent',
-                  color: activeBlockCategory === cat ? '#ffffff' : (isAppDark ? '#cbd5e1' : '#475569'),
-                  cursor: 'pointer'
-                }}
-              >
-                {cat}
-              </button>
-            ))}
-          </div>
-
-          {/* Available Blocks in Active Category */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '0.65rem' }}>
-            {availableBlocks
-              .filter(b => b.category === activeBlockCategory)
-              .map(block => {
-                const currentSec = sections.find(s => s.type === block.category);
-                const isSelected = currentSec?.settings?.blockKey === block.blockKey;
-                const isLocked = block.isPremium && !hasAdvancedBuilder;
-
-                return (
-                  <div
-                    key={block.id || block.blockKey}
-                    onClick={() => handleSelectBlockLayout(block.category, block)}
-                    style={{
-                      border: isSelected ? '2px solid #6366f1' : (isAppDark ? '1px solid #334155' : '1px solid #e2e8f0'),
-                      borderRadius: '10px',
-                      padding: '0.75rem',
-                      backgroundColor: isSelected ? (isAppDark ? 'rgba(99,102,241,0.15)' : '#eef2ff') : (isAppDark ? '#1e293b' : '#ffffff'),
-                      cursor: 'pointer',
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      gap: '0.75rem',
-                      transition: 'all 0.15s'
-                    }}
-                  >
-                    <div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
-                        <span style={{ fontSize: '0.88rem', fontWeight: 800, color: isAppDark ? '#f8fafc' : '#0f172a' }}>{block.name}</span>
-                        {block.isPremium ? (
-                          <span style={{ fontSize: '0.7rem', fontWeight: 800, color: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.15)', padding: '0.1rem 0.4rem', borderRadius: '8px' }}>
-                            {isLocked ? '🔒 PRO' : '✨ PRO'}
-                          </span>
-                        ) : (
-                          <span style={{ fontSize: '0.7rem', fontWeight: 800, color: '#10b981', backgroundColor: 'rgba(16,185,129,0.15)', padding: '0.1rem 0.4rem', borderRadius: '8px' }}>
-                            FREE
-                          </span>
-                        )}
-                      </div>
-                      <div style={{ fontSize: '0.76rem', color: isAppDark ? '#94a3b8' : '#64748b', marginTop: '0.2rem' }}>
-                        {block.description || 'Pre-designed high-conversion modular block'}
-                      </div>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleSelectBlockLayout(block.category, block);
-                      }}
-                      style={{
-                        padding: '0.35rem 0.75rem',
-                        fontSize: '0.75rem',
-                        fontWeight: 700,
-                        borderRadius: '6px',
-                        border: 'none',
-                        backgroundColor: isSelected ? '#10b981' : isLocked ? '#f59e0b' : '#6366f1',
-                        color: '#ffffff',
-                        cursor: 'pointer',
-                        whiteSpace: 'nowrap'
-                      }}
-                    >
-                      {isSelected ? '✓ Selected' : isLocked ? '🔒 Unlock' : 'Select'}
-                    </button>
-                  </div>
-                );
-              })}
-          </div>
-        </div>
-
-        <hr style={{ border: 'none', borderTop: '1px solid var(--border-color)', margin: '0.5rem 0' }} />
-
-        {/* Page Builder Components Section */}
-        <div style={editorSectionStyle}>
-          <h3 style={editorHeaderStyle}>Website Sections Layout</h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            {sections.map((sec, idx) => (
-              <div 
-                key={sec.type} 
-                style={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'space-between', 
-                  padding: '0.65rem 1rem', 
-                  backgroundColor: sec.enabled ? (isAppDark ? 'rgba(255, 255, 255, 0.02)' : '#ffffff') : (isAppDark ? 'rgba(255,255,255,0.01)' : '#f8fafc'), 
-                  border: `1px solid ${isAppDark ? 'var(--border-color)' : '#cbd5e1'}`,
-                  borderRadius: 'var(--radius-sm)',
-                  color: isAppDark ? '#fff' : '#0f172a',
-                  opacity: sec.enabled ? 1 : 0.5
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <input 
-                    type="checkbox" 
-                    checked={sec.enabled} 
-                    onChange={() => handleSectionToggle(sec.type)} 
-                  />
-                  <span style={{ fontSize: '0.9rem', fontWeight: 600, color: isAppDark ? '#fff' : '#0f172a' }}>{sec.type}</span>
-                </div>
-                
-                <div style={{ display: 'flex', gap: '0.25rem' }}>
-                  <button type="button" onClick={() => handleMoveSection(idx, 'up')} disabled={idx === 0} style={dynamicIconBtnStyle}>▲</button>
-                  <button type="button" onClick={() => handleMoveSection(idx, 'down')} disabled={idx === sections.length - 1} style={dynamicIconBtnStyle}>▼</button>
-                </div>
-              </div>
-            ))}
-          </div>
-          <button className="btn btn-primary" onClick={handleSaveSections} disabled={saving} style={{ width: '100%', marginTop: '1rem' }}>
-            {saving ? 'Saving Layout...' : 'Save Layout Order'}
-          </button>
-        </div>
-      </div>
-
-      {/* Live Preview Panel (Right) - Rendering 100% Live Website via iframe */}
-      <div 
-        style={{ 
-          backgroundColor: theme === 'light-minimal' ? '#ffffff' : (isAppDark ? '#0f172a' : '#ffffff'), 
-          border: `3px solid ${isAppDark ? 'var(--border-color)' : '#cbd5e1'}`, 
-          borderRadius: 'var(--radius-sm)',
-          height: '82vh',
-          color: theme === 'light-minimal' ? '#0f172a' : (isAppDark ? '#fff' : '#0f172a'),
-          boxSizing: 'border-box',
-          display: 'flex',
-          flexDirection: 'column',
-          overflow: 'hidden'
-        }}
-      >
-        <div style={{ padding: '0.55rem 1rem', borderBottom: `1px solid ${isAppDark ? 'var(--border-color)' : '#cbd5e1'}`, backgroundColor: isAppDark ? 'rgba(0,0,0,0.2)' : '#f1f5f9', textAlign: 'left', fontSize: '0.85rem', color: isAppDark ? 'var(--text-secondary)' : '#334155', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem', flexShrink: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span style={{ fontWeight: 600 }}>Preview Viewport:</span>
-            <button type="button" onClick={() => setPreviewDevice('desktop')} style={{ ...dynamicDeviceBtnStyle, backgroundColor: previewDevice === 'desktop' ? '#0284c7' : 'transparent', color: previewDevice === 'desktop' ? '#ffffff' : (isAppDark ? '#cbd5e1' : '#334155') }}>💻 Desktop</button>
-            <button type="button" onClick={() => setPreviewDevice('tablet')} style={{ ...dynamicDeviceBtnStyle, backgroundColor: previewDevice === 'tablet' ? '#0284c7' : 'transparent', color: previewDevice === 'tablet' ? '#ffffff' : (isAppDark ? '#cbd5e1' : '#334155') }}>📱 Tablet</button>
-            <button type="button" onClick={() => setPreviewDevice('mobile')} style={{ ...dynamicDeviceBtnStyle, backgroundColor: previewDevice === 'mobile' ? '#0284c7' : 'transparent', color: previewDevice === 'mobile' ? '#ffffff' : (isAppDark ? '#cbd5e1' : '#334155') }}>📲 Mobile</button>
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <span>
-              Live URL:{' '}
-              <a
-                href={subdomain ? `https://${subdomain}.manacity.in` : 'https://manacity.in'}
-                target="_blank"
-                rel="noreferrer"
-                style={{ color: 'var(--accent-primary, #0284c7)', fontWeight: 700, textDecoration: 'underline' }}
-              >
-                {subdomain ? `${subdomain}.manacity.in` : 'manacity.in'}
-              </a>
-            </span>
-            <span style={{ color: isPublished ? '#4caf50' : 'var(--accent-error)', fontWeight: 700 }}>{isPublished ? '● Published' : '● Draft'}</span>
-          </div>
-        </div>
-
-        {/* Dynamic Responsive Viewport Frame */}
-        <div style={{
-          flex: 1,
-          width: '100%',
-          overflowY: 'auto',
-          backgroundColor: isAppDark ? '#020617' : '#e2e8f0',
-          display: 'flex',
-          justifyContent: 'center',
-          padding: previewDevice === 'desktop' ? '0' : '1rem 0'
-        }}>
-          <iframe
-            key={`${subdomain}-${previewDevice}-${theme}`}
-            src={subdomain ? `/site/${subdomain}?t=${theme}` : `/site/default?t=${theme}`}
-            title="Live Website Preview"
-            style={{
-              width: previewDevice === 'mobile' ? '375px' : previewDevice === 'tablet' ? '768px' : '100%',
-              height: '100%',
-              minHeight: '650px',
-              border: previewDevice === 'desktop' ? 'none' : (isAppDark ? '2px solid rgba(255,255,255,0.2)' : '2px solid #cbd5e1'),
-              borderRadius: previewDevice === 'desktop' ? '0' : '12px',
-              backgroundColor: theme === 'light-minimal' ? '#ffffff' : '#0f172a',
-              boxShadow: previewDevice === 'desktop' ? 'none' : '0 20px 40px rgba(0,0,0,0.2)',
-              transition: 'width 0.3s ease'
-            }}
-          />
-        </div>
-      </div>
-      </div>
-      )}
-
-      {/* BYOD Domain Connect Setup Modal */}
-      {showDomainModal && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.75)',
-          backdropFilter: 'blur(6px)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 9999,
-          padding: '1.5rem'
-        }}>
-          <div style={{
-            backgroundColor: isAppDark ? '#0f172a' : '#ffffff',
-            color: isAppDark ? '#ffffff' : '#0f172a',
-            border: `1px solid ${isAppDark ? 'rgba(255,255,255,0.15)' : '#cbd5e1'}`,
-            borderRadius: '16px',
-            width: '100%',
-            maxWidth: '580px',
-            padding: '2rem',
-            boxShadow: '0 20px 50px rgba(0,0,0,0.4)',
-            textAlign: 'left'
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-              <h3 style={{ fontSize: '1.3rem', fontWeight: 800, margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                🌐 Connect Existing Custom Domain (BYOD)
-              </h3>
-              <button 
-                type="button" 
-                onClick={() => setShowDomainModal(false)}
-                style={{ background: 'none', border: 'none', color: isAppDark ? '#94a3b8' : '#64748b', fontSize: '1.3rem', cursor: 'pointer', fontWeight: 700 }}
-              >
-                ✕
-              </button>
-            </div>
-
-            <p style={{ fontSize: '0.85rem', color: isAppDark ? '#94a3b8' : '#64748b', marginBottom: '1.25rem', lineHeight: '1.5' }}>
-              Point your existing domain (GoDaddy, Hostinger, Namecheap, BigRock, etc.) to ManaCity for automatic SSL encryption and custom domain routing.
-            </p>
-
-            {domainError && (
-              <div style={{ backgroundColor: 'rgba(239, 68, 68, 0.15)', border: '1px solid #ef4444', color: '#ef4444', padding: '0.75rem 1rem', borderRadius: '10px', fontSize: '0.85rem', fontWeight: 700, marginBottom: '1rem' }}>
-                ⚠️ {domainError}
-              </div>
-            )}
-
-            {domainSuccess && (
-              <div style={{ backgroundColor: 'rgba(16, 185, 129, 0.15)', border: '1px solid #10b981', color: '#10b981', padding: '0.75rem 1rem', borderRadius: '10px', fontSize: '0.85rem', fontWeight: 700, marginBottom: '1rem' }}>
-                {domainSuccess}
-              </div>
-            )}
-
-            {/* TAB 1: BUY NEW DOMAIN VIA RESELLERCLUB */}
-            {domainModalTab === 'BUY' && (
-              <div style={{ marginBottom: '1.5rem' }}>
-                <p style={{ fontSize: '0.85rem', color: isAppDark ? '#94a3b8' : '#64748b', marginBottom: '0.85rem' }}>
-                  Search and register your official business domain. DNS records and SSL certificates are provisioned automatically.
-                </p>
-
-                <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.25rem' }}>
-                  <input
-                    type="text"
-                    value={domainSearchQuery}
-                    onChange={(e) => setDomainSearchQuery(e.target.value)}
-                    placeholder="Search domain name (e.g. srigangatech, rajugariventures)..."
-                    onKeyDown={(e) => { if (e.key === 'Enter') handleSearchDomainToBuy(); }}
-                    style={dynamicInputStyle}
-                  />
-                  <button
-                    type="button"
-                    onClick={handleSearchDomainToBuy}
-                    disabled={searchingDomain}
-                    style={{
-                      backgroundColor: '#10b981',
-                      color: '#ffffff',
-                      border: 'none',
-                      borderRadius: '6px',
-                      padding: '0.65rem 1.25rem',
-                      fontWeight: 800,
-                      fontSize: '0.85rem',
-                      cursor: 'pointer',
-                      whiteSpace: 'nowrap'
-                    }}
-                  >
-                    {searchingDomain ? 'Searching...' : 'Check Availability'}
-                  </button>
-                </div>
-
-                {domainSearchResults.length > 0 && (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
-                    {domainSearchResults.map((item) => (
-                      <div
-                        key={item.domain}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          padding: '0.75rem 1rem',
-                          backgroundColor: isAppDark ? '#0f172a' : '#f8fafc',
-                          border: item.available ? '1.5px solid #10b981' : ('1px solid ' + (isAppDark ? '#334155' : '#cbd5e1')),
-                          borderRadius: '10px'
-                        }}
-                      >
-                        <div>
-                          <strong style={{ fontSize: '0.95rem', color: isAppDark ? '#ffffff' : '#0f172a' }}>
-                            {item.domain}
-                          </strong>
-                          <div style={{ fontSize: '0.74rem', color: item.available ? '#10b981' : '#ef4444', fontWeight: 700 }}>
-                            {item.available ? '● Available for Registration' : '● Already Taken'}
-                          </div>
-                        </div>
-
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                          <span style={{ fontSize: '1.05rem', fontWeight: 900, color: '#10b981' }}>
-                            ₹{item.sellingPriceInr} <span style={{ fontSize: '0.75rem', fontWeight: 600, color: isAppDark ? '#94a3b8' : '#64748b' }}>/yr</span>
-                          </span>
-                          {item.available && (
-                            <button
-                              type="button"
-                              onClick={() => handleBuyDomainOrder(item)}
-                              disabled={orderingDomain === item.domain}
-                              style={{
-                                backgroundColor: '#10b981',
-                                color: '#ffffff',
-                                border: 'none',
-                                borderRadius: '6px',
-                                padding: '0.45rem 0.95rem',
-                                fontSize: '0.82rem',
-                                fontWeight: 800,
-                                cursor: 'pointer'
-                              }}
-                            >
-                              {orderingDomain === item.domain ? 'Securing...' : 'Register Now'}
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* TAB 2: CONNECT EXISTING DOMAIN (BYOD) */}
-            {domainModalTab === 'BYOD' && (
-              <div>
-            {/* Input Domain Form */}
-            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.25rem' }}>
-              <input
-                type="text"
-                value={customDomainInput}
-                onChange={(e) => setCustomDomainInput(e.target.value)}
-                placeholder="e.g. rajugariventures.in or www.mycompany.com"
-                style={dynamicInputStyle}
-              />
-              <button
-                type="button"
-                onClick={handleConnectDomain}
-                disabled={connectingDomain}
-                style={{
-                  backgroundColor: '#0284c7',
-                  color: '#ffffff',
-                  border: 'none',
-                  borderRadius: '6px',
-                  padding: '0.65rem 1.1rem',
-                  fontWeight: 800,
-                  fontSize: '0.85rem',
-                  cursor: 'pointer',
-                  whiteSpace: 'nowrap'
-                }}
-              >
-                {connectingDomain ? 'Attaching...' : 'Attach Domain'}
-              </button>
-            </div>
-
-            {/* Universal Registrar Direct DNS Shortcuts */}
-            {(customDomainInput || customDomain) && (
-              <div style={{ backgroundColor: isAppDark ? 'rgba(2, 132, 199, 0.12)' : '#e0f2fe', border: '1.5px solid #0284c7', borderRadius: '12px', padding: '1.25rem', marginBottom: '1.25rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.35rem' }}>
-                  <span style={{ fontSize: '1.1rem' }}>🌐</span>
-                  <div style={{ fontSize: '0.95rem', fontWeight: 800, color: isAppDark ? '#38bdf8' : '#0284c7' }}>
-                    Connect From Any Registrar (GoDaddy, Hostinger, Namecheap, BigRock, Google Domains, Cloudflare)
-                  </div>
-                </div>
-                <p style={{ fontSize: '0.8rem', color: isAppDark ? '#cbd5e1' : '#334155', margin: '0 0 0.85rem', lineHeight: 1.45 }}>
-                  You can connect any custom domain registered with <strong>ANY provider worldwide</strong>. Click your registrar below to jump straight to their DNS settings for <strong>{getCleanDomain(customDomainInput || customDomain)}</strong>:
-                </p>
-                
-                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                  <a
-                    href="https://account.godaddy.com/products"
-                    target="_blank"
-                    rel="noreferrer"
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '0.35rem',
-                      backgroundColor: '#111827',
-                      color: '#ffffff',
-                      padding: '0.5rem 0.95rem',
-                      borderRadius: '8px',
-                      fontWeight: 800,
-                      fontSize: '0.78rem',
-                      textDecoration: 'none'
-                    }}
-                  >
-                    GoDaddy My Products ➔
-                  </a>
-
-                  <a
-                    href="https://hpanel.hostinger.com/"
-                    target="_blank"
-                    rel="noreferrer"
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '0.35rem',
-                      backgroundColor: '#673ab7',
-                      color: '#ffffff',
-                      padding: '0.5rem 0.95rem',
-                      borderRadius: '8px',
-                      fontWeight: 800,
-                      fontSize: '0.78rem',
-                      textDecoration: 'none'
-                    }}
-                  >
-                    Hostinger hPanel ➔
-                  </a>
-
-                  <a
-                    href="https://ap.www.namecheap.com/Domains/DomainList"
-                    target="_blank"
-                    rel="noreferrer"
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '0.35rem',
-                      backgroundColor: '#de3723',
-                      color: '#ffffff',
-                      padding: '0.5rem 0.95rem',
-                      borderRadius: '8px',
-                      fontWeight: 800,
-                      fontSize: '0.78rem',
-                      textDecoration: 'none'
-                    }}
-                  >
-                    Namecheap Dashboard ➔
-                  </a>
-
-                  <a
-                    href="https://www.bigrock.in/login"
-                    target="_blank"
-                    rel="noreferrer"
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '0.35rem',
-                      backgroundColor: '#0284c7',
-                      color: '#ffffff',
-                      padding: '0.5rem 0.95rem',
-                      borderRadius: '8px',
-                      fontWeight: 800,
-                      fontSize: '0.78rem',
-                      textDecoration: 'none'
-                    }}
-                  >
-                    BigRock Control Panel ➔
-                  </a>
-                </div>
-              </div>
-            )}
-
-            {/* Guided DNS Setup Copy Cards */}
-            <div style={{ backgroundColor: isAppDark ? '#1e293b' : '#f8fafc', border: `1px solid ${isAppDark ? 'rgba(255,255,255,0.1)' : '#cbd5e1'}`, borderRadius: '12px', padding: '1rem', marginBottom: '1.25rem' }}>
-              <div style={{ fontSize: '0.85rem', fontWeight: 800, marginBottom: '0.75rem', color: isAppDark ? '#f8fafc' : '#0f172a' }}>
-                📋 Required DNS Records (Add in your domain provider dashboard):
-              </div>
-              
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.82rem' }}>
-                {/* A Record */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: isAppDark ? '#0f172a' : '#ffffff', padding: '0.5rem 0.75rem', borderRadius: '6px', border: `1px solid ${isAppDark ? 'rgba(255,255,255,0.06)' : '#e2e8f0'}` }}>
-                  <div>
-                    <span style={{ fontWeight: 800, color: '#e1306c', marginRight: '0.5rem' }}>A Record</span>
-                    <span>Host: <code>@</code> ➔ Value: <code style={{ color: '#0284c7', fontWeight: 700 }}>147.93.107.21</code></span>
-                  </div>
-                  <button type="button" onClick={() => navigator.clipboard.writeText('147.93.107.21')} style={{ fontSize: '0.72rem', padding: '0.2rem 0.5rem', cursor: 'pointer', borderRadius: '4px', border: '1px solid #cbd5e1', backgroundColor: 'transparent', color: isAppDark ? '#fff' : '#0f172a' }}>Copy IP</button>
-                </div>
-
-                {/* CNAME Record */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: isAppDark ? '#0f172a' : '#ffffff', padding: '0.5rem 0.75rem', borderRadius: '6px', border: `1px solid ${isAppDark ? 'rgba(255,255,255,0.06)' : '#e2e8f0'}` }}>
-                  <div>
-                    <span style={{ fontWeight: 800, color: '#a855f7', marginRight: '0.5rem' }}>CNAME</span>
-                    <span>Host: <code>www</code> ➔ Value: <code style={{ color: '#0284c7', fontWeight: 700 }}>domains.manacity.in</code></span>
-                  </div>
-                  <button type="button" onClick={() => navigator.clipboard.writeText('domains.manacity.in')} style={{ fontSize: '0.72rem', padding: '0.2rem 0.5rem', cursor: 'pointer', borderRadius: '4px', border: '1px solid #cbd5e1', backgroundColor: 'transparent', color: isAppDark ? '#fff' : '#0f172a' }}>Copy CNAME</button>
-                </div>
-              </div>
-            </div>
-
-            {/* Modal Actions */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              {customDomain ? (
-                <button
-                  type="button"
-                  onClick={handleDisconnectDomain}
-                  style={{ backgroundColor: 'rgba(239, 68, 68, 0.15)', color: '#ef4444', border: '1px solid #ef4444', padding: '0.55rem 1rem', borderRadius: '8px', fontSize: '0.82rem', fontWeight: 800, cursor: 'pointer' }}
-                >
-                  Disconnect Custom Domain
-                </button>
-              ) : <div />}
-
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
-                <button
-                  type="button"
-                  onClick={handleVerifyDns}
-                  disabled={verifyingDns || !customDomain}
-                  style={{ backgroundColor: '#10b981', color: '#ffffff', border: 'none', padding: '0.55rem 1.1rem', borderRadius: '8px', fontSize: '0.85rem', fontWeight: 800, cursor: 'pointer' }}
-                >
-                  {verifyingDns ? 'Testing DNS...' : 'Verify Live DNS'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowDomainModal(false)}
-                  style={{ backgroundColor: isAppDark ? '#334155' : '#cbd5e1', color: isAppDark ? '#ffffff' : '#0f172a', border: 'none', padding: '0.55rem 1.1rem', borderRadius: '8px', fontSize: '0.85rem', fontWeight: 800, cursor: 'pointer' }}
-                >
-                  Close
-                </button>
-              </div>
-            </div>
-            </div>
-            )}
-
-          </div>
-        </div>
-      )}
-      {/* Modular Builder Pro Upgrade Modal */}
-      {showUpgradeModal && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.75)',
-          backdropFilter: 'blur(8px)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 9999,
-          padding: '1.5rem'
-        }}>
-          <div style={{
-            backgroundColor: isAppDark ? '#0f172a' : '#ffffff',
-            border: `1.5px solid ${isAppDark ? '#334155' : '#cbd5e1'}`,
-            borderRadius: '20px',
-            maxWidth: '680px',
-            width: '100%',
-            padding: '2.5rem',
-            textAlign: 'left',
-            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.45)',
-            maxHeight: '90vh',
-            overflowY: 'auto'
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-                <span style={{ fontSize: '1.8rem' }}>✨</span>
-                <div>
-                  <h3 style={{ fontSize: '1.35rem', fontWeight: 900, color: isAppDark ? '#f8fafc' : '#0f172a', margin: 0 }}>
-                    Upgrade to Smart Modular Builder
-                  </h3>
-                  <p style={{ fontSize: '0.84rem', color: isAppDark ? '#94a3b8' : '#64748b', margin: '0.2rem 0 0' }}>
-                    Unlock pro header variations, split showcase heroes, and advanced layout controls.
-                  </p>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowUpgradeModal(false)}
-                style={{ background: 'none', border: 'none', fontSize: '1.5rem', color: isAppDark ? '#94a3b8' : '#64748b', cursor: 'pointer' }}
-              >
-                ✕
-              </button>
-            </div>
-
-            {/* Plans Comparison Grid */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1.25rem', margin: '1.75rem 0' }}>
-              {upgradePlans.map(plan => {
-                const isLifetime = plan.interval === 'LIFETIME' || plan.planKey?.includes('lifetime');
-
-                return (
-                  <div
-                    key={plan.id || plan.planKey}
-                    style={{
-                      backgroundColor: isAppDark ? '#1e293b' : '#f8fafc',
-                      border: isLifetime ? '2px solid #6366f1' : `1.5px solid ${isAppDark ? '#334155' : '#e2e8f0'}`,
-                      borderRadius: '16px',
-                      padding: '1.5rem',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      justifyContent: 'space-between',
-                      position: 'relative'
-                    }}
-                  >
-                    {isLifetime && (
-                      <div style={{
-                        position: 'absolute',
-                        top: '-12px',
-                        right: '1rem',
-                        backgroundColor: '#6366f1',
-                        color: '#ffffff',
-                        fontSize: '0.72rem',
-                        fontWeight: 900,
-                        padding: '0.2rem 0.65rem',
-                        borderRadius: '12px'
-                      }}>
-                        BEST VALUE (LIFETIME)
-                      </div>
-                    )}
-
-                    <div>
-                      <h4 style={{ fontSize: '1.1rem', fontWeight: 800, color: isAppDark ? '#f8fafc' : '#0f172a', margin: '0 0 0.35rem' }}>
-                        {plan.title}
-                      </h4>
-                      <p style={{ fontSize: '0.78rem', color: isAppDark ? '#94a3b8' : '#64748b', margin: '0 0 1rem' }}>
-                        {plan.description || 'Full access to all current and future modular components'}
-                      </p>
-
-                      <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.35rem', margin: '0.75rem 0 1.25rem' }}>
-                        <span style={{ fontSize: '1.85rem', fontWeight: 900, color: '#6366f1' }}>
-                          ₹{plan.priceInr.toLocaleString('en-IN')}
-                        </span>
-                        <span style={{ fontSize: '0.82rem', color: isAppDark ? '#94a3b8' : '#64748b' }}>
-                          /{plan.interval === 'LIFETIME' ? 'one-time' : 'year'}
-                        </span>
-                      </div>
-
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem', marginBottom: '1.5rem' }}>
-                        {(plan.features || []).map((feat, fIdx) => (
-                          <div key={fIdx} style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', fontSize: '0.8rem', color: isAppDark ? '#cbd5e1' : '#334155' }}>
-                            <span style={{ color: '#10b981', fontWeight: 900 }}>✓</span>
-                            <span>{feat}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() => handleUpgradeModularBuilder(plan)}
-                      disabled={upgradingBuilder}
-                      style={{
-                        backgroundColor: isLifetime ? '#6366f1' : '#0284c7',
-                        color: '#ffffff',
-                        border: 'none',
-                        padding: '0.75rem 1.25rem',
-                        borderRadius: '10px',
-                        fontSize: '0.9rem',
-                        fontWeight: 800,
-                        cursor: 'pointer',
-                        width: '100%',
-                        transition: 'opacity 0.2s'
-                      }}
-                    >
-                      {upgradingBuilder ? 'Activating...' : `Activate ${plan.interval === 'LIFETIME' ? 'Lifetime Deal' : 'Annual Plan'}`}
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
-
-            <div style={{ textAlign: 'center', marginTop: '1rem' }}>
-              <span
-                onClick={() => setShowUpgradeModal(false)}
-                style={{ fontSize: '0.85rem', color: isAppDark ? '#94a3b8' : '#64748b', cursor: 'pointer', textDecoration: 'underline' }}
-              >
-                No thanks, continue with Free Single-Page Layouts
-              </span>
             </div>
           </div>
         </div>
@@ -1630,52 +642,3 @@ export default function WebsiteBuilder({ onBack, theme: appTheme }) {
     </div>
   );
 }
-
-const editorSectionStyle = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '0.5rem'
-};
-
-const editorHeaderStyle = {
-  fontSize: '1.05rem',
-  fontWeight: 600,
-  color: 'var(--accent-secondary)',
-  borderBottom: '1px solid var(--border-color)',
-  paddingBottom: '0.25rem',
-  marginBottom: '0.5rem'
-};
-
-
-const inputStyle = {
-  padding: '0.65rem 0.85rem',
-  backgroundColor: 'rgba(255, 255, 255, 0.03)',
-  border: '1px solid var(--border-color)',
-  borderRadius: 'var(--radius-sm)',
-  color: '#fff',
-  fontSize: '0.9rem',
-  outline: 'none',
-  fontFamily: 'var(--font-sans)',
-  width: '100%',
-  boxSizing: 'border-box'
-};
-
-const iconBtnStyle = {
-  padding: '0.2rem 0.4rem',
-  fontSize: '0.75rem',
-  backgroundColor: 'rgba(255,255,255,0.03)',
-  border: '1px solid var(--border-color)',
-  color: '#fff',
-  borderRadius: '4px',
-  cursor: 'pointer'
-};
-
-const deviceBtnStyle = {
-  padding: '0.3rem 0.65rem',
-  fontSize: '0.75rem',
-  fontWeight: 700,
-  border: '1px solid rgba(255,255,255,0.15)',
-  borderRadius: '6px',
-  cursor: 'pointer',
-  transition: 'all 0.2s ease'
-};

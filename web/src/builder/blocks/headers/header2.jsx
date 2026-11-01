@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import { PieChart as RechartsPie, Pie, Cell, Tooltip, ResponsiveContainer, BarChart as RechartsBarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 
-// --- SERVICE CATALOG (From VR Here Services.docx) ---
+// --- SERVICE CATALOG (From ManaCity Services.docx) ---
 const SERVICE_CATALOG = {
   'Machinery & Industrial': ['Machinery Sourcing', 'Vendor Verification', 'Turnkey Setup', 'Feasibility Analysis'],
   'Certification (ISO)': ['ISO 9001 (QMS)', 'ISO 14001 (EMS)', 'ISO 45001 (OHS)', 'ISO 27001 (ISMS)', 'HACCP/GMP', 'CE Marking'],
@@ -563,7 +563,7 @@ function App() {
     <div className="flex h-screen bg-slate-50 font-sans text-slate-800 overflow-hidden">
       <aside className={`${sidebarCollapsed ? 'w-20' : 'w-72'} bg-white h-full border-r border-slate-200 flex flex-col py-6 z-20 shadow-xl transition-all duration-300`} onMouseEnter={() => setSidebarCollapsed(false)} onMouseLeave={() => setSidebarCollapsed(true)}>
         <div className="flex items-center justify-center mb-8 px-4 h-12 overflow-hidden whitespace-nowrap">
-           <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-lg shrink-0">VR</div>
+           <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-lg shrink-0">MC</div>
            <span className={`ml-3 font-bold text-xl tracking-tight text-slate-800 transition-opacity duration-300 ${sidebarCollapsed ? 'opacity-0 w-0' : 'opacity-100'}`}>VR <span className="text-indigo-600">Here</span></span>
         </div>
         <div className="space-y-1 flex-1 w-full px-3 overflow-y-auto">

@@ -127,7 +127,7 @@ export default function EmployeeApp() {
              <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center font-bold text-lg">RS</div>
              <div>
                <h2 className="text-2xl font-bold">Good Morning, Rahul</h2>
-               <p className="text-slate-400 text-sm">It's a busy day at VR Here.</p>
+               <p className="text-slate-400 text-sm">It's a busy day at ManaCity.</p>
              </div>
           </div>
           {isClockedIn && (
@@ -271,7 +271,7 @@ export default function EmployeeApp() {
         onMouseLeave={() => setSidebarCollapsed(true)}
       >
         <div className="h-20 flex items-center justify-center border-b border-slate-100">
-           <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-lg shrink-0">VR</div>
+           <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-lg shrink-0">MC</div>
            <span className={`ml-3 font-bold text-lg tracking-tight text-slate-800 transition-opacity duration-300 ${sidebarCollapsed ? 'opacity-0 w-0' : 'opacity-100'}`}>Employee</span>
         </div>
         

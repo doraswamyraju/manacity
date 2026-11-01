@@ -102,7 +102,7 @@ const FAQ_DATA = [
 
 const App = () => {
   // --- APP STATE ---
-  const [loading, setLoading] = useState(true); // Initial load
+  const [loading, setLoading] = useState(false); // Initial load
   const [currentStep, setCurrentStep] = useState('landing');
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [uploadedFiles, setUploadedFiles] = useState({});
@@ -205,7 +205,7 @@ const App = () => {
       return (
           <div className="fixed inset-0 bg-white z-[100] flex flex-col items-center justify-center">
               <div className="w-20 h-20 bg-black rounded-2xl flex items-center justify-center mb-6 animate-bounce">
-                  <span className="text-white font-black text-3xl">VR</span>
+                  <span className="text-white font-black text-3xl">MC</span>
               </div>
               <div className="flex items-center space-x-2">
                   <span className="text-2xl font-black text-slate-900 tracking-widest">LOADING</span>
@@ -251,7 +251,7 @@ const App = () => {
             <span className="flex items-center hover:text-white transition cursor-default"><Award className="w-3 h-3 mr-2 text-red-600" /> ISO 9001:2015 Certified</span>
           </div>
           <div className="flex items-center space-x-6">
-            <a href="mailto:vrherebms@gmail.com" className="flex items-center hover:text-red-500 transition"><Mail className="w-3 h-3 mr-2" /> vrherebms@gmail.com</a>
+            <a href="mailto:contact@manacity.in" className="flex items-center hover:text-red-500 transition"><Mail className="w-3 h-3 mr-2" /> contact@manacity.in</a>
             <a href="tel:+918008530606" className="flex items-center hover:text-red-500 font-bold transition"><Phone className="w-3 h-3 mr-2" /> +91 80085 30606</a>
           </div>
         </div>
@@ -263,10 +263,10 @@ const App = () => {
             <div className="flex items-center flex-shrink-0 group cursor-pointer" onClick={() => navigateTo('landing')}>
               <div className="w-10 h-10 bg-black rounded-lg flex items-center justify-center mr-3 shadow-lg group-hover:bg-red-600 transition duration-300 relative overflow-hidden transform group-hover:scale-105">
                 <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition duration-300"></div>
-                <span className="text-white font-black text-xl tracking-tighter">VR</span>
+                <span className="text-white font-black text-xl tracking-tighter">MC</span>
               </div>
               <div className="flex flex-col">
-                <span className="text-2xl font-extrabold text-black leading-none tracking-tight group-hover:text-red-600 transition-colors">VR HERE</span>
+                <span className="text-2xl font-extrabold text-black leading-none tracking-tight group-hover:text-red-600 transition-colors">ManaCity</span>
                 <span className="text-[10px] font-bold text-red-600 uppercase tracking-widest mt-0.5">Business Solutions</span>
               </div>
             </div>
@@ -343,7 +343,7 @@ const App = () => {
       <div className={`fixed inset-0 bg-white z-[60] transform transition-transform duration-300 lg:hidden overflow-y-auto ${isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
         <div className="p-4 border-b border-slate-100 flex justify-between items-center sticky top-0 bg-white z-10">
            <div className="flex items-center">
-              <div className="w-8 h-8 bg-black rounded flex items-center justify-center mr-2"><span className="text-white font-bold">VR</span></div>
+              <div className="w-8 h-8 bg-black rounded flex items-center justify-center mr-2"><span className="text-white font-bold">MC</span></div>
               <span className="font-bold text-lg">Menu</span>
            </div>
            <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 bg-slate-100 rounded-full hover:bg-red-100 hover:text-red-600 transition"><X className="w-6 h-6" /></button>
@@ -414,7 +414,7 @@ const App = () => {
             <div className="lg:col-span-7">
               <div className="inline-flex items-center px-3 py-1 rounded-full bg-red-100 text-red-700 text-sm font-bold mb-6 border border-red-200 animate-fade-in-up"><CheckCircle className="w-4 h-4 mr-2" /> 100% Online Process</div>
               <h1 className="text-4xl lg:text-6xl font-black text-slate-900 tracking-tight leading-tight mb-6 animate-fade-in-up delay-100">Register Your <span className="text-red-600 inline-block hover:scale-105 transition-transform cursor-default">Private Limited Company</span> in Just 7 Days</h1>
-              <p className="text-lg text-slate-600 mb-8 max-w-2xl leading-relaxed animate-fade-in-up delay-200">VR HERE simplifies your business launch. Get your Certificate of Incorporation, PAN, TAN, and MOA/AOA without visiting any government office.</p>
+              <p className="text-lg text-slate-600 mb-8 max-w-2xl leading-relaxed animate-fade-in-up delay-200">ManaCity simplifies your business launch. Get your Certificate of Incorporation, PAN, TAN, and MOA/AOA without visiting any government office.</p>
               <div className="flex flex-col sm:flex-row gap-4 animate-fade-in-up delay-300">
                  <button onClick={() => navigateTo('landing', 'pricing')} className="bg-red-600 text-white px-8 py-4 rounded-xl font-bold hover:bg-red-700 transition shadow-xl shadow-red-600/20 transform hover:-translate-y-1 active:scale-95">Start Registration</button>
                  <button onClick={() => navigateTo('landing', 'process')} className="px-8 py-4 rounded-xl font-bold border-2 border-slate-200 hover:border-black hover:text-black text-slate-600 transition bg-white transform hover:-translate-y-1 active:scale-95">How it Works</button>
@@ -634,10 +634,10 @@ const App = () => {
          </div>
       </section>
 
-      {/* Why VR HERE */}
+      {/* Why ManaCity */}
       <section className="py-20 bg-black text-white">
          <div className="max-w-7xl mx-auto px-4 text-center mb-12">
-            <h2 className="text-3xl font-black mb-4">Why Choose VR HERE?</h2>
+            <h2 className="text-3xl font-black mb-4">Why Choose ManaCity?</h2>
             <p className="text-slate-400">We are the fastest growing business services platform in India.</p>
          </div>
          <div className="max-w-7xl mx-auto px-4 grid md:grid-cols-4 gap-8">
@@ -661,7 +661,7 @@ const App = () => {
             <h2 className="text-3xl font-black text-center text-slate-900 mb-12">What Our Customers Say</h2>
             <div className="grid md:grid-cols-3 gap-8">
                {[
-                  {n: "Rajesh K.", c: "Tech Startup", t: "VR HERE made the process seamless. Got my company registered in 6 days!"},
+                  {n: "Rajesh K.", c: "Tech Startup", t: "ManaCity made the process seamless. Got my company registered in 6 days!"},
                   {n: "Priya S.", c: "E-commerce", t: "Best pricing in the market. No hidden charges and great support team."},
                   {n: "Amit V.", c: "Consultancy", t: "Highly professional service. The dashboard is very easy to use for uploading docs."}
                ].map((test, i) => (
@@ -815,10 +815,10 @@ const App = () => {
             <div className="lg:col-span-3 space-y-8">
               <div className="flex items-center space-x-3 group cursor-pointer" onClick={() => navigateTo('landing')}>
                  <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center transform group-hover:rotate-12 transition-transform duration-300">
-                   <span className="text-black font-black text-xl">VR</span>
+                   <span className="text-black font-black text-xl">MC</span>
                  </div>
                  <div>
-                   <h2 className="text-2xl font-extrabold text-white leading-none group-hover:text-red-500 transition-colors">VR HERE</h2>
+                   <h2 className="text-2xl font-extrabold text-white leading-none group-hover:text-red-500 transition-colors">ManaCity</h2>
                    <p className="text-[10px] text-red-500 font-bold tracking-widest uppercase mt-1">Business Solutions</p>
                  </div>
               </div>
@@ -868,7 +868,7 @@ const App = () => {
             </div>
           </div>
           <div className="pt-8 border-t border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-slate-500">
-            <p>&copy; {new Date().getFullYear()} VR HERE Business Management Solutions. All rights reserved.</p>
+            <p>&copy; {new Date().getFullYear()} ManaCity Business Management Solutions. All rights reserved.</p>
             <div className="flex space-x-6">
               <a href="#" className="hover:text-white transition">Privacy Policy</a>
               <a href="#" className="hover:text-white transition">Terms & Conditions</a>

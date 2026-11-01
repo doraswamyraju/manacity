@@ -421,7 +421,7 @@ export default function App() {
         onMouseLeave={() => setSidebarCollapsed(true)}
       >
         <div className="flex items-center justify-center mb-8 px-4 h-12 overflow-hidden whitespace-nowrap">
-           <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-lg shrink-0">VR</div>
+           <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-lg shrink-0">MC</div>
            <span className={`ml-3 font-bold text-xl tracking-tight text-slate-800 transition-opacity duration-300 ${sidebarCollapsed ? 'opacity-0 w-0' : 'opacity-100'}`}>VR <span className="text-indigo-600">Here</span></span>
         </div>
         

@@ -138,7 +138,7 @@ const LoginView = ({ onLogin }) => {
         <form onSubmit={handleLogin} className="space-y-6">
           <div>
             <label className="block text-sm font-medium text-slate-300 mb-2">Email Address</label>
-            <input type="email" defaultValue="admin@vrhere.com" className="w-full bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all" />
+            <input type="email" defaultValue="contact@manacity.in" className="w-full bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all" />
           </div>
           <div>
             <label className="block text-sm font-medium text-slate-300 mb-2">Password</label>
@@ -153,7 +153,7 @@ const LoginView = ({ onLogin }) => {
           </button>
         </form>
         <div className="mt-6 text-center">
-          <p className="text-xs text-slate-500">VR Here Platform v1.2.0</p>
+          <p className="text-xs text-slate-500">ManaCity Platform v1.2.0</p>
         </div>
       </div>
     </div>
@@ -695,7 +695,7 @@ export default function App() {
       >
         <div className="h-16 flex items-center px-6 border-b border-slate-100 overflow-hidden whitespace-nowrap">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-indigo-200 shrink-0">VR</div>
+            <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-indigo-200 shrink-0">MC</div>
             <span className={`font-bold text-xl tracking-tight text-slate-800 transition-opacity duration-300 ${sidebarCollapsed ? 'opacity-0' : 'opacity-100'}`}>VR <span className="text-indigo-600">Here</span></span>
           </div>
         </div>
@@ -761,7 +761,7 @@ export default function App() {
                  </div>
               )}
             </div>
-            <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 p-0.5 cursor-pointer"><div className="w-full h-full rounded-full bg-white flex items-center justify-center text-xs font-bold text-indigo-600">VR</div></div>
+            <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 p-0.5 cursor-pointer"><div className="w-full h-full rounded-full bg-white flex items-center justify-center text-xs font-bold text-indigo-600">MC</div></div>
           </div>
         </header>
 
