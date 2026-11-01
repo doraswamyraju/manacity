@@ -155,3 +155,4 @@ module.exports = {
   searchDomainAvailability,
   recordDomainPurchaseIntent
 };
+

@@ -191,3 +191,4 @@ cd /var/www/manacity && git reset --hard origin/main && git pull origin main && 
    - Add `RESELLERCLUB_USER_ID` and `RESELLERCLUB_API_KEY` to `backend/.env` to switch from DNS simulation to live domain booking.
 4. **Seed Remaining Header and Hero Component Variants**:
    - Wire the remaining 8 headers and 4 hero components from `project_3999` into ManaCity's dynamic block renderer.
+
