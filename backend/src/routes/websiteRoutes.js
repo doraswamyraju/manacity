@@ -21,7 +21,7 @@ router.get('/public/:subdomain/robots.txt', websiteController.getRobots);
 router.get('/public/:subdomain/manifest.json', websiteController.getManifest);
 
 // In-Builder Domain Search & Buying (ResellerClub)
-router.get('/domains/search', authMiddleware, websiteController.searchDomainToBuy);
-router.post('/domains/order', authMiddleware, websiteController.orderNewDomain);
+router.get('/domains/search', auth, websiteController.searchDomainToBuy);
+router.post('/domains/order', auth, websiteController.orderNewDomain);
 
 module.exports = router;

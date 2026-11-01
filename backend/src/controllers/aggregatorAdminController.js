@@ -119,25 +119,42 @@ exports.updateListingModeration = async (req, res) => {
 // Get All Public "Get Quote" Leads
 exports.getPublicLeads = async (req, res) => {
   try {
-    const leads = await prisma.lead.findMany({
+    // 1. Fetch leads without strict relation join to prevent crashes on orphaned leads
+    const rawLeads = await prisma.lead.findMany({
       take: 100,
-      orderBy: { createdAt: 'desc' },
-      include: {
-        businessGroup: {
-          select: {
-            id: true,
-            name: true,
-            city: true,
-            mobileNumber: true,
-            email: true
-          }
-        }
+      orderBy: { createdAt: 'desc' }
+    });
+
+    // 2. Fetch all referenced businessGroups safely
+    const bgIds = Array.from(new Set(rawLeads.map(l => l.businessGroupId).filter(Boolean)));
+    const businessGroups = await prisma.businessGroup.findMany({
+      where: { id: { in: bgIds } },
+      select: {
+        id: true,
+        name: true,
+        city: true,
+        mobileNumber: true,
+        email: true
       }
     });
 
+    const bgMap = new Map(businessGroups.map(bg => [bg.id, bg]));
+
+    // 3. Map leads with safe fallback if businessGroup was deleted or missing
+    const safeLeads = rawLeads.map(lead => ({
+      ...lead,
+      businessGroup: bgMap.get(lead.businessGroupId) || {
+        id: lead.businessGroupId,
+        name: 'General / Removed Business',
+        city: 'Tirupati',
+        mobileNumber: lead.contactPhone || '',
+        email: lead.contactEmail || ''
+      }
+    }));
+
     return res.status(200).json({
       status: 'success',
-      leads
+      leads: safeLeads
     });
   } catch (error) {
     console.error('Error fetching public leads:', error);
