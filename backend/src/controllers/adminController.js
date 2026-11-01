@@ -127,6 +127,10 @@ exports.getBusinesses = async (req, res) => {
         owner: {
           select: { id: true, name: true, email: true, role: true }
         },
+        subscriptions: {
+          where: { status: 'ACTIVE' },
+          orderBy: { createdAt: 'desc' }
+        },
         _count: {
           select: { locations: true }
         }
@@ -136,13 +140,69 @@ exports.getBusinesses = async (req, res) => {
 
     const businesses = rawBusinesses.map(b => ({
       ...b,
-      status: b.status || 'LIVE'
+      status: b.status || 'LIVE',
+      hasAdvancedBuilder: Boolean(b.subscriptions?.[0]?.hasAdvancedBuilder),
+      builderPlan: b.subscriptions?.[0]?.advancedBuilderPlan || null
     }));
 
     res.json({ status: 'success', businesses });
   } catch (error) {
     console.error('Fetch businesses detailed error:', error?.message || error, error?.stack);
     res.status(500).json({ error: 'Failed to fetch business directory.', details: error?.message || String(error) });
+  }
+};
+
+// 4a. Toggle or Grant Modular Builder Access for a Business
+exports.toggleBusinessBuilderAccess = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { hasAdvancedBuilder, plan } = req.body;
+
+    const businessGroup = await prisma.businessGroup.findUnique({ where: { id } });
+    if (!businessGroup) {
+      return res.status(404).json({ error: 'Business profile not found.' });
+    }
+
+    const planInterval = plan || 'LIFETIME';
+    const expiry = planInterval === 'LIFETIME' ? null : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
+
+    const existingSub = await prisma.subscription.findFirst({
+      where: { businessGroupId: id },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    let updatedSub;
+    if (existingSub) {
+      updatedSub = await prisma.subscription.update({
+        where: { id: existingSub.id },
+        data: {
+          hasAdvancedBuilder: Boolean(hasAdvancedBuilder),
+          advancedBuilderPlan: hasAdvancedBuilder ? planInterval : null,
+          builderExpiresAt: hasAdvancedBuilder ? expiry : null,
+          status: 'ACTIVE'
+        }
+      });
+    } else {
+      updatedSub = await prisma.subscription.create({
+        data: {
+          businessGroupId: id,
+          tier: 'STARTER',
+          status: 'ACTIVE',
+          hasAdvancedBuilder: Boolean(hasAdvancedBuilder),
+          advancedBuilderPlan: hasAdvancedBuilder ? planInterval : null,
+          builderExpiresAt: hasAdvancedBuilder ? expiry : null
+        }
+      });
+    }
+
+    res.json({
+      status: 'success',
+      message: `Modular Builder access ${hasAdvancedBuilder ? 'granted' : 'revoked'} successfully for "${businessGroup.name}".`,
+      subscription: updatedSub
+    });
+  } catch (error) {
+    console.error('Toggle builder access error:', error);
+    res.status(500).json({ error: 'Failed to update builder access.' });
   }
 };
 

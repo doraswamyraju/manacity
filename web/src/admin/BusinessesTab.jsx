@@ -73,6 +73,21 @@ function BusinessesTab({ businesses, setBusinesses, searchQuery, setSearchQuery,
     return () => clearTimeout(timer);
   }, [placesQuery]);
 
+  const handleToggleBuilderAccess = async (bus) => {
+    const newAccess = !bus.hasAdvancedBuilder;
+    try {
+      await axios.patch('/api/admin/businesses/' + bus.id + '/builder-access', {
+        hasAdvancedBuilder: newAccess,
+        plan: newAccess ? 'LIFETIME' : null
+      });
+      if (setBusinesses) {
+        setBusinesses(prev => prev.map(b => b.id === bus.id ? { ...b, hasAdvancedBuilder: newAccess } : b));
+      }
+    } catch (err) {
+      alert('Failed to update builder access: ' + (err.response?.data?.error || err.message));
+    }
+  };
+
   const handleSelectPrediction = async (prediction) => {
     setShowDropdown(false);
     setPlacesQuery(prediction.name);
@@ -852,6 +867,7 @@ function BusinessesTab({ businesses, setBusinesses, searchQuery, setSearchQuery,
               <th style={{ padding: '0.85rem 1rem' }}>Business Name</th>
               <th style={{ padding: '0.85rem 1rem' }}>Owner User</th>
               <th style={{ padding: '0.85rem 1rem' }}>Locations</th>
+              <th style={{ padding: '0.85rem 1rem' }}>Builder Tier</th>
               <th style={{ padding: '0.85rem 1rem' }}>Status</th>
               <th style={{ padding: '0.85rem 1rem', textAlign: 'right' }}>Actions (Wizard / Assign / Live / Delete)</th>
             </tr>
@@ -872,6 +888,26 @@ function BusinessesTab({ businesses, setBusinesses, searchQuery, setSearchQuery,
                   </td>
                   <td style={{ padding: '0.85rem 1rem', color: isDark ? '#cbd5e1' : '#334155' }}>{bus._count?.locations || 0}</td>
                   
+                  {/* Builder Tier Badge */}
+                  <td style={{ padding: '0.85rem 1rem' }}>
+                    <button
+                      type="button"
+                      onClick={() => handleToggleBuilderAccess(bus)}
+                      style={{
+                        padding: '0.25rem 0.65rem',
+                        borderRadius: '12px',
+                        fontSize: '0.74rem',
+                        fontWeight: 800,
+                        border: 'none',
+                        cursor: 'pointer',
+                        backgroundColor: bus.hasAdvancedBuilder ? 'rgba(99, 102, 241, 0.18)' : 'rgba(148, 163, 184, 0.15)',
+                        color: bus.hasAdvancedBuilder ? '#818cf8' : (isDark ? '#94a3b8' : '#64748b')
+                      }}
+                    >
+                      {bus.hasAdvancedBuilder ? '✨ PRO BUILDER' : '🔒 FREE TIER'}
+                    </button>
+                  </td>
+
                   {/* Status Badge */}
                   <td style={{ padding: '0.85rem 1rem' }}>
                     <span style={{
@@ -890,6 +926,28 @@ function BusinessesTab({ businesses, setBusinesses, searchQuery, setSearchQuery,
                   <td style={{ padding: '0.85rem 1rem', textAlign: 'right' }}>
                     <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end', alignItems: 'center' }}>
                       
+                      {/* Toggle Modular Builder Feature */}
+                      <button
+                        type="button"
+                        onClick={() => handleToggleBuilderAccess(bus)}
+                        title={bus.hasAdvancedBuilder ? 'Revoke Modular Builder Access' : 'Grant Full Modular Builder Access'}
+                        style={{
+                          padding: '0.35rem 0.65rem',
+                          backgroundColor: bus.hasAdvancedBuilder ? 'rgba(99, 102, 241, 0.15)' : 'rgba(16, 185, 129, 0.15)',
+                          border: bus.hasAdvancedBuilder ? '1px solid rgba(99, 102, 241, 0.4)' : '1px solid rgba(16, 185, 129, 0.4)',
+                          color: bus.hasAdvancedBuilder ? '#a5b4fc' : '#34d399',
+                          borderRadius: '6px',
+                          cursor: 'pointer',
+                          fontSize: '0.75rem',
+                          fontWeight: 700,
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '0.35rem'
+                        }}
+                      >
+                        {bus.hasAdvancedBuilder ? '✨ Pro Active' : '⚡ Grant Pro'}
+                      </button>
+
                       {/* Onboarding Wizard Action Button */}
                       <button
                         onClick={() => {

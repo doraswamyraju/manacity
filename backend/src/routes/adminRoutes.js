@@ -22,6 +22,7 @@ router.get('/businesses', adminController.getBusinesses);
 router.post('/businesses', adminController.createBusinessByAdmin);
 router.patch('/businesses/:id/reassign', adminController.reassignBusinessOwner);
 router.patch('/businesses/:id/status', adminController.updateBusinessStatus);
+router.patch('/businesses/:id/builder-access', adminController.toggleBusinessBuilderAccess);
 router.delete('/businesses/:id', adminController.deleteBusiness);
 
 // Directory Aggregator Super Admin Control Hub

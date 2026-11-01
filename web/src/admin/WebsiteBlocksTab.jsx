@@ -511,6 +511,37 @@ export default function WebsiteBlocksTab({ theme = 'dark' }) {
                 />
               </div>
 
+              <div>
+                <label style={{ fontSize: '0.8rem', fontWeight: 700, color: isDark ? '#cbd5e1' : '#334155', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
+                  <span>Custom Block Code / JSX Component Template (Optional)</span>
+                  <span style={{ fontSize: '0.72rem', color: '#6366f1' }}>HTML / JSX Props JSON</span>
+                </label>
+                <textarea
+                  rows={4}
+                  placeholder="<!-- Custom Block HTML/JSX or JSON Schema -->
+<div className='custom-hero-block'>...</div>"
+                  value={editingBlock.codeTemplate || (editingBlock.defaultProps?.customCode || '')}
+                  onChange={e => setEditingBlock({ 
+                    ...editingBlock, 
+                    codeTemplate: e.target.value,
+                    defaultProps: { ...(editingBlock.defaultProps || {}), customCode: e.target.value }
+                  })}
+                  style={{
+                    width: '100%',
+                    padding: '0.6rem 0.85rem',
+                    borderRadius: '8px',
+                    backgroundColor: isDark ? '#020617' : '#f8fafc',
+                    color: isDark ? '#38bdf8' : '#0369a1',
+                    border: `1px solid ${isDark ? '#334155' : '#cbd5e1'}`,
+                    outline: 'none',
+                    boxSizing: 'border-box',
+                    fontFamily: 'monospace',
+                    fontSize: '0.78rem',
+                    resize: 'vertical'
+                  }}
+                />
+              </div>
+
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.25rem' }}>
                 <input
                   type="checkbox"

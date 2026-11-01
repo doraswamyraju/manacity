@@ -1091,36 +1091,98 @@ export default function WebsiteBuilder({ onBack, theme: appTheme }) {
               </button>
             </div>
 
-            {/* GoDaddy Quick DNS Access Option */}
+            {/* Universal Registrar Direct DNS Shortcuts */}
             {(customDomainInput || customDomain) && (
-              <div style={{ backgroundColor: isAppDark ? 'rgba(2, 132, 199, 0.12)' : '#e0f2fe', border: '1.5px solid #0284c7', borderRadius: '12px', padding: '1rem', marginBottom: '1.25rem', textAlign: 'center' }}>
-                <div style={{ fontSize: '0.95rem', fontWeight: 800, color: isAppDark ? '#38bdf8' : '#0284c7', marginBottom: '0.35rem' }}>
-                  ⚡ Instant GoDaddy DNS Shortcut & Setup
+              <div style={{ backgroundColor: isAppDark ? 'rgba(2, 132, 199, 0.12)' : '#e0f2fe', border: '1.5px solid #0284c7', borderRadius: '12px', padding: '1.25rem', marginBottom: '1.25rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.35rem' }}>
+                  <span style={{ fontSize: '1.1rem' }}>🌐</span>
+                  <div style={{ fontSize: '0.95rem', fontWeight: 800, color: isAppDark ? '#38bdf8' : '#0284c7' }}>
+                    Connect From Any Registrar (GoDaddy, Hostinger, Namecheap, BigRock, Google Domains, Cloudflare)
+                  </div>
                 </div>
-                <div style={{ fontSize: '0.8rem', color: isAppDark ? '#cbd5e1' : '#334155', marginBottom: '0.85rem' }}>
-                  Click below to open your GoDaddy DNS Manager page directly for <strong>{getCleanDomain(customDomainInput || customDomain)}</strong>:
-                </div>
+                <p style={{ fontSize: '0.8rem', color: isAppDark ? '#cbd5e1' : '#334155', margin: '0 0 0.85rem', lineHeight: 1.45 }}>
+                  You can connect any custom domain registered with <strong>ANY provider worldwide</strong>. Click your registrar below to jump straight to their DNS settings for <strong>{getCleanDomain(customDomainInput || customDomain)}</strong>:
+                </p>
                 
-                <div style={{ display: 'flex', gap: '0.65rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                   <a
-                    href={`https://dns.godaddy.com/zone/${getCleanDomain(customDomainInput || customDomain)}`}
+                    href="https://account.godaddy.com/products"
                     target="_blank"
                     rel="noreferrer"
                     style={{
                       display: 'inline-flex',
                       alignItems: 'center',
-                      gap: '0.4rem',
-                      backgroundColor: '#10b981',
+                      gap: '0.35rem',
+                      backgroundColor: '#111827',
                       color: '#ffffff',
-                      padding: '0.65rem 1.35rem',
+                      padding: '0.5rem 0.95rem',
                       borderRadius: '8px',
                       fontWeight: 800,
-                      fontSize: '0.88rem',
-                      textDecoration: 'none',
-                      boxShadow: '0 4px 15px rgba(16, 185, 129, 0.3)'
+                      fontSize: '0.78rem',
+                      textDecoration: 'none'
                     }}
                   >
-                    ↗️ Open GoDaddy DNS Manager (Direct)
+                    GoDaddy My Products ➔
+                  </a>
+
+                  <a
+                    href="https://hpanel.hostinger.com/"
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.35rem',
+                      backgroundColor: '#673ab7',
+                      color: '#ffffff',
+                      padding: '0.5rem 0.95rem',
+                      borderRadius: '8px',
+                      fontWeight: 800,
+                      fontSize: '0.78rem',
+                      textDecoration: 'none'
+                    }}
+                  >
+                    Hostinger hPanel ➔
+                  </a>
+
+                  <a
+                    href="https://ap.www.namecheap.com/Domains/DomainList"
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.35rem',
+                      backgroundColor: '#de3723',
+                      color: '#ffffff',
+                      padding: '0.5rem 0.95rem',
+                      borderRadius: '8px',
+                      fontWeight: 800,
+                      fontSize: '0.78rem',
+                      textDecoration: 'none'
+                    }}
+                  >
+                    Namecheap Dashboard ➔
+                  </a>
+
+                  <a
+                    href="https://www.bigrock.in/login"
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.35rem',
+                      backgroundColor: '#0284c7',
+                      color: '#ffffff',
+                      padding: '0.5rem 0.95rem',
+                      borderRadius: '8px',
+                      fontWeight: 800,
+                      fontSize: '0.78rem',
+                      textDecoration: 'none'
+                    }}
+                  >
+                    BigRock Control Panel ➔
                   </a>
                 </div>
               </div>
